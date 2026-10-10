@@ -46,13 +46,13 @@
     "verdict": {
       "policy": "pay-when-safe",
       "network": "atlantic",
-      "block": "31252328",
+      "block": "31252507",
       "allow": true,
       "checks": [
         {
           "label": "payer keeps a 1 PHRS reserve",
           "kind": "native_balance",
-          "observed": "14.985175064 PHRS",
+          "observed": "14.984154064 PHRS",
           "expected": ">= 1 PHRS",
           "pass": true
         },
@@ -73,7 +73,7 @@
         {
           "label": "payer has no stuck transaction",
           "kind": "nonce_settled",
-          "observed": "nonce latest 6 / pending 6",
+          "observed": "nonce latest 7 / pending 7",
           "expected": "latest == pending",
           "pass": true
         },
@@ -85,18 +85,18 @@
           "pass": true
         }
       ],
-      "evaluatedAt": "2026-10-10T17:48:41.058Z"
+      "evaluatedAt": "2026-10-10T17:52:58.538Z"
     },
     "recheck": {
       "policy": "pay-when-safe",
       "network": "atlantic",
-      "block": "31252329",
+      "block": "31252507",
       "allow": true,
       "checks": [
         {
           "label": "payer keeps a 1 PHRS reserve",
           "kind": "native_balance",
-          "observed": "14.985175064 PHRS",
+          "observed": "14.984154064 PHRS",
           "expected": ">= 1 PHRS",
           "pass": true
         },
@@ -117,7 +117,7 @@
         {
           "label": "payer has no stuck transaction",
           "kind": "nonce_settled",
-          "observed": "nonce latest 6 / pending 6",
+          "observed": "nonce latest 7 / pending 7",
           "expected": "latest == pending",
           "pass": true
         },
@@ -129,12 +129,12 @@
           "pass": true
         }
       ],
-      "evaluatedAt": "2026-10-10T17:48:42.373Z"
+      "evaluatedAt": "2026-10-10T17:52:59.147Z"
     },
-    "tx": "0x0fda4e6f656566e65b2067d0d34492bb49449b873f7faa3bb8eda9f0daea5b50",
+    "tx": "0xfa437f21fb7dd6ef66f5915ce4cff7f7e032cf110d709b79f5d52ad64deddff8",
     "receipt": {
       "status": "success",
-      "blockNumber": "31252331"
+      "blockNumber": "31252509"
     }
   }
 }

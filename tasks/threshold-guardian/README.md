@@ -1,16 +1,20 @@
 # Threshold Guardian — Medium
 
 **Task:** a skill that evaluates multiple onchain conditions before an action executes
-(the example Medium task in the Season of AI announcement; re-check against the board wording when it opens).
+(the example Medium task in the Pharos Season of AI announcement).
 **Run:** `npm run guard -- tasks/threshold-guardian/policies/<policy>.json [--execute] [--proof]`
-**Uses:** Chain MCP ✅ · Docs MCP — · SkillEngine — (network config and token addresses come from SkillEngine's `assets/`)
+**Uses:** Chain MCP ✅ (all condition reads + receipt) · Docs MCP — · SkillEngine — (chain IDs, RPC URLs and token
+addresses in `src/lib/networks.ts` are copied from SkillEngine's `assets/`; the skill itself is not invoked)
 
 ## What it does
 You describe a guarded action as a JSON policy: a list of conditions and one action. The Guardian reads every
-condition live through the Pharos Chain MCP, pins all reads to one block, and allows the action only when every
-condition passes. If a read fails, the check fails and the action is denied. With `--execute` it evaluates the
-policy again at the newest block right before signing, so a condition that changed in between still stops the
-send. It then confirms the receipt through the same MCP.
+condition live through the Pharos Chain MCP and allows the action only when every condition passes. State reads
+(balances, `eth_call`, code, logs) are pinned to the block number fetched at the start of the evaluation. Gas price
+and the latest/pending nonce pair are read live, since the MCP tools for them take no block argument. If a read
+fails, the check fails and the action is denied. With `--execute` it evaluates the policy again at the newest block
+right before signing, so a condition that changed in between still stops the send. A short gap remains between that
+re-check and the broadcast, while viem estimates gas and signs. It then confirms the receipt through the same MCP. A
+reverted transfer is reported as `reverted` with exit code 1, not as success.
 
 ```mermaid
 flowchart LR
@@ -35,19 +39,45 @@ flowchart LR
 | `log_activity` | event count from a contract in the last N ≤ 1000 blocks | `get_logs` |
 | (block pin, receipt) | | `get_block_number`, `get_transaction_receipt` |
 
-That's 9 Chain MCP tools in use. Mainnet reads go to the hosted keyless server
-`https://mcp.pharos.xyz/mcp`. The hosted server only serves mainnet, so Atlantic testnet reads go to the same
-open-source server ([PharosNetwork/pharos-mcp](https://github.com/PharosNetwork/pharos-mcp), pinned commit) run
-locally over stdio and pointed at the testnet RPC (`npm run setup:mcp` builds it). Actions are native transfers on
-Atlantic testnet only. Mainnet policies are dry-run by design, and the schema rejects a mainnet action.
+That's 8 of the Chain MCP's 13 read tools (`src/guardian/reader.ts`). Mainnet reads go to the hosted keyless server
+`https://mcp.pharos.xyz/mcp`. That server only serves mainnet, so Atlantic testnet reads use the open-source server
+code ([PharosNetwork/pharos-mcp](https://github.com/PharosNetwork/pharos-mcp), commit `9a3750c`) run locally over
+stdio and pointed at the testnet RPC (`npm run setup:mcp` builds it). The child process gets only `PATH` and the
+`PHAROS_*` settings, never `PRIVATE_KEY`. Actions are native transfers on Atlantic testnet only. Mainnet policies are
+dry-run by design, and the schema rejects a mainnet action.
 
-## Proof (live runs, 2026-10-11)
+## Proof (live runs, 2026-10-10 17:52 UTC)
 
 | Policy | Network | Result | Evidence |
 |---|---|---|---|
-| `wpros-watch.json` | Pharos mainnet | ALLOW 4/4 → dry-run (WPROS backing 23.38M PROS, 109 USDC transfers in 1000 blocks, 10 gwei) | [`proof/wpros-watch.dry-run.json`](proof/wpros-watch.dry-run.json) |
-| `pay-when-safe-deny.json` | Atlantic | DENY 4/5 (reserve 1000 PHRS > 14.99 held) → nothing sent | [`proof/pay-when-safe-deny.denied.json`](proof/pay-when-safe-deny.denied.json) |
-| `pay-when-safe.json` | Atlantic | ALLOW 5/5 → re-check ALLOW → 0.001 PHRS sent, `success` in block 31252331 | [tx `0x0fda4e6f…5b50`](https://atlantic.pharosscan.xyz/tx/0x0fda4e6f656566e65b2067d0d34492bb49449b873f7faa3bb8eda9f0daea5b50) · [`proof/pay-when-safe.executed.json`](proof/pay-when-safe.executed.json) |
+| `wpros-watch.json` | Pharos mainnet | ALLOW 4/4 → dry-run (WPROS backing 23,378,308 PROS, 112 USDC transfers in 1000 blocks, 10 gwei) | [`proof/wpros-watch.dry-run.json`](proof/wpros-watch.dry-run.json) |
+| `pay-when-safe-deny.json` | Atlantic | DENY 4/5 (needs a 1000 PHRS reserve, wallet holds 14.98) → nothing sent | [`proof/pay-when-safe-deny.denied.json`](proof/pay-when-safe-deny.denied.json) |
+| `pay-when-safe.json` | Atlantic | ALLOW 5/5 → re-check ALLOW → 0.001 PHRS sent, `success` in block 31252509 | [tx `0xfa437f21…dff8`](https://atlantic.pharosscan.xyz/tx/0xfa437f21fb7dd6ef66f5915ce4cff7f7e032cf110d709b79f5d52ad64deddff8) · [`proof/pay-when-safe.executed.json`](proof/pay-when-safe.executed.json) |
+
+An earlier run of the same policy, 4 minutes before, produced
+[tx `0x0fda4e6f…5b50`](https://atlantic.pharosscan.xyz/tx/0x0fda4e6f656566e65b2067d0d34492bb49449b873f7faa3bb8eda9f0daea5b50)
+(block 31252331).
+
+The abort path (a condition flips between the first check and the send) is covered by a unit test
+(`test/guard.test.ts`, "aborts when a condition flips"). It has not been shown live.
+
+Output of the executed run:
+
+```text
+pay-when-safe @ atlantic block 31252507
+  PASS  payer keeps a 1 PHRS reserve: 14.984154064 PHRS (need >= 1 PHRS)
+  PASS  gas is not spiking: 10 gwei (need <= 50 gwei)
+  PASS  recipient is a plain wallet, not a contract: no code (need no code)
+  PASS  payer has no stuck transaction: nonce latest 7 / pending 7 (need latest == pending)
+  PASS  WPHRS wrapper is backed by at least 1000 PHRS: 151025265.693784358647372258 PHRS (need >= 1000 PHRS)
+  => ALLOW (5/5 conditions pass)
+  re-checked at block 31252507: ALLOW → broadcast 0.001 PHRS transfer
+  tx success in block 31252509: https://atlantic.pharosscan.xyz/tx/0xfa437f21fb7dd6ef66f5915ce4cff7f7e032cf110d709b79f5d52ad64deddff8
+status: executed
+```
+
+The DENY run prints `FAIL  payer keeps a 1000 PHRS reserve …: 14.984154064 PHRS (need >= 1000 PHRS)` and
+`=> DENY (4/5 conditions pass)`. It sends nothing and exits 1.
 
 ## Writing a policy
 
@@ -65,6 +95,6 @@ Atlantic testnet only. Mainnet policies are dry-run by design, and the schema re
 ```
 
 `op` is one of `gte gt lte lt eq`. Amounts are decimal strings in whole units, never floats. `"$SELF"` is the
-signing wallet. Every field is validated before any read happens (`src/guardian/policy.ts`).
-
-- Video: _pending (human records + posts for the +50 bonus)_
+signing wallet. Before any read, `src/guardian/policy.ts` validates the network, each condition's kind, addresses
+(mixed-case addresses must have a valid checksum), operators, amounts, the log window (1–1000 blocks) and the
+action. A transfer amount must be greater than 0.

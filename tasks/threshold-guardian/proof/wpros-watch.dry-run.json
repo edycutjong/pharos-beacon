@@ -38,7 +38,7 @@
     "verdict": {
       "policy": "wpros-watch",
       "network": "pharos",
-      "block": "19901916",
+      "block": "19902200",
       "allow": true,
       "checks": [
         {
@@ -58,7 +58,7 @@
         {
           "label": "USDC had at least 10 transfers in the last 1000 blocks",
           "kind": "log_activity",
-          "observed": "109 logs",
+          "observed": "112 logs",
           "expected": ">= 10",
           "pass": true
         },
@@ -70,7 +70,7 @@
           "pass": true
         }
       ],
-      "evaluatedAt": "2026-10-10T17:48:09.777Z"
+      "evaluatedAt": "2026-10-10T17:52:54.677Z"
     }
   }
 }

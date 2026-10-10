@@ -1,23 +1,23 @@
 # Beacon
 
 Agent tools for **Pharos**, built task by task for the Pharos Season of AI Agent Arena.
-The tasks share one toolkit: the Pharos Chain MCP for every onchain read, viem for local signing, and network
-config from SkillEngine. Each task lives in its own folder under `tasks/`.
+The tasks share one toolkit: the Pharos Chain MCP for every condition read, viem for local signing, and chain
+constants copied from SkillEngine's `assets/`. Each task lives in its own folder under `tasks/`.
 
 ## Tasks
 
 | Task | Tier | What | Proof |
 |---|---|---|---|
-| [Threshold Guardian](tasks/threshold-guardian/) | Medium | Checks N onchain conditions through Chain MCP and acts only if all pass. Fails closed and re-checks before sending | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0x0fda4e6f656566e65b2067d0d34492bb49449b873f7faa3bb8eda9f0daea5b50) · [proof/](tasks/threshold-guardian/proof/) |
+| [Threshold Guardian](tasks/threshold-guardian/) | Medium | Checks N onchain conditions through Chain MCP and acts only if all pass. Fails closed and re-checks before sending | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0xfa437f21fb7dd6ef66f5915ce4cff7f7e032cf110d709b79f5d52ad64deddff8) · [proof/](tasks/threshold-guardian/proof/) |
 
 ## Quick start
 
 ```bash
 npm install
+npm test            # 35 unit tests (policy validation, MCP tool mapping, guard outcomes)
+npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
-npm run smoke       # hosted Chain MCP tools + mainnet chain info, testnet block, wallet balance
-npm test            # 31 unit tests (policy validation, MCP tool mapping, guard outcomes)
-npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet, read-only, no key needed
+npm run smoke       # hosted Chain MCP tool list + chain info, Atlantic block (+ wallet balance if PRIVATE_KEY is set)
 ```
 
 Write operations target **Pharos Atlantic testnet** (chain 688689) and need `PRIVATE_KEY` (see `.env.example`;
