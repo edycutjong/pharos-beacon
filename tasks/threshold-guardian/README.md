@@ -58,6 +58,10 @@ An earlier run of the same policy, 4 minutes before, produced
 [tx `0x0fda4e6f…5b50`](https://atlantic.pharosscan.xyz/tx/0x0fda4e6f656566e65b2067d0d34492bb49449b873f7faa3bb8eda9f0daea5b50)
 (block 31252331).
 
+In this run the re-check landed in the same block as the first check (31252507) because the chain had not
+advanced yet. It is still a second, independent set of MCP reads. The block above omits the final
+`proof: <path>` line that `--proof` prints.
+
 The abort path (a condition flips between the first check and the send) is covered by a unit test
 (`test/guard.test.ts`, "aborts when a condition flips"). It has not been shown live.
 
@@ -97,4 +101,5 @@ The DENY run prints `FAIL  payer keeps a 1000 PHRS reserve …: 14.984154064 PHR
 `op` is one of `gte gt lte lt eq`. Amounts are decimal strings in whole units, never floats. `"$SELF"` is the
 signing wallet. Before any read, `src/guardian/policy.ts` validates the network, each condition's kind, addresses
 (mixed-case addresses must have a valid checksum), operators, amounts, the log window (1–1000 blocks) and the
-action. A transfer amount must be greater than 0.
+action. A transfer amount must be greater than 0. Amounts and thresholds may not carry more decimal places than their
+unit (18 for PROS/PHRS, 9 for gwei, the token's own `decimals()` for ERC-20), so nothing is rounded silently.

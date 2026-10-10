@@ -35,8 +35,11 @@ function checkAddress(v: unknown, where: string, allowSelf = true): void {
   if (typeof v !== "string" || !isAddress(v)) fail(`${where} must be an address${allowSelf ? ' or "$SELF"' : ""}`);
 }
 
-function checkDecimal(v: unknown, where: string): void {
+/** Decimal string with at most `maxFraction` fraction digits, so unit conversion can never round silently. */
+function checkDecimal(v: unknown, where: string, maxFraction = 18): void {
   if (typeof v !== "string" || !/^\d+(\.\d+)?$/.test(v)) fail(`${where} must be a non-negative decimal string`);
+  const fraction = v.split(".")[1] ?? "";
+  if (fraction.length > maxFraction) fail(`${where} has more than ${maxFraction} decimal places`);
 }
 
 function checkOp(v: unknown, where: string): void {
@@ -62,7 +65,7 @@ export function parsePolicy(raw: unknown): Policy {
         checkOp(c.op, at), checkDecimal(c.value, `${at}.value`);
         break;
       case "gas_price":
-        checkOp(c.op, at), checkDecimal(c.gwei, `${at}.gwei`);
+        checkOp(c.op, at), checkDecimal(c.gwei, `${at}.gwei`, 9);
         break;
       case "is_contract":
         checkAddress(c.address, `${at}.address`);

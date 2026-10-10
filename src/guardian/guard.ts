@@ -12,7 +12,7 @@ export type Outcome =
   | { status: "denied"; verdict: Verdict }
   | { status: "dry-run"; verdict: Verdict }
   | { status: "aborted"; verdict: Verdict; recheck: Verdict }
-  | { status: "executed" | "reverted"; verdict: Verdict; recheck: Verdict; tx: Hex; receipt: { status: string; blockNumber: string } };
+  | { status: "executed" | "reverted"; verdict: Verdict; recheck: Verdict; tx: Hex; receipt: { status: "success" | "reverted"; blockNumber: string } };
 
 export interface GuardOptions {
   execute?: boolean;

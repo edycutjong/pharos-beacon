@@ -14,7 +14,7 @@ constants copied from SkillEngine's `assets/`. Each task lives in its own folder
 
 ```bash
 npm install
-npm test            # 35 unit tests (policy validation, MCP tool mapping, guard outcomes)
+npm test            # 38 unit tests (policy validation, MCP tool mapping, guard outcomes)
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
 npm run smoke       # hosted Chain MCP tool list + chain info, Atlantic block (+ wallet balance if PRIVATE_KEY is set)

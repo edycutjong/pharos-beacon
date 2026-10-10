@@ -24,6 +24,8 @@ describe("parsePolicy", () => {
     [{ ...base, action: { type: "erc20_transfer", to: "$SELF", amount: "1" } }, /action.type/],
     [{ ...base, network: "pharos", action: { type: "native_transfer", to: "$SELF", amount: "1" } }, /testnet only/],
     [{ ...base, action: { type: "native_transfer", to: "$SELF", amount: "0.000" } }, /greater than 0/],
+    [{ ...base, action: { type: "native_transfer", to: "$SELF", amount: "0.0000000000000000004" } }, /18 decimal places/],
+    [{ ...base, conditions: [{ kind: "gas_price", op: "lte", gwei: "1.0000000001" }] }, /9 decimal places/],
     [{ ...base, action: { type: "native_transfer", to: "0x8d347c72431ed6E033d5f43E56c0987E97f5D91B", amount: "1" } }, /action.to/],
   ])("rejects %#", (raw, msg) => {
     expect(() => parsePolicy(raw)).toThrow(msg);

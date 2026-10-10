@@ -67,6 +67,7 @@ export async function evaluate(policy: Policy, reader: Reader, self?: Hex): Prom
       }
       case "erc20_balance": {
         const [v, d] = await Promise.all([reader.erc20Balance(c.token, resolve(c.address), block), reader.erc20Decimals(c.token, block)]);
+        if ((c.value.split(".")[1] ?? "").length > d) throw new Error(`threshold ${c.value} has more decimals than the token (${d})`);
         return { observed: formatUnits(v, d), expected: `${OP_TEXT[c.op]} ${c.value}`, pass: compare(c.op, v, parseUnits(c.value, d)) };
       }
       case "gas_price": {

@@ -26,15 +26,15 @@ try {
 const execute = args.includes("--execute");
 
 let signer: Signer | undefined;
-if (policy.network === "atlantic" && process.env.PRIVATE_KEY) {
-  const w = wallet();
-  signer = { address: w.account.address, sendNative: (to, value) => w.sendTransaction({ to, value }) };
-}
-
-const mcp = await chainMcp(policy.network);
+let mcp: Awaited<ReturnType<typeof chainMcp>> | undefined;
 let code = 0;
 try {
-  const outcome = await guard(policy, mcpReader((name, a) => callTool(mcp, name, a)), signer, { execute });
+  if (policy.network === "atlantic" && process.env.PRIVATE_KEY) {
+    const w = wallet();
+    signer = { address: w.account.address, sendNative: (to, value) => w.sendTransaction({ to, value }) };
+  }
+  mcp = await chainMcp(policy.network);
+  const outcome = await guard(policy, mcpReader((name, a) => callTool(mcp!, name, a)), signer, { execute });
   console.log(formatVerdict(outcome.verdict));
   if (outcome.status === "aborted") console.log(`re-check before send:\n${formatVerdict(outcome.recheck)}`);
   if (outcome.status === "executed" || outcome.status === "reverted") {
@@ -54,6 +54,6 @@ try {
   console.error(`error: ${(e as Error).message}`);
   code = 1;
 } finally {
-  await mcp.close();
+  await mcp?.close();
 }
 process.exit(code);

@@ -69,6 +69,13 @@ describe("evaluate", () => {
     expect(v.checks[5]).toMatchObject({ pass: false, observed: "read failed", error: "429 rate limited" });
   });
 
+  it("fails a token threshold finer than the token's decimals instead of rounding it", async () => {
+    const p: Policy = { ...policy, conditions: [{ kind: "erc20_balance", token: TOKEN, address: "$SELF", op: "gte", value: "2.5000001" }] };
+    const v = await evaluate(p, fakeReader(), SELF);
+    expect(v.allow).toBe(false);
+    expect(v.checks[0].error).toMatch(/more decimals than the token \(6\)/);
+  });
+
   it("denies a stuck nonce", async () => {
     const v = await evaluate(policy, fakeReader({ nonces: async () => ({ latest: 6n, pending: 7n }) }), SELF);
     expect(v.allow).toBe(false);
