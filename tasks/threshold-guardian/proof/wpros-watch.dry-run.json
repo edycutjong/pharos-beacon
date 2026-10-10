@@ -1,0 +1,76 @@
+{
+  "policy": {
+    "name": "wpros-watch",
+    "network": "pharos",
+    "conditions": [
+      {
+        "kind": "is_contract",
+        "address": "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0",
+        "expect": true,
+        "label": "WPROS is a deployed contract"
+      },
+      {
+        "kind": "native_balance",
+        "address": "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0",
+        "op": "gte",
+        "value": "1000000",
+        "label": "WPROS is backed by at least 1M PROS"
+      },
+      {
+        "kind": "log_activity",
+        "address": "0xc879c018db60520f4355c26ed1a6d572cdac1815",
+        "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+        "blocks": 1000,
+        "op": "gte",
+        "count": 10,
+        "label": "USDC had at least 10 transfers in the last 1000 blocks"
+      },
+      {
+        "kind": "gas_price",
+        "op": "lte",
+        "gwei": "20",
+        "label": "mainnet gas at or under 20 gwei"
+      }
+    ]
+  },
+  "outcome": {
+    "status": "dry-run",
+    "verdict": {
+      "policy": "wpros-watch",
+      "network": "pharos",
+      "block": "19901916",
+      "allow": true,
+      "checks": [
+        {
+          "label": "WPROS is a deployed contract",
+          "kind": "is_contract",
+          "observed": "contract (3249 bytes)",
+          "expected": "contract",
+          "pass": true
+        },
+        {
+          "label": "WPROS is backed by at least 1M PROS",
+          "kind": "native_balance",
+          "observed": "23378308.213590259257181991 PROS",
+          "expected": ">= 1000000 PROS",
+          "pass": true
+        },
+        {
+          "label": "USDC had at least 10 transfers in the last 1000 blocks",
+          "kind": "log_activity",
+          "observed": "109 logs",
+          "expected": ">= 10",
+          "pass": true
+        },
+        {
+          "label": "mainnet gas at or under 20 gwei",
+          "kind": "gas_price",
+          "observed": "10 gwei",
+          "expected": "<= 20 gwei",
+          "pass": true
+        }
+      ],
+      "evaluatedAt": "2026-10-10T17:48:09.777Z"
+    }
+  }
+}

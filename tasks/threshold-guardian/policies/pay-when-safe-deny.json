@@ -1,0 +1,42 @@
+{
+  "name": "pay-when-safe-deny",
+  "network": "atlantic",
+  "conditions": [
+    {
+      "kind": "native_balance",
+      "address": "$SELF",
+      "op": "gte",
+      "value": "1000",
+      "label": "payer keeps a 1000 PHRS reserve (wallet holds less, so this must block)"
+    },
+    {
+      "kind": "gas_price",
+      "op": "lte",
+      "gwei": "50",
+      "label": "gas is not spiking"
+    },
+    {
+      "kind": "is_contract",
+      "address": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "expect": false,
+      "label": "recipient is a plain wallet, not a contract"
+    },
+    {
+      "kind": "nonce_settled",
+      "address": "$SELF",
+      "label": "payer has no stuck transaction"
+    },
+    {
+      "kind": "native_balance",
+      "address": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+      "op": "gte",
+      "value": "1000",
+      "label": "WPHRS wrapper is backed by at least 1000 PHRS"
+    }
+  ],
+  "action": {
+    "type": "native_transfer",
+    "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "amount": "0.001"
+  }
+}
