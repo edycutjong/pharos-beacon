@@ -1,12 +1,41 @@
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { atlantic } from "./networks.js";
+
+export type Network = "pharos" | "atlantic";
 
 // Hosted Pharos Chain MCP: mainnet, read-only, keyless, 120 req/min per IP.
 export const CHAIN_MCP_URL = process.env.PHAROS_MCP_URL ?? "https://mcp.pharos.xyz/mcp";
 
-export async function chainMcp() {
-  const client = new Client({ name: "beacon", version: "0.1.0" });
-  await client.connect(new StreamableHTTPClientTransport(new URL(CHAIN_MCP_URL)));
+// The hosted server is mainnet-only, so for Atlantic we run the same sponsor server locally over stdio
+// (built by scripts/setup-testnet-mcp.sh). PHAROS_MCP_BIN overrides the path.
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
+export const TESTNET_MCP_BIN = process.env.PHAROS_MCP_BIN ?? join(ROOT, ".cache/pharos-mcp/dist/src/index.js");
+
+export async function chainMcp(network: Network = "pharos") {
+  const client = new Client({ name: "beacon", version: "0.2.0" });
+  if (network === "pharos") {
+    await client.connect(new StreamableHTTPClientTransport(new URL(CHAIN_MCP_URL)));
+    return client;
+  }
+  if (!existsSync(TESTNET_MCP_BIN)) throw new Error(`${TESTNET_MCP_BIN} missing — run: npm run setup:mcp`);
+  await client.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [TESTNET_MCP_BIN],
+      env: {
+        PATH: process.env.PATH ?? "",
+        PHAROS_RPC_URL: atlantic.rpcUrls.default.http[0],
+        PHAROS_CHAIN_ID: String(atlantic.id),
+        PHAROS_NATIVE_SYMBOL: atlantic.nativeCurrency.symbol,
+      },
+      stderr: "ignore",
+    }),
+  );
   return client;
 }
 
