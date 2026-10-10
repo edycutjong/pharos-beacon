@@ -127,3 +127,17 @@ describe("guard", () => {
     await expect(guard(p, fakeReader(), undefined, { execute: true })).rejects.toThrow(/signing wallet/);
   });
 });
+
+describe("guard receipt handling", () => {
+  it("reports a reverted transfer as reverted, not executed", async () => {
+    const s = fakeSigner();
+    const o = await guard(policy, fakeReader({ receipt: async () => ({ status: "reverted", blockNumber: 1002n }) }), s, { execute: true });
+    expect(o.status).toBe("reverted");
+  });
+
+  it("surfaces the last receipt read error after polling out", async () => {
+    const s = fakeSigner();
+    const receipt = async () => { throw new Error("MCP 429"); };
+    await expect(guard(policy, fakeReader({ receipt }), s, { execute: true, receiptPolls: 2, sleep: async () => {} })).rejects.toThrow(/last error: MCP 429/);
+  });
+});

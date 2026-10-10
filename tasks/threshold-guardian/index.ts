@@ -7,7 +7,7 @@ import { callTool, chainMcp } from "../../src/lib/mcp.js";
 import { wallet } from "../../src/lib/chain.js";
 import { formatVerdict } from "../../src/guardian/evaluate.js";
 import { guard, type Signer } from "../../src/guardian/guard.js";
-import { parsePolicy } from "../../src/guardian/policy.js";
+import { parsePolicy, type Policy } from "../../src/guardian/policy.js";
 import { mcpReader } from "../../src/guardian/reader.js";
 
 const args = process.argv.slice(2);
@@ -16,7 +16,13 @@ if (!file) {
   console.error("usage: guard <policy.json> [--execute] [--proof]");
   process.exit(2);
 }
-const policy = parsePolicy(JSON.parse(readFileSync(file, "utf8")));
+let policy: Policy;
+try {
+  policy = parsePolicy(JSON.parse(readFileSync(file, "utf8")));
+} catch (e) {
+  console.error(`${file}: ${(e as Error).message}`);
+  process.exit(2);
+}
 const execute = args.includes("--execute");
 
 let signer: Signer | undefined;
@@ -31,8 +37,8 @@ try {
   const outcome = await guard(policy, mcpReader((name, a) => callTool(mcp, name, a)), signer, { execute });
   console.log(formatVerdict(outcome.verdict));
   if (outcome.status === "aborted") console.log(`re-check before send:\n${formatVerdict(outcome.recheck)}`);
-  if (outcome.status === "executed") {
-    console.log(`  re-checked at block ${outcome.recheck.block}: ALLOW → sent ${policy.action!.amount} PHRS`);
+  if (outcome.status === "executed" || outcome.status === "reverted") {
+    console.log(`  re-checked at block ${outcome.recheck.block}: ALLOW → broadcast ${policy.action!.amount} PHRS transfer`);
     console.log(`  tx ${outcome.receipt.status} in block ${outcome.receipt.blockNumber}: https://atlantic.pharosscan.xyz/tx/${outcome.tx}`);
   }
   console.log(`status: ${outcome.status}`);
@@ -44,6 +50,9 @@ try {
     console.log(`proof: ${out}`);
   }
   code = outcome.status === "executed" || outcome.status === "dry-run" ? 0 : 1;
+} catch (e) {
+  console.error(`error: ${(e as Error).message}`);
+  code = 1;
 } finally {
   await mcp.close();
 }

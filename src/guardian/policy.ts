@@ -32,7 +32,7 @@ function fail(msg: string): never {
 
 function checkAddress(v: unknown, where: string, allowSelf = true): void {
   if (allowSelf && v === "$SELF") return;
-  if (typeof v !== "string" || !isAddress(v, { strict: false })) fail(`${where} must be an address${allowSelf ? ' or "$SELF"' : ""}`);
+  if (typeof v !== "string" || !isAddress(v)) fail(`${where} must be an address${allowSelf ? ' or "$SELF"' : ""}`);
 }
 
 function checkDecimal(v: unknown, where: string): void {
@@ -88,6 +88,7 @@ export function parsePolicy(raw: unknown): Policy {
     if (a.type !== "native_transfer") fail('action.type must be "native_transfer"');
     checkAddress(a.to, "action.to");
     checkDecimal(a.amount, "action.amount");
+    if (/^0+(\.0+)?$/.test(a.amount as string)) fail("action.amount must be greater than 0");
     if (p.network !== "atlantic") fail("actions run on Atlantic testnet only; mainnet policies are dry-run");
   }
   return raw as Policy;

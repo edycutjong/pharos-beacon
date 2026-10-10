@@ -23,6 +23,8 @@ describe("parsePolicy", () => {
     [{ ...base, conditions: [{ kind: "log_activity", address: "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0", topic0: "0xdd", blocks: 10, op: "gte", count: 1 }] }, /topic0/],
     [{ ...base, action: { type: "erc20_transfer", to: "$SELF", amount: "1" } }, /action.type/],
     [{ ...base, network: "pharos", action: { type: "native_transfer", to: "$SELF", amount: "1" } }, /testnet only/],
+    [{ ...base, action: { type: "native_transfer", to: "$SELF", amount: "0.000" } }, /greater than 0/],
+    [{ ...base, action: { type: "native_transfer", to: "0x8d347c72431ed6E033d5f43E56c0987E97f5D91B", amount: "1" } }, /action.to/],
   ])("rejects %#", (raw, msg) => {
     expect(() => parsePolicy(raw)).toThrow(msg);
   });

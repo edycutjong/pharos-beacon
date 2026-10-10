@@ -12,7 +12,7 @@ export type Outcome =
   | { status: "denied"; verdict: Verdict }
   | { status: "dry-run"; verdict: Verdict }
   | { status: "aborted"; verdict: Verdict; recheck: Verdict }
-  | { status: "executed"; verdict: Verdict; recheck: Verdict; tx: Hex; receipt: { status: string; blockNumber: string } };
+  | { status: "executed" | "reverted"; verdict: Verdict; recheck: Verdict; tx: Hex; receipt: { status: string; blockNumber: string } };
 
 export interface GuardOptions {
   execute?: boolean;
@@ -41,10 +41,14 @@ export async function guard(policy: Policy, reader: Reader, signer: Signer | und
 
   // Confirm through the same Chain MCP the conditions were read from.
   const sleep = opts.sleep ?? wait;
+  let lastError = "";
   for (let i = 0; i < (opts.receiptPolls ?? 30); i++) {
-    const r = await reader.receipt(tx).catch(() => null);
-    if (r) return { status: "executed", verdict, recheck, tx, receipt: { status: r.status, blockNumber: r.blockNumber.toString() } };
+    const r = await reader.receipt(tx).catch((e: Error) => ((lastError = e.message), null));
+    if (r) {
+      const status = r.status === "success" ? "executed" : "reverted";
+      return { status, verdict, recheck, tx, receipt: { status: r.status, blockNumber: r.blockNumber.toString() } };
+    }
     await sleep(opts.pollMs ?? 2000);
   }
-  throw new Error(`tx ${tx} sent but no receipt after polling — check the explorer before retrying`);
+  throw new Error(`tx ${tx} sent but no receipt after polling${lastError ? ` (last error: ${lastError})` : ""} — check the explorer before retrying`);
 }
