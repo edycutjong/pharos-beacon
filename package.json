@@ -1,18 +1,19 @@
 {
   "name": "beacon",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.2.0",
+  "description": "Agent tools for Pharos, built for the Pharos Season of AI Agent Arena",
   "scripts": {
     "test": "vitest run",
     "smoke": "tsx scripts/smoke.ts",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "guard": "tsx tasks/threshold-guardian/index.ts",
+    "setup:mcp": "bash scripts/setup-testnet-mcp.sh"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
-  "private": "true",
+  "private": true,
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
     "dotenv": "^18.0.5",
