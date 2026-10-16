@@ -55,11 +55,13 @@ flowchart LR
 | `log_activity` | event count from a contract in the last N ≤ 1000 blocks | `get_logs` |
 | (block pin, receipt) | | `get_block_number`, `get_transaction_receipt` |
 
-That's 8 of the Chain MCP's 13 read tools (`src/guardian/reader.ts`). Mainnet reads go to the hosted keyless server
+That's 8 of the Chain MCP's 13 read tools (`src/guardian/reader.ts`); the client also calls `get_chain_info` when it
+connects, to check that the endpoint serves the policy's chain. Mainnet reads go to the hosted keyless server
 `https://mcp.pharos.xyz/mcp`. That server only serves mainnet, so Atlantic testnet reads use the open-source server
 code ([PharosNetwork/pharos-mcp](https://github.com/PharosNetwork/pharos-mcp), commit `9a3750c`) run locally over
 stdio and pointed at the testnet RPC (`npm run setup:mcp` builds it). The child process gets a minimal environment
-(`PATH` and the other safe defaults the MCP SDK passes, plus the `PHAROS_*` settings), never `PRIVATE_KEY`. Actions are
+(`PATH` and the other safe defaults the MCP SDK passes, plus the `PHAROS_*` settings and
+`ENABLE_SEND_RAW_TRANSACTION=false`), never `PRIVATE_KEY`. Actions are
 native transfers on Atlantic testnet only. Mainnet policies are dry-run by design, and the schema rejects a mainnet
 action.
 

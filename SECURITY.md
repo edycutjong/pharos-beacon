@@ -1,7 +1,8 @@
 # Security
 
 - **Keys.** Beacon signs only on Pharos Atlantic testnet. Keys are read from `~/.config/pharos/testnet.env` or a local,
-  git-ignored `.env`, and are never written to the repo, to logs or to proof files. The local Chain MCP child process
+  git-ignored `.env` into the program, never into its environment, so no child process inherits them. They are never
+  written to the repo, to logs or to proof files. The local Chain MCP child process
   gets a minimal environment (`PATH` and the other safe defaults the MCP SDK passes, plus the `PHAROS_*` settings and
   the broadcast switch), never `PRIVATE_KEY`; it only ever receives transactions that are already signed.
 - **Mainnet is read-only.** The signing wallet and the shared signer are bound to the Atlantic chain (688689), the
