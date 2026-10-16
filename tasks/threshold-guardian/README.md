@@ -46,41 +46,41 @@ stdio and pointed at the testnet RPC (`npm run setup:mcp` builds it). The child 
 `PHAROS_*` settings, never `PRIVATE_KEY`. Actions are native transfers on Atlantic testnet only. Mainnet policies are
 dry-run by design, and the schema rejects a mainnet action.
 
-## Proof (live runs, 2026-10-10 17:52 UTC)
+## Proof (live runs)
 
 | Policy | Network | Result | Evidence |
 |---|---|---|---|
-| `wpros-watch.json` | Pharos mainnet | ALLOW 4/4 → dry-run (WPROS backing 23,378,308 PROS, 112 USDC transfers in 1000 blocks, 10 gwei) | [`proof/wpros-watch.dry-run.json`](proof/wpros-watch.dry-run.json) |
-| `pay-when-safe-deny.json` | Atlantic | DENY 4/5 (needs a 1000 PHRS reserve, wallet holds 14.98) → nothing sent | [`proof/pay-when-safe-deny.denied.json`](proof/pay-when-safe-deny.denied.json) |
-| `pay-when-safe.json` | Atlantic | ALLOW 5/5 → re-check ALLOW → 0.001 PHRS sent, `success` in block 31252509 | [tx `0xfa437f21…dff8`](https://atlantic.pharosscan.xyz/tx/0xfa437f21fb7dd6ef66f5915ce4cff7f7e032cf110d709b79f5d52ad64deddff8) · [`proof/pay-when-safe.executed.json`](proof/pay-when-safe.executed.json) |
+| `wpros-watch.json` | Pharos mainnet | ALLOW 4/4 → dry-run (2026-10-10) | [`proof/wpros-watch.dry-run.json`](proof/wpros-watch.dry-run.json) |
+| `pay-when-safe-deny.json` | Atlantic | DENY 4/5 (needs a 1000 PHRS reserve, wallet holds 14.98) → nothing sent (2026-10-16) | [`proof/pay-when-safe-deny.denied.json`](proof/pay-when-safe-deny.denied.json) |
+| `pay-when-safe.json` | Atlantic | ALLOW 5/5 → re-check ALLOW → 0.001 PHRS sent, `success` in block 31482903 (2026-10-16) | [tx `0xd567073e…bf39`](https://atlantic.pharosscan.xyz/tx/0xd567073eaa5d89eb5e30c3e3efa2948818851648fe628d93ff6fa29074dfbf39) · [`proof/pay-when-safe.executed.json`](proof/pay-when-safe.executed.json) |
 
-An earlier run of the same policy, 4 minutes before, produced
-[tx `0x0fda4e6f…5b50`](https://atlantic.pharosscan.xyz/tx/0x0fda4e6f656566e65b2067d0d34492bb49449b873f7faa3bb8eda9f0daea5b50)
-(block 31252331).
+Earlier runs of the same policy (2026-10-10):
+[tx `0xfa437f21…dff8`](https://atlantic.pharosscan.xyz/tx/0xfa437f21fb7dd6ef66f5915ce4cff7f7e032cf110d709b79f5d52ad64deddff8) (block 31252509) and
+[tx `0x0fda4e6f…5b50`](https://atlantic.pharosscan.xyz/tx/0x0fda4e6f656566e65b2067d0d34492bb49449b873f7faa3bb8eda9f0daea5b50) (block 31252331).
 
-In this run the re-check landed in the same block as the first check (31252507) because the chain had not
-advanced yet. It is still a second, independent set of MCP reads. The block above omits the final
-`proof: <path>` line that `--proof` prints.
+In the executed run the re-check landed in the same block as the first check because the chain had not advanced
+yet. It is still a second, independent set of MCP reads. The block below omits the final `proof: <path>` line that
+`--proof` prints.
 
 The abort path (a condition flips between the first check and the send) is covered by a unit test
-(`test/guard.test.ts`, "aborts when a condition flips"). It has not been shown live.
+(`test/guard.test.ts`, "aborts when a condition flips between check and send"). It has not been shown live.
 
 Output of the executed run:
 
 ```text
-pay-when-safe @ atlantic block 31252507
-  PASS  payer keeps a 1 PHRS reserve: 14.984154064 PHRS (need >= 1 PHRS)
+pay-when-safe @ atlantic block 31482902
+  PASS  payer keeps a 1 PHRS reserve: 14.983133064 PHRS (need >= 1 PHRS)
   PASS  gas is not spiking: 10 gwei (need <= 50 gwei)
   PASS  recipient is a plain wallet, not a contract: no code (need no code)
-  PASS  payer has no stuck transaction: nonce latest 7 / pending 7 (need latest == pending)
-  PASS  WPHRS wrapper is backed by at least 1000 PHRS: 151025265.693784358647372258 PHRS (need >= 1000 PHRS)
+  PASS  payer has no stuck transaction: nonce latest 8 / pending 8 (need latest == pending)
+  PASS  WPHRS wrapper is backed by at least 1000 PHRS: 150993019.075259610098101382 PHRS (need >= 1000 PHRS)
   => ALLOW (5/5 conditions pass)
-  re-checked at block 31252507: ALLOW → broadcast 0.001 PHRS transfer
-  tx success in block 31252509: https://atlantic.pharosscan.xyz/tx/0xfa437f21fb7dd6ef66f5915ce4cff7f7e032cf110d709b79f5d52ad64deddff8
+  re-checked at block 31482902: ALLOW → broadcast 0.001 PHRS transfer
+  tx success in block 31482903: https://atlantic.pharosscan.xyz/tx/0xd567073eaa5d89eb5e30c3e3efa2948818851648fe628d93ff6fa29074dfbf39
 status: executed
 ```
 
-The DENY run prints `FAIL  payer keeps a 1000 PHRS reserve …: 14.984154064 PHRS (need >= 1000 PHRS)` and
+The DENY run prints `FAIL  payer keeps a 1000 PHRS reserve (wallet holds less, so this must block): 14.982112064 PHRS (need >= 1000 PHRS)` and
 `=> DENY (4/5 conditions pass)`. It sends nothing and exits 1.
 
 ## Writing a policy

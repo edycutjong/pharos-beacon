@@ -46,13 +46,13 @@
     "verdict": {
       "policy": "pay-when-safe",
       "network": "atlantic",
-      "block": "31252507",
+      "block": "31482902",
       "allow": true,
       "checks": [
         {
           "label": "payer keeps a 1 PHRS reserve",
           "kind": "native_balance",
-          "observed": "14.984154064 PHRS",
+          "observed": "14.983133064 PHRS",
           "expected": ">= 1 PHRS",
           "pass": true
         },
@@ -73,30 +73,30 @@
         {
           "label": "payer has no stuck transaction",
           "kind": "nonce_settled",
-          "observed": "nonce latest 7 / pending 7",
+          "observed": "nonce latest 8 / pending 8",
           "expected": "latest == pending",
           "pass": true
         },
         {
           "label": "WPHRS wrapper is backed by at least 1000 PHRS",
           "kind": "native_balance",
-          "observed": "151025265.693784358647372258 PHRS",
+          "observed": "150993019.075259610098101382 PHRS",
           "expected": ">= 1000 PHRS",
           "pass": true
         }
       ],
-      "evaluatedAt": "2026-10-10T17:52:58.538Z"
+      "evaluatedAt": "2026-10-16T04:44:41.210Z"
     },
     "recheck": {
       "policy": "pay-when-safe",
       "network": "atlantic",
-      "block": "31252507",
+      "block": "31482902",
       "allow": true,
       "checks": [
         {
           "label": "payer keeps a 1 PHRS reserve",
           "kind": "native_balance",
-          "observed": "14.984154064 PHRS",
+          "observed": "14.983133064 PHRS",
           "expected": ">= 1 PHRS",
           "pass": true
         },
@@ -117,24 +117,24 @@
         {
           "label": "payer has no stuck transaction",
           "kind": "nonce_settled",
-          "observed": "nonce latest 7 / pending 7",
+          "observed": "nonce latest 8 / pending 8",
           "expected": "latest == pending",
           "pass": true
         },
         {
           "label": "WPHRS wrapper is backed by at least 1000 PHRS",
           "kind": "native_balance",
-          "observed": "151025265.693784358647372258 PHRS",
+          "observed": "150993019.075259610098101382 PHRS",
           "expected": ">= 1000 PHRS",
           "pass": true
         }
       ],
-      "evaluatedAt": "2026-10-10T17:52:59.147Z"
+      "evaluatedAt": "2026-10-16T04:44:41.423Z"
     },
-    "tx": "0xfa437f21fb7dd6ef66f5915ce4cff7f7e032cf110d709b79f5d52ad64deddff8",
+    "tx": "0xd567073eaa5d89eb5e30c3e3efa2948818851648fe628d93ff6fa29074dfbf39",
     "receipt": {
       "status": "success",
-      "blockNumber": "31252509"
+      "blockNumber": "31482903"
     }
   }
 }

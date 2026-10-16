@@ -46,13 +46,13 @@
     "verdict": {
       "policy": "pay-when-safe-deny",
       "network": "atlantic",
-      "block": "31252506",
+      "block": "31482913",
       "allow": false,
       "checks": [
         {
           "label": "payer keeps a 1000 PHRS reserve (wallet holds less, so this must block)",
           "kind": "native_balance",
-          "observed": "14.984154064 PHRS",
+          "observed": "14.982112064 PHRS",
           "expected": ">= 1000 PHRS",
           "pass": false
         },
@@ -73,19 +73,19 @@
         {
           "label": "payer has no stuck transaction",
           "kind": "nonce_settled",
-          "observed": "nonce latest 7 / pending 7",
+          "observed": "nonce latest 9 / pending 9",
           "expected": "latest == pending",
           "pass": true
         },
         {
           "label": "WPHRS wrapper is backed by at least 1000 PHRS",
           "kind": "native_balance",
-          "observed": "151025265.693784358647372258 PHRS",
+          "observed": "150993019.075259610098101382 PHRS",
           "expected": ">= 1000 PHRS",
           "pass": true
         }
       ],
-      "evaluatedAt": "2026-10-10T17:52:57.366Z"
+      "evaluatedAt": "2026-10-16T04:44:52.191Z"
     }
   }
 }
