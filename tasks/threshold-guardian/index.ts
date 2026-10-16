@@ -3,7 +3,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { callTool, chainMcp } from "../../src/lib/mcp.js";
+import { chainMcp, type ChainMcp } from "../../src/lib/mcp.js";
 import { wallet } from "../../src/lib/chain.js";
 import { formatVerdict } from "../../src/guardian/evaluate.js";
 import { guard, type Signer } from "../../src/guardian/guard.js";
@@ -26,7 +26,7 @@ try {
 const execute = args.includes("--execute");
 
 let signer: Signer | undefined;
-let mcp: Awaited<ReturnType<typeof chainMcp>> | undefined;
+let mcp: ChainMcp | undefined;
 let code = 0;
 try {
   if (policy.network === "atlantic" && process.env.PRIVATE_KEY) {
@@ -34,7 +34,7 @@ try {
     signer = { address: w.account.address, sendNative: (to, value) => w.sendTransaction({ to, value }) };
   }
   mcp = await chainMcp(policy.network);
-  const outcome = await guard(policy, mcpReader((name, a) => callTool(mcp!, name, a)), signer, { execute });
+  const outcome = await guard(policy, mcpReader(mcp.call), signer, { execute });
   console.log(formatVerdict(outcome.verdict));
   if (outcome.status === "aborted") console.log(`re-check before send:\n${formatVerdict(outcome.recheck)}`);
   if (outcome.status === "executed" || outcome.status === "reverted") {

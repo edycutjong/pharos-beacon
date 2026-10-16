@@ -1,5 +1,8 @@
-import { chainMcp, callTool } from "../../src/lib/mcp.js";
+import { chainMcp } from "../../src/lib/mcp.js";
 
 const mcp = await chainMcp();
-console.log(await callTool(mcp, "get_block_number"));
-await mcp.close();
+try {
+  console.log(await mcp.call("get_block_number"));
+} finally {
+  await mcp.close();
+}

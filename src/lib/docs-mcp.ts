@@ -1,12 +1,17 @@
+import { envOr } from "./env.js"; // first: loads .env before anything reads the environment
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport, StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
+import { CLIENT_INFO, ToolError, endpointLabel, isTransient, withRetry, type RetryOptions } from "./net.js";
+
+// Retry policy and error text are shared with the Chain MCP client (src/lib/net.ts); re-exported for existing callers.
+export { describeError, isTransient } from "./net.js";
 
 // Developer Docs MCP: the hosted GitBook server for docs.pharos.xyz. Keyless, read-only, Streamable HTTP, stateless.
-// Override the endpoint with the PHAROS_DOCS_MCP_URL environment variable (a shell variable, not read from .env).
+// Override the endpoint with PHAROS_DOCS_MCP_URL (shell, ~/.config/pharos/testnet.env or the repo .env; blank = default).
 // Tools (tools/list, server "docs.pharos.xyz MCP Server" 0.27.2): searchDocumentation, getPage, askQuestion, sendFeedback.
 // sendFeedback is deliberately not wrapped: it posts to the docs maintainers, so only a human decides to call it.
-export const DOCS_MCP_URL = process.env.PHAROS_DOCS_MCP_URL || "https://docs.pharos.xyz/~gitbook/mcp";
+export const DOCS_MCP_URL = envOr("PHAROS_DOCS_MCP_URL", "https://docs.pharos.xyz/~gitbook/mcp");
 export const DOCS_ORIGIN = "https://docs.pharos.xyz";
 const DOCS_HOST = "docs.pharos.xyz";
 
@@ -39,71 +44,14 @@ export interface DocsToolInfo {
 /** The slice of the SDK Client the helpers use, so a test can pass a plain object. */
 export type DocsClient = Pick<Client, "callTool" | "listTools">;
 
-export interface DocsOptions {
+export interface DocsOptions extends RetryOptions {
   /** Timeout in ms for each request, replacing the default (30 000; 90 000 for askQuestion). */
   timeoutMs?: number;
-  /** Extra attempts after a transient failure (default 2: three tries, waiting 0.5 s then 1.5 s). */
-  retries?: number;
-  sleep?: (ms: number) => Promise<void>;
 }
 
 /** The server answered with isError: true (for example "Page not found"). Never retried. */
-export class DocsToolError extends Error {
+export class DocsToolError extends ToolError {
   override name = "DocsToolError";
-  constructor(
-    readonly tool: string,
-    message: string,
-  ) {
-    super(`${tool}: ${message}`);
-  }
-}
-
-const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-// 520-524 are Cloudflare's "origin unreachable / timed out" family; docs.pharos.xyz sits behind Cloudflare.
-const TRANSIENT_HTTP = [408, 425, 429, 500, 502, 503, 504, 520, 521, 522, 523, 524];
-
-/**
- * Worth retrying: a request timeout, a throttling/5xx response, or a dropped connection. Tool errors never are.
- * `timeouts: false` leaves request timeouts out, for calls that are slow rather than failing (askQuestion).
- */
-export function isTransient(e: unknown, opts: { timeouts?: boolean } = {}): boolean {
-  if (e instanceof StreamableHTTPError) return e.code !== undefined && TRANSIENT_HTTP.includes(e.code);
-  if (e instanceof McpError) return e.code === ErrorCode.RequestTimeout && (opts.timeouts ?? true);
-  if (e instanceof DocsToolError) return false;
-  if ((e as { cause?: { code?: string } } | undefined)?.cause?.code === "ENOTFOUND") return false; // a wrong host name will not heal
-  return /fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|socket hang up/i.test((e as Error | undefined)?.message ?? "");
-}
-
-/** One short line for logs and CLI errors: the message cut to 300 chars (HTTP failures can embed a whole HTML page) plus the network cause code. */
-export function describeError(e: unknown): string {
-  const err = e as (Error & { cause?: { code?: string; message?: string } }) | undefined;
-  let msg = String(err?.message ?? e).replace(/\s+/g, " ").trim();
-  if (msg.length > 300) msg = `${msg.slice(0, 300)}…`;
-  const cause = err?.cause?.code ?? err?.cause?.message;
-  return cause && !msg.includes(String(cause)) ? `${msg} (${cause})` : msg;
-}
-
-async function withRetry<T>(fn: () => Promise<T>, opts: DocsOptions, transient: (e: unknown) => boolean = isTransient): Promise<T> {
-  const retries = opts.retries ?? 2;
-  const sleep = opts.sleep ?? wait;
-  for (let attempt = 0; ; attempt++) {
-    try {
-      return await fn();
-    } catch (e) {
-      if (attempt >= retries || !transient(e)) throw e;
-      await sleep(500 * 3 ** attempt);
-    }
-  }
-}
-
-/** The endpoint without userinfo or query string, so a token placed in PHAROS_DOCS_MCP_URL never reaches a log. */
-function endpointLabel(url: string): string {
-  try {
-    const u = new URL(url);
-    return `${u.origin}${u.pathname}`;
-  } catch {
-    return "the Docs MCP endpoint";
-  }
 }
 
 /**
@@ -113,7 +61,7 @@ function endpointLabel(url: string): string {
 export async function docsMcp(url: string = DOCS_MCP_URL, opts: DocsOptions = {}): Promise<Client> {
   const ms = opts.timeoutMs ?? TIMEOUT_MS;
   return withRetry(async () => {
-    const client = new Client({ name: "beacon", version: "0.2.0" });
+    const client = new Client(CLIENT_INFO);
     let timer: ReturnType<typeof setTimeout> | undefined;
     // The SDK's connect timeout covers only the initialize request. A server that answers it and then stalls would
     // hang the handshake for minutes, so the whole handshake also races this deadline.

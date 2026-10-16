@@ -1,8 +1,6 @@
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import type { AddressInfo } from "node:net";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   askDocs,
   describeError,
@@ -16,6 +14,7 @@ import {
   searchDocs,
   type DocsClient,
 } from "../src/lib/docs-mcp.js";
+import { sleeps, startLocal } from "./helpers/local-mcp.js";
 
 // Blocks recorded from the live server (2026-10-17). ATLANTIC and ZAN: searchDocumentation "Atlantic testnet RPC URL chain id";
 // ZAN_BARE: the same ZAN page for the query "RPC", where the server sent no Content line at all.
@@ -53,10 +52,6 @@ function fake(...replies: Reply[]) {
   return { client, calls };
 }
 
-const sleeps = () => {
-  const waited: number[] = [];
-  return { waited, sleep: async (ms: number) => void waited.push(ms) };
-};
 
 describe("parseSearchBlocks", () => {
   it("parses recorded blocks into ranked hits and keeps multi-line content", () => {
@@ -345,77 +340,6 @@ describe("listDocTools", () => {
 });
 
 // ---- through the real SDK client and transport, against a local stateless Streamable-HTTP MCP server ----
-
-type Rpc = { jsonrpc: "2.0"; id?: number | string; method: string; params?: any };
-interface Local {
-  url: string;
-  rpcs: Rpc[];
-  open: Set<ServerResponse>;
-  close(): Promise<void>;
-}
-const started: Local[] = [];
-afterEach(async () => {
-  await Promise.all(started.splice(0).map((l) => l.close()));
-});
-
-const readBody = (req: IncomingMessage) =>
-  new Promise<string>((resolve, reject) => {
-    let body = "";
-    req.setEncoding("utf8");
-    req.on("data", (c) => (body += c));
-    req.on("end", () => resolve(body));
-    req.on("error", reject);
-  });
-
-type Mode = "json" | "sse";
-
-/**
- * `intercept` returns true when it has handled (failed or stalled) the request itself.
- * The live docs server answers every POST as text/event-stream, so "sse" mirrors it and "json" is the plain variant.
- */
-async function startLocal(mode: Mode, handlers: {
-  intercept?: (rpc: Rpc, res: ServerResponse) => boolean;
-  tool?: (name: string, args: unknown) => { content: { type: "text"; text: string }[]; isError?: boolean };
-}): Promise<Local> {
-  const rpcs: Rpc[] = [];
-  const open = new Set<ServerResponse>();
-  const server = createServer(async (req, res) => {
-    if (req.method !== "POST") return void res.writeHead(405).end(); // no server-initiated stream, like the real server
-    const rpc = JSON.parse(await readBody(req)) as Rpc;
-    rpcs.push(rpc);
-    open.add(res);
-    res.on("close", () => open.delete(res));
-    if (handlers.intercept?.(rpc, res)) return;
-    const reply = (result: unknown) => {
-      const message = JSON.stringify({ jsonrpc: "2.0", id: rpc.id, result });
-      if (mode === "sse") res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-cache" }).end(`event: message\ndata: ${message}\n\n`);
-      else res.writeHead(200, { "content-type": "application/json" }).end(message);
-    };
-    switch (rpc.method) {
-      case "initialize":
-        return reply({ protocolVersion: rpc.params.protocolVersion, capabilities: { tools: { listChanged: true } }, serverInfo: { name: "local-docs", version: "0.0.1" } });
-      case "tools/list":
-        return reply({ tools: [{ name: "searchDocumentation", description: "Search", inputSchema: { type: "object" } }] });
-      case "tools/call":
-        return reply(handlers.tool?.(rpc.params.name, rpc.params.arguments) ?? { content: [] });
-      default:
-        return void res.writeHead(202).end(); // notifications/initialized
-    }
-  });
-  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
-  const local: Local = {
-    url: `http://127.0.0.1:${(server.address() as AddressInfo).port}/mcp`,
-    rpcs,
-    open,
-    close: () =>
-      new Promise<void>((r) => {
-        server.closeAllConnections();
-        server.close(() => r());
-      }),
-  };
-  started.push(local);
-  return local;
-}
 
 describe.each(["json", "sse"] as const)("docsMcp against a local MCP server (real SDK client and transport, %s replies)", (mode) => {
   it("connects, lists tools and searches end to end", async () => {

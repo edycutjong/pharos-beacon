@@ -1,13 +1,16 @@
 // Proves the toolchain end to end: Chain MCP (mainnet), testnet RPC, and the signing wallet (if a key is set).
 import { formatEther } from "viem";
-import { chainMcp, callTool } from "../src/lib/mcp.js";
+import { chainMcp } from "../src/lib/mcp.js";
 import { testnet, wallet } from "../src/lib/chain.js";
 
 const mcp = await chainMcp();
-const { tools } = await mcp.listTools();
-console.log(`Chain MCP: ${tools.length} tools — ${tools.map((t) => t.name).join(", ")}`);
-console.log("get_chain_info:", await callTool(mcp, "get_chain_info"));
-await mcp.close();
+try {
+  const tools = await mcp.listTools();
+  console.log(`Chain MCP ${mcp.server?.name} ${mcp.server?.version} at ${mcp.endpoint}, chain ${mcp.chainId}: ${tools.length} tools — ${tools.map((t) => t.name).join(", ")}`);
+  console.log("get_chain_info:", await mcp.call("get_chain_info"));
+} finally {
+  await mcp.close();
+}
 
 const block = await testnet.getBlockNumber();
 if (process.env.PRIVATE_KEY) {
