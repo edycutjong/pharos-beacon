@@ -1,6 +1,6 @@
 import { defineChain } from "viem";
 
-// Source: PharosNetwork/pharos-skill-engine assets/networks.json
+// Source: PharosNetwork/pharos-skill-engine assets/networks.json (chains) and assets/tokens.json (TOKENS below)
 export const atlantic = defineChain({
   id: 688689,
   name: "Pharos Atlantic Testnet",
