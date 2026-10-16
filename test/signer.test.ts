@@ -2,7 +2,7 @@ import { keccak256, parseGwei, parseTransaction, recoverTransactionAddress, type
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ChainToolError, type ChainMcp } from "../src/lib/mcp.js";
-import { BroadcastError, testnetSigner } from "../src/lib/signer.js";
+import { BroadcastError, BroadcastUnclearError, testnetSigner } from "../src/lib/signer.js";
 
 const TO = "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B" as Hex;
 const ENV = "BEACON_TEST_SIGNER_KEY";
@@ -92,6 +92,12 @@ describe("prepare", () => {
     expect(calls).toEqual([]);
   });
 
+  it("adds the node's priority fee on top of twice the base fee", async () => {
+    const { mcp } = fakeMcp({ ...CHAIN_STATE, get_gas_price: { gasPriceWei: "10000000000", maxPriorityFeePerGasWei: "1500000000" } });
+    const tx = await testnetSigner(mcp, { envVar: ENV }).prepare({ to: TO });
+    expect(tx).toMatchObject({ maxFeePerGas: parseGwei("3.5"), maxPriorityFeePerGas: parseGwei("1.5") });
+  });
+
   it("passes calldata to estimate_gas and fails clearly on a chain without a base fee", async () => {
     const { mcp, calls } = fakeMcp({ ...CHAIN_STATE, get_block: { baseFeePerGas: null } });
     const s = testnetSigner(mcp, { envVar: ENV });
@@ -124,14 +130,69 @@ describe("sign and broadcast", () => {
     expect(await s.broadcast(signed)).toBe(signed.hash);
   });
 
-  it("reports a broadcast the node does not know as BroadcastError with the hash and nonce, so a retry can reuse the nonce", async () => {
+  it("asks three times, 1 s apart, before saying the node does not have it", async () => {
+    let lookups = 0;
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: new ChainToolError("send_raw_transaction", "timeout"),
+      get_transaction: () => (++lookups < 3 ? null : { hash: "0x" }),
+    });
+    const waited: number[] = [];
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async (ms) => void waited.push(ms) });
+    const signed = await s.sign(await s.prepare({ to: TO }));
+    expect(await s.broadcast(signed)).toBe(signed.hash);
+    expect(waited).toEqual([1_000, 1_000]);
+  });
+
+  it("reports a broadcast the node does not have as BroadcastError, carrying the signed tx so a retry can reuse its nonce", async () => {
     const { mcp } = fakeMcp({ ...CHAIN_STATE, send_raw_transaction: new ChainToolError("send_raw_transaction", "insufficient funds"), get_transaction: null });
-    const s = testnetSigner(mcp, { envVar: ENV });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
     const signed = await s.sign(await s.prepare({ to: TO }));
     const err = await s.broadcast(signed).catch((e) => e);
     expect(err).toBeInstanceOf(BroadcastError);
-    expect(err).toMatchObject({ hash: signed.hash, nonce: 5 });
-    expect(err.message).toMatch(/insufficient funds/);
+    expect(err.signed).toBe(signed);
+    expect(err.message).toMatch(/insufficient funds.*reuse nonce 5/);
+  });
+
+  it("never claims 'not sent' when it could not check: a failing lookup gives BroadcastUnclearError", async () => {
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: new ChainToolError("send_raw_transaction", "nonce too low"),
+      get_transaction: new Error("fetch failed"),
+    });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    const signed = await s.sign(await s.prepare({ to: TO }));
+    const err = await s.broadcast(signed).catch((e) => e);
+    expect(err).toBeInstanceOf(BroadcastUnclearError);
+    expect(err.signed).toBe(signed);
+    expect(err.message).toMatch(/could not tell whether .* was sent: send_raw_transaction: nonce too low; the lookup failed too: fetch failed/);
+    expect(err.message).toContain(`https://atlantic.pharosscan.xyz/tx/${signed.hash}`);
+  });
+
+  it("sends one at a time with consecutive nonces, even when the node's pending count lags", async () => {
+    // The node keeps answering nonce 5: only the signer's own floor makes the second and third sends 6 and 7.
+    const sent: number[] = [];
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: (a: { rawTransaction: Hex }) => (sent.push(parseTransaction(a.rawTransaction).nonce!), { txHash: keccak256(a.rawTransaction) }),
+    });
+    const s = testnetSigner(mcp, { envVar: ENV });
+    const results = await Promise.all([s.send({ to: TO }), s.send({ to: TO, value: 1n }), s.send({ to: TO, value: 2n })]);
+    expect(results.map((r) => r.tx.nonce)).toEqual([5, 6, 7]);
+    expect(sent).toEqual([5, 6, 7]);
+  });
+
+  it("does not move the nonce floor when a broadcast was refused", async () => {
+    let refuse = true;
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: (a: { rawTransaction: Hex }) => (refuse ? new ChainToolError("send_raw_transaction", "underpriced") : { txHash: keccak256(a.rawTransaction) }),
+      get_transaction: null,
+    });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    await expect(s.send({ to: TO })).rejects.toBeInstanceOf(BroadcastError);
+    refuse = false;
+    expect((await s.send({ to: TO })).tx.nonce).toBe(5);
   });
 
   it("refuses a node that reports a different hash", async () => {
@@ -142,15 +203,22 @@ describe("sign and broadcast", () => {
 
 describe("waitForReceipt", () => {
   const HASH = `0x${"a".repeat(64)}` as Hex;
+  /** A clock that only moves when the signer sleeps. */
+  function clock() {
+    let t = 0;
+    const waited: number[] = [];
+    return { waited, now: () => t, sleep: async (ms: number) => void (waited.push(ms), (t += ms)) };
+  }
 
   it("polls through the Chain MCP until the receipt exists, then maps status, block and gas", async () => {
     let polls = 0;
     const receipt = { status: "0x1", blockNumber: "0x10", gasUsed: "0x5208", effectiveGasPrice: "0x3b9aca00" };
-    const { mcp } = fakeMcp({ get_transaction_receipt: () => (++polls < 3 ? null : receipt) });
-    const waited: number[] = [];
-    const s = testnetSigner(mcp, { envVar: ENV, sleep: async (ms) => void waited.push(ms) });
+    const { mcp, calls } = fakeMcp({ get_transaction_receipt: () => (++polls < 3 ? null : receipt) });
+    const c = clock();
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: c.sleep, now: c.now });
     expect(await s.waitForReceipt(HASH)).toEqual({ status: "success", blockNumber: 16n, gasUsed: 21000n, effectiveGasPrice: 1_000_000_000n });
-    expect(waited).toEqual([2_500, 2_500]);
+    expect(c.waited).toEqual([2_500, 2_500]);
+    expect(calls.map(([n]) => n)).toEqual(["get_transaction_receipt", "get_transaction_receipt", "get_transaction_receipt"]);
   });
 
   it("reports a reverted receipt as reverted", async () => {
@@ -158,11 +226,19 @@ describe("waitForReceipt", () => {
     expect(await testnetSigner(mcp, { envVar: ENV }).waitForReceipt(HASH)).toEqual({ status: "reverted", blockNumber: 1n, gasUsed: 1n });
   });
 
-  it("gives up after `polls` with the last read error, and never sleeps after the last poll", async () => {
-    const { mcp } = fakeMcp({ get_transaction_receipt: new Error("MCP 429") });
-    const waited: number[] = [];
-    const s = testnetSigner(mcp, { envVar: ENV, sleep: async (ms) => void waited.push(ms) });
-    await expect(s.waitForReceipt(HASH, { polls: 3, pollMs: 10 })).rejects.toThrow(/no receipt after 3 polls \(last error: MCP 429\)/);
-    expect(waited).toEqual([10, 10]);
+  it("is bounded by time, polls once per step with no retries of its own, and reports the last read error", async () => {
+    const opts: unknown[] = [];
+    const { mcp } = fakeMcp({}, {
+      call: (async (_n: string, _a: unknown, o: unknown) => {
+        opts.push(o);
+        throw new Error("MCP 429");
+      }) as unknown as ChainMcp["call"],
+    } as Partial<ChainMcp>);
+    const c = clock();
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: c.sleep, now: c.now });
+    await expect(s.waitForReceipt(HASH, { timeoutMs: 10_000, pollMs: 2_500 })).rejects.toThrow(/no receipt after 10 s \(last error: MCP 429\)/);
+    expect(c.waited).toEqual([2_500, 2_500, 2_500]);
+    expect(opts[0]).toEqual({ retries: 0, timeoutMs: 10_000 });
+    expect(opts.at(-1)).toEqual({ retries: 0, timeoutMs: 2_500 });
   });
 });

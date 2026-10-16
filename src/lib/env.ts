@@ -1,20 +1,39 @@
-// Loads keys and overrides once, before any module reads process.env. Every lib module that reads the environment
-// imports this file first, so the result never depends on import order.
-// Order: the shell, then ~/.config/pharos/testnet.env (preferred), then <repo>/.env (git-ignored). dotenv never
-// overrides a variable that is already set, so the first source wins. The repo .env is resolved from this file, not
-// from the working directory, so the same keys load wherever a command runs.
+// Settings and keys, read once. Sources, first wins: the shell, then ~/.config/pharos/testnet.env (preferred), then the
+// repo's git-ignored .env (resolved from this file, not the working directory). The files are parsed into a private
+// map and never copied into process.env, so no child process (the local MCP server, a notifier, a helper script)
+// can inherit a key from them. Read settings with envOr() and keys with secret().
+import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { config } from "dotenv";
+import { parse } from "dotenv";
 
 export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
-config({ path: join(homedir(), ".config/pharos/testnet.env"), quiet: true });
-config({ path: join(REPO_ROOT, ".env"), quiet: true });
+/** Parse dotenv files into one map; for a name in several files the first file wins. A missing file is skipped. */
+export function readEnvFiles(paths: string[]): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const path of paths) {
+    let text: string;
+    try {
+      text = readFileSync(path, "utf8");
+    } catch {
+      continue;
+    }
+    for (const [k, v] of Object.entries(parse(text))) if (!(k in out)) out[k] = v;
+  }
+  return out;
+}
 
-/** A variable's value, or `fallback` when it is unset or blank (`.env.example` ships blank placeholders). */
+const fromFiles = readEnvFiles([join(homedir(), ".config/pharos/testnet.env"), join(REPO_ROOT, ".env")]);
+const nonBlank = (v: string | undefined) => (v?.trim() ? v.trim() : undefined);
+
+/** A setting: the shell's value, else the files'; `fallback` when unset or blank (`.env.example` ships blank placeholders). */
 export function envOr(name: string, fallback: string): string {
-  const v = process.env[name]?.trim();
-  return v ? v : fallback;
+  return nonBlank(process.env[name]) ?? nonBlank(fromFiles[name]) ?? fallback;
+}
+
+/** A key (e.g. PRIVATE_KEY) from the same sources, or undefined. Never copied into process.env. */
+export function secret(name: string): string | undefined {
+  return nonBlank(process.env[name]) ?? nonBlank(fromFiles[name]);
 }

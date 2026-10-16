@@ -2,6 +2,7 @@
 import { formatEther } from "viem";
 import { chainMcp } from "../src/lib/mcp.js";
 import { testnet, wallet } from "../src/lib/chain.js";
+import { secret } from "../src/lib/env.js";
 
 const mcp = await chainMcp();
 try {
@@ -13,7 +14,7 @@ try {
 }
 
 const block = await testnet.getBlockNumber();
-if (process.env.PRIVATE_KEY) {
+if (secret("PRIVATE_KEY")) {
   const w = wallet();
   const bal = await testnet.getBalance({ address: w.account.address });
   console.log(`Atlantic testnet block ${block}; wallet ${w.account.address} holds ${formatEther(bal)} PHRS`);

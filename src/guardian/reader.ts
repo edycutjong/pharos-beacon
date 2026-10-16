@@ -13,7 +13,7 @@ export interface Reader {
   receipt(hash: Hex): Promise<{ status: "success" | "reverted"; blockNumber: bigint } | null>;
 }
 
-/** Calls one Chain MCP tool and returns its parsed JSON. `callTool(client, …)` from lib/mcp fits. */
+/** Calls one Chain MCP tool and returns its parsed JSON. `mcp.call` from lib/mcp fits. */
 export type ToolCall = (name: string, args?: Record<string, unknown>) => Promise<any>;
 
 // Pin reads to a block so every condition in one evaluation sees the same chain state.

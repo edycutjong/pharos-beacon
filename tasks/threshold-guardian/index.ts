@@ -5,6 +5,7 @@ import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chainMcp, type ChainMcp } from "../../src/lib/mcp.js";
 import { wallet } from "../../src/lib/chain.js";
+import { secret } from "../../src/lib/env.js";
 import { formatVerdict } from "../../src/guardian/evaluate.js";
 import { guard, type Signer } from "../../src/guardian/guard.js";
 import { parsePolicy, type Policy } from "../../src/guardian/policy.js";
@@ -29,7 +30,7 @@ let signer: Signer | undefined;
 let mcp: ChainMcp | undefined;
 let code = 0;
 try {
-  if (policy.network === "atlantic" && process.env.PRIVATE_KEY) {
+  if (policy.network === "atlantic" && secret("PRIVATE_KEY")) {
     const w = wallet();
     signer = { address: w.account.address, sendNative: (to, value) => w.sendTransaction({ to, value }) };
   }
