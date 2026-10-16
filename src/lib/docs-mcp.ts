@@ -2,7 +2,7 @@ import { envOr } from "./env.js"; // first: loads .env before anything reads the
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
-import { CLIENT_INFO, ToolError, endpointLabel, isTransient, withRetry, type RetryOptions } from "./net.js";
+import { CLIENT_INFO, ToolError, endpointLabel, isTransient, rejectUserinfo, withRetry, type RetryOptions } from "./net.js";
 
 // Retry policy and error text are shared with the Chain MCP client (src/lib/net.ts); re-exported for existing callers.
 export { describeError, isTransient } from "./net.js";
@@ -69,7 +69,9 @@ export async function docsMcp(url: string = DOCS_MCP_URL, opts: DocsOptions = {}
       timer = setTimeout(() => reject(new McpError(ErrorCode.RequestTimeout, `connecting to ${endpointLabel(url)} timed out after ${ms} ms`)), ms);
     });
     try {
-      await Promise.race([client.connect(new StreamableHTTPClientTransport(new URL(url)), { timeout: ms }), deadline]);
+      const endpoint = new URL(url);
+      rejectUserinfo(endpoint, "the Docs MCP URL");
+      await Promise.race([client.connect(new StreamableHTTPClientTransport(endpoint), { timeout: ms }), deadline]);
     } catch (e) {
       await client.close().catch(() => {});
       throw e;

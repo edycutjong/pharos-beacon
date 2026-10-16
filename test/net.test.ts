@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { CLIENT_INFO, RateLimiter, patientFetch, retryAfterMs } from "../src/lib/net.js";
+import { CLIENT_INFO, RateLimiter, limiterFor, rejectUserinfo, retryAfterMs, throttleAwareFetch, wait, withRetry } from "../src/lib/net.js";
+
+/** A clock that only moves when the limiter sleeps. */
+function clock() {
+  let now = 0;
+  const waited: number[] = [];
+  return { waited, now: () => now, sleep: async (ms: number) => void (waited.push(ms), (now += ms)) };
+}
 
 describe("RateLimiter", () => {
-  /** A clock that only moves when the limiter sleeps. */
-  function clock() {
-    let now = 0;
-    const waited: number[] = [];
-    return { waited, now: () => now, sleep: async (ms: number) => void (waited.push(ms), (now += ms)) };
-  }
-
   it("lets `perMinute` requests through at once, then waits until the oldest leaves the 60 s window", async () => {
     const c = clock();
     const l = new RateLimiter(3, c.sleep, c.now);
@@ -27,11 +27,93 @@ describe("RateLimiter", () => {
     expect(c.now()).toBe(120_000); // 5 requests at 2 per minute: the 5th goes out two windows after the first
   });
 
-  it("is a no-op when disabled", async () => {
+  it("takes several slots at once, waiting only as long as needed to free them", async () => {
+    const c = clock();
+    const l = new RateLimiter(5, c.sleep, c.now);
+    await l.take(4);
+    c.sleep(10_000);
+    await l.take(1);
+    await l.take(2); // 5 used: 2 more need the first 2 stamps (both at t=0) to leave the window
+    expect(c.waited).toEqual([10_000, 50_000]);
+    expect(c.now()).toBe(60_000);
+  });
+
+  it("counts noted requests without waiting, and holds everyone during a pause", async () => {
+    const c = clock();
+    const l = new RateLimiter(2, c.sleep, c.now);
+    l.note(2);
+    await l.take();
+    expect(c.waited).toEqual([60_000]);
+    l.pauseFor(7_000);
+    await l.take();
+    expect(c.waited).toEqual([60_000, 7_000]);
+  });
+
+  it("is a no-op when disabled, except for a pause the server asked for", async () => {
     const c = clock();
     const l = new RateLimiter(0, c.sleep, c.now);
     for (let i = 0; i < 1000; i++) await l.take();
     expect(c.waited).toEqual([]);
+    l.pauseFor(3_000);
+    await l.take();
+    expect(c.waited).toEqual([3_000]);
+  });
+
+  it("can only be tightened, and stops a wait when aborted", async () => {
+    const l = new RateLimiter(10);
+    l.tighten(20);
+    expect(l.perMinute).toBe(10);
+    l.tighten(5);
+    expect(l.perMinute).toBe(5);
+    const unlimited = new RateLimiter(0);
+    unlimited.tighten(7);
+    expect(unlimited.perMinute).toBe(7);
+
+    const ctl = new AbortController();
+    l.pauseFor(60_000);
+    const t0 = Date.now();
+    const pending = l.take(1, ctl.signal).catch((e: Error) => e.name);
+    setTimeout(() => ctl.abort(), 20);
+    expect(await pending).toBe("AbortError");
+    expect(Date.now() - t0).toBeLessThan(1_000);
+  });
+});
+
+describe("limiterFor", () => {
+  it("returns one limiter per key, and the stricter budget wins", () => {
+    const a = limiterFor("test-key-1", 100);
+    const b = limiterFor("test-key-1", 40);
+    expect(b).toBe(a);
+    expect(a.perMinute).toBe(40);
+    expect(limiterFor("test-key-1", 100).perMinute).toBe(40);
+    expect(limiterFor("test-key-2", 100)).not.toBe(a);
+  });
+});
+
+describe("wait", () => {
+  it("rejects at once when aborted and leaves no timer running", async () => {
+    const ctl = new AbortController();
+    const t0 = Date.now();
+    const p = wait(30_000, ctl.signal).catch((e: Error) => e.name);
+    ctl.abort();
+    expect(await p).toBe("AbortError");
+    expect(Date.now() - t0).toBeLessThan(500);
+  });
+});
+
+describe("withRetry", () => {
+  it("uses the wait a failure asks for, else the backoff", async () => {
+    const waited: number[] = [];
+    let n = 0;
+    const result = await withRetry(
+      async () => {
+        if (++n < 3) throw Object.assign(new Error("fetch failed"), { asked: n === 1 ? 7_000 : undefined });
+        return "ok";
+      },
+      { sleep: async (ms) => void waited.push(ms), delayMs: (_attempt, e) => (e as { asked?: number }).asked },
+    );
+    expect(result).toBe("ok");
+    expect(waited).toEqual([7_000, 1_500]);
   });
 });
 
@@ -45,56 +127,23 @@ describe("retryAfterMs", () => {
   });
 });
 
-describe("patientFetch", () => {
-  function server(...statuses: [number, Record<string, string>?][]) {
-    const seen: string[] = [];
-    const base = (async (_input: unknown, init?: RequestInit) => {
-      seen.push(`${init?.method} ${init?.body ?? ""}`);
-      const [status, headers] = statuses.shift() ?? [200];
-      return new Response(status === 200 ? "ok" : "no", { status, headers });
-    }) as typeof fetch;
-    return { base, seen };
-  }
-  const sleeps = () => {
-    const waited: number[] = [];
-    return { waited, sleep: async (ms: number) => void waited.push(ms) };
-  };
+describe("throttleAwareFetch", () => {
+  const base = (status: number, headers: Record<string, string> = {}) => (async () => new Response("x", { status, headers })) as unknown as typeof fetch;
 
-  it("waits out a 429 as long as Retry-After says, then resends the same body", async () => {
-    const s = server([429, { "retry-after": "3" }], [200]);
-    const { waited, sleep } = sleeps();
-    const res = await patientFetch({ sleep }, s.base)("http://x/mcp", { method: "POST", body: '{"id":1}' });
-    expect(res.status).toBe(200);
-    expect(waited).toEqual([3_000]);
-    expect(s.seen).toEqual(['POST {"id":1}', 'POST {"id":1}']);
+  it("reports a 429 or 503 with the wait asked for, and returns the response unchanged (nothing resent)", async () => {
+    const seen: [number, number | undefined][] = [];
+    const report = (s: number, ms: number | undefined) => void seen.push([s, ms]);
+    expect((await throttleAwareFetch(report, base(429, { "retry-after": "3" }))("http://x/mcp", { method: "POST" })).status).toBe(429);
+    expect((await throttleAwareFetch(report, base(503))("http://x/mcp", { method: "POST" })).status).toBe(503);
+    expect((await throttleAwareFetch(report, base(200))("http://x/mcp", { method: "POST" })).status).toBe(200);
+    expect(seen).toEqual([[429, 3_000], [503, undefined]]);
   });
+});
 
-  it("backs off 1 s, 2 s, 4 s on a 503 without Retry-After, then gives the last reply back", async () => {
-    const s = server([503], [503], [503], [503]);
-    const { waited, sleep } = sleeps();
-    const res = await patientFetch({ sleep }, s.base)("http://x/mcp", { method: "POST", body: "{}" });
-    expect(res.status).toBe(503);
-    expect(waited).toEqual([1_000, 2_000, 4_000]);
-  });
-
-  it("does not hold up a DELETE, and returns a Retry-After longer than maxWaitMs at once", async () => {
-    const { waited, sleep } = sleeps();
-    expect((await patientFetch({ sleep }, server([429]).base)("http://x/mcp", { method: "DELETE" })).status).toBe(429);
-    expect((await patientFetch({ sleep, maxWaitMs: 5_000 }, server([429, { "retry-after": "60" }]).base)("http://x/mcp", { method: "POST" })).status).toBe(429);
-    expect(waited).toEqual([]);
-  });
-
-  it("stops waiting when the request is aborted", async () => {
-    const ctl = new AbortController();
-    const s = server([429, { "retry-after": "30" }], [200]);
-    let slept = false;
-    const sleep = () => new Promise<void>(() => void (slept = true)); // never wakes up by itself
-    const pending = patientFetch({ sleep }, s.base)("http://x/mcp", { method: "POST", signal: ctl.signal });
-    await new Promise((r) => setTimeout(r, 10));
-    ctl.abort();
-    await pending; // the fake base ignores the signal; what matters is that the wait ended
-    expect(slept).toBe(true);
-    expect(s.seen).toHaveLength(2);
+describe("rejectUserinfo", () => {
+  it("refuses user:password@ without echoing it", () => {
+    expect(() => rejectUserinfo(new URL("https://u:SECRET@h/mcp"), "the URL")).toThrow(/^the URL must not carry credentials \(user:password@\)$/);
+    expect(() => rejectUserinfo(new URL("https://h/mcp?token=x"), "the URL")).not.toThrow();
   });
 });
 

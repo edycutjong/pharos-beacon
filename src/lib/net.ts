@@ -1,14 +1,17 @@
 import { readFileSync } from "node:fs";
+import { setTimeout as sleepFor } from "node:timers/promises";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 
-// Shared by the Chain MCP and Docs MCP clients: client identity, retry policy, error text, request pacing.
+// Shared by the Chain MCP and Docs MCP clients: client identity, retry policy, error text. The rate limiter and the
+// throttle-aware fetch are used by the Chain MCP client, whose hosted server enforces a per-IP limit.
 
 const pkg = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8")) as { version: string };
 /** How both MCP clients introduce themselves in `initialize`. */
 export const CLIENT_INFO = { name: "beacon", version: pkg.version };
 
-export const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+/** Sleep `ms`; with a signal, an abort ends the wait early and clears its timer (rejects with an AbortError). */
+export const wait = (ms: number, signal?: AbortSignal): Promise<void> => sleepFor(ms, undefined, { signal });
 
 /** A tool that answered with isError: true. The server reported it on purpose, so it is never retried. */
 export class ToolError extends Error {
@@ -49,6 +52,8 @@ export interface RetryOptions {
   /** Extra attempts after a transient failure (default 2: three tries, waiting 0.5 s then 1.5 s). */
   retries?: number;
   sleep?: (ms: number) => Promise<void>;
+  /** A wait other than the default backoff for this failure (e.g. what Retry-After asked for); undefined keeps the backoff. */
+  delayMs?: (attempt: number, e: unknown) => number | undefined;
 }
 
 export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOptions, transient: (e: unknown) => boolean = isTransient): Promise<T> {
@@ -59,7 +64,7 @@ export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOptions, tra
       return await fn();
     } catch (e) {
       if (attempt >= retries || !transient(e)) throw e;
-      await sleep(500 * 3 ** attempt);
+      await sleep(opts.delayMs?.(attempt, e) ?? 500 * 3 ** attempt);
     }
   }
 }
@@ -76,29 +81,57 @@ export function endpointLabel(url: string): string {
 
 /**
  * Client-side request budget: at most `perMinute` requests in any 60 s, callers served in order. The hosted Chain MCP
- * allows 120 per minute per IP in a fixed window, so staying under it beats waiting out a 429. `perMinute <= 0` disables.
+ * allows 120 per minute per IP in a fixed window, so staying under it beats waiting out a 429. `perMinute <= 0`
+ * disables the budget (a pause still applies). The budget is per process: two processes on one IP share the server's.
  */
 export class RateLimiter {
   private readonly stamps: number[] = [];
   private tail: Promise<void> = Promise.resolve();
+  private pausedUntil = 0;
 
   constructor(
-    readonly perMinute: number,
-    private readonly sleep: (ms: number) => Promise<void> = wait,
+    private budget: number,
+    private readonly sleep: (ms: number, signal?: AbortSignal) => Promise<void> = wait,
     private readonly now: () => number = Date.now,
   ) {}
 
-  take(): Promise<void> {
-    if (this.perMinute <= 0) return Promise.resolve();
+  get perMinute(): number {
+    return this.budget;
+  }
+
+  /** Lower the budget (a stricter caller wins); never raises it. */
+  tighten(perMinute: number): void {
+    if (perMinute > 0 && (this.budget <= 0 || perMinute < this.budget)) this.budget = perMinute;
+  }
+
+  /** Hold every caller for `ms` from now: the server asked for a pause (Retry-After). */
+  pauseFor(ms: number): void {
+    this.pausedUntil = Math.max(this.pausedUntil, this.now() + ms);
+  }
+
+  /** Record `n` requests that were (or will be) sent without waiting, e.g. a DELETE on close. */
+  note(n = 1): void {
+    if (this.budget > 0) for (let i = 0; i < n; i++) this.stamps.push(this.now());
+  }
+
+  /** Wait for `n` request slots. An abort rejects the wait (and its timer) at once. */
+  take(n = 1, signal?: AbortSignal): Promise<void> {
     const turn = this.tail.then(async () => {
       for (;;) {
+        signal?.throwIfAborted();
         const t = this.now();
+        if (t < this.pausedUntil) {
+          await this.sleep(this.pausedUntil - t, signal);
+          continue;
+        }
+        if (this.budget <= 0) return;
         while (this.stamps.length && t - this.stamps[0] >= 60_000) this.stamps.shift();
-        if (this.stamps.length < this.perMinute) {
-          this.stamps.push(t);
+        const over = this.stamps.length + n - this.budget;
+        if (over <= 0 || this.stamps.length === 0) {
+          for (let i = 0; i < n; i++) this.stamps.push(t);
           return;
         }
-        await this.sleep(this.stamps[0] + 60_000 - t);
+        await this.sleep(this.stamps[over - 1] + 60_000 - t, signal);
       }
     });
     this.tail = turn.catch(() => {});
@@ -107,11 +140,16 @@ export class RateLimiter {
 }
 
 const limiters = new Map<string, RateLimiter>();
-/** One limiter per endpoint per process, so two clients to the same server share one budget. */
+/** One limiter per endpoint per process, so every client of one server shares one budget; the stricter budget wins. */
 export function limiterFor(key: string, perMinute: number): RateLimiter {
-  let l = limiters.get(key);
-  if (!l || l.perMinute !== perMinute) limiters.set(key, (l = new RateLimiter(perMinute)));
-  return l;
+  const l = limiters.get(key);
+  if (l) {
+    l.tighten(perMinute);
+    return l;
+  }
+  const fresh = new RateLimiter(perMinute);
+  limiters.set(key, fresh);
+  return fresh;
 }
 
 /** Seconds or an HTTP date, as sent in Retry-After; undefined when absent or unreadable. */
@@ -123,44 +161,21 @@ export function retryAfterMs(header: string | null, now = Date.now()): number | 
   return Number.isNaN(at) ? undefined : Math.max(0, at - now);
 }
 
-function sleepUnlessAborted(ms: number, sleep: (ms: number) => Promise<void>, signal?: AbortSignal | null): Promise<void> {
-  if (!signal) return sleep(ms);
-  if (signal.aborted) return Promise.resolve();
-  return new Promise<void>((resolve) => {
-    const done = () => (signal.removeEventListener("abort", done), resolve());
-    signal.addEventListener("abort", done, { once: true });
-    void sleep(ms).then(done);
-  });
-}
-
-export interface PatientFetchOptions {
-  /** Resends after a 429 or 503 (default 3). */
-  attempts?: number;
-  /** Longest single wait honoured (default 65 s: one full fixed window plus slack); a longer Retry-After is returned as is. */
-  maxWaitMs?: number;
-  sleep?: (ms: number) => Promise<void>;
-  /** Called before each wait, for logs. */
-  onWait?: (ms: number, status: number) => void;
-}
-
 /**
- * A fetch for the SDK's HTTP transport that waits out `429 Too Many Requests` and `503` (the hosted server's
- * session-capacity reply), honouring Retry-After, then resends the same request. Both are refused before the server
- * handles the request, so the resend is safe. POST only: a DELETE on close is never held up.
+ * A fetch for the SDK's HTTP transport that reports `429 Too Many Requests` and `503` (the hosted server's
+ * session-capacity reply) with the wait the server asked for, then hands the response back unchanged. The SDK turns it
+ * into an error and the caller's retry does the waiting, so a wait never runs past a request's own timeout and nothing
+ * is resent after a caller has given up.
  */
-export function patientFetch(opts: PatientFetchOptions = {}, base: typeof fetch = fetch): typeof fetch {
-  const attempts = opts.attempts ?? 3;
-  const maxWaitMs = opts.maxWaitMs ?? 65_000;
-  const sleep = opts.sleep ?? wait;
+export function throttleAwareFetch(onThrottle: (status: number, retryAfterMs: number | undefined) => void, base: typeof fetch = fetch): typeof fetch {
   return async (input, init) => {
-    for (let attempt = 0; ; attempt++) {
-      const res = await base(input, init);
-      if ((res.status !== 429 && res.status !== 503) || (init?.method ?? "GET").toUpperCase() !== "POST" || attempt >= attempts) return res;
-      const ms = retryAfterMs(res.headers.get("retry-after")) ?? 1000 * 2 ** attempt;
-      if (ms > maxWaitMs || init?.signal?.aborted) return res;
-      await res.body?.cancel().catch(() => {});
-      opts.onWait?.(ms, res.status);
-      await sleepUnlessAborted(ms, sleep, init?.signal);
-    }
+    const res = await base(input, init);
+    if (res.status === 429 || res.status === 503) onThrottle(res.status, retryAfterMs(res.headers.get("retry-after")));
+    return res;
   };
+}
+
+/** Refuse an endpoint URL that carries user:password@: fetch would echo it, credentials included, in its error text. */
+export function rejectUserinfo(url: URL, what: string): void {
+  if (url.username || url.password) throw new Error(`${what} must not carry credentials (user:password@)`);
 }

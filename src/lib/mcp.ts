@@ -6,7 +6,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { StreamableHTTPClientTransport, StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import type { Hex, RpcBlock, RpcLog, RpcTransaction, RpcTransactionReceipt } from "viem";
-import { CLIENT_INFO, ToolError, endpointLabel, isTransient, limiterFor, patientFetch, wait, withRetry } from "./net.js";
+import { CLIENT_INFO, ToolError, endpointLabel, isTransient, limiterFor, rejectUserinfo, throttleAwareFetch, wait, withRetry, type RateLimiter } from "./net.js";
 import { atlantic, pharos } from "./networks.js";
 
 export type Network = "pharos" | "atlantic";
@@ -106,15 +106,18 @@ function errorFields(text: string | undefined): { message: string; code?: number
 }
 
 export interface ChainMcpOptions {
-  /** Budget in ms for each request and for the whole handshake (default 30 000; the SDK alone would wait 60 s). */
+  /** Budget in ms for each request attempt and for the whole handshake (default 30 000; the SDK alone would wait 60 s). */
   timeoutMs?: number;
-  /** Extra attempts after a transient failure of a read tool (default 2: waits 0.5 s, then 1.5 s). */
+  /** Extra attempts after a transient failure of a read tool (default 2: waits 0.5 s, then 1.5 s, plus any pause the server asked for). */
   retries?: number;
   /**
-   * Client-side tool calls per minute (0 = unlimited). Default 100 for the hosted endpoint (its limit is 120 per IP)
-   * and 60 for the local server, whose upstream Atlantic RPC allows 500 per 5 min and costs 1–3 RPC calls per tool call.
+   * Client-side requests per minute (0 = unlimited). Default 100 for the hosted endpoint (its limit is 120 per IP) and
+   * 60 for the local server, whose upstream Atlantic RPC allows 500 per 5 min and costs 1–3 RPC calls per tool call.
+   * Every client of one endpoint in this process shares one budget, and the stricter setting wins.
    */
   perMinute?: number;
+  /** A limiter of your own instead of the shared one (tests). */
+  limiter?: RateLimiter;
   /** Hosted endpoint for "pharos" (default PHAROS_MCP_URL, else https://mcp.pharos.xyz/mcp). */
   url?: string;
   /** Atlantic only: let the local server relay signed transactions (send_raw_transaction). Off unless a signer needs it. */
@@ -124,6 +127,8 @@ export interface ChainMcpOptions {
 
 export interface CallOptions {
   timeoutMs?: number;
+  /** Extra attempts for this call (default: the client's `retries`; a broadcast is always sent once). */
+  retries?: number;
 }
 
 export interface ChainMcp {
@@ -136,6 +141,8 @@ export interface ChainMcp {
   readonly endpoint: string;
   /** True only for an Atlantic client opened with `broadcast: true`. */
   readonly broadcast: boolean;
+  /** The request budget per minute this client paces itself to (0 = unlimited). */
+  readonly perMinute: number;
   /** Call one tool and return its parsed JSON. Read tools retry transient failures; a broadcast is sent once. */
   call<K extends ChainTool>(name: K, args?: Record<string, unknown>, opts?: CallOptions): Promise<ChainToolResults[K]>;
   call(name: string, args?: Record<string, unknown>, opts?: CallOptions): Promise<unknown>;
@@ -146,6 +153,10 @@ export interface ChainMcp {
 
 const TIMEOUT_MS = 30_000;
 const STDERR_TAIL = 2_000;
+/** The longest Retry-After worth waiting for inside one call: one full fixed window plus slack. */
+const MAX_THROTTLE_WAIT_MS = 65_000;
+/** What one handshake costs the hosted server's limiter: initialize, notifications/initialized, the SDK's GET stream, get_chain_info. */
+const HANDSHAKE_REQUESTS = 4;
 
 type Transport = StreamableHTTPClientTransport | StdioClientTransport;
 interface Conn {
@@ -153,8 +164,9 @@ interface Conn {
   transport: Transport;
 }
 
-/** The hosted server forgot the session (idle eviction, deploy, another instance): reconnect and retry once more. */
+/** The hosted server forgot the session (idle eviction, deploy, another instance): reconnect and retry. */
 const sessionGone = (e: unknown) => e instanceof StreamableHTTPError && e.code === 404;
+const throttled = (e: unknown) => e instanceof StreamableHTTPError && (e.code === 429 || e.code === 503);
 
 /** Everything the local server gets besides the SDK's safe defaults (HOME, LOGNAME, PATH, SHELL, TERM, USER): never a key. */
 export function stdioEnv(broadcast: boolean): Record<string, string> {
@@ -180,27 +192,38 @@ function localServerLabel(bin: string): string {
 
 /**
  * Connect to the Chain MCP for `network` and verify the chain it serves. Mainnet ("pharos") uses the hosted endpoint;
- * Atlantic spawns the sponsor server locally over stdio. Always `await mcp.close()` (a CLI does it in `finally`).
+ * Atlantic spawns the sponsor server locally over stdio. Always `await mcp.close()` (a CLI does it in `onExit`).
  */
 export async function chainMcp(network: Network = "pharos", opts: ChainMcpOptions = {}): Promise<ChainMcp> {
   const ms = opts.timeoutMs ?? TIMEOUT_MS;
-  const sleep = opts.sleep ?? wait;
-  const retry = { retries: opts.retries ?? 2, sleep };
   const expected = CHAIN_ID[network];
   const broadcast = network === "atlantic" && opts.broadcast === true;
+  const stop = new AbortController(); // aborted by close(): ends any wait at once
+  const closedError = () => new Error("the Chain MCP client is closed");
+  const sleep = opts.sleep ?? ((t: number) => wait(t, stop.signal).catch(() => Promise.reject(closedError())));
+  // Wait for request slots; close() ends the wait at once with a plain "closed" error.
+  const slots = (n: number) => limiter.take(n, stop.signal).catch((e: unknown) => Promise.reject(stop.signal.aborted ? closedError() : e));
 
+  // The latest 429/503 and the wait it asked for; the limiter holds every caller until then.
+  let throttle: { at: number; ms: number | undefined } | undefined;
   let endpoint: string;
   let limiterKey: string;
   let makeTransport: () => { transport: Transport; stderr: () => string };
   if (network === "pharos") {
     const url = opts.url ?? chainMcpUrl();
+    let parsed: URL;
     try {
-      new URL(url);
+      parsed = new URL(url);
     } catch {
       throw new Error("the Chain MCP URL (PHAROS_MCP_URL or opts.url) is not a valid URL");
     }
+    rejectUserinfo(parsed, "the Chain MCP URL (PHAROS_MCP_URL or opts.url)");
     endpoint = limiterKey = endpointLabel(url);
-    makeTransport = () => ({ transport: new StreamableHTTPClientTransport(new URL(url), { fetch: patientFetch({ sleep }) }), stderr: () => "" });
+    const fetchFn = throttleAwareFetch((_status, wantMs) => {
+      throttle = { at: Date.now(), ms: wantMs };
+      if (wantMs !== undefined && wantMs <= MAX_THROTTLE_WAIT_MS) limiter.pauseFor(wantMs);
+    });
+    makeTransport = () => ({ transport: new StreamableHTTPClientTransport(parsed, { fetch: fetchFn }), stderr: () => "" });
   } else {
     const bin = testnetMcpBin();
     if (!existsSync(bin)) throw new Error(`${bin} missing — run: npm run setup:mcp`);
@@ -213,7 +236,8 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
       return { transport, stderr: () => tail.trim() };
     };
   }
-  const limiter = limiterFor(limiterKey, opts.perMinute ?? (network === "pharos" ? 100 : 60));
+  const limiter = opts.limiter ?? limiterFor(limiterKey, opts.perMinute ?? (network === "pharos" ? 100 : 60));
+  const handshakeCost = network === "pharos" ? HANDSHAKE_REQUESTS : 1;
 
   let conn: Conn | undefined;
   let opening: Promise<Conn> | undefined;
@@ -221,6 +245,7 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
 
   async function shut(c: Conn): Promise<void> {
     if (c.transport instanceof StreamableHTTPClientTransport && c.transport.sessionId) {
+      limiter.note(); // the DELETE is sent without waiting for a slot: closing should never stall
       let timer: ReturnType<typeof setTimeout> | undefined;
       const transport = c.transport;
       await Promise.race([transport.terminateSession().catch(() => {}), new Promise((r) => (timer = setTimeout(r, 5_000)))]);
@@ -229,46 +254,64 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
     await c.client.close().catch(() => {});
   }
 
+  // Worth another attempt: transient trouble (unless the server asked for a longer pause than one call should wait),
+  // a forgotten session, or a local server that went away.
+  const retryable = (e: unknown) => {
+    if (throttled(e) && throttle && Date.now() - throttle.at < 5_000 && (throttle.ms ?? 0) > MAX_THROTTLE_WAIT_MS) return false;
+    return isTransient(e) || sessionGone(e) || (!closed && e instanceof McpError && e.code === ErrorCode.ConnectionClosed);
+  };
+  // Name the wait the server asked for when giving up on a 429/503, so the cause is never just "error POSTing".
+  const explain = (e: unknown) => {
+    if (throttled(e) && throttle && Date.now() - throttle.at < 5_000 && e instanceof Error) {
+      e.message = `${e.message} — the server asked to wait ${throttle.ms === undefined ? "(no Retry-After)" : `${Math.round(throttle.ms / 1000)} s`}`;
+    }
+    return e;
+  };
+
   // One handshake: a fresh client per attempt, raced against a deadline (the SDK times out only `initialize`, so a
   // server that stalls on `notifications/initialized` would hang), then the chain check. Failures leave nothing open.
   const open = () =>
-    withRetry(async (): Promise<Conn> => {
-      await limiter.take();
-      const { transport, stderr } = makeTransport();
-      const client = new Client(CLIENT_INFO);
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      const deadline = new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new McpError(ErrorCode.RequestTimeout, `connecting to ${endpoint} timed out after ${ms} ms`)), ms);
-      });
-      try {
-        await Promise.race([client.connect(transport, { timeout: ms }), deadline]);
-        const res = await Promise.race([client.callTool({ name: "get_chain_info", arguments: {} }, undefined, { timeout: ms }), deadline]);
-        const info = parseToolResult("get_chain_info", res) as Partial<ChainToolResults["get_chain_info"]> | null;
-        if (info?.chainId !== expected) {
-          throw new Error(`${endpoint} serves chain ${info?.chainId ?? "unknown"}, but ${network} is chain ${expected}: refusing to read from it`);
+    withRetry(
+      async (): Promise<Conn> => {
+        await slots(handshakeCost);
+        const { transport, stderr } = makeTransport();
+        const client = new Client(CLIENT_INFO);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const deadline = new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new McpError(ErrorCode.RequestTimeout, `connecting to ${endpoint} timed out after ${ms} ms`)), ms);
+        });
+        try {
+          await Promise.race([client.connect(transport, { timeout: ms }), deadline]);
+          const res = await Promise.race([client.callTool({ name: "get_chain_info", arguments: {} }, undefined, { timeout: ms }), deadline]);
+          const info = parseToolResult("get_chain_info", res) as Partial<ChainToolResults["get_chain_info"]> | null;
+          if (info?.chainId !== expected) {
+            throw new Error(`${endpoint} serves chain ${info?.chainId ?? "unknown"}, but ${network} is chain ${expected}: refusing to read from it`);
+          }
+          const c = { client, transport };
+          // A local server that exits (crash, kill) drops the connection; the next attempt starts a new one.
+          client.onclose = () => void (conn === c && (conn = undefined));
+          return c;
+        } catch (e) {
+          await shut({ client, transport });
+          const tail = stderr();
+          if (tail && e instanceof Error) e.message = `${e.message} — local server stderr: ${tail.slice(-500)}`;
+          throw explain(e);
+        } finally {
+          clearTimeout(timer);
         }
-        const c = { client, transport };
-        // A local server that exits (crash, kill) drops the connection; the next call starts a new one.
-        client.onclose = () => void (conn === c && (conn = undefined));
-        return c;
-      } catch (e) {
-        await shut({ client, transport });
-        const tail = stderr();
-        if (tail && e instanceof Error) e.message = `${e.message} — local server stderr: ${tail.slice(-500)}`;
-        throw e;
-      } finally {
-        clearTimeout(timer);
-      }
-    }, retry);
+      },
+      { retries: opts.retries ?? 2, sleep },
+      (e) => !closed && retryable(e),
+    );
 
   async function current(): Promise<Conn> {
-    if (closed) throw new Error("the Chain MCP client is closed");
+    if (closed) throw closedError();
     if (conn) return conn;
     opening ??= open()
       .then((c) => {
         if (closed) {
           void shut(c);
-          throw new Error("the Chain MCP client is closed");
+          throw closedError();
         }
         return (conn = c);
       })
@@ -276,30 +319,34 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
     return opening;
   }
 
-  // Worth another attempt for a read: transient network trouble, a forgotten session, or a local server that went away.
-  const retryable = (e: unknown) =>
-    isTransient(e) || sessionGone(e) || (!closed && e instanceof McpError && e.code === ErrorCode.ConnectionClosed);
-
-  async function call(name: string, args: Record<string, unknown> = {}, o: CallOptions = {}): Promise<unknown> {
-    // A broadcast is never resent from here: the signer knows the hash and reconciles an unclear failure itself.
-    const retries = name === "send_raw_transaction" ? 0 : retry.retries;
+  /** Run `fn` on the live session with the retry policy: a forgotten session is dropped, so the next attempt reconnects. */
+  function withSession<T>(fn: (c: Conn) => Promise<T>, retries: number): Promise<T> {
     return withRetry(
       async () => {
         const c = await current();
-        await limiter.take();
+        await slots(1);
         try {
-          return parseToolResult(name, await c.client.callTool({ name, arguments: args }, undefined, { timeout: o.timeoutMs ?? ms }));
+          return await fn(c);
         } catch (e) {
           if (sessionGone(e) && conn === c) {
             conn = undefined;
             void shut(c);
           }
-          throw e;
+          throw explain(e);
         }
       },
       { retries, sleep },
-      retryable,
+      (e) => !closed && retryable(e),
     );
+  }
+
+  async function call(name: string, args: Record<string, unknown> = {}, o: CallOptions = {}): Promise<unknown> {
+    if (name === "send_raw_transaction" && !broadcast) {
+      throw new Error('this Chain MCP client was opened without { broadcast: true }, so it never sends a transaction');
+    }
+    // A broadcast is never resent from here: the signer knows the hash and reconciles an unclear failure itself.
+    const retries = name === "send_raw_transaction" ? 0 : (o.retries ?? opts.retries ?? 2);
+    return withSession(async (c) => parseToolResult(name, await c.client.callTool({ name, arguments: args }, undefined, { timeout: o.timeoutMs ?? ms })), retries);
   }
 
   const first = await current();
@@ -311,19 +358,14 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
     },
     endpoint,
     broadcast,
+    get perMinute() {
+      return limiter.perMinute;
+    },
     call: call as ChainMcp["call"],
-    listTools: () =>
-      withRetry(
-        async () => {
-          const c = await current();
-          await limiter.take();
-          return (await c.client.listTools(undefined, { timeout: ms })).tools;
-        },
-        retry,
-        retryable,
-      ),
+    listTools: () => withSession(async (c) => (await c.client.listTools(undefined, { timeout: ms })).tools, opts.retries ?? 2),
     async close() {
       closed = true;
+      stop.abort();
       const c = conn ?? (await opening?.catch(() => undefined));
       conn = undefined;
       if (c) await shut(c);

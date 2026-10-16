@@ -1,10 +1,14 @@
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import type { Hex, RpcLog } from "viem";
 import { generatePrivateKey } from "viem/accounts";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChainToolError, chainMcp, getLogsRange, logKey, parseToolResult, stdioEnv, type ChainMcp } from "../src/lib/mcp.js";
+import { RateLimiter } from "../src/lib/net.js";
 import { sleeps, startLocal, type LocalOptions, type ToolReply } from "./helpers/local-mcp.js";
 
 const json = (data: unknown): ToolReply => ({ content: [{ type: "text", text: JSON.stringify(data) }] });
@@ -13,6 +17,12 @@ const rpcError = (message: string, code?: number, data?: unknown): ToolReply => 
   isError: true,
 });
 const CHAIN = { pharos: 1672, atlantic: 688689 };
+/** A clock that only moves when someone sleeps on it. */
+function clock() {
+  let now = 1_000_000;
+  const waited: number[] = [];
+  return { waited, now: () => now, sleep: async (ms: number) => void (waited.push(ms), (now += ms)) };
+}
 const toolCalls = (rpcs: { method: string; params?: any }[], name: string) => rpcs.filter((r) => r.method === "tools/call" && r.params?.name === name);
 
 /** A hosted-style (stateful) Chain MCP that serves `chainId` and answers other tools with `tool`. */
@@ -94,7 +104,7 @@ describe("getLogsRange", () => {
 describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessions)", () => {
   it("connects, checks the chain, calls a tool and ends the session on close", async () => {
     const local = await chainServer();
-    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0 });
+    const mcp = await chainMcp("pharos", { url: `${local.url}?token=SECRET`, perMinute: 0 }); // the label drops the query
     expect(mcp).toMatchObject({ network: "pharos", chainId: 1672, broadcast: false, endpoint: local.url, server: { name: "pharos-mcp-server" } });
     expect(await mcp.call("get_block_number")).toEqual({ blockNumber: "42" });
     expect((await mcp.listTools()).map((t) => t.name)).toEqual(["get_chain_info", "get_block_number"]);
@@ -113,8 +123,11 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
     expect(local.sessions.size).toBe(0);
   });
 
-  it("refuses a malformed URL with a message that does not echo it", async () => {
+  it("refuses a malformed URL, and a URL with credentials, without echoing either", async () => {
     await expect(chainMcp("pharos", { url: "https://user:SECRET@" })).rejects.toThrow(/^the Chain MCP URL \(PHAROS_MCP_URL or opts.url\) is not a valid URL$/);
+    const err = await chainMcp("pharos", { url: "https://user:SECRET@mcp.example/mcp" }).catch((e) => e);
+    expect(err.message).toMatch(/must not carry credentials/);
+    expect(err.message).not.toContain("SECRET");
   });
 
   it("surfaces a tool error as ChainToolError and never retries it", async () => {
@@ -128,13 +141,11 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
     }
   });
 
-  it("retries a 5xx on a read tool, but sends a raw transaction only once", async () => {
-    const failed = new Set<string>();
+  it("retries a 5xx on a read tool", async () => {
+    let failed = false;
     const local = await chainServer(CHAIN.pharos, () => json({ ok: true }), (rpc, res) => {
-      const name = rpc.params?.name;
-      if (rpc.method !== "tools/call" || name === "get_chain_info") return false;
-      if (name === "get_balance" && failed.has(name)) return false;
-      failed.add(name);
+      if (rpc.params?.name !== "get_balance" || failed) return false;
+      failed = true;
       res.writeHead(502, { "content-type": "text/plain" }).end("bad gateway");
       return true;
     });
@@ -143,15 +154,25 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
     try {
       expect(await mcp.call("get_balance", { address: "0x00" })).toEqual({ ok: true });
       expect(waited).toEqual([500]);
-      const err = await mcp.call("send_raw_transaction", { rawTransaction: "0x02" }).catch((e) => e);
-      expect(err).toBeInstanceOf(StreamableHTTPError);
-      expect(toolCalls(local.rpcs, "send_raw_transaction")).toHaveLength(1);
+      expect(toolCalls(local.rpcs, "get_balance")).toHaveLength(2);
     } finally {
       await mcp.close();
     }
   });
 
-  it("waits out a 429 for as long as Retry-After says, then resends the same request", async () => {
+  it("never sends a transaction through a client opened without broadcast (every mainnet client)", async () => {
+    const local = await chainServer();
+    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, broadcast: true }); // ignored off Atlantic
+    try {
+      expect(mcp.broadcast).toBe(false);
+      await expect(mcp.call("send_raw_transaction", { rawTransaction: "0x02" })).rejects.toThrow(/without \{ broadcast: true \}/);
+      expect(toolCalls(local.rpcs, "send_raw_transaction")).toHaveLength(0);
+    } finally {
+      await mcp.close();
+    }
+  });
+
+  it("waits out a 429 for as long as Retry-After says (outside the request's own timeout), then asks again once", async () => {
     let throttled = false;
     const local = await chainServer(CHAIN.pharos, undefined, (rpc, res) => {
       if (rpc.params?.name !== "get_block_number" || throttled) return false;
@@ -159,15 +180,104 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
       res.writeHead(429, { "retry-after": "7", "content-type": "application/json" }).end('{"error":"Too Many Requests"}');
       return true;
     });
-    const { waited, sleep } = sleeps();
-    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, sleep });
+    const c = clock();
+    const mcp = await chainMcp("pharos", { url: local.url, limiter: new RateLimiter(0, c.sleep, c.now), sleep: c.sleep });
     try {
       expect(await mcp.call("get_block_number")).toEqual({ blockNumber: "42" });
-      expect(waited).toEqual([7_000]);
+      expect(c.waited).toEqual([500, 6_500]); // the retry backoff, then the rest of the 7 s pause in the limiter
       expect(toolCalls(local.rpcs, "get_block_number")).toHaveLength(2);
+      await new Promise((r) => setTimeout(r, 50));
+      expect(toolCalls(local.rpcs, "get_block_number")).toHaveLength(2); // nothing resent after the caller got its answer
     } finally {
       await mcp.close();
     }
+  });
+
+  it("gives up at once on a 429 whose Retry-After is longer than one call should wait, and says so", async () => {
+    const local = await chainServer(CHAIN.pharos, undefined, (rpc, res) => {
+      if (rpc.params?.name !== "get_block_number") return false;
+      res.writeHead(429, { "retry-after": "120", "content-type": "application/json" }).end('{"error":"Too Many Requests"}');
+      return true;
+    });
+    const { waited, sleep } = sleeps();
+    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, sleep });
+    try {
+      const err = await mcp.call("get_block_number").catch((e) => e);
+      expect(err).toBeInstanceOf(StreamableHTTPError);
+      expect(err.message).toMatch(/the server asked to wait 120 s/);
+      expect(waited).toEqual([]);
+      expect(toolCalls(local.rpcs, "get_block_number")).toHaveLength(1);
+    } finally {
+      await mcp.close();
+    }
+  });
+
+  it("waits out a 503 (session capacity) during the handshake, then connects", async () => {
+    let busy = true;
+    const local = await chainServer(CHAIN.pharos, undefined, (rpc, res) => {
+      if (rpc.method !== "initialize" || !busy) return false;
+      busy = false;
+      res.writeHead(503, { "retry-after": "3", "content-type": "application/json" }).end('{"error":"Server at session capacity, try again shortly"}');
+      return true;
+    });
+    const c = clock();
+    const mcp = await chainMcp("pharos", { url: local.url, limiter: new RateLimiter(0, c.sleep, c.now), sleep: c.sleep });
+    await mcp.close();
+    expect(local.rpcs.filter((r) => r.method === "initialize")).toHaveLength(2);
+    expect(c.waited).toEqual([500, 2_500]);
+  });
+
+  it("paces itself: a connect costs 4 requests, each call 1, and the call that would pass the budget waits", async () => {
+    const local = await chainServer();
+    const c = clock();
+    const limiter = new RateLimiter(6, c.sleep, c.now);
+    const mcp = await chainMcp("pharos", { url: local.url, limiter, sleep: c.sleep });
+    try {
+      expect(mcp.perMinute).toBe(6);
+      await mcp.call("get_block_number");
+      await mcp.call("get_block_number");
+      expect(c.waited).toEqual([]);
+      await mcp.call("get_block_number"); // 4 + 3 = 7 > 6: waits for the connect's slots to leave the window
+      expect(c.waited).toEqual([60_000]);
+      for (let i = 0; i < 5; i++) await mcp.listTools(); // listTools is paced too: 1 + 5 fills the window again
+      expect(c.waited).toEqual([60_000]);
+      await mcp.call("get_block_number");
+      expect(c.waited).toEqual([60_000, 60_000]);
+    } finally {
+      await mcp.close();
+    }
+  });
+
+  it("defaults to 100 requests per minute for the hosted endpoint, shared by every client of it", async () => {
+    const local = await chainServer();
+    const a = await chainMcp("pharos", { url: local.url });
+    const b = await chainMcp("pharos", { url: local.url, perMinute: 50 });
+    try {
+      expect(b.perMinute).toBe(50);
+      expect(a.perMinute).toBe(50); // one budget per endpoint: the stricter setting wins for both
+    } finally {
+      await Promise.all([a.close(), b.close()]);
+    }
+    const other = await chainServer();
+    const d = await chainMcp("pharos", { url: other.url });
+    expect(d.perMinute).toBe(100);
+    await d.close();
+  });
+
+  it("ends a wait at once when the client is closed, leaving no timer of its own behind", async () => {
+    const local = await chainServer(CHAIN.pharos, undefined, (rpc, res) => {
+      if (rpc.params?.name !== "get_block_number") return false;
+      res.writeHead(429, { "retry-after": "30", "content-type": "application/json" }).end('{"error":"Too Many Requests"}');
+      return true;
+    });
+    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0 });
+    const t0 = Date.now();
+    const pending = mcp.call("get_block_number").catch((e) => e);
+    await new Promise((r) => setTimeout(r, 900)); // past the 0.5 s backoff: now waiting out the 30 s pause
+    await mcp.close();
+    const err = await pending;
+    expect(err.message).toBe("the Chain MCP client is closed");
+    expect(Date.now() - t0).toBeLessThan(2_500);
   });
 
   it("reconnects once when the server has forgotten the session (eviction, deploy), and checks the chain again", async () => {
@@ -184,7 +294,19 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
     expect(local.requests.filter((r) => r.method === "DELETE").at(-1)).toMatchObject({ session: "s2", status: 200 });
   });
 
-  it("bounds a stalled tool call by timeoutMs: a read is retried, a broadcast is not", async () => {
+  it("lists tools again after the server forgot the session", async () => {
+    const local = await chainServer();
+    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, sleep: async () => {} });
+    try {
+      local.sessions.clear();
+      expect((await mcp.listTools()).map((t) => t.name)).toEqual(["get_chain_info", "get_block_number"]);
+      expect(local.rpcs.filter((r) => r.method === "initialize")).toHaveLength(2);
+    } finally {
+      await mcp.close();
+    }
+  });
+
+  it("bounds a stalled read by timeoutMs and retries it", async () => {
     const local = await chainServer(CHAIN.pharos, undefined, (rpc) => rpc.method === "tools/call" && rpc.params?.name !== "get_chain_info");
     const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, timeoutMs: 200, retries: 1, sleep: async () => {} });
     try {
@@ -192,8 +314,8 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
       expect(err).toBeInstanceOf(McpError);
       expect(err.code).toBe(ErrorCode.RequestTimeout);
       expect(toolCalls(local.rpcs, "get_block_number")).toHaveLength(2);
-      await expect(mcp.call("send_raw_transaction", { rawTransaction: "0x02" })).rejects.toThrow(/timed out/i);
-      expect(toolCalls(local.rpcs, "send_raw_transaction")).toHaveLength(1);
+      await expect(mcp.call("get_block_number", {}, { retries: 0 })).rejects.toThrow(/timed out/i);
+      expect(toolCalls(local.rpcs, "get_block_number")).toHaveLength(3); // a per-call retries: 0 is honoured
     } finally {
       await mcp.close();
     }
@@ -235,6 +357,8 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
 describe("chainMcp over stdio (Atlantic's local server)", () => {
   const helper = (f: string) => fileURLToPath(new URL(`./helpers/${f}`, import.meta.url));
   const saved = { bin: process.env.PHAROS_MCP_BIN, key: process.env.BEACON_TEST_SECRET };
+  const counts = join(tmpdir(), `beacon-fake-chain-${process.pid}.json`);
+  beforeEach(() => rmSync(counts, { force: true }));
   afterEach(() => {
     for (const [k, v] of [["PHAROS_MCP_BIN", saved.bin], ["BEACON_TEST_SECRET", saved.key]] as const) {
       if (v === undefined) delete process.env[k];
@@ -248,6 +372,7 @@ describe("chainMcp over stdio (Atlantic's local server)", () => {
     const mcp = await chainMcp("atlantic", { perMinute: 0 });
     try {
       expect(mcp).toMatchObject({ network: "atlantic", chainId: 688689, broadcast: false, endpoint: "local stdio test/helpers/fake-chain-server.mjs" });
+      expect(mcp.perMinute).toBe(0); // as asked; the default for the local server is 60 (checked below)
       const names = (await mcp.call("env_names")) as string[];
       expect(names).not.toContain("BEACON_TEST_SECRET");
       expect(names).not.toContain("PRIVATE_KEY");
@@ -258,6 +383,13 @@ describe("chainMcp over stdio (Atlantic's local server)", () => {
     } finally {
       await mcp.close();
     }
+  });
+
+  it("paces the local server at 60 requests per minute by default", async () => {
+    process.env.PHAROS_MCP_BIN = helper("fake-chain-server.mjs");
+    const mcp = await chainMcp("atlantic");
+    expect(mcp.perMinute).toBe(60);
+    await mcp.close();
   });
 
   it("turns broadcasting on in the child only when asked", () => {
@@ -271,6 +403,28 @@ describe("chainMcp over stdio (Atlantic's local server)", () => {
     try {
       await expect(mcp.call("crash")).rejects.toMatchObject({ code: ErrorCode.ConnectionClosed });
       expect(await mcp.call("get_chain_info")).toMatchObject({ chainId: 688689 });
+    } finally {
+      await mcp.close();
+    }
+  });
+
+  it("retries a read that was in flight when the local server died, on a fresh server", async () => {
+    process.env.PHAROS_MCP_BIN = helper("fake-chain-server.mjs");
+    const mcp = await chainMcp("atlantic", { perMinute: 0, sleep: async () => {} });
+    try {
+      expect(await mcp.call("crash_once")).toEqual({ answered: true });
+    } finally {
+      await mcp.close();
+    }
+  });
+
+  it("sends a broadcast once: a timed-out send_raw_transaction is not resent", async () => {
+    process.env.PHAROS_MCP_BIN = helper("fake-chain-server.mjs");
+    const mcp = await chainMcp("atlantic", { perMinute: 0, broadcast: true, timeoutMs: 300, sleep: async () => {} });
+    try {
+      expect(mcp.broadcast).toBe(true);
+      await expect(mcp.call("send_raw_transaction", { rawTransaction: "0x02" })).rejects.toThrow(/timed out/i);
+      expect(await mcp.call("calls")).toMatchObject({ send_raw_transaction: 1 });
     } finally {
       await mcp.close();
     }
