@@ -6,6 +6,7 @@
     "test": "vitest run",
     "smoke": "tsx scripts/smoke.ts",
     "smoke:docs": "tsx scripts/docs-smoke.ts",
+    "ping": "tsx scripts/ping-tx.ts",
     "typecheck": "tsc",
     "guard": "tsx tasks/threshold-guardian/index.ts",
     "setup:mcp": "bash scripts/setup-testnet-mcp.sh"

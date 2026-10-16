@@ -18,6 +18,11 @@ export const pharos = defineChain({
   blockExplorers: { default: { name: "PharosScan", url: "https://www.pharosscan.xyz" } },
 });
 
+/** Explorer link for a transaction hash. */
+export function explorerTx(network: "pharos" | "atlantic", hash: string): string {
+  return `${(network === "pharos" ? pharos : atlantic).blockExplorers.default.url}/tx/${hash}`;
+}
+
 export const TOKENS = {
   atlantic: {
     USDC: { address: "0xE0BE08c77f415F577A1B3A9aD7a1Df1479564ec8", decimals: 6 },
