@@ -20,7 +20,7 @@ ship as agent skills also have a folder under `skills/`.
 
 ```bash
 npm install
-npm test            # 227 tests: guardian (policy, reader, guard, CLI), Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 238 tests: guardian (policy, reader, guard, CLI), Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
 npm run smoke       # hosted Chain MCP tool list + chain info, Atlantic block (+ wallet balance if PRIVATE_KEY is set)
@@ -39,7 +39,7 @@ Mainnet (chain 1672) is read-only here.
 
 | Path | What |
 |---|---|
-| `src/lib/mcp.ts` | Chain MCP client: hosted HTTP for mainnet, local stdio server for Atlantic. Checks the chain id at connect, paces itself at 100 requests per minute against the hosted server, counting the 4 a connect costs (the server allows 120 per minute per IP), and at 60 per minute against the local Atlantic server, waits as long as a 429's Retry-After asks (up to 65 s), retries only reads, reconnects a lost session, ends the session on close. Typed tool results; `getLogsRange` for any block range |
+| `src/lib/mcp.ts` | Chain MCP client: hosted HTTP for mainnet, local stdio server for Atlantic. Checks the chain id at connect, paces itself (per process) at 100 requests per minute against the hosted server, counting the 4 a connect costs (the server allows 120 per minute per IP), and at 60 per minute against the local Atlantic server, waits as long as a 429's Retry-After asks (up to 65 s), retries only reads, reconnects a lost session, ends the session on close. Typed tool results; `getLogsRange` for any block range |
 | `src/lib/signer.ts` | Atlantic-only signer: nonce, gas and fees read through the Chain MCP, signed locally with viem, broadcast through the Chain MCP, receipt read back through it. The hash is known before sending |
 | `src/lib/proof.ts` · `cli.ts` · `state.ts` | proof files stamped with chain, endpoint, server version and commit (for new tasks; Threshold Guardian's proofs predate it) · task CLI runner (flags, exit codes, cleanup, Ctrl-C) · atomic JSON state with a run lock |
 | `src/lib/docs-mcp.ts` | Developer Docs MCP client: `tools/list`, `searchDocumentation`, `getPage`, `askQuestion`, with timeouts and retries |

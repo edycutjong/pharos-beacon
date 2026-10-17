@@ -42,7 +42,8 @@ npm run setup:mcp        # only for Atlantic testnet: builds the open-source pha
 ## Workflow
 
 1. **Collect the conditions.** Map each of the user's conditions to a `kind` (table below). Ask for any missing
-   threshold, address or network rather than guessing. Default network: `pharos` (mainnet, dry-run).
+   threshold or address rather than guessing. If the user names no network, write `"network": "pharos"` (mainnet,
+   dry-run only); every policy file must set it.
 2. **Write the policy** to `tasks/threshold-guardian/policies/<name>.json`. Give each condition a `label` in plain words, because the trace
    prints it. Full schema: `references/policy.md`.
 3. **Dry-run it first, always** (a policy that uses `"$SELF"` needs `PRIVATE_KEY` set for the dry-run too):
