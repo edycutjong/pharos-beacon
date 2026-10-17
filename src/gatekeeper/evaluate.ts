@@ -3,8 +3,8 @@ import { parseAmount, type GatekeeperPolicy, type GateRequest } from "./policy.j
 import { isAddress } from "viem";
 
 // Pure decision logic: (policy, request, spend history, clock) → allow/deny + the rule that decided. No I/O, so every
-// outcome is unit-testable. Rules run in a fixed order and the FIRST failing rule is the deciding one; every rule is
-// still reported in `checks` so the trace shows what else held.
+// outcome is unit-testable. Rules run in a fixed order and the FIRST failing rule is the deciding one; evaluation stops there, so `checks` holds
+// the rules that passed before it plus the failing one.
 
 export type RuleName = "request" | "allowlist" | "time_window" | "spend_limit_per_tx" | "spend_limit_per_window";
 export interface Spend {

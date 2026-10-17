@@ -1,7 +1,7 @@
 import { encodeFunctionResult, erc20Abi, getAddress, parseAbi, type Hex } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import { ChainToolError } from "../src/lib/mcp.js";
-import { formatState, labelsFor, largestRecentRecipient, parseHolder, readState, USDC, withCommas, type Call } from "../tasks/read-contract-state/index.js";
+import { formatState, labelsFor, largestTransferRecipient, main, parseHolder, readState, readSymbol, USDC, withCommas, type Call } from "../tasks/read-contract-state/index.js";
 
 const OWNER = "0x9F8Ea09770Dc38fc61f5a62031b3BE0526D54D92" as Hex;
 const WPROS = "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0" as Hex;
@@ -76,7 +76,7 @@ describe("read-contract-state", () => {
     expect(() => parseHolder("0x12")).toThrow(/address/);
     expect(labelsFor(getAddress(USDC), "USDC")[USDC.toLowerCase()]).toContain("this contract");
   });
-  it("finds the largest recent recipient with one get_logs call over the last 1000 blocks", async () => {
+  it("finds the recipient of the largest single transfer with one get_logs call over the last 1000 blocks", async () => {
     const T = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
     const pad = (a: string) => `0x${a.slice(2).toLowerCase().padStart(64, "0")}`;
     const amt = (n: bigint) => `0x${n.toString(16).padStart(64, "0")}`;
@@ -86,9 +86,15 @@ describe("read-contract-state", () => {
       seen.push({ tool, args });
       return [log(WPROS, 5n, 0), log(USDC, 900n, 1), log(OWNER, 7n, 2)];
     }) as unknown as Call;
-    const r = await largestRecentRecipient(call, getAddress(USDC), 5000n, "USDC");
-    expect(r).toEqual({ address: getAddress(USDC), label: "largest USDC recipient in blocks 4001–5000" });
+    const r = await largestTransferRecipient(call, getAddress(USDC), 5000n, "USDC");
+    expect(r).toEqual({ address: getAddress(USDC), label: "recipient of the largest USDC transfer in blocks 4001–5000" });
     expect(seen).toEqual([{ tool: "get_logs", args: { address: getAddress(USDC), topics: [T], fromBlock: "4001", toBlock: "5000" } }]);
-    expect(await largestRecentRecipient((async () => []) as unknown as Call, getAddress(USDC), 10n, "USDC")).toBeNull();
+    expect(await largestTransferRecipient((async () => []) as unknown as Call, getAddress(USDC), 10n, "USDC")).toBeNull();
+  });
+  it("CLI on a non-token address: the friendly error, not a raw decode error", async () => {
+    const call = (async (tool: string) => (tool === "get_block_number" ? { blockNumber: "100" } : tool === "eth_call" ? { result: "0x" } : [])) as unknown as Call;
+    const connect = async () => ({ call, close: async () => {}, endpoint: "fake", network: "pharos" as const, chainId: 1672, server: undefined });
+    await expect(main({ onExit: () => {} } as never, ["--contract", OWNER], connect as never)).rejects.toThrow(/symbol\(\) on 0x9F8E.* returned no data: not a token contract at block 100/);
+    await expect(readSymbol(call, OWNER, 7n)).rejects.toThrow(/not a token contract at block 7/);
   });
 });

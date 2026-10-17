@@ -21,8 +21,8 @@ ship as agent skills also have a folder under `skills/`.
 ## Quick start
 
 ```bash
-npm install
-npm test            # 295 tests: guardian, gatekeeper, read-contract-state, Chain MCP and Docs MCP clients, signer, shared helpers
+npm ci
+npm test            # 301 tests: guardian, gatekeeper, read-contract-state, Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)

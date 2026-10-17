@@ -1,0 +1,7 @@
+{
+  "name": "treasury-anytime",
+  "network": "atlantic",
+  "spendLimit": { "perTx": "0.005", "perWindow": "0.008", "windowSeconds": 3600 },
+  "allowlist": ["0x8D347c72431ed6E033d5f43E56c0987E97f5D91B", "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"],
+  "timeWindow": { "start": "00:00", "end": "23:59" }
+}

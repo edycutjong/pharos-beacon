@@ -206,3 +206,19 @@ describe("audit log", () => {
     expect(appendAudit(f, { event: "decision" })).toMatchObject({ seq: 1, prev: "genesis" });
   });
 });
+
+describe("anytime demo (policies/treasury-anytime.json + requests-anytime.json)", () => {
+  const dir = "tasks/policy-gatekeeper/policies";
+  const policy = parseGatekeeperPolicy(JSON.parse(readFileSync(join(dir, "treasury-anytime.json"), "utf8")));
+  const requests = JSON.parse(readFileSync(join(dir, "requests-anytime.json"), "utf8"));
+  // A reviewer may run the keyless dry-run at any hour: every rule type must still show a deny.
+  for (const hour of ["05:00", "15:00", "23:30"]) {
+    it(`a dry-run at ${hour} UTC shows a deny for every rule type and sends nothing`, async () => {
+      const tmp = mkdtempSync(join(tmpdir(), "gk-anytime-"));
+      const send = vi.fn() as unknown as Send;
+      const out = await runRequests(policy, requests, { stateFile: join(tmp, "s.json"), auditFile: join(tmp, "a.jsonl"), execute: false, send, now: () => new Date(`2026-10-17T${hour}:00Z`) });
+      expect(out.map((o) => o.decision.rule)).toEqual(["all_rules_passed", "allowlist", "time_window", "spend_limit_per_tx", "all_rules_passed", "spend_limit_per_window", "request"]);
+      expect(send).not.toHaveBeenCalled();
+    });
+  }
+});

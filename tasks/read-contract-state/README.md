@@ -8,7 +8,7 @@ read a smart contract's state via Chain MCP.
 
 ## Which contract
 
-**USDC on Pharos mainnet, `0xC879C018dB60520F4355C26eD1a6D572cdAC1815`** — listed as "USDC (Circle Deployed)" in SkillEngine's token
+**USDC on Pharos mainnet, `0xC879C018dB60520F4355C26eD1a6D572cdAC1815`** — listed as "USDC (Circle Deployed)" in the Pharos docs token
 registry. It is a token that real users hold, with an owner and a pause switch, so there is more to read than a bare ERC-20.
 Pick another with `--contract 0x…` (any ERC-20) and label addresses with `--holder 0x…=Treasury`.
 
@@ -18,7 +18,7 @@ Pick another with `--contract 0x…` (any ERC-20) and label addresses with `--ho
 |---|---|---|---|
 | 1 | Reads at least 3 different values from one contract via Chain MCP | 5 values from the one contract through `eth_call`: `name()`, `symbol()`, `decimals()`, `totalSupply()`, `balanceOf(holder)` (two holders), plus `owner()` and `paused()`; by default one holder is a real one, found with `get_logs` | [`proof/0xc879…1815.json`](proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) · [`index.ts`](index.ts) `readState` |
 | 2 | Shows the contract address and the block number the data was read at | Printed in the first two lines; every read is pinned to that block, so the numbers describe one moment | [sample output below](#sample-output) · `proof` field `state.block` |
-| 3 | Formats raw values for humans: token decimals applied, addresses labelled | `totalSupply` 40985447535743 → `40,985,447.535743 USDC` using the contract's own `decimals()` (the raw value stays beside it); every address gets a label: a token from the registry, the contract itself, its role ("owner of this contract", "largest USDC recipient in blocks …"), your `=label`, or `wallet (no code)` / `contract (has code)` from `get_code` | [`index.ts`](index.ts) `labelsFor`, `formatState` · `test/read-contract-state.test.ts` |
+| 3 | Formats raw values for humans: token decimals applied, addresses labelled | `totalSupply` 40985447535743 → `40,985,447.535743 USDC` using the contract's own `decimals()` (the raw value stays beside it); every address gets a label: a token from the registry, the contract itself, its role ("owner of this contract", "recipient of the largest USDC transfer in blocks …"), your `=label`, or `wallet (no code)` / `contract (has code)` from `get_code` | [`index.ts`](index.ts) `labelsFor`, `formatState` · `test/read-contract-state.test.ts` |
 | 4 | Includes a short README: which contract, how to run it, sample output | This file | — |
 
 ## Sample output
@@ -71,7 +71,7 @@ stops the run. Pointing it at an address that is not a token fails with `returne
 | `get_block_number` | the block every read is pinned to (`--block N` reads an older one) |
 | `eth_call` | `name`, `symbol`, `decimals`, `totalSupply`, `balanceOf`, `owner`, `paused` |
 | `get_code` | tells a wallet from a contract (the owner, and any address nobody labelled) |
-| `get_logs` | the default holder: the recipient of the largest `Transfer` in the last 1000 blocks (one call) |
+| `get_logs` | the default holder: the recipient of the single largest `Transfer` in the last 1000 blocks (one call) |
 
 ## Proof
 
@@ -81,10 +81,10 @@ stops the run. Pointing it at an address that is not a token fails with `returne
 | Wrapped PROS with a custom label, 2026-10-17 | Pharos mainnet 1672 · block 20474871 | the second output above | [`proof/0x52c4…f0b0.json`](proof/0x52c48d4213107b20bc583832b0d951fb9ca8f0b0.json) |
 
 The task is read-only, so there is no transaction: the proof is the file above (it also records the endpoint, server version and
-the command). It was produced from the working tree before this task's commit (`meta.git.dirty` is true).
+the command). Each proof was produced from a clean, committed tree: `meta.git.commit` names the commit and `meta.git.dirty` is false.
 
 ## Tests
 
-`npm test` runs 6 tests for this task (`test/read-contract-state.test.ts`) against a fake Chain MCP: values decoded with decimals applied,
+`npm test` runs 8 tests for this task (`test/read-contract-state.test.ts`) against a fake Chain MCP: values decoded with decimals applied,
 all reads pinned to one block, labelling rules, a contract without `owner()`/`paused()`, a transport error not mistaken for "no owner",
-a non-token address, and the report text.
+a non-token address (also through the CLI, so the friendly error is what you see), the default-holder search over `get_logs`, and the report text.

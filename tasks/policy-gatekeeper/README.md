@@ -15,7 +15,7 @@ agent skill, [`skills/policy-gatekeeper/`](../../skills/policy-gatekeeper/SKILL.
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
 | 1 | A policy file or config with at least 3 rule types: spend limit, allowlist, time window | One JSON policy with `spendLimit` (per transaction and per rolling window), `allowlist` (recipient addresses, EOAs or contracts) and `timeWindow` (UTC hours, optional weekdays). Unknown fields, bad amounts, a mainnet network or an empty allowlist reject the whole policy | [`policies/treasury.json`](policies/treasury.json) · [`src/gatekeeper/policy.ts`](../../src/gatekeeper/policy.ts) |
-| 2 | Every request returns allow or deny with the specific rule that decided it | Each request prints every rule's PASS/FAIL, then `=> ALLOW by …` or `=> DENY by <rule>`; the deciding rule is one of `allowlist`, `time_window`, `spend_limit_per_tx`, `spend_limit_per_window` or `request` (malformed input) | [Output below](#proof-live-runs) · [`src/gatekeeper/evaluate.ts`](../../src/gatekeeper/evaluate.ts) · [`proof/treasury.live.json`](proof/treasury.live.json) |
+| 2 | Every request returns allow or deny with the specific rule that decided it | Each request prints PASS for every rule checked, up to the deciding one (a FAIL stops the check), then `=> ALLOW by …` or `=> DENY by <rule>`; the deciding rule is one of `allowlist`, `time_window`, `spend_limit_per_tx`, `spend_limit_per_window` or `request` (malformed input) | [Output below](#proof-live-runs) · [`src/gatekeeper/evaluate.ts`](../../src/gatekeeper/evaluate.ts) · [`proof/treasury.live.json`](proof/treasury.live.json) |
 | 3 | Denied actions are never executed. Shows at least one deny per rule type | The only call to the sender is inside the allow branch of [`src/gatekeeper/run.ts`](../../src/gatekeeper/run.ts); a test makes every kind of deny with `--execute` and asserts the sender was never called. Live denies: allowlist, time window, per-tx limit, per-window limit, plus a malformed request | requests #2–#4, #6, #7 in [`proof/treasury.live.json`](proof/treasury.live.json) · real-clock time-window deny: [`proof/evening-only.denied.json`](proof/evening-only.denied.json) · `test/gatekeeper.test.ts` ("never calls send for a denied request") |
 | 4 | Keeps an audit log of all decisions | Every decision, allow or deny, is appended to a JSONL log before anything is sent; each line carries the sha256 of the previous line, so an edited, removed or reordered line is detected. Executions add a `result` line with the tx hash and receipt | [`audit/audit.jsonl`](audit/audit.jsonl) (10 entries: 8 decisions, 2 results) |
 
@@ -26,7 +26,7 @@ Allowed requests were also executed on Atlantic testnet (not asked by the task, 
 ## What it does
 
 A request is `{to, amount}` (PHRS). The gatekeeper checks it against the policy in a fixed order — allowlist, time window, per-transaction
-limit, per-window limit — and the first failing rule is the deciding one; the others are still shown. A request it cannot read exactly
+limit, per-window limit — and the first failing rule is the deciding one; rules after it are not checked, so a deny shows the rules that passed before it and the one that failed. A request it cannot read exactly
 (bad address, amount that is not a positive decimal string, bad date) is denied under the rule `request`: it fails closed. Only an ALLOW
 with `--execute` is sent, through the shared Atlantic signer (the Chain MCP prepares and broadcasts, viem signs locally). Mainnet is not
 accepted: the policy's network must be `atlantic`.
@@ -95,11 +95,26 @@ audit log: 9 entries, hash chain intact
 Re-running the same command today will not repeat this: the spend window in `state/spend.json` is already used, and the policy's
 00:00–12:00 UTC window closes at noon. Use other file paths (`--state`, `--audit`, or the env vars `GATEKEEPER_STATE` / `GATEKEEPER_AUDIT`) for a fresh try.
 
-A second, later run of the same 7 requests was recorded for the demo video with its own files, so it started with an empty window:
+**Try every deny yourself, keyless, at any hour.** After 12:00 UTC the time window of `treasury.json` denies every request first, so the
+two spend-limit denies cannot show. [`policies/treasury-anytime.json`](policies/treasury-anytime.json) is the same policy with a
+00:00–23:59 window, and [`policies/requests-anytime.json`](policies/requests-anytime.json) is the same 7 requests with the time-window
+request at a simulated 23:59:30. This dry-run shows one deny per rule type (allowlist, time window, per-tx, per-window, malformed) and
+sends nothing, at any hour except the last minute of the UTC day:
+
+```bash
+npm run policy-gatekeeper -- tasks/policy-gatekeeper/policies/treasury-anytime.json --requests tasks/policy-gatekeeper/policies/requests-anytime.json
+```
+
+Request #5 pays `0x317b…2975`, which is the sending wallet itself (it is on its own allowlist): in the live run that transfer was a
+self-transfer, which still counts toward the spend window.
+
+A second, later run of the same 7 requests was recorded for the demo video with its own files, so it started with an empty window (so the video shows different tx hashes from the proof link):
 [`policies/treasury-recording.json`](policies/treasury-recording.json) is a byte-for-byte copy of `treasury.json`, with
 [`state/recording.json`](state/recording.json) and [`audit/recording.jsonl`](audit/recording.jsonl) (9 entries, chain intact, 2 sends).
 
 ## Writing a policy
+
+The policy format, shown as `treasury.json` plus the optional `days` field (the real file has no `days`):
 
 ```json
 {
@@ -131,7 +146,7 @@ input, 3 for a deny when `--fail-on-deny` is set.
 
 ## Tests
 
-`npm test` runs 45 tests for this task (`test/gatekeeper.test.ts`, `test/gatekeeper-cli.test.ts`): policy parsing and every rejection,
+`npm test` runs 49 tests for this task (`test/gatekeeper.test.ts`, `test/gatekeeper-cli.test.ts`): policy parsing and every rejection,
 each rule's boundaries (limit exactly met, window start and end, midnight wrap, weekdays, spend aging out of the window), a deny per rule
 type, malformed requests, "send is never called for a deny", a dry-run batch accumulating its own spend, state persisted across runs and refused when corrupt, a failed send still
-counting, the audit chain detecting an edit / removal / reorder, and the real CLI process (exit codes, no chain reachable, dry-run).
+counting, the audit chain detecting an edit / removal / reorder, the real CLI process (exit codes, no chain reachable, dry-run, a dry-run never touching the committed audit log), and the anytime demo at 05:00, 15:00 and 23:30 UTC.

@@ -105,10 +105,10 @@ export async function readState(call: Call, contract: Hex, block: bigint, holder
 const TRANSFER = toEventSelector("Transfer(address,address,uint256)");
 
 /**
- * A holder worth showing by default: the recipient of the largest Transfer in the last 1000 blocks up to `block`
+ * A holder worth showing by default: the recipient of the single largest Transfer in the last 1000 blocks up to `block`
  * (one Chain MCP get_logs call). Null when the window has no transfers.
  */
-export async function largestRecentRecipient(call: Call, contract: Hex, block: bigint, symbol: string): Promise<{ address: Hex; label: string } | null> {
+export async function largestTransferRecipient(call: Call, contract: Hex, block: bigint, symbol: string): Promise<{ address: Hex; label: string } | null> {
   const from = block >= BigInt(MAX_LOG_WINDOW - 1) ? block - BigInt(MAX_LOG_WINDOW - 1) : 0n;
   const logs = await getLogsRange(call, { address: contract, topics: [TRANSFER], fromBlock: from, toBlock: block });
   let best: { to: Hex; value: bigint } | null = null;
@@ -120,7 +120,14 @@ export async function largestRecentRecipient(call: Call, contract: Hex, block: b
       // not a standard Transfer (e.g. a non-indexed variant): skip it
     }
   }
-  return best ? { address: getAddress(best.to), label: `largest ${symbol} recipient in blocks ${from}–${block}` } : null;
+  return best ? { address: getAddress(best.to), label: `recipient of the largest ${symbol} transfer in blocks ${from}–${block}` } : null;
+}
+
+/** The token's symbol at `block`, with the same "not a token" error as `readState` when the call returns nothing. */
+export async function readSymbol(call: Call, contract: Hex, block: bigint): Promise<string> {
+  const { result } = await call("eth_call", { transaction: { to: contract, data: encodeFunctionData({ abi: erc20Abi, functionName: "symbol" }) }, block: block.toString() });
+  if (typeof result !== "string" || result === "0x") throw new Error(`symbol() on ${contract} returned no data: not a token contract at block ${block}`);
+  return decodeFunctionResult({ abi: erc20Abi, functionName: "symbol", data: result as Hex }) as string;
 }
 
 /** Plain-language report: the address and block first, then every value with its unit applied. */
@@ -140,7 +147,7 @@ export function formatState(s: ContractState): string {
   return lines.join("\n");
 }
 
-export async function main({ onExit }: RunContext, argv = process.argv.slice(2)): Promise<number> {
+export async function main({ onExit }: RunContext, argv = process.argv.slice(2), connect: (n: "pharos") => Promise<Pick<ChainMcp, "call" | "close" | "endpoint" | "network" | "chainId" | "server">> = chainMcp): Promise<number> {
   const { values } = parseCli(
     {
       usage: `npm run ${TASK} -- [--contract 0x…] [--holder 0x…[=label]]… [--block N] [--proof]`,
@@ -153,15 +160,14 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   if (values.block !== undefined && !/^\d+$/.test(values.block)) throw new UsageError("--block must be a block number (decimal digits)");
   const holders = (values.holder ?? []).map(parseHolder);
 
-  const mcp = await chainMcp("pharos"); // the hosted, keyless Chain MCP; checks the endpoint serves chain 1672
+  const mcp = await connect("pharos"); // the hosted, keyless Chain MCP; checks the endpoint serves chain 1672
   onExit(() => mcp.close());
   const head = BigInt((await mcp.call("get_block_number")).blockNumber);
   const block = values.block ? BigInt(values.block) : head;
   if (block > head) throw new UsageError(`--block ${block} is ahead of the chain head ${head}`);
   // Default balances: a real recent holder (found with get_logs) and the WPROS token contract (from the token registry).
   if (!values.holder) {
-    const symbol = decodeFunctionResult({ abi: erc20Abi, functionName: "symbol", data: (await mcp.call("eth_call", { transaction: { to: contract, data: encodeFunctionData({ abi: erc20Abi, functionName: "symbol" }) }, block: block.toString() })).result }) as string;
-    const recent = await largestRecentRecipient(mcp.call, contract, block, symbol);
+    const recent = await largestTransferRecipient(mcp.call, contract, block, await readSymbol(mcp.call, contract, block));
     if (recent) holders.push(recent);
     holders.push({ address: getAddress(TOKENS.pharos.WPROS.address) });
   }
