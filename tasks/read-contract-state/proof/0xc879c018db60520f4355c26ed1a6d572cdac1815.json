@@ -10,26 +10,26 @@
     },
     "command": "tasks/read-contract-state/index.ts --proof",
     "git": {
-      "commit": "50286c7e1f73",
-      "dirty": true
+      "commit": "547fe07191b3",
+      "dirty": false
     },
-    "createdAt": "2026-10-17T05:03:06.687Z"
+    "createdAt": "2026-10-17T10:58:20.214Z"
   },
-  "head": "20453810",
+  "head": "20474857",
   "state": {
     "contract": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
-    "block": "20453810",
+    "block": "20474857",
     "name": "USDC",
     "symbol": "USDC",
     "decimals": 6,
-    "totalSupplyRaw": "40901147298696",
-    "totalSupply": "40901147.298696",
+    "totalSupplyRaw": "40985447535743",
+    "totalSupply": "40985447.535743",
     "holders": [
       {
-        "address": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
-        "label": "USDC token contract (this contract)",
-        "raw": "0",
-        "amount": "0"
+        "address": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+        "label": "largest USDC recipient in blocks 20473858–20474857",
+        "raw": "544536955309",
+        "amount": "544536.955309"
       },
       {
         "address": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
@@ -40,7 +40,7 @@
     ],
     "owner": {
       "address": "0x9F8Ea09770Dc38fc61f5a62031b3BE0526D54D92",
-      "label": "unlabelled wallet (no code)"
+      "label": "owner of this contract · wallet (no code)"
     },
     "paused": false
   }
