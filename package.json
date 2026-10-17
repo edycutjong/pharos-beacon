@@ -9,7 +9,9 @@
     "ping": "tsx scripts/ping-tx.ts",
     "typecheck": "tsc",
     "guard": "tsx tasks/threshold-guardian/index.ts",
-    "setup:mcp": "bash scripts/setup-testnet-mcp.sh"
+    "setup:mcp": "bash scripts/setup-testnet-mcp.sh",
+    "policy-gatekeeper": "tsx tasks/policy-gatekeeper/index.ts",
+    "read-contract-state": "tsx tasks/read-contract-state/index.ts"
   },
   "keywords": [],
   "author": "",

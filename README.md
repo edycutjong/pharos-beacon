@@ -15,13 +15,16 @@ ship as agent skills also have a folder under `skills/`.
 | Task | Tier | What | Proof |
 |---|---|---|---|
 | [Threshold Guardian](tasks/threshold-guardian/) | Medium | Checks N onchain conditions through Chain MCP and acts only if all pass. Fails closed and re-checks before sending. Also packaged as a [SkillEngine-format skill](skills/threshold-guardian/SKILL.md) | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0xd567073eaa5d89eb5e30c3e3efa2948818851648fe628d93ff6fa29074dfbf39) · [proof/](tasks/threshold-guardian/proof/) |
+| [Policy Gatekeeper](tasks/policy-gatekeeper/) | Medium | Checks a request against a spend limit (per tx and per window), a recipient allowlist and a UTC time window, names the rule that decided, never sends a denied request, and keeps a hash-chained audit log. Also a [SkillEngine-format skill](skills/policy-gatekeeper/SKILL.md) | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0x801160985556a2888c927db0109469d17f3a80b9b395baa5c30e49a060e969cd) · [proof/](tasks/policy-gatekeeper/proof/) · [audit log](tasks/policy-gatekeeper/audit/audit.jsonl) |
+| [Read Contract State](tasks/read-contract-state/) | Easy | Reads name, symbol, decimals, totalSupply, balances, owner and paused from Pharos mainnet USDC through the Chain MCP, pinned to one block, decimals applied, addresses labelled | [proof JSON](tasks/read-contract-state/proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) (read-only, no tx) |
 
 ## Quick start
 
 ```bash
 npm install
-npm test            # 244 tests: guardian (policy, reader, guard, CLI), Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 295 tests: guardian, gatekeeper, read-contract-state, Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
+npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
 npm run smoke       # hosted Chain MCP tool list + chain info, Atlantic block (+ wallet balance if PRIVATE_KEY is set)
 npm run smoke:docs  # live Developer Docs MCP check: tools/list, a search, a page fetch, a question (keyless)
@@ -47,6 +50,7 @@ Mainnet (chain 1672) is read-only here.
 | `src/lib/chain.ts` | viem wallet bound to Atlantic (used by Threshold Guardian) and a raw testnet client for scripts |
 | `src/lib/networks.ts` | chain definitions + known token addresses (from SkillEngine `assets/`), explorer links |
 | `src/guardian/` | Threshold Guardian: policy schema, MCP reader, evaluator, guard |
+| `src/gatekeeper/` | Policy Gatekeeper: policy schema, pure evaluator, hash-chained audit log, request runner |
 | `skills/<name>/` | agent skills in SkillEngine format (`SKILL.md` + `references/`), installable with `npx skills add` |
 | `tasks/<slug>/` | one Arena task each: entry point + README + proof (start from `tasks/_template/`) |
 | `test/` | vitest tests; a task's own tests can also live in `tasks/<slug>/*.test.ts` |

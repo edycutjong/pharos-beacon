@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "task": "read-contract-state",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/read-contract-state/index.ts --proof",
+    "git": {
+      "commit": "5796238df875",
+      "dirty": true
+    },
+    "createdAt": "2026-10-17T04:54:58.636Z"
+  },
+  "head": "20453298",
+  "state": {
+    "contract": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+    "block": "20453298",
+    "name": "USDC",
+    "symbol": "USDC",
+    "decimals": 6,
+    "totalSupplyRaw": "40901150791646",
+    "totalSupply": "40901150.791646",
+    "holders": [
+      {
+        "address": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+        "label": "USDC token contract (this contract)",
+        "raw": "0",
+        "amount": "0"
+      },
+      {
+        "address": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
+        "label": "WPROS token contract",
+        "raw": "807275",
+        "amount": "0.807275"
+      }
+    ],
+    "owner": {
+      "address": "0x9F8Ea09770Dc38fc61f5a62031b3BE0526D54D92",
+      "label": "unlabelled wallet (no code)"
+    },
+    "paused": false
+  }
+}
