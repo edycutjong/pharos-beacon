@@ -36,11 +36,12 @@ clock and is never sent.
 
 ```mermaid
 flowchart LR
-  R[request: to, amount] --> E[evaluate: allowlist → time window → per-tx → per-window]
-  E --> L[append decision to audit log]
-  L -- DENY --> D[stop · never sent]
-  L -- ALLOW, dry-run or simulated clock --> N[stop · not sent]
-  L -- ALLOW + --execute --> S[record spend · sign · broadcast via Chain MCP] --> C[receipt via Chain MCP] --> L2[append result to audit log]
+  R["request: to, amount"] --> E["evaluate: allowlist → time window → per-tx → per-window"]
+  E --> L["append decision to audit log"]
+  L -->|DENY| D["stop · never sent"]
+  L -->|"ALLOW, dry-run or simulated clock"| N["stop · not sent"]
+  L -->|"ALLOW + --execute"| S["record spend · sign · broadcast via Chain MCP"]
+  S --> C["receipt via Chain MCP"] --> L2["append result to audit log"]
 ```
 
 ## Chain MCP tools
