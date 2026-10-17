@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "task": "read-contract-state",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/read-contract-state/index.ts --contract 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0 --holder 0xC879C018dB60520F4355C26eD1a6D572cdAC1815=USDC-contract --proof",
+    "git": {
+      "commit": "50286c7e1f73",
+      "dirty": true
+    },
+    "createdAt": "2026-10-17T05:12:22.359Z"
+  },
+  "head": "20454395",
+  "state": {
+    "contract": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
+    "block": "20454395",
+    "name": "Wrapped PROS",
+    "symbol": "WPROS",
+    "decimals": 18,
+    "totalSupplyRaw": "23260937538886296142421180",
+    "totalSupply": "23260937.53888629614242118",
+    "holders": [
+      {
+        "address": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+        "label": "USDC-contract",
+        "raw": "0",
+        "amount": "0"
+      }
+    ],
+    "owner": null,
+    "paused": null
+  }
+}

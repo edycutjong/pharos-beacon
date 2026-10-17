@@ -4,6 +4,7 @@
 import { readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { envOr } from "../../src/lib/env.js";
 import { isMain, parseCli, runCli, UsageError, type RunContext } from "../../src/lib/cli.js";
 import { chainMcp, type ChainMcp } from "../../src/lib/mcp.js";
 import { explorerTx } from "../../src/lib/networks.js";
@@ -37,7 +38,8 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
       options: {
         to: { type: "string" }, amount: { type: "string" }, requests: { type: "string" }, at: { type: "string" },
         execute: { type: "boolean", default: false }, "fail-on-deny": { type: "boolean", default: false }, proof: { type: "boolean", default: false },
-        state: { type: "string", default: join(HERE, "state/spend.json") }, audit: { type: "string", default: join(HERE, "audit/audit.jsonl") },
+        // GATEKEEPER_STATE / GATEKEEPER_AUDIT change the defaults (a second agent, or a recording that must not touch the main window).
+        state: { type: "string", default: envOr("GATEKEEPER_STATE", join(HERE, "state/spend.json")) }, audit: { type: "string", default: envOr("GATEKEEPER_AUDIT", join(HERE, "audit/audit.jsonl")) },
       },
       positionals: [1, 1],
     },

@@ -90,7 +90,11 @@ audit log: 9 entries, hash chain intact
 
 (`audit #N` is the line of the decision in the audit log; the lines in between are the `result` lines of the two sends.)
 Re-running the same command today will not repeat this: the spend window in `state/spend.json` is already used, and the policy's
-00:00–12:00 UTC window closes at noon. Use a copy of the state file path (`--state`, `--audit`) for a fresh try.
+00:00–12:00 UTC window closes at noon. Use other file paths (`--state`, `--audit`, or the env vars `GATEKEEPER_STATE` / `GATEKEEPER_AUDIT`) for a fresh try.
+
+A second, later run of the same 7 requests was recorded for the demo video with its own files, so it started with an empty window:
+[`policies/treasury-recording.json`](policies/treasury-recording.json) is a byte-for-byte copy of `treasury.json`, with
+[`state/recording.json`](state/recording.json) and [`audit/recording.jsonl`](audit/recording.jsonl) (9 entries, chain intact, 2 sends).
 
 ## Writing a policy
 
