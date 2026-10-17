@@ -1,0 +1,5 @@
+{
+  "name": "evening-only",
+  "network": "atlantic",
+  "timeWindow": { "start": "18:00", "end": "23:00" }
+}

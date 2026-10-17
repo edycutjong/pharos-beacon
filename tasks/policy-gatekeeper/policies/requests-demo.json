@@ -1,0 +1,9 @@
+[
+  { "label": "allowed: allowlisted, small, inside the window", "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B", "amount": "0.001" },
+  { "label": "deny: recipient not on the allowlist", "to": "0x000000000000000000000000000000000000dEaD", "amount": "0.001" },
+  { "label": "deny: outside the UTC time window (simulated 18:30)", "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B", "amount": "0.001", "at": "2026-10-17T18:30:00Z" },
+  { "label": "deny: over the per-transaction limit", "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B", "amount": "0.006" },
+  { "label": "allowed: second transfer uses most of the window budget", "to": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975", "amount": "0.004" },
+  { "label": "deny: would push the hour over the window limit", "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B", "amount": "0.004" },
+  { "label": "deny: malformed request (fails closed)", "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B", "amount": "lots" }
+]

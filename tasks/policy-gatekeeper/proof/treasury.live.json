@@ -1,0 +1,247 @@
+{
+  "meta": {
+    "task": "policy-gatekeeper",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/policy-gatekeeper/index.ts tasks/policy-gatekeeper/policies/treasury.json --requests tasks/policy-gatekeeper/policies/requests-demo.json --execute --proof",
+    "git": {
+      "commit": "5796238df875",
+      "dirty": true
+    },
+    "createdAt": "2026-10-17T04:54:12.465Z"
+  },
+  "policy": {
+    "name": "treasury-agent",
+    "network": "atlantic",
+    "spendLimit": {
+      "perTx": "5000000000000000",
+      "perWindow": "8000000000000000",
+      "windowSeconds": 3600
+    },
+    "allowlist": [
+      "0x8d347c72431ed6e033d5f43e56c0987e97f5d91b",
+      "0x317bca01bb101c0f1e86c21576a4e14d92b02975"
+    ],
+    "timeWindow": {
+      "startMin": 0,
+      "endMin": 720
+    }
+  },
+  "outcomes": [
+    {
+      "request": {
+        "label": "allowed: allowlisted, small, inside the window",
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "amount": "0.001"
+      },
+      "decision": {
+        "decision": "allow",
+        "rule": "all_rules_passed",
+        "reason": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B is on the allowlist; 04:54 UTC is inside 00:00–12:00 UTC; 0.001 PHRS ≤ 0.005 PHRS per transaction; 0.001 PHRS ≤ 0.008 PHRS over 3600 s",
+        "checks": [
+          {
+            "rule": "allowlist",
+            "pass": true,
+            "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B is on the allowlist"
+          },
+          {
+            "rule": "time_window",
+            "pass": true,
+            "detail": "04:54 UTC is inside 00:00–12:00 UTC"
+          },
+          {
+            "rule": "spend_limit_per_tx",
+            "pass": true,
+            "detail": "0.001 PHRS ≤ 0.005 PHRS per transaction"
+          },
+          {
+            "rule": "spend_limit_per_window",
+            "pass": true,
+            "detail": "0.001 PHRS ≤ 0.008 PHRS over 3600 s"
+          }
+        ]
+      },
+      "status": "executed",
+      "audit": 1,
+      "tx": "0x801160985556a2888c927db0109469d17f3a80b9b395baa5c30e49a060e969cd"
+    },
+    {
+      "request": {
+        "label": "deny: recipient not on the allowlist",
+        "to": "0x000000000000000000000000000000000000dEaD",
+        "amount": "0.001"
+      },
+      "decision": {
+        "decision": "deny",
+        "rule": "allowlist",
+        "reason": "0x000000000000000000000000000000000000dEaD is not on the allowlist (2 addresses)",
+        "checks": [
+          {
+            "rule": "allowlist",
+            "pass": false,
+            "detail": "0x000000000000000000000000000000000000dEaD is not on the allowlist (2 addresses)"
+          }
+        ]
+      },
+      "status": "denied",
+      "audit": 3
+    },
+    {
+      "request": {
+        "label": "deny: outside the UTC time window (simulated 18:30)",
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "amount": "0.001",
+        "at": "2026-10-17T18:30:00Z"
+      },
+      "decision": {
+        "decision": "deny",
+        "rule": "time_window",
+        "reason": "2026-10-17T18:30:00.000Z is outside the allowed window 00:00–12:00 UTC",
+        "checks": [
+          {
+            "rule": "allowlist",
+            "pass": true,
+            "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B is on the allowlist"
+          },
+          {
+            "rule": "time_window",
+            "pass": false,
+            "detail": "2026-10-17T18:30:00.000Z is outside the allowed window 00:00–12:00 UTC"
+          }
+        ]
+      },
+      "status": "denied",
+      "audit": 4
+    },
+    {
+      "request": {
+        "label": "deny: over the per-transaction limit",
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "amount": "0.006"
+      },
+      "decision": {
+        "decision": "deny",
+        "rule": "spend_limit_per_tx",
+        "reason": "0.006 PHRS exceeds the per-transaction limit of 0.005 PHRS",
+        "checks": [
+          {
+            "rule": "allowlist",
+            "pass": true,
+            "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B is on the allowlist"
+          },
+          {
+            "rule": "time_window",
+            "pass": true,
+            "detail": "04:54 UTC is inside 00:00–12:00 UTC"
+          },
+          {
+            "rule": "spend_limit_per_tx",
+            "pass": false,
+            "detail": "0.006 PHRS exceeds the per-transaction limit of 0.005 PHRS"
+          }
+        ]
+      },
+      "status": "denied",
+      "audit": 5
+    },
+    {
+      "request": {
+        "label": "allowed: second transfer uses most of the window budget",
+        "to": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+        "amount": "0.004"
+      },
+      "decision": {
+        "decision": "allow",
+        "rule": "all_rules_passed",
+        "reason": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975 is on the allowlist; 04:54 UTC is inside 00:00–12:00 UTC; 0.004 PHRS ≤ 0.005 PHRS per transaction; 0.005 PHRS ≤ 0.008 PHRS over 3600 s",
+        "checks": [
+          {
+            "rule": "allowlist",
+            "pass": true,
+            "detail": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975 is on the allowlist"
+          },
+          {
+            "rule": "time_window",
+            "pass": true,
+            "detail": "04:54 UTC is inside 00:00–12:00 UTC"
+          },
+          {
+            "rule": "spend_limit_per_tx",
+            "pass": true,
+            "detail": "0.004 PHRS ≤ 0.005 PHRS per transaction"
+          },
+          {
+            "rule": "spend_limit_per_window",
+            "pass": true,
+            "detail": "0.005 PHRS ≤ 0.008 PHRS over 3600 s"
+          }
+        ]
+      },
+      "status": "executed",
+      "audit": 6,
+      "tx": "0x90e9af7466fd8376509c291612e90fab7b607da7affd4bbf88dcec348f8ee459"
+    },
+    {
+      "request": {
+        "label": "deny: would push the hour over the window limit",
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "amount": "0.004"
+      },
+      "decision": {
+        "decision": "deny",
+        "rule": "spend_limit_per_window",
+        "reason": "0.004 PHRS on top of 0.005 PHRS already sent in the last 3600 s exceeds 0.008 PHRS",
+        "checks": [
+          {
+            "rule": "allowlist",
+            "pass": true,
+            "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B is on the allowlist"
+          },
+          {
+            "rule": "time_window",
+            "pass": true,
+            "detail": "04:54 UTC is inside 00:00–12:00 UTC"
+          },
+          {
+            "rule": "spend_limit_per_tx",
+            "pass": true,
+            "detail": "0.004 PHRS ≤ 0.005 PHRS per transaction"
+          },
+          {
+            "rule": "spend_limit_per_window",
+            "pass": false,
+            "detail": "0.004 PHRS on top of 0.005 PHRS already sent in the last 3600 s exceeds 0.008 PHRS"
+          }
+        ]
+      },
+      "status": "denied",
+      "audit": 8
+    },
+    {
+      "request": {
+        "label": "deny: malformed request (fails closed)",
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "amount": "lots"
+      },
+      "decision": {
+        "decision": "deny",
+        "rule": "request",
+        "reason": "request: amount must be a decimal string with at most 18 decimals",
+        "checks": [
+          {
+            "rule": "request",
+            "pass": false,
+            "detail": "request: amount must be a decimal string with at most 18 decimals"
+          }
+        ]
+      },
+      "status": "denied",
+      "audit": 9
+    }
+  ]
+}

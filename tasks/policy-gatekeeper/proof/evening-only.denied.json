@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "task": "policy-gatekeeper",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "none (no chain call: nothing was sent)"
+    },
+    "command": "tasks/policy-gatekeeper/index.ts tasks/policy-gatekeeper/policies/evening-only.json --to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --amount 0.001 --execute --proof",
+    "git": {
+      "commit": "5796238df875",
+      "dirty": true
+    },
+    "createdAt": "2026-10-17T04:55:58.945Z"
+  },
+  "policy": {
+    "name": "evening-only",
+    "network": "atlantic",
+    "timeWindow": {
+      "startMin": 1080,
+      "endMin": 1380
+    }
+  },
+  "outcomes": [
+    {
+      "request": {
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "amount": "0.001"
+      },
+      "decision": {
+        "decision": "deny",
+        "rule": "time_window",
+        "reason": "2026-10-17T04:55:58.903Z is outside the allowed window 18:00–23:00 UTC",
+        "checks": [
+          {
+            "rule": "time_window",
+            "pass": false,
+            "detail": "2026-10-17T04:55:58.903Z is outside the allowed window 18:00–23:00 UTC"
+          }
+        ]
+      },
+      "status": "denied",
+      "audit": 10
+    }
+  ]
+}
