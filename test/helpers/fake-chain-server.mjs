@@ -24,6 +24,8 @@ tool("env_names", () => ok(Object.keys(process.env).sort()));
 tool("get_block_number", () => ok({ blockNumber: "100", blockNumberHex: "0x64" }));
 tool("get_gas_price", () => ok({ gasPriceWei: "1000000000", gasPriceGwei: "1", maxPriorityFeePerGasWei: "0" }));
 tool("get_code", () => ok({ code: "0x" }));
+tool("get_balance", () => ok({ balanceWei: "5000000000000000000" }));
+tool("get_transaction_count", () => ok({ nonce: "3" }));
 tool("calls", () => ok(counts()));
 tool("crash", () => {
   process.stderr.write("fake server: crashing on request\n");

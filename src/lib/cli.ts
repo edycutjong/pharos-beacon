@@ -1,5 +1,5 @@
 import { realpathSync } from "node:fs";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 import { describeError } from "./net.js";
@@ -38,28 +38,49 @@ export function choice<const T extends string>(flag: string, value: unknown, all
   throw new UsageError(`${flag} must be one of ${allowed.join(", ")}, got ${JSON.stringify(value)}`);
 }
 
-/** True when the module at `metaUrl` is the script being run, so a task's index.ts can be imported by its tests. */
+/**
+ * True when the module at `metaUrl` is the script being run, so a task's index.ts can be imported by its tests. Like
+ * Node and tsx, it accepts the entry as a path, a symlink, a path without its extension, or the task's folder.
+ */
 export function isMain(metaUrl: string): boolean {
   const entry = process.argv[1];
   if (!entry) return false;
+  let self: string;
   try {
-    return realpathSync(fileURLToPath(metaUrl)) === realpathSync(resolve(entry));
+    self = realpathSync(fileURLToPath(metaUrl));
   } catch {
     return false;
   }
+  const base = resolve(entry);
+  for (const candidate of [base, `${base}.ts`, `${base}.mts`, `${base}.js`, `${base}.mjs`, join(base, "index.ts"), join(base, "index.js")]) {
+    try {
+      if (realpathSync(candidate) === self) return true;
+    } catch {
+      // not this one
+    }
+  }
+  return false;
 }
 
 export interface RunContext {
-  /** Register cleanup (e.g. `() => mcp.close()`); all of them run in reverse order, whatever happens. */
+  /**
+   * Register cleanup (e.g. `() => mcp.close()`); all of them run in reverse order, whatever happens. Once an
+   * interruption has started the cleanup, a late registration runs at once, so a client that finished connecting
+   * after Ctrl-C is closed straight away and its next call fails.
+   */
   onExit(fn: () => unknown): void;
+  /** Aborted on Ctrl-C, SIGTERM or SIGHUP: check it before anything irreversible, such as a broadcast. */
+  signal: AbortSignal;
 }
 
-const SIGNAL_EXIT: Record<string, number> = { SIGINT: 130, SIGTERM: 143 };
+const SIGNAL_EXIT: Record<string, number> = { SIGHUP: 129, SIGINT: 130, SIGTERM: 143 };
+const SIGNALS = Object.keys(SIGNAL_EXIT) as NodeJS.Signals[];
 
 /**
  * Run a task's main and return its exit code: what main returns (default 0), 2 for a UsageError, 1 for any other
- * throw. On Ctrl-C or SIGTERM the cleanups run (closing clients ends any call in flight) and the code is 130 / 143,
- * with no error line for the interrupted work; a second signal, or main not settling within 2 s, exits at once.
+ * throw. On Ctrl-C, SIGTERM or SIGHUP the signal aborts, the cleanups run (closing clients ends any call in flight)
+ * and the code is 130 / 143 / 129, with no error line for the interrupted work; a second signal, or main not settling
+ * within 2 s, exits at once.
  */
 export async function runMain(main: (ctx: RunContext) => Promise<number | void>): Promise<number> {
   const cleanups: (() => unknown)[] = [];
@@ -68,6 +89,11 @@ export async function runMain(main: (ctx: RunContext) => Promise<number | void>)
     (cleaning ??= (async () => {
       for (const fn of cleanups.splice(0).reverse()) await Promise.resolve().then(fn).catch(() => {});
     })());
+  const onExit = (fn: () => unknown) => {
+    if (cleaning) void Promise.resolve().then(fn).catch(() => {});
+    else cleanups.push(fn);
+  };
+  const interrupt = new AbortController();
   let signal: string | undefined;
   let force: ReturnType<typeof setTimeout> | undefined;
   const onSignal = (s: NodeJS.Signals) => {
@@ -76,12 +102,12 @@ export async function runMain(main: (ctx: RunContext) => Promise<number | void>)
     process.exitCode = SIGNAL_EXIT[s];
     force = setTimeout(() => process.exit(SIGNAL_EXIT[s]), 2_000);
     force.unref();
+    interrupt.abort(new Error(`interrupted by ${s}`));
     void cleanup();
   };
-  process.on("SIGINT", onSignal);
-  process.on("SIGTERM", onSignal);
+  for (const s of SIGNALS) process.on(s, onSignal);
   try {
-    const code = (await main({ onExit: (fn) => void cleanups.push(fn) })) ?? 0;
+    const code = (await main({ onExit, signal: interrupt.signal })) ?? 0;
     return signal ? SIGNAL_EXIT[signal] : code;
   } catch (e) {
     if (signal) return SIGNAL_EXIT[signal];
@@ -90,8 +116,7 @@ export async function runMain(main: (ctx: RunContext) => Promise<number | void>)
   } finally {
     clearTimeout(force);
     await cleanup();
-    process.off("SIGINT", onSignal);
-    process.off("SIGTERM", onSignal);
+    for (const s of SIGNALS) process.off(s, onSignal);
   }
 }
 

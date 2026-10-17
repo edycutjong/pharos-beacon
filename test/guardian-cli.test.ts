@@ -1,10 +1,11 @@
 // The Threshold Guardian CLI end to end, as a user runs it: real process, real SDK transport, a local Chain MCP standing
 // in for the hosted one (mainnet) and the fake stdio server for Atlantic. Pins its output, verdicts and exit codes.
 import { execFile } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { generatePrivateKey } from "viem/accounts";
 import { describe, expect, it } from "vitest";
 import { REPO_ROOT } from "../src/lib/env.js";
 import { startLocal } from "./helpers/local-mcp.js";
@@ -13,9 +14,13 @@ const WPROS = "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0";
 const USDC = "0xc879c018db60520f4355c26ed1a6d572cdac1815";
 const json = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data) }] });
 
-/** Run the CLI with no keys available (HOME points at an empty directory). */
-function guard(args: string[], env: Record<string, string> = {}): Promise<{ code: number; stdout: string; stderr: string }> {
+/** Run the CLI with HOME at a fresh directory: no keys unless `key` is written to its ~/.config/pharos/testnet.env. */
+function guard(args: string[], env: Record<string, string> = {}, key?: string): Promise<{ code: number; stdout: string; stderr: string }> {
   const home = mkdtempSync(join(tmpdir(), "beacon-home-"));
+  if (key) {
+    mkdirSync(join(home, ".config/pharos"), { recursive: true });
+    writeFileSync(join(home, ".config/pharos/testnet.env"), `PRIVATE_KEY=${key}\n`);
+  }
   return new Promise((resolve) => {
     execFile(
       join(REPO_ROOT, "node_modules/.bin/tsx"),
@@ -100,6 +105,43 @@ describe("threshold-guardian CLI", { timeout: 30_000 }, () => {
     });
     expect(r).toMatchObject({ code: 0 });
     expect(r.stdout).toMatch(/^atl @ atlantic block 100\n[\s\S]*=> ALLOW \(2\/2 conditions pass\)\nstatus: dry-run\n$/);
+  });
+
+  it("--proof writes proof/<policy file>.<status>.json holding the policy and the outcome; --execute without an action stays a dry run", async () => {
+    const local = await mainnetServer();
+    const name = `zz-test-${process.pid}`;
+    const policy = join(mkdtempSync(join(tmpdir(), "beacon-policy-")), `${name}.json`);
+    writeFileSync(policy, JSON.stringify({ name: "proof", network: "pharos", conditions: mainnetConditions("20") }));
+    const out = join(REPO_ROOT, "tasks/threshold-guardian/proof", `${name}.dry-run.json`);
+    try {
+      const r = await guard([policy, "--proof", "--execute"], { PHAROS_MCP_URL: local.url });
+      expect(r.code).toBe(0);
+      expect(r.stdout).toContain(`status: dry-run\nproof: ${out}\n`);
+      const proof = JSON.parse(readFileSync(out, "utf8"));
+      expect(Object.keys(proof)).toEqual(["policy", "outcome"]);
+      expect(proof.outcome).toMatchObject({ status: "dry-run", verdict: { policy: "proof", network: "pharos", block: "500", allow: true } });
+    } finally {
+      rmSync(out, { force: true });
+    }
+    expect(existsSync(out)).toBe(false);
+  });
+
+  it("loads PRIVATE_KEY from ~/.config/pharos/testnet.env for $SELF on Atlantic, and denies without it", async () => {
+    const policy = policyFile({
+      name: "self",
+      network: "atlantic",
+      conditions: [
+        { kind: "native_balance", address: "$SELF", op: "gte", value: "1" },
+        { kind: "nonce_settled", address: "$SELF" },
+      ],
+    });
+    const env = { PHAROS_MCP_BIN: fileURLToPath(new URL("./helpers/fake-chain-server.mjs", import.meta.url)) };
+    const withKey = await guard([policy], env, generatePrivateKey());
+    expect(withKey.code).toBe(0);
+    expect(withKey.stdout).toMatch(/PASS {2}native balance of \$SELF: 5 PHRS \(need >= 1 PHRS\)[\s\S]*=> ALLOW \(2\/2 conditions pass\)/);
+    const noKey = await guard([policy], env);
+    expect(noKey.code).toBe(1);
+    expect(noKey.stdout).toMatch(/FAIL {2}native balance of \$SELF: read failed .*"\$SELF" needs a signing wallet/);
   });
 
   it("exits 2 with the reason for a missing argument or an invalid policy, before any network call", async () => {

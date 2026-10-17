@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { isAbsolute, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { REPO_ROOT } from "./env.js";
+import { safePath } from "./net.js";
 import type { ChainMcp, Network } from "./mcp.js";
 import { writeJsonAtomic } from "./state.js";
 
@@ -23,31 +24,43 @@ export interface ProofMeta {
 
 function git(args: string[]): string | undefined {
   try {
-    return execFileSync("git", args, { cwd: REPO_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    // A minimal environment: an exported key must not reach git (or its hooks and helpers).
+    const env = { PATH: process.env.PATH ?? "", HOME: process.env.HOME ?? "" };
+    return execFileSync("git", args, { cwd: REPO_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], env }).trim();
   } catch {
     return undefined; // not a checkout (e.g. a tarball): the proof just has no git field
   }
 }
 
-/** One argument as it may appear in a proof: no credentials, tokens or home paths. */
-export function scrubArg(arg: string): string {
-  const eq = arg.startsWith("--") ? arg.indexOf("=") : -1;
-  if (eq > 0) return `${arg.slice(0, eq + 1)}${scrubArg(arg.slice(eq + 1))}`;
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(arg)) {
-    try {
-      const u = new URL(arg);
-      return `${u.protocol}//${u.host}${u.pathname}`;
-    } catch {
-      return "<url>";
-    }
+const URL_IN_TEXT = /\b[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]*/gi;
+
+/** A URL as it may appear in a proof: scheme, host and word-like path segments only; a file: URL becomes a scrubbed path. */
+function scrubUrl(raw: string): string {
+  try {
+    const u = new URL(raw);
+    if (u.protocol === "file:") return scrubArg(fileURLToPath(u));
+    return `${u.protocol}//${u.host}${safePath(u.pathname)}`;
+  } catch {
+    return "<url>";
   }
+}
+
+/**
+ * One argument as it may appear in a proof: no credentials, tokens, query strings or home paths, also inside a
+ * `--flag=value`. Task CLIs never take keys as arguments (keys come from the environment), so hashes and addresses,
+ * which are evidence, are kept.
+ */
+export function scrubArg(arg: string): string {
+  const flag = /^(-{1,2}[^=\s]+=)([\s\S]*)$/.exec(arg);
+  if (flag) return flag[1] + scrubArg(flag[2]);
   if (isAbsolute(arg)) {
     const rel = relative(REPO_ROOT, arg);
     if (!rel.startsWith("..") && !isAbsolute(rel)) return rel || ".";
     const home = homedir();
     if (arg === home || arg.startsWith(home + sep)) return `~${arg.slice(home.length)}`;
+    return arg;
   }
-  return arg;
+  return arg.replace(URL_IN_TEXT, scrubUrl);
 }
 
 /** Metadata for a proof written by `task` after reading through `mcp`. */

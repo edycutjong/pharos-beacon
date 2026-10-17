@@ -10,7 +10,7 @@ import { parse } from "dotenv";
 
 export const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
-/** Parse dotenv files into one map; for a name in several files the first file wins. A missing file is skipped. */
+/** Parse dotenv files into one map; for a name in several files the first non-blank value wins. A missing file is skipped. */
 export function readEnvFiles(paths: string[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const path of paths) {
@@ -20,7 +20,7 @@ export function readEnvFiles(paths: string[]): Record<string, string> {
     } catch {
       continue;
     }
-    for (const [k, v] of Object.entries(parse(text))) if (!(k in out)) out[k] = v;
+    for (const [k, v] of Object.entries(parse(text))) if (!(k in out) && v.trim()) out[k] = v;
   }
   return out;
 }

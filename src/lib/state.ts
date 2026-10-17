@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { closeSync, fsyncSync, linkSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, statSync, writeFileSync, writeSync } from "node:fs";
+import { uptime } from "node:os";
 import { dirname } from "node:path";
 
 // JSON files that outlive one run: a monitor's cursor, a spend window, a schedule. Written atomically, read fail-closed,
@@ -85,7 +86,11 @@ function alive(pid: number): boolean {
   }
 }
 
-const held = (lock: string, o: LockOwner) => new Error(`${lock} is held by another run (pid ${o.pid}, since ${o.since}); not acting twice`);
+const held = (lock: string, o: LockOwner) =>
+  new Error(`${lock} is held by another run (pid ${o.pid}, since ${o.since}); not acting twice. If no such run exists, delete the file`);
+
+/** Taken before this machine last booted: its holder cannot still be running, even if its pid now belongs to another process. */
+const beforeBoot = (o: LockOwner) => Date.parse(o.since) < Date.now() - uptime() * 1000 - 60_000;
 
 /**
  * Run `fn` while holding `<file>.lock`. A second run fails at once instead of waiting (a scheduled agent should skip a
@@ -131,7 +136,7 @@ function takeOverIfDead(lock: string, mine: string, attempt: number): void {
   const other = readOwner(lock);
   if (attempt >= 3) throw held(lock, other ?? { pid: NaN, token: "", since: "unknown" });
   if (!other) return; // released in the meantime: try again
-  if (alive(other.pid)) throw held(lock, other);
+  if (alive(other.pid) && !beforeBoot(other)) throw held(lock, other);
   // The holder is gone (a crash or kill -9). Only the run that holds `<lock>.takeover` may remove its lock, and only if
   // it is still that same lock, so two runs can never both clear it and a live run's lock is never touched.
   const gate = `${lock}.takeover`;

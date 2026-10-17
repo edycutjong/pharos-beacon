@@ -1,14 +1,18 @@
-import { execFile, execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, utimesSync, writeFileSync } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { execFile, execFileSync, spawn } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir, uptime } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
+import { generatePrivateKey } from "viem/accounts";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { UsageError, choice, isMain, parseCli, runMain } from "../src/lib/cli.js";
+import { UsageError, choice, isMain, parseCli, runMain, type RunContext } from "../src/lib/cli.js";
 import { REPO_ROOT, envOr, readEnvFiles, secret } from "../src/lib/env.js";
+import { endpointLabel } from "../src/lib/net.js";
 import { proofMeta, scrubArg, writeProof } from "../src/lib/proof.js";
 import { readState, toJson, withLock, writeJsonAtomic } from "../src/lib/state.js";
+import { startLocal } from "./helpers/local-mcp.js";
 
 const TSX = join(REPO_ROOT, "node_modules/.bin/tsx");
 const helper = (f: string) => fileURLToPath(new URL(`./helpers/${f}`, import.meta.url));
@@ -59,10 +63,11 @@ describe("state", () => {
     expect(readdirSync(d)).toEqual([]); // and no scratch files are left behind
   });
 
-  it("never takes over a lock whose holder is alive, however old it is", async () => {
+  it("never takes over a lock whose holder is alive, however long it has run since boot", async () => {
     const f = join(dir(), "pay.json");
-    writeFileSync(`${f}.lock`, JSON.stringify({ pid: process.pid, token: "other", since: "2020-01-01T00:00:00.000Z" }));
-    await expect(withLock(f, async () => "x")).rejects.toThrow(/held by another run \(pid \d+, since 2020-01-01/);
+    const since = new Date(Math.max(Date.now() - uptime() * 1000 + 120_000, Date.now() - 6 * 3_600_000)).toISOString();
+    writeFileSync(`${f}.lock`, JSON.stringify({ pid: process.pid, token: "other", since }));
+    await expect(withLock(f, async () => "x")).rejects.toThrow(new RegExp(`held by another run \\(pid \\d+, since ${since.replace(/[.]/g, "\\.")}`));
   });
 
   it("takes over the lock of a run that died (crash, kill -9), and of a half-written lock", async () => {
@@ -72,6 +77,39 @@ describe("state", () => {
     writeFileSync(`${f}.lock`, "");
     expect(await withLock(f, async () => "taken over again")).toBe("taken over again");
     expect(readdirSync(join(f, ".."))).toEqual([]);
+  });
+
+  it("records the holder's real pid and takes the lock over once that process is kill -9'd", { timeout: 20_000 }, async () => {
+    const f = join(dir(), "pay.json");
+    const holder = spawn(TSX, [helper("lock-hold-child.ts"), f], { stdio: ["ignore", "pipe", "ignore"] });
+    await new Promise<void>((r) => holder.stdout.on("data", (d) => String(d).includes("LOCKED") && r()));
+    const pid = JSON.parse(readFileSync(`${f}.lock`, "utf8")).pid as number;
+    expect(pid).not.toBe(process.pid);
+    await expect(withLock(f, async () => "x")).rejects.toThrow(/held by another run/);
+    process.kill(pid, "SIGKILL");
+    holder.kill("SIGKILL");
+    for (let i = 0; i < 60; i++) {
+      // a killed process still answers kill(pid, 0) until it is reaped
+      try {
+        process.kill(pid, 0);
+      } catch {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    expect(await withLock(f, async () => "taken over")).toBe("taken over");
+  });
+
+  it("counts a process it may not signal (EPERM, e.g. pid 1) as alive", async () => {
+    const f = join(dir(), "pay.json");
+    writeFileSync(`${f}.lock`, JSON.stringify({ pid: 1, token: "init", since: new Date().toISOString() }));
+    await expect(withLock(f, async () => "x")).rejects.toThrow(/held by another run \(pid 1,.*If no such run exists, delete the file/);
+  });
+
+  it("takes over a lock from before the last boot even when its pid now belongs to a live process", async () => {
+    const f = join(dir(), "pay.json");
+    writeFileSync(`${f}.lock`, JSON.stringify({ pid: process.pid, token: "old", since: "2000-01-01T00:00:00.000Z" }));
+    expect(await withLock(f, async () => "taken over")).toBe("taken over");
   });
 
   it("refuses while another run is taking a dead lock over, and clears a takeover left by a crash after 30 s", async () => {
@@ -151,8 +189,17 @@ describe("proof", () => {
     expect(scrubArg(join(REPO_ROOT, "tasks/x/policies/a.json"))).toBe("tasks/x/policies/a.json");
     expect(scrubArg(join(homedir(), "secrets/p.json"))).toBe("~/secrets/p.json");
     expect(scrubArg("--proof")).toBe("--proof");
+    expect(scrubArg("--a=b=https://u:p@h/x?y=1")).toBe("--a=b=https://h/x");
+    expect(scrubArg("-u=https://u:p@h/x")).toBe("-u=https://h/x");
+    expect(scrubArg("https://api.zan.top/node/v1/pharos/atlantic/2f1e0c3a9b8d7e6f5a4b3c2d1e0f9a8b")).toBe("https://api.zan.top/node/v1/pharos/atlantic/…");
+    expect(scrubArg(`file://${join(homedir(), "secrets/p.json")}`)).toBe("~/secrets/p.json");
+    expect(scrubArg(`--policy=${join(homedir(), "x.json")}`)).toBe("--policy=~/x.json");
+    expect(scrubArg(`0x${"ab".repeat(32)}`)).toBe(`0x${"ab".repeat(32)}`); // a tx hash is evidence: kept
     const meta = proofMeta("t", mcp, ["node", join(REPO_ROOT, "tasks/x/index.ts"), "--rpc=https://u:p@h/x?y=1"]);
     expect(meta.command).toBe("tasks/x/index.ts --rpc=https://h/x");
+    expect(endpointLabel("https://mcp.pharos.xyz/mcp")).toBe("https://mcp.pharos.xyz/mcp");
+    expect(endpointLabel("https://docs.pharos.xyz/~gitbook/mcp?t=1")).toBe("https://docs.pharos.xyz/~gitbook/mcp");
+    expect(endpointLabel("https://rpc.example/v2/AbCdEf0123456789xyzKEY")).toBe("https://rpc.example/v2/…");
   });
 
   it("refuses a body with its own meta key, which would replace the provenance", () => {
@@ -241,6 +288,38 @@ describe("cli", () => {
       expect(process.listenerCount(sig)).toBe(0);
     });
 
+    it("closes a client that finished connecting after Ctrl-C at once, so its next call fails; main sees the abort", async () => {
+      const err = vi.spyOn(console, "error").mockImplementation(() => {});
+      vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+      const order: string[] = [];
+      let connected!: () => void;
+      const pending = runMain(async ({ onExit, signal }: RunContext) => {
+        await new Promise<void>((r) => (connected = r)); // the connect, still in flight when the signal comes
+        let closed = false;
+        onExit(() => ((closed = true), order.push("closed late")));
+        await Promise.resolve();
+        order.push(`aborted=${signal.aborted}`);
+        if (closed) throw new Error("the Chain MCP client is closed"); // what the next call would do
+        order.push("ACTED");
+      });
+      await new Promise((r) => setTimeout(r, 10));
+      process.emit("SIGINT", "SIGINT");
+      connected();
+      expect(await pending).toBe(130);
+      expect(order).toEqual(["closed late", "aborted=true"]);
+      expect(err).not.toHaveBeenCalled();
+    });
+
+    it("SIGHUP is handled too (exit 129)", async () => {
+      vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+      const order: string[] = [];
+      const pending = runMain(inFlight(order));
+      await new Promise((r) => setTimeout(r, 10));
+      process.emit("SIGHUP", "SIGHUP");
+      expect(await pending).toBe(129);
+      expect(order).toEqual(["closed"]);
+    });
+
     it("a second Ctrl-C exits at once", async () => {
       const exit = vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
       let release!: () => void;
@@ -254,14 +333,58 @@ describe("cli", () => {
     });
   });
 
-  it("isMain is true only for the script being run", () => {
+  it("isMain is true only for the script being run: by path, symlink, without extension, or by its folder", () => {
     expect(isMain(import.meta.url)).toBe(false);
     expect(isMain(pathToFileURL(process.argv[1]).href)).toBe(true);
+    const index = join(REPO_ROOT, "tasks/_template/index.ts");
+    const link = join(dir(), "link.ts");
+    symlinkSync(index, link);
+    const saved = process.argv[1];
+    try {
+      for (const entry of [link, join(REPO_ROOT, "tasks/_template/index"), join(REPO_ROOT, "tasks/_template")]) {
+        process.argv[1] = entry;
+        expect(isMain(pathToFileURL(index).href)).toBe(true);
+      }
+      process.argv[1] = join(REPO_ROOT, "tasks");
+      expect(isMain(pathToFileURL(index).href)).toBe(false);
+    } finally {
+      process.argv[1] = saved;
+    }
   });
 
-  it("runCli delivers all output through a pipe before exiting", { timeout: 20_000 }, async () => {
+  it("a task built from the template can be imported by its tests, and its main run", async () => {
+    const local = await startLocal("sse", {
+      sessions: true,
+      tool: (n) => ({ content: [{ type: "text", text: JSON.stringify(n === "get_chain_info" ? { chainId: 1672 } : { blockNumber: "7" }) }] }),
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    process.env.PHAROS_MCP_URL = local.url;
+    try {
+      const mod = await import("../tasks/_template/index.js");
+      expect(await runMain((ctx) => mod.main(ctx, ["--network", "pharos"]))).toBe(0);
+      expect(log).toHaveBeenCalledWith(`pharos (chain 1672) block 7 via ${local.url}`);
+      expect(local.requests.filter((q) => q.method === "DELETE")).toHaveLength(1);
+    } finally {
+      delete process.env.PHAROS_MCP_URL;
+    }
+  });
+
+  it("runCli still exits on a signal within about 2 s when main ignores the cleanup", { timeout: 15_000 }, async () => {
+    const c = spawn(TSX, [helper("hang-child.ts")], { stdio: ["ignore", "pipe", "ignore"] });
+    await new Promise<void>((r) => c.stdout.on("data", (d) => String(d).includes("READY") && r()));
+    const t0 = Date.now();
+    c.kill("SIGTERM");
+    const code = await Promise.race([new Promise<number | null>((r) => c.on("exit", (x) => r(x))), new Promise<string>((r) => setTimeout(() => r("still running"), 6_000))]);
+    c.kill("SIGKILL");
+    expect(code).toBe(143);
+    expect(Date.now() - t0).toBeLessThan(4_500);
+  });
+
+  it("runCli delivers all output, stdout and stderr, through a pipe before exiting", { timeout: 20_000 }, async () => {
     const { stdout } = await run(TSX, [helper("print-child.ts"), "300000"], { maxBuffer: 10_000_000 });
     expect(stdout.length).toBe(300_000);
+    const { stderr } = await run(TSX, [helper("print-child.ts"), "300000", "err"], { maxBuffer: 10_000_000 });
+    expect(stderr.length).toBe(300_000);
   });
 });
 
@@ -281,12 +404,37 @@ describe("env", () => {
     expect(secret("BEACON_TEST_URL")).toBeUndefined();
   });
 
-  it("reads env files into a map, first file wins, missing files skipped, and never writes process.env", () => {
+  it("reads env files into a map, first non-blank value wins, missing files skipped, and never writes process.env", () => {
     const d = dir();
-    writeFileSync(join(d, "a.env"), "BEACON_FAKE_KEY=0xaaa\nBEACON_ONLY_A=1\n");
-    writeFileSync(join(d, "b.env"), "BEACON_FAKE_KEY=0xbbb\nBEACON_ONLY_B=2\n");
-    expect(readEnvFiles([join(d, "missing.env"), join(d, "a.env"), join(d, "b.env")])).toEqual({ BEACON_FAKE_KEY: "0xaaa", BEACON_ONLY_A: "1", BEACON_ONLY_B: "2" });
+    writeFileSync(join(d, "a.env"), "BEACON_FAKE_KEY=0xaaa\nBEACON_ONLY_A=1\nBEACON_BLANK_IN_A=\n");
+    writeFileSync(join(d, "b.env"), "BEACON_FAKE_KEY=0xbbb\nBEACON_ONLY_B=2\nBEACON_BLANK_IN_A=from-b\n");
+    expect(readEnvFiles([join(d, "missing.env"), join(d, "a.env"), join(d, "b.env")])).toEqual({
+      BEACON_FAKE_KEY: "0xaaa",
+      BEACON_ONLY_A: "1",
+      BEACON_ONLY_B: "2",
+      BEACON_BLANK_IN_A: "from-b", // a blank placeholder copied from .env.example does not hide a real value
+    });
     expect(process.env.BEACON_FAKE_KEY).toBeUndefined();
+  });
+
+  describe("sources and precedence, as a real process with HOME pointed at a temp dir", () => {
+    const home = dir();
+    const fileKey = generatePrivateKey();
+    const shellKey = generatePrivateKey();
+    const fp = (k: string) => createHash("sha256").update(k).digest("hex").slice(0, 8);
+    mkdirSync(join(home, ".config/pharos"), { recursive: true });
+    writeFileSync(join(home, ".config/pharos/testnet.env"), `PRIVATE_KEY=${fileKey}\nBEACON_T_URL=http://from-file/\n`);
+    const child = async (env: Record<string, string> = {}) =>
+      JSON.parse((await run(TSX, [helper("env-child.ts")], { env: { PATH: process.env.PATH ?? "", HOME: home, ...env } })).stdout);
+
+    it("reads the key and settings from ~/.config/pharos/testnet.env and never puts the key in process.env", { timeout: 20_000 }, async () => {
+      expect(await child()).toEqual({ url: "http://from-file/", key: fp(fileKey), keyInProcessEnv: false });
+    });
+
+    it("lets the shell win over the file, but a blank shell value falls back to the file", { timeout: 20_000 }, async () => {
+      expect(await child({ BEACON_T_URL: "http://from-shell/", PRIVATE_KEY: shellKey })).toMatchObject({ url: "http://from-shell/", key: fp(shellKey) });
+      expect(await child({ BEACON_T_URL: "  ", PRIVATE_KEY: "" })).toMatchObject({ url: "http://from-file/", key: fp(fileKey) });
+    });
   });
 
   it("resolves the repo root from the module, not the working directory", () => {
