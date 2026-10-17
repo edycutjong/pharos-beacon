@@ -1,7 +1,7 @@
 import { encodeFunctionResult, erc20Abi, getAddress, parseAbi, type Hex } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import { ChainToolError } from "../src/lib/mcp.js";
-import { formatState, labelsFor, parseHolder, readState, USDC, withCommas, type Call } from "../tasks/read-contract-state/index.js";
+import { formatState, labelsFor, largestRecentRecipient, parseHolder, readState, USDC, withCommas, type Call } from "../tasks/read-contract-state/index.js";
 
 const OWNER = "0x9F8Ea09770Dc38fc61f5a62031b3BE0526D54D92" as Hex;
 const WPROS = "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0" as Hex;
@@ -49,8 +49,8 @@ describe("read-contract-state", () => {
   it("labels addresses: registry tokens, the contract itself, an explicit label, and wallet-vs-contract for the rest", async () => {
     const s = await readState(fake(true).call, getAddress(USDC), 1n, [...holders, { address: getAddress(OWNER), label: "Team multisig" }]);
     expect(s.holders.map((h) => h.label)).toEqual(["USDC token contract (this contract)", "WPROS token contract", "Team multisig"]);
-    expect(s.owner).toEqual({ address: OWNER, label: "unlabelled wallet (no code)" });
-    expect((await readState(fake(true, { ownerHasCode: true }).call, getAddress(USDC), 1n, [])).owner!.label).toBe("unlabelled contract (has code)");
+    expect(s.owner).toEqual({ address: OWNER, label: "owner of this contract · wallet (no code)" });
+    expect((await readState(fake(true, { ownerHasCode: true }).call, getAddress(USDC), 1n, [])).owner!.label).toBe("owner of this contract · contract (has code)");
   });
   it("reports a missing owner()/paused() as none, but not a transport failure", async () => {
     const s = await readState(fake(false).call, getAddress(USDC), 1n, []);
@@ -75,5 +75,20 @@ describe("read-contract-state", () => {
     expect(parseHolder(`${OWNER.toLowerCase()}=A=B`)).toEqual({ address: OWNER, label: "A=B" });
     expect(() => parseHolder("0x12")).toThrow(/address/);
     expect(labelsFor(getAddress(USDC), "USDC")[USDC.toLowerCase()]).toContain("this contract");
+  });
+  it("finds the largest recent recipient with one get_logs call over the last 1000 blocks", async () => {
+    const T = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+    const pad = (a: string) => `0x${a.slice(2).toLowerCase().padStart(64, "0")}`;
+    const amt = (n: bigint) => `0x${n.toString(16).padStart(64, "0")}`;
+    const log = (to: string, v: bigint, i: number) => ({ topics: [T, pad(OWNER), pad(to)], data: amt(v), blockNumber: "0x10", logIndex: `0x${i.toString(16)}` });
+    const seen: any[] = [];
+    const call = (async (tool: string, args: any) => {
+      seen.push({ tool, args });
+      return [log(WPROS, 5n, 0), log(USDC, 900n, 1), log(OWNER, 7n, 2)];
+    }) as unknown as Call;
+    const r = await largestRecentRecipient(call, getAddress(USDC), 5000n, "USDC");
+    expect(r).toEqual({ address: getAddress(USDC), label: "largest USDC recipient in blocks 4001–5000" });
+    expect(seen).toEqual([{ tool: "get_logs", args: { address: getAddress(USDC), topics: [T], fromBlock: "4001", toBlock: "5000" } }]);
+    expect(await largestRecentRecipient((async () => []) as unknown as Call, getAddress(USDC), 10n, "USDC")).toBeNull();
   });
 });

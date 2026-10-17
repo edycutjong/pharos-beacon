@@ -2,6 +2,7 @@
 // before it may execute. Every request gets allow/deny + the deciding rule; a denied request is never sent.
 //   npm run policy-gatekeeper -- <policy.json> (--to 0x… --amount 0.001 | --requests <file.json>) [--execute] [--proof]
 import { readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { envOr } from "../../src/lib/env.js";
@@ -39,12 +40,15 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
         to: { type: "string" }, amount: { type: "string" }, requests: { type: "string" }, at: { type: "string" },
         execute: { type: "boolean", default: false }, "fail-on-deny": { type: "boolean", default: false }, proof: { type: "boolean", default: false },
         // GATEKEEPER_STATE / GATEKEEPER_AUDIT change the defaults (a second agent, or a recording that must not touch the main window).
-        state: { type: "string", default: envOr("GATEKEEPER_STATE", join(HERE, "state/spend.json")) }, audit: { type: "string", default: envOr("GATEKEEPER_AUDIT", join(HERE, "audit/audit.jsonl")) },
+        state: { type: "string", default: envOr("GATEKEEPER_STATE", join(HERE, "state/spend.json")) }, audit: { type: "string" },
       },
       positionals: [1, 1],
     },
     argv,
   );
+  // The committed audit log is proof: only --execute or --proof runs append to it. A plain dry-run (e.g. a reviewer trying
+  // the command) logs to a scratch file so the repo stays clean. --audit or GATEKEEPER_AUDIT always wins.
+  values.audit ??= envOr("GATEKEEPER_AUDIT", values.execute || values.proof ? join(HERE, "audit/audit.jsonl") : join(tmpdir(), "beacon-policy-gatekeeper", "audit.jsonl"));
   let policy;
   try {
     policy = parseGatekeeperPolicy(JSON.parse(readFileSync(positionals[0]!, "utf8")));
@@ -84,7 +88,7 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   const n = (s: Outcome["status"]) => outcomes.filter((o) => o.status === s).length;
   const executed = n("executed");
   console.log(`summary: ${outcomes.length} requests · ${outcomes.filter((o) => o.decision.decision === "allow").length} allowed · ${n("denied")} denied · ${executed} sent`);
-  console.log(`audit log: ${verifyAudit(values.audit!)} entries, hash chain intact`);
+  console.log(`audit log: ${verifyAudit(values.audit!)} entries, hash chain intact (${values.audit})`);
 
   if (values.proof) {
     const name = `${basename(positionals[0]!, ".json")}.${executed ? "live" : outcomes.every((o) => o.status === "denied") ? "denied" : "dry-run"}.json`;

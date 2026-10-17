@@ -51,4 +51,16 @@ describe("policy-gatekeeper CLI", () => {
     expect(bad).toMatchObject({ code: 2 });
     expect(bad.stderr).toMatch(/network must be "atlantic"/);
   });
+  it("a plain dry-run without --audit leaves the committed audit log alone (logs to a scratch file)", async () => {
+    const committed = join(REPO_ROOT, "tasks/policy-gatekeeper/audit/audit.jsonl");
+    const before = readFileSync(committed, "utf8");
+    const r = await new Promise<{ code: number; stdout: string }>((resolve) =>
+      execFile(join(REPO_ROOT, "node_modules/.bin/tsx"), [join(REPO_ROOT, "tasks/policy-gatekeeper/index.ts"), policy, "--state", join(dir, "s2.json"), "--to", A, "--amount", "0.001"],
+        { cwd: REPO_ROOT, env: { PATH: process.env.PATH ?? "", HOME: dir, TMPDIR: dir, PHAROS_MCP_URL: "http://127.0.0.1:9/never" } },
+        (err, stdout) => resolve({ code: err ? Number((err as { code?: number }).code) : 0, stdout })),
+    );
+    expect(r.code).toBe(0);
+    expect(r.stdout).toContain(join(dir, "beacon-policy-gatekeeper", "audit.jsonl"));
+    expect(readFileSync(committed, "utf8")).toBe(before);
+  });
 });

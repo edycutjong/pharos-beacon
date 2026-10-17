@@ -1,9 +1,9 @@
 // Read Contract State (Easy · 50 pts): read a live contract's state through the Pharos Chain MCP and say it in plain words.
 //   npm run read-contract-state -- [--contract 0x…] [--holder 0x…[=label]]… [--block N] [--proof]
 // Default contract: official USDC on Pharos mainnet ("USDC (Circle Deployed)" in the SkillEngine token registry).
-import { decodeFunctionResult, encodeFunctionData, erc20Abi, formatUnits, getAddress, isAddress, parseAbi, type Hex } from "viem";
+import { decodeEventLog, decodeFunctionResult, encodeFunctionData, erc20Abi, formatUnits, getAddress, isAddress, parseAbi, toEventSelector, type Hex } from "viem";
 import { isMain, parseCli, runCli, UsageError, type RunContext } from "../../src/lib/cli.js";
-import { chainMcp, ChainToolError, type ChainMcp } from "../../src/lib/mcp.js";
+import { chainMcp, ChainToolError, getLogsRange, MAX_LOG_WINDOW, type ChainMcp } from "../../src/lib/mcp.js";
 import { TOKENS } from "../../src/lib/networks.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 
@@ -77,17 +77,17 @@ export async function readState(call: Call, contract: Hex, block: bigint, holder
   const [name, symbol, decimals, totalSupply] = await Promise.all([view("name") as Promise<string>, view("symbol") as Promise<string>, view("decimals") as Promise<number>, view("totalSupply") as Promise<bigint>]);
   const labels = labelsFor(contract, symbol, extra);
   // An address nobody labelled is still described: get_code says whether it is a wallet or a contract.
-  const label = async (a: Hex, own?: string): Promise<string> => {
-    const known = own ?? labels[a.toLowerCase()];
-    if (known) return known;
+  const kind = async (a: Hex): Promise<string> => {
     const { code } = await call("get_code", { address: a, block: block.toString() });
-    return code === "0x" ? "unlabelled wallet (no code)" : "unlabelled contract (has code)";
+    return code === "0x" ? "wallet (no code)" : "contract (has code)";
   };
+  const label = async (a: Hex, own?: string): Promise<string> => own ?? labels[a.toLowerCase()] ?? kind(a);
   const balances = await Promise.all(holders.map(async (h) => (await view("balanceOf", [h.address])) as bigint));
   const owner = await optional<Hex>("owner");
   const paused = await optional<boolean>("paused");
   const holderLabels = await Promise.all(holders.map((h) => label(h.address, h.label)));
-  const ownerLabel = owner ? await label(owner) : "";
+  // The owner is labelled by its role, plus what kind of account it is.
+  const ownerLabel = owner ? (labels[owner.toLowerCase()] ?? `owner of this contract · ${await kind(owner)}`) : "";
   return {
     contract,
     block: block.toString(),
@@ -100,6 +100,27 @@ export async function readState(call: Call, contract: Hex, block: bigint, holder
     owner: owner ? { address: getAddress(owner), label: ownerLabel } : null,
     paused,
   };
+}
+
+const TRANSFER = toEventSelector("Transfer(address,address,uint256)");
+
+/**
+ * A holder worth showing by default: the recipient of the largest Transfer in the last 1000 blocks up to `block`
+ * (one Chain MCP get_logs call). Null when the window has no transfers.
+ */
+export async function largestRecentRecipient(call: Call, contract: Hex, block: bigint, symbol: string): Promise<{ address: Hex; label: string } | null> {
+  const from = block >= BigInt(MAX_LOG_WINDOW - 1) ? block - BigInt(MAX_LOG_WINDOW - 1) : 0n;
+  const logs = await getLogsRange(call, { address: contract, topics: [TRANSFER], fromBlock: from, toBlock: block });
+  let best: { to: Hex; value: bigint } | null = null;
+  for (const log of logs) {
+    try {
+      const { args } = decodeEventLog({ abi: erc20Abi, eventName: "Transfer", topics: log.topics as [Hex, ...Hex[]], data: log.data as Hex });
+      if (!best || args.value > best.value) best = { to: args.to, value: args.value };
+    } catch {
+      // not a standard Transfer (e.g. a non-indexed variant): skip it
+    }
+  }
+  return best ? { address: getAddress(best.to), label: `largest ${symbol} recipient in blocks ${from}–${block}` } : null;
 }
 
 /** Plain-language report: the address and block first, then every value with its unit applied. */
@@ -131,17 +152,22 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   const contract = getAddress(values.contract!);
   if (values.block !== undefined && !/^\d+$/.test(values.block)) throw new UsageError("--block must be a block number (decimal digits)");
   const holders = (values.holder ?? []).map(parseHolder);
-  // Default balances: the contract itself and the WPROS token contract (both labelled from the token registry).
-  if (!values.holder) holders.push({ address: contract }, { address: getAddress(TOKENS.pharos.WPROS.address) });
 
   const mcp = await chainMcp("pharos"); // the hosted, keyless Chain MCP; checks the endpoint serves chain 1672
   onExit(() => mcp.close());
   const head = BigInt((await mcp.call("get_block_number")).blockNumber);
   const block = values.block ? BigInt(values.block) : head;
   if (block > head) throw new UsageError(`--block ${block} is ahead of the chain head ${head}`);
+  // Default balances: a real recent holder (found with get_logs) and the WPROS token contract (from the token registry).
+  if (!values.holder) {
+    const symbol = decodeFunctionResult({ abi: erc20Abi, functionName: "symbol", data: (await mcp.call("eth_call", { transaction: { to: contract, data: encodeFunctionData({ abi: erc20Abi, functionName: "symbol" }) }, block: block.toString() })).result }) as string;
+    const recent = await largestRecentRecipient(mcp.call, contract, block, symbol);
+    if (recent) holders.push(recent);
+    holders.push({ address: getAddress(TOKENS.pharos.WPROS.address) });
+  }
   const state = await readState(mcp.call, contract, block, holders);
   console.log(formatState(state));
-  console.log(`\nvia ${mcp.endpoint} · up to ${state.holders.length + 6} eth_call reads and get_code lookups pinned to block ${state.block}`);
+  console.log(`\nvia ${mcp.endpoint} · eth_call, get_code and get_logs reads pinned to block ${state.block}`);
   if (values.proof) console.log(`proof: ${writeProof(new URL(`proof/${contract.toLowerCase()}.json`, import.meta.url), { head: head.toString(), state }, proofMeta(TASK, mcp))}`);
   return 0;
 }
