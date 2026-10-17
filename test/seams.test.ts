@@ -195,6 +195,11 @@ describe("proof", () => {
     expect(scrubArg(`file://${join(homedir(), "secrets/p.json")}`)).toBe("~/secrets/p.json");
     expect(scrubArg(`--policy=${join(homedir(), "x.json")}`)).toBe("--policy=~/x.json");
     expect(scrubArg(`0x${"ab".repeat(32)}`)).toBe(`0x${"ab".repeat(32)}`); // a tx hash is evidence: kept
+    const tx = `https://atlantic.pharosscan.xyz/tx/0x${"cd".repeat(32)}`;
+    expect(scrubArg(tx)).toBe(tx); // so is an explorer link
+    expect(scrubArg(`-p=${join(homedir(), "x.json")}`)).toBe("-p=~/x.json");
+    expect(scrubArg(`file:${join(homedir(), "p.json")}`)).toBe("~/p.json");
+    expect(scrubArg(`--policy=file:${join(homedir(), "p.json")}`)).toBe("--policy=~/p.json");
     const meta = proofMeta("t", mcp, ["node", join(REPO_ROOT, "tasks/x/index.ts"), "--rpc=https://u:p@h/x?y=1"]);
     expect(meta.command).toBe("tasks/x/index.ts --rpc=https://h/x");
     expect(endpointLabel("https://mcp.pharos.xyz/mcp")).toBe("https://mcp.pharos.xyz/mcp");
@@ -204,6 +209,24 @@ describe("proof", () => {
 
   it("refuses a body with its own meta key, which would replace the provenance", () => {
     expect(() => writeProof(join(dir(), "p.json"), { meta: "fake" }, proofMeta("t", mcp))).toThrow(/cannot have a "meta" key/);
+  });
+
+  it("runs git with a minimal environment, so an exported key never reaches it", () => {
+    const bin = dir();
+    const out = join(bin, "env.txt");
+    writeFileSync(join(bin, "git"), `#!/bin/sh\nenv > '${out}'\nexit 1\n`, { mode: 0o755 });
+    const saved = { path: process.env.PATH, secret: process.env.BEACON_TEST_SECRET };
+    process.env.PATH = `${bin}:${saved.path}`;
+    process.env.BEACON_TEST_SECRET = "s3cr3t-value";
+    try {
+      expect(proofMeta("t", mcp).git).toBeUndefined(); // the fake git failed, so no git field
+      const names = readFileSync(out, "utf8").split("\n").map((l) => l.split("=")[0]).filter(Boolean);
+      expect(names).not.toContain("BEACON_TEST_SECRET");
+      expect(names).toContain("PATH");
+    } finally {
+      process.env.PATH = saved.path;
+      delete process.env.BEACON_TEST_SECRET;
+    }
   });
 
   it("never copies the environment into a proof", () => {
@@ -308,6 +331,61 @@ describe("cli", () => {
       expect(await pending).toBe(130);
       expect(order).toEqual(["closed late", "aborted=true"]);
       expect(err).not.toHaveBeenCalled();
+    });
+
+    it("still prints an error that carries a transaction, in full, when interrupted", async () => {
+      const err = vi.spyOn(console, "error").mockImplementation(() => {});
+      vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+      const hash = `0x${"ef".repeat(32)}`;
+      const pending = runMain(async ({ onExit }: RunContext) => {
+        let fail!: (e: Error) => void;
+        const send = new Promise((_, reject) => (fail = reject));
+        onExit(() => fail(Object.assign(new Error(`could not tell whether ${hash} (nonce 5) was sent: ${"x".repeat(400)}`), { signed: { hash } })));
+        await send;
+      });
+      await new Promise((r) => setTimeout(r, 10));
+      process.emit("SIGINT", "SIGINT");
+      expect(await pending).toBe(130);
+      expect(err).toHaveBeenCalledTimes(1);
+      expect(String(err.mock.calls[0][0])).toMatch(new RegExp(`^error: could not tell whether ${hash} \\(nonce 5\\) was sent: x{400}$`));
+    });
+
+    it("stops a task that finishes connecting after Ctrl-C before it acts, and ends its session (real process)", { timeout: 20_000 }, async () => {
+      const local = await startLocal("sse", {
+        sessions: true,
+        delay: (rpc) => (rpc.method === "initialize" ? 1_500 : 0), // the connect is still in flight when Ctrl-C comes
+        tool: (n) => ({ content: [{ type: "text", text: JSON.stringify(n === "get_chain_info" ? { chainId: 1672 } : { ok: true }) }] }),
+      });
+      const c = spawn(TSX, [helper("connect-child.ts"), local.url], { stdio: ["ignore", "pipe", "pipe"] });
+      let stdout = "";
+      let stderr = "";
+      c.stdout.on("data", (d) => (stdout += d));
+      c.stderr.on("data", (d) => (stderr += d));
+      await vi.waitFor(() => expect(stdout).toContain("CONNECTING"), { timeout: 10_000 });
+      await new Promise((r) => setTimeout(r, 300));
+      c.kill("SIGINT");
+      const code = await new Promise<number | null>((r) => c.on("exit", (x) => r(x)));
+      expect(code).toBe(130);
+      expect(stdout).not.toContain("ACTED");
+      expect(stderr).toBe("");
+      expect(local.rpcs.filter((r) => r.method === "tools/call" && r.params?.name === "act")).toEqual([]);
+      expect(local.requests.filter((q) => q.method === "DELETE")).toMatchObject([{ status: 200 }]);
+    });
+
+    it("waits for a cleanup registered after Ctrl-C before returning (the session is ended before exit)", async () => {
+      vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);
+      let ended = false;
+      let connected!: () => void;
+      const pending = runMain(async ({ onExit }: RunContext) => {
+        await new Promise<void>((r) => (connected = r));
+        onExit(() => new Promise<void>((r) => setTimeout(() => ((ended = true), r()), 200))); // a slow DELETE
+        throw new Error("the Chain MCP client is closed");
+      });
+      await new Promise((r) => setTimeout(r, 10));
+      process.emit("SIGINT", "SIGINT");
+      connected();
+      expect(await pending).toBe(130);
+      expect(ended).toBe(true);
     });
 
     it("SIGHUP is handled too (exit 129)", async () => {

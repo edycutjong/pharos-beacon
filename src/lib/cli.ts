@@ -76,11 +76,14 @@ export interface RunContext {
 const SIGNAL_EXIT: Record<string, number> = { SIGHUP: 129, SIGINT: 130, SIGTERM: 143 };
 const SIGNALS = Object.keys(SIGNAL_EXIT) as NodeJS.Signals[];
 
+/** An error that carries a transaction (the signer's broadcast errors): its hash must reach the user whatever happens. */
+const carriesTx = (e: unknown): e is Error & { signed: unknown } => e instanceof Error && "signed" in e;
+
 /**
  * Run a task's main and return its exit code: what main returns (default 0), 2 for a UsageError, 1 for any other
  * throw. On Ctrl-C, SIGTERM or SIGHUP the signal aborts, the cleanups run (closing clients ends any call in flight)
- * and the code is 130 / 143 / 129, with no error line for the interrupted work; a second signal, or main not settling
- * within 2 s, exits at once.
+ * and the code is 130 / 143 / 129, with no error line for the interrupted work, except an error that carries a
+ * transaction, which is always printed in full; a second signal, or main not settling within 2 s, exits at once.
  */
 export async function runMain(main: (ctx: RunContext) => Promise<number | void>): Promise<number> {
   const cleanups: (() => unknown)[] = [];
@@ -89,8 +92,9 @@ export async function runMain(main: (ctx: RunContext) => Promise<number | void>)
     (cleaning ??= (async () => {
       for (const fn of cleanups.splice(0).reverse()) await Promise.resolve().then(fn).catch(() => {});
     })());
+  const late: Promise<unknown>[] = []; // cleanups registered after the cleanup started: run at once, awaited before return
   const onExit = (fn: () => unknown) => {
-    if (cleaning) void Promise.resolve().then(fn).catch(() => {});
+    if (cleaning) late.push(Promise.resolve().then(fn).catch(() => {}));
     else cleanups.push(fn);
   };
   const interrupt = new AbortController();
@@ -110,12 +114,14 @@ export async function runMain(main: (ctx: RunContext) => Promise<number | void>)
     const code = (await main({ onExit, signal: interrupt.signal })) ?? 0;
     return signal ? SIGNAL_EXIT[signal] : code;
   } catch (e) {
+    if (carriesTx(e)) console.error(`error: ${e.message}`); // in full: the hash and explorer link must not be cut
     if (signal) return SIGNAL_EXIT[signal];
-    console.error(e instanceof UsageError ? e.message : `error: ${describeError(e)}`);
+    if (!carriesTx(e)) console.error(e instanceof UsageError ? e.message : `error: ${describeError(e)}`);
     return e instanceof UsageError ? 2 : 1;
   } finally {
     clearTimeout(force);
     await cleanup();
+    await Promise.all(late);
     for (const s of SIGNALS) process.off(s, onSignal);
   }
 }

@@ -53,6 +53,7 @@ function scrubUrl(raw: string): string {
 export function scrubArg(arg: string): string {
   const flag = /^(-{1,2}[^=\s]+=)([\s\S]*)$/.exec(arg);
   if (flag) return flag[1] + scrubArg(flag[2]);
+  if (/^file:/i.test(arg)) return scrubUrl(arg); // file:/x and file:///x alike
   if (isAbsolute(arg)) {
     const rel = relative(REPO_ROOT, arg);
     if (!rel.startsWith("..") && !isAbsolute(rel)) return rel || ".";

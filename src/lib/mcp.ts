@@ -1,4 +1,4 @@
-import { REPO_ROOT, envOr } from "./env.js"; // first: loads .env before anything reads the environment
+import { REPO_ROOT, envOr } from "./env.js"; // settings: shell, then ~/.config/pharos/testnet.env, then the repo .env
 import { existsSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";

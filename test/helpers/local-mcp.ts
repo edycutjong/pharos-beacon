@@ -31,6 +31,8 @@ export interface LocalOptions {
   tools?: { name: string; description?: string }[];
   /** Return true when it has handled (failed or stalled) the request itself. */
   intercept?: (rpc: Rpc, res: ServerResponse) => boolean;
+  /** Answer this request normally, but only after this many ms. */
+  delay?: (rpc: Rpc) => number;
   tool?: (name: string, args: any) => ToolReply;
 }
 
@@ -78,8 +80,14 @@ export async function startLocal(mode: Mode, opts: LocalOptions = {}): Promise<L
     if (opts.intercept?.(rpc, res)) return;
     const reply = (result: unknown) => {
       const message = JSON.stringify({ jsonrpc: "2.0", id: rpc.id, result });
-      if (mode === "sse") res.writeHead(200, { ...headers, "content-type": "text/event-stream", "cache-control": "no-cache" }).end(`event: message\ndata: ${message}\n\n`);
-      else res.writeHead(200, { ...headers, "content-type": "application/json" }).end(message);
+      const send = () => {
+        if (res.writableEnded || res.destroyed) return;
+        if (mode === "sse") res.writeHead(200, { ...headers, "content-type": "text/event-stream", "cache-control": "no-cache" }).end(`event: message\ndata: ${message}\n\n`);
+        else res.writeHead(200, { ...headers, "content-type": "application/json" }).end(message);
+      };
+      const ms = opts.delay?.(rpc) ?? 0;
+      if (ms > 0) setTimeout(send, ms);
+      else send();
     };
     switch (rpc.method) {
       case "initialize":

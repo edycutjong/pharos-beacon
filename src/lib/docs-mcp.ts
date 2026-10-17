@@ -1,4 +1,4 @@
-import { envOr } from "./env.js"; // first: loads .env before anything reads the environment
+import { envOr } from "./env.js"; // settings: shell, then ~/.config/pharos/testnet.env, then the repo .env
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";

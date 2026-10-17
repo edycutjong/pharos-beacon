@@ -329,6 +329,30 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
     }
   });
 
+  it("fails a call in flight with ClientClosedError when the client is closed", async () => {
+    const local = await chainServer(CHAIN.pharos, undefined, (rpc) => rpc.params?.name === "get_block_number"); // never answered
+    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0 });
+    const pending = mcp.call("get_block_number").catch((e) => e);
+    await vi.waitFor(() => expect(toolCalls(local.rpcs, "get_block_number")).toHaveLength(1));
+    await mcp.close();
+    expect((await pending).name).toBe("ClientClosedError");
+  });
+
+  it("fails with ClientClosedError when closed during a retry backoff", async () => {
+    let failed = false;
+    const local = await chainServer(CHAIN.pharos, undefined, (rpc, res) => {
+      if (rpc.params?.name !== "get_block_number" || failed) return false;
+      failed = true;
+      res.writeHead(502, { "content-type": "text/plain" }).end("bad gateway");
+      return true;
+    });
+    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0 });
+    const pending = mcp.call("get_block_number").catch((e) => e);
+    await vi.waitFor(() => expect(failed).toBe(true));
+    await mcp.close(); // during the 0.5 s backoff
+    expect((await pending).name).toBe("ClientClosedError");
+  });
+
   it("lists tools again after the server forgot the session", async () => {
     const local = await chainServer();
     const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, sleep: async () => {} });
