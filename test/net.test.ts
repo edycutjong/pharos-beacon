@@ -1,6 +1,6 @@
 import { getEventListeners } from "node:events";
 import { describe, expect, it } from "vitest";
-import { CLIENT_INFO, RateLimiter, limiterFor, rejectUserinfo, retryAfterMs, throttleAwareFetch, wait, withRetry } from "../src/lib/net.js";
+import { CLIENT_INFO, RateLimiter, limiterFor, rejectUserinfo, retryAfterMs, throttleAwareFetch, untilAborted, wait, withRetry } from "../src/lib/net.js";
 
 /** A clock that only moves when the limiter sleeps. */
 function clock() {
@@ -109,6 +109,24 @@ describe("RateLimiter", () => {
     setTimeout(() => ctl.abort(), 20);
     expect(await pending).toBe("AbortError");
     expect(Date.now() - t0).toBeLessThan(1_000);
+  });
+});
+
+describe("untilAborted", () => {
+  it("rejects at once on an aborted signal and never leaves the raced promise's later rejection unhandled", async () => {
+    const unhandled: unknown[] = [];
+    const onUnhandled = (e: unknown) => void unhandled.push(e);
+    process.on("unhandledRejection", onUnhandled);
+    try {
+      const ctl = new AbortController();
+      ctl.abort();
+      const late = new Promise((_, reject) => setTimeout(() => reject(new Error("late")), 10));
+      await expect(untilAborted(late, ctl.signal)).rejects.toHaveProperty("name", "AbortError");
+      await new Promise((r) => setTimeout(r, 50));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
+    }
   });
 });
 

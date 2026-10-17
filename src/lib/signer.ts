@@ -89,10 +89,15 @@ export class BroadcastUnclearError extends Error {
     override readonly cause: unknown,
     readonly lookupError?: unknown,
   ) {
+    const detail =
+      lookupError !== undefined
+        ? `; the lookup failed too: ${describeError(lookupError)}`
+        : cause instanceof ClientClosedError
+          ? " before the node answered"
+          : "; the node does not show it yet but may still take it";
     super(
-      `could not tell whether ${signed.hash} (nonce ${signed.tx.nonce}) was sent: ${describeError(cause)}` +
-        (lookupError === undefined ? "; the node does not show it yet but may still take it" : `; the lookup failed too: ${describeError(lookupError)}`) +
-        `. Check ${explorerTx("atlantic", signed.hash)} before acting; any retry must reuse nonce ${signed.tx.nonce}`,
+      `could not tell whether ${signed.hash} (nonce ${signed.tx.nonce}) was sent: ${describeError(cause)}${detail}. ` +
+        `Check ${explorerTx("atlantic", signed.hash)} before acting; any retry must reuse nonce ${signed.tx.nonce}`,
     );
   }
 }

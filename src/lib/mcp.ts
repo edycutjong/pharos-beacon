@@ -6,7 +6,19 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { StreamableHTTPClientTransport, StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import type { Hex, RpcBlock, RpcLog, RpcTransaction, RpcTransactionReceipt } from "viem";
-import { CLIENT_INFO, ToolError, endpointLabel, isTransient, limiterFor, rejectUserinfo, throttleAwareFetch, wait, withRetry, type RateLimiter } from "./net.js";
+import {
+  CLIENT_INFO,
+  ToolError,
+  endpointLabel,
+  isTransient,
+  limiterFor,
+  rejectUserinfo,
+  throttleAwareFetch,
+  untilAborted,
+  wait,
+  withRetry,
+  type RateLimiter,
+} from "./net.js";
 import { atlantic, pharos } from "./networks.js";
 
 export type Network = "pharos" | "atlantic";
@@ -339,7 +351,9 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
         await slots(1); // first the slot, then the connection: a session dropped while waiting is not used
         const c = await current(0);
         try {
-          return await fn(c);
+          // close() ends a call in flight at once: the SDK would reject it only when the local server exits, which a
+          // server busy with its own RPC request takes 2 s to do (longer than a CLI's grace after Ctrl-C).
+          return await untilAborted(fn(c), stop.signal);
         } catch (e) {
           if (closed) throw new ClientClosedError();
           if (sessionGone(e) && conn === c) {

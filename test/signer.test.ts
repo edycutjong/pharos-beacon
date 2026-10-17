@@ -203,6 +203,32 @@ describe("sign and broadcast", () => {
     }
   });
 
+  it("never calls a coded refusal 'refused' when the lookup failed: the node may have the tx", async () => {
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: new ChainToolError("send_raw_transaction", "nonce too low", -32000),
+      get_transaction: new Error("fetch failed"),
+    });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    const err = await s.send({ to: TO }).catch((e) => e);
+    expect(err).toBeInstanceOf(BroadcastUnclearError);
+    expect(s.unresolved).toBe(err.signed);
+  });
+
+  it("keeps the latch when a different transaction is refused", async () => {
+    let attempt = 0;
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: () => (++attempt === 1 ? new McpError(ErrorCode.RequestTimeout, "Request timed out") : new ChainToolError("send_raw_transaction", "underpriced", -32000)),
+      get_transaction: null,
+    });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    const unclear = await s.send({ to: TO }).catch((e) => e);
+    const other = await s.sign(await s.prepare({ to: TO, nonce: 9 }));
+    await expect(s.broadcast(other)).rejects.toBeInstanceOf(BroadcastError);
+    expect(s.unresolved).toBe(unclear.signed);
+  });
+
   it("is cleared when the same signed transaction is refused on re-broadcast, so it cannot wedge the signer", async () => {
     let attempt = 0;
     const { mcp } = fakeMcp({

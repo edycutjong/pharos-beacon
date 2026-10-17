@@ -156,9 +156,12 @@ export class RateLimiter {
   }
 }
 
-/** `p`, or a rejection as soon as `signal` aborts, whichever comes first. */
-function untilAborted<T>(p: Promise<T>, signal: AbortSignal): Promise<T> {
-  if (signal.aborted) return Promise.reject(signal.reason);
+/** `p`, or a rejection as soon as `signal` aborts, whichever comes first (a later rejection of `p` is then ignored). */
+export function untilAborted<T>(p: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) {
+    p.catch(() => {});
+    return Promise.reject(signal.reason);
+  }
   return new Promise<T>((resolve, reject) => {
     const onAbort = () => reject(signal.reason);
     signal.addEventListener("abort", onAbort, { once: true });

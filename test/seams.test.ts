@@ -196,7 +196,9 @@ describe("proof", () => {
     expect(scrubArg(`--policy=${join(homedir(), "x.json")}`)).toBe("--policy=~/x.json");
     expect(scrubArg(`0x${"ab".repeat(32)}`)).toBe(`0x${"ab".repeat(32)}`); // a tx hash is evidence: kept
     const tx = `https://atlantic.pharosscan.xyz/tx/0x${"cd".repeat(32)}`;
-    expect(scrubArg(tx)).toBe(tx); // so is an explorer link
+    expect(scrubArg(tx)).toBe(tx); // so is an explorer link, for a tx or an address
+    const address = "https://atlantic.pharosscan.xyz/address/0x8D347c72431ed6E033d5f43E56c0987E97f5D91B";
+    expect(scrubArg(address)).toBe(address);
     expect(scrubArg(`-p=${join(homedir(), "x.json")}`)).toBe("-p=~/x.json");
     expect(scrubArg(`file:${join(homedir(), "p.json")}`)).toBe("~/p.json");
     expect(scrubArg(`--policy=file:${join(homedir(), "p.json")}`)).toBe("--policy=~/p.json");
@@ -265,6 +267,14 @@ describe("cli", () => {
     expect(await runMain(async () => Promise.reject(new UsageError("bad flag\nusage: x")))).toBe(2);
     expect(await runMain(async () => Promise.reject(new Error(`fetch failed\n${"<html>".repeat(100)}`)))).toBe(1);
     expect(err.mock.calls.map((c) => String(c[0]))).toEqual(["bad flag\nusage: x", expect.stringMatching(/^error: fetch failed <html>.{280,}…$/)]);
+  });
+
+  it("prints an error that carries a transaction once, in full, also when not interrupted", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    const hash = `0x${"ab".repeat(32)}`;
+    const long = `could not tell whether ${hash} (nonce 5) was sent: ${"y".repeat(400)}`;
+    expect(await runMain(async () => Promise.reject(Object.assign(new Error(long), { signed: { hash } })))).toBe(1);
+    expect(err.mock.calls.map((c) => String(c[0]))).toEqual([`error: ${long}`]);
   });
 
   it("runs every cleanup in reverse order, also after a failure, and a failing cleanup does not stop the rest", async () => {
@@ -387,6 +397,34 @@ describe("cli", () => {
       expect(await pending).toBe(130);
       expect(ended).toBe(true);
     });
+
+    it.each(["SIGINT", "SIGTERM"] as const)(
+      "%s to the CLI process alone, during a send to a busy local server, still prints the hash (real process)",
+      { timeout: 30_000 },
+      async (sig) => {
+        const env = {
+          PATH: process.env.PATH ?? "",
+          HOME: dir(),
+          PHAROS_MCP_BIN: helper("fake-chain-busy.mjs"),
+          PRIVATE_KEY: generatePrivateKey(),
+        };
+        // node itself (not the tsx wrapper), so the signal reaches only the CLI and not the server child
+        const c = spawn(process.execPath, ["--import", "tsx", helper("send-child.ts")], { cwd: REPO_ROOT, env, stdio: ["ignore", "pipe", "pipe"] });
+        let stdout = "";
+        let stderr = "";
+        c.stdout.on("data", (d) => (stdout += d));
+        c.stderr.on("data", (d) => (stderr += d));
+        await vi.waitFor(() => expect(stdout).toContain("SIGNED 0x"), { timeout: 15_000 });
+        await new Promise((r) => setTimeout(r, 500)); // the send is in flight
+        const hash = /SIGNED (0x[0-9a-f]{64})/.exec(stdout)![1];
+        const t0 = Date.now();
+        c.kill(sig);
+        const code = await new Promise<number | null>((r) => c.on("exit", (x) => r(x)));
+        expect(code).toBe(sig === "SIGINT" ? 130 : 143);
+        expect(stderr).toContain(`could not tell whether ${hash} (nonce 1) was sent: the Chain MCP client is closed before the node answered`);
+        expect(Date.now() - t0).toBeLessThan(5_000);
+      },
+    );
 
     it("SIGHUP is handled too (exit 129)", async () => {
       vi.spyOn(process, "exit").mockImplementation((() => undefined) as never);

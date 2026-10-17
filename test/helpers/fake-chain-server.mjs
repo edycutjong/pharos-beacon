@@ -9,7 +9,9 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 const state = join(tmpdir(), `beacon-fake-chain-${process.ppid}.json`);
 const counts = () => (existsSync(state) ? JSON.parse(readFileSync(state, "utf8")) : {});
+const PERSISTED = new Set(["crash_once", "send_raw_transaction"]); // counted across a restart by tests
 const count = (name) => {
+  if (!PERSISTED.has(name)) return;
   const c = counts();
   c[name] = (c[name] ?? 0) + 1;
   writeFileSync(state, JSON.stringify(c));

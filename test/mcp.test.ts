@@ -6,7 +6,7 @@ import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamable
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import type { Hex, RpcLog } from "viem";
 import { generatePrivateKey } from "viem/accounts";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChainToolError, chainMcp, getLogsRange, logKey, parseToolResult, stdioEnv, type ChainMcp } from "../src/lib/mcp.js";
 import { RateLimiter } from "../src/lib/net.js";
 import { sleeps, startLocal, type LocalOptions, type ToolReply } from "./helpers/local-mcp.js";
@@ -418,6 +418,7 @@ describe("chainMcp over stdio (Atlantic's local server)", () => {
   const saved = { bin: process.env.PHAROS_MCP_BIN, key: process.env.BEACON_TEST_SECRET };
   const counts = join(tmpdir(), `beacon-fake-chain-${process.pid}.json`);
   beforeEach(() => rmSync(counts, { force: true }));
+  afterAll(() => rmSync(counts, { force: true }));
   afterEach(() => {
     for (const [k, v] of [["PHAROS_MCP_BIN", saved.bin], ["BEACON_TEST_SECRET", saved.key]] as const) {
       if (v === undefined) delete process.env[k];
