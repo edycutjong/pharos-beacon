@@ -2,7 +2,7 @@
 
 **Task:** [Read Contract State](https://pharos-agent-arena.vercel.app/tasks/read-contract-state) (Chain MCP · Easy · 50 pts):
 read a smart contract's state via Chain MCP.
-**Run:** `npm run read-contract-state` (no key, no setup: it uses the hosted keyless Chain MCP on Pharos mainnet; `--proof` saves the result)
+**Run:** `npm run read-contract-state` (no key, no setup: it uses the hosted keyless Chain MCP on Pharos mainnet; `--proof` overwrites `proof/<contract>.json`, the committed proof)
 **Uses:** Chain MCP ✅ (`get_chain_info`, `get_block_number`, `eth_call`, `get_code`, `get_logs`) · Docs MCP: not used · SkillEngine: only the token registry
 (addresses and decimals in `src/lib/networks.ts`)
 
@@ -71,7 +71,7 @@ stops the run. Pointing it at an address that is not a token fails with `returne
 | `get_block_number` | the block every read is pinned to (`--block N` reads an older one) |
 | `eth_call` | `name`, `symbol`, `decimals`, `totalSupply`, `balanceOf`, `owner`, `paused` |
 | `get_code` | tells a wallet from a contract (the owner, and any address nobody labelled) |
-| `get_logs` | the default holder: the recipient of the single largest `Transfer` in the last 1000 blocks (one call) |
+| `get_logs` | the default holder: the recipient of the single largest `Transfer` in the last 1000 blocks, skipping burns to 0x0 and transfers to the contract itself (one call) |
 
 ## Proof
 
@@ -85,6 +85,6 @@ the command). Each proof was produced from a clean, committed tree: `meta.git.co
 
 ## Tests
 
-`npm test` runs 8 tests for this task (`test/read-contract-state.test.ts`) against a fake Chain MCP: values decoded with decimals applied,
+`npm test` runs 9 tests for this task (`test/read-contract-state.test.ts`) against a fake Chain MCP: values decoded with decimals applied,
 all reads pinned to one block, labelling rules, a contract without `owner()`/`paused()`, a transport error not mistaken for "no owner",
 a non-token address (also through the CLI, so the friendly error is what you see), the default-holder search over `get_logs`, and the report text.

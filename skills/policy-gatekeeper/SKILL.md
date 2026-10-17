@@ -39,7 +39,7 @@ automatically) or exported in the session. Never type a key into a command or pu
    npm run policy-gatekeeper -- tasks/policy-gatekeeper/policies/<name>.json --to <0x…> --amount <PHRS>
    ```
    Several requests: `--requests file.json` with `[{"label": "...", "to": "0x…", "amount": "0.001"}]`.
-4. **Explain the result:** each rule's PASS/FAIL, the deciding rule, and what would have changed it.
+4. **Explain the result:** the rules that passed, the rule that decided (checking stops at the first FAIL), and what would have changed it.
 5. **Send only on explicit confirmation** of that exact recipient and amount, only after a check returned ALLOW:
    ```bash
    npm run policy-gatekeeper -- tasks/policy-gatekeeper/policies/<name>.json --to <0x…> --amount <PHRS> --execute --proof
@@ -68,8 +68,9 @@ automatically) or exported in the session. Never type a key into a command or pu
 
 ## Example
 
-`policies/treasury.json` (limit 0.005 PHRS per tx, 0.008 per hour, two allowlisted wallets, 00:00–12:00 UTC) with
-`policies/requests-demo.json` shows two allows and one deny per rule type. See `tasks/policy-gatekeeper/README.md`.
+`policies/treasury-anytime.json` (limit 0.005 PHRS per tx, 0.008 per hour, two allowlisted wallets, 00:00–23:59 UTC) with
+`policies/requests-anytime.json` shows two allows and one deny per rule type, as a keyless dry-run at any hour.
+(`treasury.json` with `requests-demo.json` is the live-run pair; its 00:00–12:00 UTC window denies everything after noon.) See `tasks/policy-gatekeeper/README.md`.
 
 Complements `pharos-skill-engine` (one-off cast/forge commands) and `threshold-guardian` (gate on on-chain conditions rather
 than on who, when and how much).

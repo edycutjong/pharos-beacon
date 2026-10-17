@@ -1,6 +1,6 @@
 // Read Contract State (Easy · 50 pts): read a live contract's state through the Pharos Chain MCP and say it in plain words.
 //   npm run read-contract-state -- [--contract 0x…] [--holder 0x…[=label]]… [--block N] [--proof]
-// Default contract: official USDC on Pharos mainnet ("USDC (Circle Deployed)" in the SkillEngine token registry).
+// Default contract: official USDC on Pharos mainnet ("USDC (Circle Deployed)" in the Pharos docs token registry).
 import { decodeEventLog, decodeFunctionResult, encodeFunctionData, erc20Abi, formatUnits, getAddress, isAddress, parseAbi, toEventSelector, type Hex } from "viem";
 import { isMain, parseCli, runCli, UsageError, type RunContext } from "../../src/lib/cli.js";
 import { chainMcp, ChainToolError, getLogsRange, MAX_LOG_WINDOW, type ChainMcp } from "../../src/lib/mcp.js";
@@ -103,9 +103,11 @@ export async function readState(call: Call, contract: Hex, block: bigint, holder
 }
 
 const TRANSFER = toEventSelector("Transfer(address,address,uint256)");
+const ZERO = "0x0000000000000000000000000000000000000000";
 
 /**
- * A holder worth showing by default: the recipient of the single largest Transfer in the last 1000 blocks up to `block`
+ * A holder worth showing by default: the recipient of the single largest Transfer in the last 1000 blocks up to `block`,
+ * skipping burns (to 0x0) and transfers to the token contract itself, which hold nothing worth showing.
  * (one Chain MCP get_logs call). Null when the window has no transfers.
  */
 export async function largestTransferRecipient(call: Call, contract: Hex, block: bigint, symbol: string): Promise<{ address: Hex; label: string } | null> {
@@ -115,6 +117,8 @@ export async function largestTransferRecipient(call: Call, contract: Hex, block:
   for (const log of logs) {
     try {
       const { args } = decodeEventLog({ abi: erc20Abi, eventName: "Transfer", topics: log.topics as [Hex, ...Hex[]], data: log.data as Hex });
+      const to = args.to.toLowerCase();
+      if (to === ZERO || to === contract.toLowerCase()) continue;
       if (!best || args.value > best.value) best = { to: args.to, value: args.value };
     } catch {
       // not a standard Transfer (e.g. a non-indexed variant): skip it

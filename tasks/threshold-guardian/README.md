@@ -2,7 +2,7 @@
 
 **Task:** [Threshold Guardian](https://pharos-agent-arena.vercel.app/tasks/threshold-guardian) (SkillEngine · Medium · 100 pts):
 evaluates multiple on-chain conditions before deciding whether to fire an action at all.
-**Run:** `npm run guard -- tasks/threshold-guardian/policies/<policy>.json [--execute] [--proof]`
+**Run:** `npm run guard -- tasks/threshold-guardian/policies/<policy>.json [--execute] [--proof]` (`--proof` overwrites that policy's committed file in `proof/`)
 **Uses:** Chain MCP ✅ (all condition reads + receipt) · SkillEngine ✅ packaged as an agent skill,
 [`skills/threshold-guardian/`](../../skills/threshold-guardian/SKILL.md) (network config in `src/lib/networks.ts` is
 copied from SkillEngine's `assets/`) · Docs MCP: not used by this task

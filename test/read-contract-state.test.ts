@@ -84,10 +84,10 @@ describe("read-contract-state", () => {
     const seen: any[] = [];
     const call = (async (tool: string, args: any) => {
       seen.push({ tool, args });
-      return [log(WPROS, 5n, 0), log(USDC, 900n, 1), log(OWNER, 7n, 2)];
+      return [log(WPROS, 5n, 0), log(OWNER, 900n, 1), log(WPROS, 7n, 2)];
     }) as unknown as Call;
     const r = await largestTransferRecipient(call, getAddress(USDC), 5000n, "USDC");
-    expect(r).toEqual({ address: getAddress(USDC), label: "recipient of the largest USDC transfer in blocks 4001–5000" });
+    expect(r).toEqual({ address: getAddress(OWNER), label: "recipient of the largest USDC transfer in blocks 4001–5000" });
     expect(seen).toEqual([{ tool: "get_logs", args: { address: getAddress(USDC), topics: [T], fromBlock: "4001", toBlock: "5000" } }]);
     expect(await largestTransferRecipient((async () => []) as unknown as Call, getAddress(USDC), 10n, "USDC")).toBeNull();
   });
@@ -96,5 +96,18 @@ describe("read-contract-state", () => {
     const connect = async () => ({ call, close: async () => {}, endpoint: "fake", network: "pharos" as const, chainId: 1672, server: undefined });
     await expect(main({ onExit: () => {} } as never, ["--contract", OWNER], connect as never)).rejects.toThrow(/symbol\(\) on 0x9F8E.* returned no data: not a token contract at block 100/);
     await expect(readSymbol(call, OWNER, 7n)).rejects.toThrow(/not a token contract at block 7/);
+  });
+  it("skips burns to 0x0 and transfers to the contract itself when picking the default holder", async () => {
+    const T = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+    const pad = (a: string) => `0x${a.slice(2).toLowerCase().padStart(64, "0")}`;
+    const amt = (n: bigint) => `0x${n.toString(16).padStart(64, "0")}`;
+    const ZERO = "0x0000000000000000000000000000000000000000";
+    const logs = [
+      { topics: [T, pad(OWNER), pad(ZERO)], data: amt(10_000n), blockNumber: "0x10", logIndex: "0x0" },
+      { topics: [T, pad(OWNER), pad(USDC)], data: amt(9_000n), blockNumber: "0x10", logIndex: "0x1" },
+      { topics: [T, pad(OWNER), pad(WPROS)], data: amt(5n), blockNumber: "0x10", logIndex: "0x2" },
+    ];
+    const r = await largestTransferRecipient((async () => logs) as unknown as Call, getAddress(USDC), 5000n, "USDC");
+    expect(r?.address).toBe(getAddress(WPROS));
   });
 });

@@ -4,7 +4,8 @@
 checks a requested action against spend limits, allowlists and time windows before executing.
 **Run:** `npm run policy-gatekeeper -- <policy.json> (--to 0x… --amount 0.001 | --requests <file.json>) [--execute] [--proof]`
 Without `--execute` or `--proof` a run is a dry-run: nothing is sent, and its decisions go to a scratch audit log (the path is
-printed at the end), so trying the command never changes the committed proof log in `audit/`.
+printed at the end), so trying the command never changes the committed proof log in `audit/`. With `--execute` (even for a request that is then denied) or
+`--proof`, decisions are appended to `audit/audit.jsonl` and `--proof` writes `proof/<policy>.<outcome>.json`.
 **Uses:** Chain MCP ✅ (only to send: nonce, gas, fees, broadcast, receipt; a denied request needs no chain call) · SkillEngine ✅ packaged as an
 agent skill, [`skills/policy-gatekeeper/`](../../skills/policy-gatekeeper/SKILL.md) · Docs MCP: not used by this task
 
