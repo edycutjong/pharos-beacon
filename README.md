@@ -5,8 +5,8 @@ The tasks share one toolkit in `src/lib/`: a Pharos Chain MCP client that checks
 paces itself under the hosted server's rate limit and retries only safe reads; a testnet signer (`npm run ping`
 exercises it) for which the Chain MCP prepares, broadcasts and confirms each transaction while viem only signs; a proof
 writer, a CLI runner and crash-safe state files; and chain constants copied from SkillEngine's `assets/`. Threshold
-Guardian predates the signer and the proof writer: it sends with a viem wallet, confirms the receipt through the Chain
-MCP, and its proof files hold the policy and the outcome. The repo also ships a tested client for the Developer Docs
+Guardian predates the signer, the proof writer, the CLI runner and the state helpers: it has its own CLI, sends with a
+viem wallet, confirms the receipt through the Chain MCP, and its proof files hold the policy and the outcome. The repo also ships a tested client for the Developer Docs
 MCP (`src/lib/docs-mcp.ts`); no task depends on it yet. Each task lives in its own folder under `tasks/`; tasks that
 ship as agent skills also have a folder under `skills/`.
 
@@ -20,7 +20,7 @@ ship as agent skills also have a folder under `skills/`.
 
 ```bash
 npm install
-npm test            # 207 tests: guardian (policy, reader, guard, CLI), Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 227 tests: guardian (policy, reader, guard, CLI), Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
 npm run smoke       # hosted Chain MCP tool list + chain info, Atlantic block (+ wallet balance if PRIVATE_KEY is set)
@@ -30,15 +30,16 @@ npm run ping        # Atlantic signer check: prepare via Chain MCP + sign locall
 
 Write operations target **Pharos Atlantic testnet** (chain 688689) and need `PRIVATE_KEY` (see `.env.example`).
 It is read from `~/.config/pharos/testnet.env` (preferred) or a local `.env` that git ignores (an exported variable wins
-over both), and never committed. Keys are read into the program, never into its environment, so no child process
-inherits them.
+over both), and never committed. Keys from those two files are read into the program and never copied into its
+environment; the local Chain MCP server and the git calls that stamp proofs get a minimal environment, so neither
+receives `PRIVATE_KEY`, even an exported one.
 Mainnet (chain 1672) is read-only here.
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `src/lib/mcp.ts` | Chain MCP client: hosted HTTP for mainnet, local stdio server for Atlantic. Checks the chain id at connect, paces itself at 100 requests per minute counting the 4 a connect costs (the hosted server allows 120 per minute per IP), waits as long as a 429's Retry-After asks (up to 65 s), retries only reads, reconnects a lost session, ends the session on close. Typed tool results; `getLogsRange` for any block range |
+| `src/lib/mcp.ts` | Chain MCP client: hosted HTTP for mainnet, local stdio server for Atlantic. Checks the chain id at connect, paces itself at 100 requests per minute against the hosted server, counting the 4 a connect costs (the server allows 120 per minute per IP), and at 60 per minute against the local Atlantic server, waits as long as a 429's Retry-After asks (up to 65 s), retries only reads, reconnects a lost session, ends the session on close. Typed tool results; `getLogsRange` for any block range |
 | `src/lib/signer.ts` | Atlantic-only signer: nonce, gas and fees read through the Chain MCP, signed locally with viem, broadcast through the Chain MCP, receipt read back through it. The hash is known before sending |
 | `src/lib/proof.ts` · `cli.ts` · `state.ts` | proof files stamped with chain, endpoint, server version and commit (for new tasks; Threshold Guardian's proofs predate it) · task CLI runner (flags, exit codes, cleanup, Ctrl-C) · atomic JSON state with a run lock |
 | `src/lib/docs-mcp.ts` | Developer Docs MCP client: `tools/list`, `searchDocumentation`, `getPage`, `askQuestion`, with timeouts and retries |
