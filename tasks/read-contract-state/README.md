@@ -3,7 +3,7 @@
 **Task:** [Read Contract State](https://pharos-agent-arena.vercel.app/tasks/read-contract-state) (Chain MCP · Easy · 50 pts):
 read a smart contract's state via Chain MCP.
 **Run:** `npm run read-contract-state` (no key, no setup: it uses the hosted keyless Chain MCP on Pharos mainnet; `--proof` saves the result)
-**Uses:** Chain MCP ✅ (`get_chain_info`, `get_block_number`, `eth_call`, `get_code`) · Docs MCP: not used · SkillEngine: only the token registry
+**Uses:** Chain MCP ✅ (`get_chain_info`, `get_block_number`, `eth_call`, `get_code`, `get_logs`) · Docs MCP: not used · SkillEngine: only the token registry
 (addresses and decimals in `src/lib/networks.ts`)
 
 ## Which contract
@@ -16,9 +16,9 @@ Pick another with `--contract 0x…` (any ERC-20) and label addresses with `--ho
 
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | Reads at least 3 different values from one contract via Chain MCP | 5 values from the one contract through `eth_call`: `name()`, `symbol()`, `decimals()`, `totalSupply()`, `balanceOf(holder)` (two holders), plus `owner()` and `paused()` | [`proof/0xc879…1815.json`](proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) · [`index.ts`](index.ts) `readState` |
+| 1 | Reads at least 3 different values from one contract via Chain MCP | 5 values from the one contract through `eth_call`: `name()`, `symbol()`, `decimals()`, `totalSupply()`, `balanceOf(holder)` (two holders), plus `owner()` and `paused()`; by default one holder is a real one, found with `get_logs` | [`proof/0xc879…1815.json`](proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) · [`index.ts`](index.ts) `readState` |
 | 2 | Shows the contract address and the block number the data was read at | Printed in the first two lines; every read is pinned to that block, so the numbers describe one moment | [sample output below](#sample-output) · `proof` field `state.block` |
-| 3 | Formats raw values for humans: token decimals applied, addresses labelled | `totalSupply` 40901147298696 → `40,901,147.298696 USDC` using the contract's own `decimals()` (the raw value stays beside it); every address gets a label: a token from the registry, the contract itself, your `=label`, or `wallet (no code)` / `contract (has code)` from `get_code` | [`index.ts`](index.ts) `labelsFor`, `formatState` · `test/read-contract-state.test.ts` |
+| 3 | Formats raw values for humans: token decimals applied, addresses labelled | `totalSupply` 40985447535743 → `40,985,447.535743 USDC` using the contract's own `decimals()` (the raw value stays beside it); every address gets a label: a token from the registry, the contract itself, its role ("owner of this contract", "largest USDC recipient in blocks …"), your `=label`, or `wallet (no code)` / `contract (has code)` from `get_code` | [`index.ts`](index.ts) `labelsFor`, `formatState` · `test/read-contract-state.test.ts` |
 | 4 | Includes a short README: which contract, how to run it, sample output | This file | — |
 
 ## Sample output
@@ -27,36 +27,36 @@ Run on 2026-10-17 (proof: [`proof/0xc879…1815.json`](proof/0xc879c018db60520f4
 
 ```text
 Contract  0xC879C018dB60520F4355C26eD1a6D572cdAC1815  (USDC)
-Read at   block 20453810 on Pharos mainnet (chain 1672)
+Read at   block 20474857 on Pharos mainnet (chain 1672)
 
   name         USDC
   symbol       USDC
   decimals     6   (1 USDC = 1000000 base units)
-  totalSupply  40,901,147.298696 USDC   (raw 40901147298696)
-  balance      0 USDC   held by 0xC879C018dB60520F4355C26eD1a6D572cdAC1815  [USDC token contract (this contract)]
+  totalSupply  40,985,447.535743 USDC   (raw 40985447535743)
+  balance      544,536.955309 USDC   held by 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647  [largest USDC recipient in blocks 20473858–20474857]
   balance      0.807275 USDC   held by 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0  [WPROS token contract]
-  owner        0x9F8Ea09770Dc38fc61f5a62031b3BE0526D54D92  [unlabelled wallet (no code)]
+  owner        0x9F8Ea09770Dc38fc61f5a62031b3BE0526D54D92  [owner of this contract · wallet (no code)]
   paused       no
 
-via https://mcp.pharos.xyz/mcp · up to 8 eth_call reads and get_code lookups pinned to block 20453810
+via https://mcp.pharos.xyz/mcp · every read pinned to block 20474857
 ```
 
 Another contract, with your own labels (`npm run read-contract-state -- --contract 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0 --holder 0xC879C018dB60520F4355C26eD1a6D572cdAC1815=USDC-contract`),
-read at block 20454395 ([proof](proof/0x52c48d4213107b20bc583832b0d951fb9ca8f0b0.json)). This contract has no `owner()` or `paused()`, and the report says so:
+read at block 20474871 ([proof](proof/0x52c48d4213107b20bc583832b0d951fb9ca8f0b0.json)). This contract has no `owner()` or `paused()`, and the report says so:
 
 ```text
 Contract  0x52C48d4213107b20bC583832b0d951FB9CA8F0B0  (Wrapped PROS)
-Read at   block 20454395 on Pharos mainnet (chain 1672)
+Read at   block 20474871 on Pharos mainnet (chain 1672)
 
   name         Wrapped PROS
   symbol       WPROS
   decimals     18   (1 WPROS = 1000000000000000000 base units)
-  totalSupply  23,260,937.53888629614242118 WPROS   (raw 23260937538886296142421180)
+  totalSupply  23,259,862.945880128736201569 WPROS   (raw 23259862945880128736201569)
   balance      0 WPROS   held by 0xC879C018dB60520F4355C26eD1a6D572cdAC1815  [USDC-contract]
   owner        none: this contract has no owner() view
   paused       none: this contract has no paused() view
 
-via https://mcp.pharos.xyz/mcp · up to 7 eth_call reads and get_code lookups pinned to block 20454395
+via https://mcp.pharos.xyz/mcp · every read pinned to block 20474871
 ```
 
 The supply and balances change with the chain; the block number says which moment you are looking at. `owner()` and `paused()` are
@@ -70,14 +70,15 @@ stops the run. Pointing it at an address that is not a token fails with `returne
 | `get_chain_info` | chain check at connect (must be 1672) |
 | `get_block_number` | the block every read is pinned to (`--block N` reads an older one) |
 | `eth_call` | `name`, `symbol`, `decimals`, `totalSupply`, `balanceOf`, `owner`, `paused` |
-| `get_code` | tells a wallet from a contract for addresses nobody labelled |
+| `get_code` | tells a wallet from a contract (the owner, and any address nobody labelled) |
+| `get_logs` | the default holder: the recipient of the largest `Transfer` in the last 1000 blocks (one call) |
 
 ## Proof
 
 | Run | Network · block | Result | File |
 |---|---|---|---|
-| default contract, 2026-10-17 | Pharos mainnet 1672 · block 20453810 | the first output above | [`proof/0xc879…1815.json`](proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) |
-| Wrapped PROS with a custom label, 2026-10-17 | Pharos mainnet 1672 · block 20454395 | the second output above | [`proof/0x52c4…f0b0.json`](proof/0x52c48d4213107b20bc583832b0d951fb9ca8f0b0.json) |
+| default contract, 2026-10-17 | Pharos mainnet 1672 · block 20474857 | the first output above | [`proof/0xc879…1815.json`](proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) |
+| Wrapped PROS with a custom label, 2026-10-17 | Pharos mainnet 1672 · block 20474871 | the second output above | [`proof/0x52c4…f0b0.json`](proof/0x52c48d4213107b20bc583832b0d951fb9ca8f0b0.json) |
 
 The task is read-only, so there is no transaction: the proof is the file above (it also records the endpoint, server version and
 the command). It was produced from the working tree before this task's commit (`meta.git.dirty` is true).
