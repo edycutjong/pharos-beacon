@@ -167,7 +167,7 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   }
   const state = await readState(mcp.call, contract, block, holders);
   console.log(formatState(state));
-  console.log(`\nvia ${mcp.endpoint} · eth_call, get_code and get_logs reads pinned to block ${state.block}`);
+  console.log(`\nvia ${mcp.endpoint} · every read pinned to block ${state.block}`);
   if (values.proof) console.log(`proof: ${writeProof(new URL(`proof/${contract.toLowerCase()}.json`, import.meta.url), { head: head.toString(), state }, proofMeta(TASK, mcp))}`);
   return 0;
 }
