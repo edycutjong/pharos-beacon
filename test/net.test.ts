@@ -59,6 +59,31 @@ describe("RateLimiter", () => {
     expect(c.waited).toEqual([3_000]);
   });
 
+  it("lets a take larger than the whole budget through once the window is empty (no busy loop)", async () => {
+    const c = clock();
+    const l = new RateLimiter(3, c.sleep, c.now);
+    await l.take(1);
+    c.sleep(5_000);
+    await l.take(4); // more than the budget: waits until the one stamp has left the window
+    expect(c.waited).toEqual([5_000, 55_000]);
+    expect(c.waited.every(Number.isFinite)).toBe(true);
+  });
+
+  it("ends an aborted wait at once, even while it is queued behind another caller's", async () => {
+    const l = new RateLimiter(1);
+    await l.take();
+    const a = new AbortController();
+    const b = new AbortController();
+    const first = l.take(1, a.signal).catch((e: Error) => e.name); // waits ~60 s for the window
+    const second = l.take(1, b.signal).catch((e: Error) => e.name); // queued behind `first`
+    const t0 = Date.now();
+    b.abort();
+    expect(await second).toBe("AbortError");
+    expect(Date.now() - t0).toBeLessThan(500);
+    a.abort();
+    expect(await first).toBe("AbortError");
+  });
+
   it("can only be tightened, and stops a wait when aborted", async () => {
     const l = new RateLimiter(10);
     l.tighten(20);

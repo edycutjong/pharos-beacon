@@ -294,6 +294,41 @@ describe("chainMcp over HTTP (real SDK client and transport, hosted-style sessio
     expect(local.requests.filter((r) => r.method === "DELETE").at(-1)).toMatchObject({ session: "s2", status: 200 });
   });
 
+  it("ends a reconnect handshake in flight when closed, instead of waiting for its deadline", async () => {
+    let inits = 0;
+    const local = await chainServer(CHAIN.pharos, undefined, (rpc) => rpc.method === "initialize" && ++inits > 1); // the reconnect stalls
+    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, sleep: async () => {} });
+    local.sessions.clear();
+    const t0 = Date.now();
+    const pending = mcp.call("get_block_number").catch((e) => e);
+    await vi.waitFor(() => expect(inits).toBe(2));
+    await mcp.close();
+    const err = await pending;
+    expect(err.name).toBe("ClientClosedError");
+    expect(Date.now() - t0).toBeLessThan(3_000);
+  });
+
+  it("does not multiply retries on a reconnect: one handshake per attempt of the call", async () => {
+    let inits = 0;
+    const local = await chainServer(CHAIN.pharos, undefined, (rpc, res) => {
+      if (rpc.method !== "initialize" || ++inits === 1) return false;
+      res.writeHead(500, { "content-type": "text/plain" }).end("down");
+      return true;
+    });
+    const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, sleep: async () => {} });
+    try {
+      local.sessions.clear();
+      const err = await mcp.call("get_block_number").catch((e) => e);
+      expect(err).toBeInstanceOf(StreamableHTTPError);
+      expect(err.code).toBe(500);
+      // the first connect; the call's first attempt hits the 404, then its 2 retries make one handshake each
+      // (nested retries made 1 + 2 × 3 = 7)
+      expect(inits).toBe(3);
+    } finally {
+      await mcp.close();
+    }
+  });
+
   it("lists tools again after the server forgot the session", async () => {
     const local = await chainServer();
     const mcp = await chainMcp("pharos", { url: local.url, perMinute: 0, sleep: async () => {} });
@@ -420,10 +455,10 @@ describe("chainMcp over stdio (Atlantic's local server)", () => {
 
   it("sends a broadcast once: a timed-out send_raw_transaction is not resent", async () => {
     process.env.PHAROS_MCP_BIN = helper("fake-chain-server.mjs");
-    const mcp = await chainMcp("atlantic", { perMinute: 0, broadcast: true, timeoutMs: 300, sleep: async () => {} });
+    const mcp = await chainMcp("atlantic", { perMinute: 0, broadcast: true, sleep: async () => {} });
     try {
       expect(mcp.broadcast).toBe(true);
-      await expect(mcp.call("send_raw_transaction", { rawTransaction: "0x02" })).rejects.toThrow(/timed out/i);
+      await expect(mcp.call("send_raw_transaction", { rawTransaction: "0x02" }, { timeoutMs: 300 })).rejects.toThrow(/timed out/i);
       expect(await mcp.call("calls")).toMatchObject({ send_raw_transaction: 1 });
     } finally {
       await mcp.close();

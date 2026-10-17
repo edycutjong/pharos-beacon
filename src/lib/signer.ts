@@ -1,7 +1,7 @@
 import { secret } from "./env.js"; // keys come from ~/.config/pharos/testnet.env (or the repo's git-ignored .env)
 import { keccak256, toHex, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import type { ChainMcp } from "./mcp.js";
+import { ChainToolError, ClientClosedError, type ChainMcp } from "./mcp.js";
 import { describeError, wait } from "./net.js";
 import { atlantic, explorerTx } from "./networks.js";
 
@@ -46,8 +46,9 @@ export interface Receipt {
 }
 
 /**
- * The node refused the transaction and, asked by hash afterwards, does not have it. To retry, broadcast the same
- * `signed` again or reuse its nonce: two transactions with one nonce can never both land.
+ * The node answered the broadcast with an error (insufficient funds, underpriced, nonce too low…) and, asked by hash
+ * afterwards, does not have the transaction: it was refused. Fix the cause, then send again: with the same nonce
+ * (two transactions with one nonce can never both land), or for "nonce too low" with a fresh one.
  */
 export class BroadcastError extends Error {
   override name = "BroadcastError";
@@ -55,24 +56,32 @@ export class BroadcastError extends Error {
     readonly signed: SignedTx,
     override readonly cause: unknown,
   ) {
-    super(`the node refused ${signed.hash} (nonce ${signed.tx.nonce}) and does not have it: ${describeError(cause)}. To retry, reuse nonce ${signed.tx.nonce} so at most one can land`);
+    const n = signed.tx.nonce;
+    const why = describeError(cause);
+    super(
+      /nonce too low/i.test(why)
+        ? `the node refused ${signed.hash}: nonce ${n} is already used by another transaction (${why}). Prepare it again for a new nonce`
+        : `the node refused ${signed.hash} (nonce ${n}) and does not have it: ${why}. To retry, reuse nonce ${n} so at most one can land`,
+    );
   }
 }
 
 /**
- * The broadcast failed and the node could not be asked whether it has the transaction anyway. It may have been sent.
- * Look it up (explorer link in the message) before doing anything; never prepare a new one with a fresh nonce.
+ * The broadcast got no clear answer (a timeout, a dropped connection) or the node could not be asked afterwards: the
+ * transaction may still arrive. Until it is resolved the signer refuses to pick a fresh nonce. Re-broadcast `signed`
+ * (same bytes, same hash: always safe), or look the hash up (explorer link in the message).
  */
 export class BroadcastUnclearError extends Error {
   override name = "BroadcastUnclearError";
   constructor(
     readonly signed: SignedTx,
     override readonly cause: unknown,
-    readonly lookupError: unknown,
+    readonly lookupError?: unknown,
   ) {
     super(
-      `could not tell whether ${signed.hash} (nonce ${signed.tx.nonce}) was sent: ${describeError(cause)}; the lookup failed too: ${describeError(lookupError)}. ` +
-        `Check ${explorerTx("atlantic", signed.hash)} before acting; any retry must reuse nonce ${signed.tx.nonce}`,
+      `could not tell whether ${signed.hash} (nonce ${signed.tx.nonce}) was sent: ${describeError(cause)}` +
+        (lookupError === undefined ? "; the node does not show it yet but may still take it" : `; the lookup failed too: ${describeError(lookupError)}`) +
+        `. Check ${explorerTx("atlantic", signed.hash)} before acting; any retry must reuse nonce ${signed.tx.nonce}`,
     );
   }
 }
@@ -121,6 +130,8 @@ export function testnetSigner(mcp: ChainMcp, opts: SignerOptions = {}): TestnetS
   const now = opts.now ?? Date.now;
   // The lowest nonce the next send may use: the node's pending count can lag a broadcast it just accepted.
   let nonceFloor = 0;
+  // A transaction whose broadcast got no clear answer: no fresh nonce is picked until it is resolved.
+  let unresolved: SignedTx | undefined;
   let queue: Promise<unknown> = Promise.resolve();
 
   async function fees(intent: TxIntent): Promise<Pick<PreparedTx, "maxFeePerGas" | "maxPriorityFeePerGas">> {
@@ -136,13 +147,25 @@ export function testnetSigner(mcp: ChainMcp, opts: SignerOptions = {}): TestnetS
 
   function accepted(signed: SignedTx): Hex {
     nonceFloor = Math.max(nonceFloor, signed.tx.nonce + 1);
+    if (unresolved?.tx.nonce === signed.tx.nonce) unresolved = undefined;
     return signed.hash;
+  }
+
+  /** Before picking a fresh nonce: an unclear broadcast that has since arrived counts as sent; one still missing blocks. */
+  async function settleUnresolved(): Promise<void> {
+    if (!unresolved) return;
+    if (await mcp.call("get_transaction", { hash: unresolved.hash })) return void accepted(unresolved);
+    throw new Error(
+      `transaction ${unresolved.hash} (nonce ${unresolved.tx.nonce}) may still arrive: re-broadcast it (signer.broadcast(err.signed)) ` +
+        `or pass nonce ${unresolved.tx.nonce} to replace it; refusing to pick a new nonce`,
+    );
   }
 
   const signer: TestnetSigner = {
     address: account.address,
 
     async prepare(intent) {
+      if (intent.nonce === undefined) await settleUnresolved();
       const value = intent.value ?? 0n;
       const [nonce, gas, fee] = await Promise.all([
         intent.nonce ??
@@ -176,10 +199,16 @@ export function testnetSigner(mcp: ChainMcp, opts: SignerOptions = {}): TestnetS
       if (!mcp.broadcast) throw new Error('open the client with chainMcp("atlantic", { broadcast: true }) to send');
       let txHash: Hex;
       try {
-        ({ txHash } = await mcp.call("send_raw_transaction", { rawTransaction: signed.raw }));
+        // 60 s: longer than the local server's own retries of eth_sendRawTransaction (4 tries of up to 12 s), so a slow
+        // node is waited for instead of being reported as unclear.
+        ({ txHash } = await mcp.call("send_raw_transaction", { rawTransaction: signed.raw }, { timeoutMs: 60_000 }));
       } catch (e) {
+        if (e instanceof ClientClosedError) {
+          unresolved = signed;
+          throw e;
+        }
         // A timeout, or "already known" / "nonce too low" on a resend, can hide a transaction the node did take. Ask by
-        // hash before failing, and never call it "not sent" unless the node said so.
+        // hash before failing, and call it refused only when the node answered with an error and does not have it.
         let lookupError: unknown;
         for (let i = 0; i < 3; i++) {
           try {
@@ -187,10 +216,13 @@ export function testnetSigner(mcp: ChainMcp, opts: SignerOptions = {}): TestnetS
             lookupError = undefined;
           } catch (le) {
             lookupError = le;
+            if (le instanceof ClientClosedError) break;
           }
           if (i < 2) await sleep(1_000);
         }
-        throw lookupError === undefined ? new BroadcastError(signed, e) : new BroadcastUnclearError(signed, e, lookupError);
+        if (e instanceof ChainToolError && lookupError === undefined) throw new BroadcastError(signed, e);
+        unresolved = signed;
+        throw new BroadcastUnclearError(signed, e, lookupError);
       }
       if (txHash.toLowerCase() !== signed.hash.toLowerCase()) throw new Error(`the node reported hash ${txHash} for ${signed.hash}`);
       return accepted(signed);
@@ -214,7 +246,11 @@ export function testnetSigner(mcp: ChainMcp, opts: SignerOptions = {}): TestnetS
         // Polling is the retry: one attempt per poll, never longer than the time left.
         const r = await mcp
           .call("get_transaction_receipt", { hash }, { retries: 0, timeoutMs: Math.max(1_000, Math.min(left, 15_000)) })
-          .catch((e: unknown) => ((lastError = describeError(e)), null));
+          .catch((e: unknown) => {
+            if (e instanceof ClientClosedError) throw e; // Ctrl-C closed the client: stop polling now
+            lastError = describeError(e);
+            return null;
+          });
         if (r) {
           return {
             status: r.status === "0x1" ? "success" : "reverted",

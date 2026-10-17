@@ -69,11 +69,22 @@ export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOptions, tra
   }
 }
 
-/** The endpoint without userinfo or query string, so a token placed in an endpoint URL never reaches a log or a proof file. */
+/** A URL path with every segment that could be a credential (longer than 16 characters, or not word-like) shown as "…". */
+export function safePath(pathname: string): string {
+  return pathname
+    .split("/")
+    .map((seg) => (seg.length <= 16 && /^[A-Za-z0-9._~-]*$/.test(seg) ? seg : "…"))
+    .join("/");
+}
+
+/**
+ * The endpoint without userinfo, query string or key-like path segments (some RPC providers put the API key in the
+ * path), so a token in an endpoint URL never reaches a log or a proof file. `https://mcp.pharos.xyz/mcp` stays whole.
+ */
 export function endpointLabel(url: string): string {
   try {
     const u = new URL(url);
-    return `${u.origin}${u.pathname}`;
+    return `${u.origin}${safePath(u.pathname)}`;
   } catch {
     return "the MCP endpoint";
   }
@@ -114,7 +125,10 @@ export class RateLimiter {
     if (this.budget > 0) for (let i = 0; i < n; i++) this.stamps.push(this.now());
   }
 
-  /** Wait for `n` request slots. An abort rejects the wait (and its timer) at once. */
+  /**
+   * Wait for `n` request slots. A take larger than the whole budget waits for an empty window. An abort rejects the
+   * wait at once, also while it is queued behind another caller's.
+   */
   take(n = 1, signal?: AbortSignal): Promise<void> {
     const turn = this.tail.then(async () => {
       for (;;) {
@@ -131,12 +145,25 @@ export class RateLimiter {
           for (let i = 0; i < n; i++) this.stamps.push(t);
           return;
         }
-        await this.sleep(this.stamps[over - 1] + 60_000 - t, signal);
+        await this.sleep(this.stamps[Math.min(over, this.stamps.length) - 1] + 60_000 - t, signal);
       }
     });
     this.tail = turn.catch(() => {});
-    return turn;
+    return signal ? untilAborted(turn, signal) : turn;
   }
+}
+
+/** `p`, or a rejection as soon as `signal` aborts, whichever comes first. */
+function untilAborted<T>(p: Promise<T>, signal: AbortSignal): Promise<T> {
+  if (signal.aborted) return Promise.reject(signal.reason);
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(signal.reason);
+    signal.addEventListener("abort", onAbort, { once: true });
+    p.then(
+      (v) => (signal.removeEventListener("abort", onAbort), resolve(v)),
+      (e: unknown) => (signal.removeEventListener("abort", onAbort), reject(e)),
+    );
+  });
 }
 
 const limiters = new Map<string, RateLimiter>();

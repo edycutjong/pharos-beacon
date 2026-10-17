@@ -1,7 +1,8 @@
 import { keccak256, parseGwei, parseTransaction, recoverTransactionAddress, type Hex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ChainToolError, type ChainMcp } from "../src/lib/mcp.js";
+import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
+import { ChainToolError, ClientClosedError, type ChainMcp } from "../src/lib/mcp.js";
 import { BroadcastError, BroadcastUnclearError, testnetSigner } from "../src/lib/signer.js";
 
 const TO = "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B" as Hex;
@@ -169,6 +170,60 @@ describe("sign and broadcast", () => {
     expect(err.message).toContain(`https://atlantic.pharosscan.xyz/tx/${signed.hash}`);
   });
 
+  it("says a 'nonce too low' refusal needs a new nonce, not the same one", async () => {
+    const { mcp } = fakeMcp({ ...CHAIN_STATE, send_raw_transaction: new ChainToolError("send_raw_transaction", "nonce too low", -32000), get_transaction: null });
+    const err = await testnetSigner(mcp, { envVar: ENV, sleep: async () => {} }).send({ to: TO }).catch((e) => e);
+    expect(err).toBeInstanceOf(BroadcastError);
+    expect(err.message).toMatch(/nonce 5 is already used by another transaction .*Prepare it again for a new nonce/);
+  });
+
+  it("calls a broadcast with no answer unclear, even when the node does not show it yet, and then refuses a fresh nonce", async () => {
+    let known = false;
+    const sent: number[] = [];
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: (a: { rawTransaction: Hex }) =>
+        sent.push(parseTransaction(a.rawTransaction).nonce!) === 1 ? new McpError(ErrorCode.RequestTimeout, "Request timed out") : { txHash: keccak256(a.rawTransaction) },
+      get_transaction: () => (known ? { hash: "0x" } : null),
+    });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    const err = await s.send({ to: TO }).catch((e) => e);
+    expect(err).toBeInstanceOf(BroadcastUnclearError);
+    expect(err.message).toMatch(/does not show it yet but may still take it/);
+    await expect(s.send({ to: TO })).rejects.toThrow(/may still arrive: re-broadcast it .*refusing to pick a new nonce/);
+    expect(sent).toEqual([5]); // nothing new was signed with a fresh nonce
+    known = true; // it arrived after all
+    expect((await s.send({ to: TO })).tx.nonce).toBe(6);
+    expect(sent).toEqual([5, 6]);
+  });
+
+  it("is resolved by re-broadcasting the same signed transaction", async () => {
+    let first = true;
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: (a: { rawTransaction: Hex }) => (first ? ((first = false), new Error("fetch failed")) : { txHash: keccak256(a.rawTransaction) }),
+      get_transaction: null,
+    });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    const err = await s.send({ to: TO }).catch((e) => e);
+    expect(err).toBeInstanceOf(BroadcastUnclearError);
+    expect(await s.broadcast(err.signed)).toBe(err.signed.hash);
+    expect((await s.send({ to: TO })).tx.nonce).toBe(6);
+  });
+
+  it("moves the nonce floor when a failed broadcast turns out to have landed ('already known')", async () => {
+    const sent: number[] = [];
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE, // the node keeps answering nonce 5
+      send_raw_transaction: (a: { rawTransaction: Hex }) => (sent.push(parseTransaction(a.rawTransaction).nonce!), new ChainToolError("send_raw_transaction", "already known")),
+      get_transaction: { hash: "0x" },
+    });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    await s.send({ to: TO });
+    await s.send({ to: TO });
+    expect(sent).toEqual([5, 6]);
+  });
+
   it("sends one at a time with consecutive nonces, even when the node's pending count lags", async () => {
     // The node keeps answering nonce 5: only the signer's own floor makes the second and third sends 6 and 7.
     const sent: number[] = [];
@@ -224,6 +279,14 @@ describe("waitForReceipt", () => {
   it("reports a reverted receipt as reverted", async () => {
     const { mcp } = fakeMcp({ get_transaction_receipt: { status: "0x0", blockNumber: "0x1", gasUsed: "0x1" } });
     expect(await testnetSigner(mcp, { envVar: ENV }).waitForReceipt(HASH)).toEqual({ status: "reverted", blockNumber: 1n, gasUsed: 1n });
+  });
+
+  it("stops at once when the client is closed (Ctrl-C), instead of polling to the deadline", async () => {
+    const { mcp } = fakeMcp({ get_transaction_receipt: new ClientClosedError() });
+    const c = clock();
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: c.sleep, now: c.now });
+    await expect(s.waitForReceipt(HASH)).rejects.toBeInstanceOf(ClientClosedError);
+    expect(c.waited).toEqual([]);
   });
 
   it("is bounded by time, polls once per step with no retries of its own, and reports the last read error", async () => {

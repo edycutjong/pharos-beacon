@@ -74,6 +74,14 @@ export class ChainToolError extends ToolError {
   }
 }
 
+/** Every call on a closed client, including one that was waiting when close() ran, fails with this. */
+export class ClientClosedError extends Error {
+  override name = "ClientClosedError";
+  constructor() {
+    super("the Chain MCP client is closed");
+  }
+}
+
 /** Parse one tools/call result: JSON on success, ChainToolError on isError, a missing text block or non-JSON text. */
 export function parseToolResult(tool: string, reply: unknown): unknown {
   const res = (reply ?? {}) as { content?: unknown; isError?: unknown };
@@ -199,10 +207,9 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
   const expected = CHAIN_ID[network];
   const broadcast = network === "atlantic" && opts.broadcast === true;
   const stop = new AbortController(); // aborted by close(): ends any wait at once
-  const closedError = () => new Error("the Chain MCP client is closed");
-  const sleep = opts.sleep ?? ((t: number) => wait(t, stop.signal).catch(() => Promise.reject(closedError())));
-  // Wait for request slots; close() ends the wait at once with a plain "closed" error.
-  const slots = (n: number) => limiter.take(n, stop.signal).catch((e: unknown) => Promise.reject(stop.signal.aborted ? closedError() : e));
+  const sleep = opts.sleep ?? ((t: number) => wait(t, stop.signal).catch(() => Promise.reject(new ClientClosedError())));
+  // Wait for request slots; close() ends the wait at once.
+  const slots = (n: number) => limiter.take(n, stop.signal).catch((e: unknown) => Promise.reject(stop.signal.aborted ? new ClientClosedError() : e));
 
   // The latest 429/503 and the wait it asked for; the limiter holds every caller until then.
   let throttle: { at: number; ms: number | undefined } | undefined;
@@ -241,6 +248,7 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
 
   let conn: Conn | undefined;
   let opening: Promise<Conn> | undefined;
+  const handshaking = new Set<Conn>(); // connections still in their handshake, so close() can end them at once
   let closed = false;
 
   async function shut(c: Conn): Promise<void> {
@@ -270,12 +278,16 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
 
   // One handshake: a fresh client per attempt, raced against a deadline (the SDK times out only `initialize`, so a
   // server that stalls on `notifications/initialized` would hang), then the chain check. Failures leave nothing open.
-  const open = () =>
+  // `retries` is the client's setting for the first connect and 0 for a reconnect, which the call's own retry repeats.
+  const open = (retries: number) =>
     withRetry(
       async (): Promise<Conn> => {
         await slots(handshakeCost);
+        if (closed) throw new ClientClosedError();
         const { transport, stderr } = makeTransport();
         const client = new Client(CLIENT_INFO);
+        const c = { client, transport };
+        handshaking.add(c);
         let timer: ReturnType<typeof setTimeout> | undefined;
         const deadline = new Promise<never>((_, reject) => {
           timer = setTimeout(() => reject(new McpError(ErrorCode.RequestTimeout, `connecting to ${endpoint} timed out after ${ms} ms`)), ms);
@@ -287,31 +299,32 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
           if (info?.chainId !== expected) {
             throw new Error(`${endpoint} serves chain ${info?.chainId ?? "unknown"}, but ${network} is chain ${expected}: refusing to read from it`);
           }
-          const c = { client, transport };
           // A local server that exits (crash, kill) drops the connection; the next attempt starts a new one.
           client.onclose = () => void (conn === c && (conn = undefined));
           return c;
         } catch (e) {
-          await shut({ client, transport });
+          await shut(c);
+          if (closed) throw new ClientClosedError();
           const tail = stderr();
           if (tail && e instanceof Error) e.message = `${e.message} — local server stderr: ${tail.slice(-500)}`;
           throw explain(e);
         } finally {
           clearTimeout(timer);
+          handshaking.delete(c);
         }
       },
-      { retries: opts.retries ?? 2, sleep },
+      { retries, sleep },
       (e) => !closed && retryable(e),
     );
 
-  async function current(): Promise<Conn> {
-    if (closed) throw closedError();
+  async function current(retries: number): Promise<Conn> {
+    if (closed) throw new ClientClosedError();
     if (conn) return conn;
-    opening ??= open()
+    opening ??= open(retries)
       .then((c) => {
         if (closed) {
           void shut(c);
-          throw closedError();
+          throw new ClientClosedError();
         }
         return (conn = c);
       })
@@ -323,11 +336,12 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
   function withSession<T>(fn: (c: Conn) => Promise<T>, retries: number): Promise<T> {
     return withRetry(
       async () => {
-        const c = await current();
-        await slots(1);
+        await slots(1); // first the slot, then the connection: a session dropped while waiting is not used
+        const c = await current(0);
         try {
           return await fn(c);
         } catch (e) {
+          if (closed) throw new ClientClosedError();
           if (sessionGone(e) && conn === c) {
             conn = undefined;
             void shut(c);
@@ -349,7 +363,7 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
     return withSession(async (c) => parseToolResult(name, await c.client.callTool({ name, arguments: args }, undefined, { timeout: o.timeoutMs ?? ms })), retries);
   }
 
-  const first = await current();
+  const first = await current(opts.retries ?? 2);
   return {
     network,
     chainId: expected,
@@ -366,6 +380,7 @@ export async function chainMcp(network: Network = "pharos", opts: ChainMcpOption
     async close() {
       closed = true;
       stop.abort();
+      for (const h of handshaking) void shut(h); // a handshake in flight ends now, not at its deadline
       const c = conn ?? (await opening?.catch(() => undefined));
       conn = undefined;
       if (c) await shut(c);
