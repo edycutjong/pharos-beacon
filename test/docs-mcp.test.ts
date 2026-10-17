@@ -394,13 +394,23 @@ describe.each(["json", "sse"] as const)("docsMcp against a local MCP server (rea
 
   it("leaves no timer running after a successful connect and close", async () => {
     const local = await startLocal(mode, {});
-    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    // Track only our own connect timer (the 60 s one): Node's HTTP stack sets timers of its own on some platforms.
+    const ours = new Set<unknown>();
+    const realSet = globalThis.setTimeout;
+    const set = vi.spyOn(globalThis, "setTimeout").mockImplementation(((fn: () => void, ms?: number, ...a: unknown[]) => {
+      const t = realSet(fn, ms, ...a);
+      if (ms === 60_000) ours.add(t);
+      return t;
+    }) as typeof setTimeout);
+    const clear = vi.spyOn(globalThis, "clearTimeout");
     try {
       const client = await docsMcp(local.url, { timeoutMs: 60_000 });
       await client.close();
-      expect(vi.getTimerCount()).toBe(0);
+      expect(ours.size).toBeGreaterThan(0);
+      for (const t of ours) expect(clear).toHaveBeenCalledWith(t);
     } finally {
-      vi.useRealTimers();
+      set.mockRestore();
+      clear.mockRestore();
     }
   });
 
