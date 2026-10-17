@@ -66,9 +66,20 @@ export class BroadcastError extends Error {
   }
 }
 
+/** A transaction whose broadcast got no clear answer blocks picking a fresh nonce; `signed` is that transaction. */
+export class UnresolvedTxError extends Error {
+  override name = "UnresolvedTxError";
+  constructor(readonly signed: SignedTx) {
+    super(
+      `transaction ${signed.hash} (nonce ${signed.tx.nonce}) may still arrive: re-broadcast it (signer.broadcast(err.signed)) ` +
+        `or pass nonce ${signed.tx.nonce} to replace it; refusing to pick a new nonce`,
+    );
+  }
+}
+
 /**
- * The broadcast got no clear answer (a timeout, a dropped connection) or the node could not be asked afterwards: the
- * transaction may still arrive. Until it is resolved the signer refuses to pick a fresh nonce. Re-broadcast `signed`
+ * The broadcast got no clear answer (a timeout, a dropped connection, the client closed by Ctrl-C) or the node could
+ * not be asked afterwards: the transaction may still arrive. Until it is resolved the signer refuses to pick a fresh nonce. Re-broadcast `signed`
  * (same bytes, same hash: always safe), or look the hash up (explorer link in the message).
  */
 export class BroadcastUnclearError extends Error {
@@ -88,6 +99,8 @@ export class BroadcastUnclearError extends Error {
 
 export interface TestnetSigner {
   readonly address: Hex;
+  /** A transaction whose broadcast got no clear answer, if any: until it is resolved no fresh nonce is picked. */
+  readonly unresolved: SignedTx | undefined;
   /** Fill nonce (pending count), gas (estimate_gas) and fees (2 × base fee + priority fee) through the Chain MCP. */
   prepare(intent: TxIntent): Promise<PreparedTx>;
   /** Sign locally; the returned hash is final before anything is sent. */
@@ -155,14 +168,14 @@ export function testnetSigner(mcp: ChainMcp, opts: SignerOptions = {}): TestnetS
   async function settleUnresolved(): Promise<void> {
     if (!unresolved) return;
     if (await mcp.call("get_transaction", { hash: unresolved.hash })) return void accepted(unresolved);
-    throw new Error(
-      `transaction ${unresolved.hash} (nonce ${unresolved.tx.nonce}) may still arrive: re-broadcast it (signer.broadcast(err.signed)) ` +
-        `or pass nonce ${unresolved.tx.nonce} to replace it; refusing to pick a new nonce`,
-    );
+    throw new UnresolvedTxError(unresolved);
   }
 
   const signer: TestnetSigner = {
     address: account.address,
+    get unresolved() {
+      return unresolved;
+    },
 
     async prepare(intent) {
       if (intent.nonce === undefined) await settleUnresolved();
@@ -204,8 +217,9 @@ export function testnetSigner(mcp: ChainMcp, opts: SignerOptions = {}): TestnetS
         ({ txHash } = await mcp.call("send_raw_transaction", { rawTransaction: signed.raw }, { timeoutMs: 60_000 }));
       } catch (e) {
         if (e instanceof ClientClosedError) {
+          // Closed (Ctrl-C) while the send was in flight: it may have gone out. Keep the hash in the error.
           unresolved = signed;
-          throw e;
+          throw new BroadcastUnclearError(signed, e);
         }
         // A timeout, or "already known" / "nonce too low" on a resend, can hide a transaction the node did take. Ask by
         // hash before failing, and call it refused only when the node answered with an error and does not have it.
@@ -220,7 +234,13 @@ export function testnetSigner(mcp: ChainMcp, opts: SignerOptions = {}): TestnetS
           }
           if (i < 2) await sleep(1_000);
         }
-        if (e instanceof ChainToolError && lookupError === undefined) throw new BroadcastError(signed, e);
+        // Refused only when the node itself answered with a JSON-RPC error (it carries a code) and does not have the tx.
+        // A code-less tool error is the server's own trouble reaching the node (its timeout, an HTTP 5xx, fetch
+        // failed): no answer from the node, so the tx may still arrive.
+        if (e instanceof ChainToolError && e.code !== undefined && lookupError === undefined) {
+          if (unresolved?.hash === signed.hash) unresolved = undefined; // the same bytes, now refused: it will not land
+          throw new BroadcastError(signed, e);
+        }
         unresolved = signed;
         throw new BroadcastUnclearError(signed, e, lookupError);
       }

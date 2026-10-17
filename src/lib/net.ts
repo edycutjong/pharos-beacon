@@ -69,11 +69,14 @@ export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOptions, tra
   }
 }
 
-/** A URL path with every segment that could be a credential (longer than 16 characters, or not word-like) shown as "…". */
+/**
+ * A URL path with every segment that could be a credential (longer than 16 characters, or not word-like) shown as "…".
+ * An address or a 32-byte hash (0x + 40 or 64 hex digits) is kept: it is public on-chain evidence, e.g. an explorer link.
+ */
 export function safePath(pathname: string): string {
   return pathname
     .split("/")
-    .map((seg) => (seg.length <= 16 && /^[A-Za-z0-9._~-]*$/.test(seg) ? seg : "…"))
+    .map((seg) => ((seg.length <= 16 && /^[A-Za-z0-9._~-]*$/.test(seg)) || /^0x(?:[0-9a-fA-F]{40}|[0-9a-fA-F]{64})$/.test(seg) ? seg : "…"))
     .join("/");
 }
 

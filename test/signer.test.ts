@@ -3,7 +3,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import { ChainToolError, ClientClosedError, type ChainMcp } from "../src/lib/mcp.js";
-import { BroadcastError, BroadcastUnclearError, testnetSigner } from "../src/lib/signer.js";
+import { BroadcastError, BroadcastUnclearError, UnresolvedTxError, testnetSigner } from "../src/lib/signer.js";
 
 const TO = "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B" as Hex;
 const ENV = "BEACON_TEST_SIGNER_KEY";
@@ -146,7 +146,7 @@ describe("sign and broadcast", () => {
   });
 
   it("reports a broadcast the node does not have as BroadcastError, carrying the signed tx so a retry can reuse its nonce", async () => {
-    const { mcp } = fakeMcp({ ...CHAIN_STATE, send_raw_transaction: new ChainToolError("send_raw_transaction", "insufficient funds"), get_transaction: null });
+    const { mcp } = fakeMcp({ ...CHAIN_STATE, send_raw_transaction: new ChainToolError("send_raw_transaction", "insufficient funds", -32000), get_transaction: null });
     const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
     const signed = await s.sign(await s.prepare({ to: TO }));
     const err = await s.broadcast(signed).catch((e) => e);
@@ -168,6 +168,58 @@ describe("sign and broadcast", () => {
     expect(err.signed).toBe(signed);
     expect(err.message).toMatch(/could not tell whether .* was sent: send_raw_transaction: nonce too low; the lookup failed too: fetch failed/);
     expect(err.message).toContain(`https://atlantic.pharosscan.xyz/tx/${signed.hash}`);
+  });
+
+  it("sends with a 60 s budget, past the local server's own retries of the send", async () => {
+    let opts: unknown;
+    const { mcp } = fakeMcp({}, {
+      call: (async (name: string, args: any, o: unknown) =>
+        name === "send_raw_transaction" ? ((opts = o), { txHash: keccak256(args.rawTransaction) }) : (CHAIN_STATE as any)[name]) as unknown as ChainMcp["call"],
+    } as Partial<ChainMcp>);
+    await testnetSigner(mcp, { envVar: ENV }).send({ to: TO });
+    expect(opts).toEqual({ timeoutMs: 60_000 });
+  });
+
+  it("counts a code-less tool error (the server's own timeout, RPC HTTP 502, fetch failed) as no answer, not a refusal", async () => {
+    const { mcp } = fakeMcp({ ...CHAIN_STATE, send_raw_transaction: new ChainToolError("send_raw_transaction", "RPC HTTP 502 Bad Gateway"), get_transaction: null });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    const err = await s.send({ to: TO }).catch((e) => e);
+    expect(err).toBeInstanceOf(BroadcastUnclearError);
+    expect(s.unresolved).toBe(err.signed);
+  });
+
+  it("keeps the hash when Ctrl-C closes the client during the send or the lookup", async () => {
+    for (const answers of [
+      { send_raw_transaction: new ClientClosedError() },
+      { send_raw_transaction: new McpError(ErrorCode.RequestTimeout, "Request timed out"), get_transaction: new ClientClosedError() },
+    ]) {
+      const { mcp, calls } = fakeMcp({ ...CHAIN_STATE, ...answers });
+      const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+      const err = await s.send({ to: TO }).catch((e) => e);
+      expect(err).toBeInstanceOf(BroadcastUnclearError);
+      expect(err.message).toContain(err.signed.hash);
+      expect(s.unresolved).toBe(err.signed);
+      expect(calls.filter(([n]) => n === "get_transaction").length).toBeLessThanOrEqual(1); // no lookups on a closed client
+    }
+  });
+
+  it("is cleared when the same signed transaction is refused on re-broadcast, so it cannot wedge the signer", async () => {
+    let attempt = 0;
+    const { mcp } = fakeMcp({
+      ...CHAIN_STATE,
+      send_raw_transaction: () => (++attempt === 1 ? new McpError(ErrorCode.RequestTimeout, "Request timed out") : new ChainToolError("send_raw_transaction", "nonce too low", -32000)),
+      get_transaction: null,
+    });
+    const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });
+    const unclear = await s.send({ to: TO }).catch((e) => e);
+    expect(unclear).toBeInstanceOf(BroadcastUnclearError);
+    const blocked = await s.prepare({ to: TO }).catch((e) => e);
+    expect(blocked).toBeInstanceOf(UnresolvedTxError);
+    expect(blocked.signed).toBe(unclear.signed);
+    expect(await s.prepare({ to: TO, nonce: 9 })).toMatchObject({ nonce: 9 }); // an explicit nonce is the caller's call
+    await expect(s.broadcast(unclear.signed)).rejects.toBeInstanceOf(BroadcastError); // refused, and the node lacks it
+    expect(s.unresolved).toBeUndefined();
+    expect((await s.prepare({ to: TO })).nonce).toBe(5);
   });
 
   it("says a 'nonce too low' refusal needs a new nonce, not the same one", async () => {
@@ -241,7 +293,7 @@ describe("sign and broadcast", () => {
     let refuse = true;
     const { mcp } = fakeMcp({
       ...CHAIN_STATE,
-      send_raw_transaction: (a: { rawTransaction: Hex }) => (refuse ? new ChainToolError("send_raw_transaction", "underpriced") : { txHash: keccak256(a.rawTransaction) }),
+      send_raw_transaction: (a: { rawTransaction: Hex }) => (refuse ? new ChainToolError("send_raw_transaction", "underpriced", -32000) : { txHash: keccak256(a.rawTransaction) }),
       get_transaction: null,
     });
     const s = testnetSigner(mcp, { envVar: ENV, sleep: async () => {} });

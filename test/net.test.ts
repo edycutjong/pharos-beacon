@@ -1,3 +1,4 @@
+import { getEventListeners } from "node:events";
 import { describe, expect, it } from "vitest";
 import { CLIENT_INFO, RateLimiter, limiterFor, rejectUserinfo, retryAfterMs, throttleAwareFetch, wait, withRetry } from "../src/lib/net.js";
 
@@ -82,6 +83,13 @@ describe("RateLimiter", () => {
     expect(Date.now() - t0).toBeLessThan(500);
     a.abort();
     expect(await first).toBe("AbortError");
+  });
+
+  it("leaves no abort listener behind on a signal that many takes share", async () => {
+    const l = new RateLimiter(0);
+    const ctl = new AbortController();
+    for (let i = 0; i < 50; i++) await l.take(1, ctl.signal);
+    expect(getEventListeners(ctl.signal, "abort")).toHaveLength(0);
   });
 
   it("can only be tightened, and stops a wait when aborted", async () => {
