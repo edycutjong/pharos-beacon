@@ -8,35 +8,35 @@
     },
     "command": "bin/pharos-docs.mjs how do I get testnet tokens from the faucet? --proof",
     "git": {
-      "commit": "1046ffbf3fc1",
+      "commit": "e32cf0570023",
       "dirty": false
     },
-    "createdAt": "2026-10-18T01:34:46.079Z"
+    "createdAt": "2026-10-18T13:56:00.539Z"
   },
   "result": {
     "question": "how do I get testnet tokens from the faucet?",
     "found": true,
-    "answer": "The docs don’t specify the faucet URL or claim steps. They do say to get testnet PHRS from the Pharos faucet or directly from the team.\n\nBefore claiming, add **Pharos Atlantic Testnet** to your wallet:\n\n* RPC: `https://atlantic.dplabs-internal.com`\n* Chain ID: `688689`\n* Token symbol: `PHRS`\n\nSee [Atlantic Testnet](/getting-started/network/atlantic-testnet).",
+    "answer": "Add the **Pharos Atlantic Testnet** to your wallet, then request testnet PHRS from the Pharos faucet using your wallet address. The network uses RPC `https://atlantic.dplabs-internal.com`, chain ID `688689`, and token symbol `PHRS`.\n\nThe docs don’t provide the faucet URL or claim steps. See [Atlantic Testnet](/getting-started/network/atlantic-testnet) and [Piggy Bank Tutorial](/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide).",
     "sources": [
-      {
-        "title": "Token Registry",
-        "url": "https://docs.pharos.xyz/getting-started/token-registry"
-      },
-      {
-        "title": "Write Your First Token",
-        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
-      },
       {
         "title": "Atlantic Testnet",
         "url": "https://docs.pharos.xyz/getting-started/network/atlantic-testnet"
       },
       {
-        "title": "Write Your First Token",
-        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
+        "title": "Piggy Bank Tutorial",
+        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide"
       },
       {
-        "title": "Write Your First NFT",
-        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-nft"
+        "title": "Token Registry",
+        "url": "https://docs.pharos.xyz/getting-started/token-registry"
+      },
+      {
+        "title": "Write Your First Token (foundry)",
+        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
+      },
+      {
+        "title": "Write Your First Token (hardhat)",
+        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
       },
       {
         "title": "Rust",
@@ -59,24 +59,8 @@
         "url": "https://docs.pharos.xyz/getting-started/get-pros-gas"
       },
       {
-        "title": "Node Management",
-        "url": "https://docs.pharos.xyz/node-and-validator-guide/node-management"
-      },
-      {
-        "title": "Canonical Contracts",
-        "url": "https://docs.pharos.xyz/getting-started/canonical-contracts"
-      },
-      {
-        "title": "Pharos Network Snapshots",
-        "url": "https://docs.pharos.xyz/node-and-validator-guide/pharos-network-snapshots"
-      },
-      {
-        "title": "Circle CCTP",
-        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/circle-cctp"
-      },
-      {
-        "title": "Piggy Bank Tutorial",
-        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide"
+        "title": "x402 Atlantic Testnet",
+        "url": "https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet"
       },
       {
         "title": "Safe MultiSig",

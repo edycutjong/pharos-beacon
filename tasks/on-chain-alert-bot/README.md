@@ -3,7 +3,8 @@
 **Task:** [On-Chain Alert Bot](https://pharos-agent-arena.vercel.app/tasks/on-chain-alert-bot) (Trading / Monitoring · Easy · 50 pts):
 watches for a price threshold, large transfer, or contract call and notifies.
 **Run:** `npm run on-chain-alert-bot -- --rules tasks/on-chain-alert-bot/rules.atlantic.json` (Discord webhook from `DISCORD_WEBHOOK_URL` or `~/.config/discord/webhook-alerts`; `--notify console` prints instead)
-**Try it without a key or a webhook (mainnet USDC ≥ 100, replays the last 300 blocks):** `npm run on-chain-alert-bot -- --rules tasks/on-chain-alert-bot/rules.pharos.json --notify console --from-block head-300 --max-polls 1`
+**Try it without a key or a webhook (mainnet USDC ≥ 100, replays the last 300 blocks):** `npm run on-chain-alert-bot -- --rules tasks/on-chain-alert-bot/rules.pharos.json --notify console --from-block head-300 --max-polls 1 --state "$(mktemp -u)" --sent "$(mktemp -u)"`
+(The two `mktemp` paths give each try a fresh cursor and sent-set; without them the files in the temp dir are reused and a second run alerts only on what is new, which is the no-repeat behaviour of requirement 4.)
 **Uses:** Chain MCP ✅ (`get_chain_info`, `get_block_number`, `get_logs`, `eth_call`) · Discord incoming webhook · Docs MCP: not used
 
 ## Conditions (a JSON rules file)
@@ -37,6 +38,16 @@ a wrap ([`0x9490…f046`](https://atlantic.pharosscan.xyz/tx/0x9490dbf1e6f8e1e15
 a 0.01 WPHRS transfer ([`0x9ce6…996b`](https://atlantic.pharosscan.xyz/tx/0x9ce6f668093284a0fee10cc9ca5980fe1719416e7e660e2fbc595c2eedca996b), fires the large-transfer rule)
 and a 0.0001 WPHRS transfer ([`0xaf94…ae93`](https://atlantic.pharosscan.xyz/tx/0xaf94b342a2f0ef6ef94b70949a541148a37781058df77159980f94bb61adae93), below 0.005: no alert, as configured).
 Proof: [`proof/live-run.json`](proof/live-run.json) (`dirty: false`), output [`proof/live-run.log`](proof/live-run.log), the three transactions in [`proof/emit-events.log`](proof/emit-events.log).
+
+Discord's own clock lines up with the chain's, which is what lets someone who cannot open the channel check the delivery from outside:
+
+| Alert | Block (Atlantic) | Block time (UTC) | Message created by Discord (UTC) | Delay |
+|---|---|---|---|---|
+| Deposit rule | 31555669 | 00:39:26 | 00:39:29.272 (id `1561176862451834920`) | about 3 s |
+| Large-transfer rule | 31555672 | 00:39:29 | 00:39:32.715 (id `1561176876892954723`) | about 3 s |
+
+The Discord times are the `timestamp` fields of the messages as fetched back from Discord ([`proof/discord-fetchback.json`](proof/discord-fetchback.json)); the block times are the blocks' own timestamps (`eth_getBlockByNumber`).
+The message ids are Discord snowflakes, which encode the same creation time.
 The Atlantic runs need the local Atlantic Chain MCP (`npm run setup:mcp` once); the mainnet command above does not.
 
 ```text
@@ -77,5 +88,5 @@ and the webhook never appearing in an error, one alert per event across restarts
 
 - The webhook URL is a credential: read at run time, validated, never printed, never in a proof or an error message.
 - Delivery is at-least-once in one narrow case: a crash between Discord accepting a message and the sent-set being written could repeat that one alert after a restart.
-- The alert channel is a private Discord server; the proof carries the message ids and text, not a screenshot.
+- The alert channel is a private Discord server, so a reviewer cannot open it. The proof is the message ids, the text and Discord's own creation times fetched back after delivery (above), not a screenshot.
 - Polling, not push: an alert arrives one poll interval after its block.
