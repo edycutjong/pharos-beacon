@@ -57,15 +57,17 @@ Nothing here is a real attacker: it shows that the signals fire on the pattern. 
 `gate --to 0x… --amount 0.0001` checks the recipient first. At HIGH (or MEDIUM with `--block-on medium`) it refuses, writes the refusal to the Gatekeeper's
 hash-chained audit log as rule `wallet_risk`, and **never asks the policy or sends**. Otherwise the request goes to the
 [Policy Gatekeeper](../policy-gatekeeper/README.md) with [`gate-policy.json`](gate-policy.json) (0.001 PHRS per transaction, 0.003 per hour), which allows or denies it as usual.
-Live: the staged risky wallet was refused ([`proof/gate-denied.json`](proof/gate-denied.json), no transaction; and again with `--execute`, so a send was requested and refused: [`proof/gate-denied-execute.json`](proof/gate-denied-execute.json), audit #4), then the clean Atlantic wallet `0x8D34…D91B`
+Live: the staged risky wallet was refused ([`proof/gate-denied.json`](proof/gate-denied.json), no transaction; and again with `--execute`, so a send was requested and refused: [`proof/gate-denied-execute.json`](proof/gate-denied-execute.json), audit #5; #4 is the same command run before the "not remembered" line was added), then the clean Atlantic wallet `0x8D34…D91B`
 (128 days old, LOW) was paid 0.0001 PHRS from our main test wallet ([`proof/gate-allowed.json`](proof/gate-allowed.json), tx
 [`0x45cc6f34…9f51`](https://atlantic.pharosscan.xyz/tx/0x45cc6f3496866707c8d59599cc7ff45fcb6b2f311a14551c505fd8ec4d049f51), status 1). The audit log is committed:
-[`audit/gate-audit.jsonl`](audit/gate-audit.jsonl) (4 entries, chain intact).
+[`audit/gate-audit.jsonl`](audit/gate-audit.jsonl) (5 entries, chain intact).
+**A refusal is not remembered.** The verdict is computed over the last `--lookback` blocks only. Our staged wallet's token activity (blocks up to 31566858) leaves the 30,000-block Atlantic window about 18 hours after it was staged; after that a live `gate --to 0xD693…` scores the same address on age alone (MEDIUM, then LOW once it is 7 days old) and passes it to the Policy Gatekeeper. [`proof/risky-wallet-aged-out.json`](proof/risky-wallet-aged-out.json) ([log](proof/risky-wallet-aged-out.log)) shows it: the same wallet at block 31578000 with `--lookback 5000` is `RISK: MEDIUM — 1 red flag`. The gate prints this after every refusal. A refusal that sticks (refuse any address the audit log has already refused, with an explicit `--clear`) would be a policy change; it is not built.
+[`proof/gate-denied.json`](proof/gate-denied.json) (audit #1) embeds the report as the first version of the code scored it (approvals MEDIUM); the verdict was HIGH then and now through the flagged-list signal, and the current report is in `gate-denied-execute.json` and `risky-wallet.json`.
 
 ## Reproduce a report later
 
 A check reads the chain as of its head, and the token history only reaches back `--lookback` blocks, so the staged wallet's verdict would drift as the
-chain moves on. Pin it: `npm run wallet-risk-checker -- check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --block 31566858` prints the
+chain moves on (a `gate` run has no `--block`, so it cannot be pinned and always scores the live window). Pin it: `npm run wallet-risk-checker -- check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --block 31566858` prints the
 same six signals as [`proof/risky-wallet.json`](proof/risky-wallet.json) (every signal sentence of the proof appears in the saved re-run
 [`proof/reproduce-risky-wallet.txt`](proof/reproduce-risky-wallet.txt)), and `-- check 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548019` does the same for the
 clean wallet ([`proof/reproduce-clean-wallet.txt`](proof/reproduce-clean-wallet.txt)).
@@ -120,8 +122,9 @@ Gate, refused with a send requested ([`proof/gate-denied-execute.json`](proof/ga
 ```text
 $ npm run wallet-risk-checker -- gate --to 0xD6936bEcCA1A13c6A426309a694560292e9b579E --amount 0.0001 --execute --proof gate-denied-execute
 […]
-GATE: DENY by wallet_risk (audit #4). 0.0001 PHRS → 0xD6936bEcCA1A13c6A426309a694560292e9b579E was NOT sent, and the policy was not asked.
-audit log: 4 entries, hash chain intact (gate-audit.jsonl)
+GATE: DENY by wallet_risk (audit #5). 0.0001 PHRS → 0xD6936bEcCA1A13c6A426309a694560292e9b579E was NOT sent, and the policy was not asked.
+This refusal is not remembered: the verdict covers only the lookback window above, so the same address can score lower once that activity is older than the window.
+audit log: 5 entries, hash chain intact (gate-audit.jsonl)
 ```
 
 Gate, allowed and sent ([`proof/gate-allowed.json`](proof/gate-allowed.json)):
@@ -138,7 +141,7 @@ GATE: recipient risk is LOW, below HIGH: passing the request to the Policy Gatek
   tx executed: https://atlantic.pharosscan.xyz/tx/0x45cc6f3496866707c8d59599cc7ff45fcb6b2f311a14551c505fd8ec4d049f51
 audit log: 3 entries, hash chain intact (gate-audit.jsonl)
 ```
-(The allowed run printed 3 entries when it ran; the refusal above was recorded afterwards as #4.)
+(The allowed run printed 3 entries when it ran; the refusals above were recorded afterwards as #4 and #5.)
 
 ## Limits (honest)
 
@@ -147,4 +150,4 @@ audit log: 3 entries, hash chain intact (gate-audit.jsonl)
 - Age of a wallet is the time of its first *sent* transaction; a wallet that only ever received funds has no measurable age (signal 3 flags it instead).
 - A contract's source cannot be checked through the Chain MCP, so "verified code" is not one of the six signals; the report says to read the source.
 - "Unknown spender" means "not in `trustedSpenders` or the token registry", not "malicious".
-- 20 tests in `test/risk.test.ts` (each signal, the verdict rule, pinning with `--block`, config validation, the CLI and the gate refusing / passing).
+- 21 tests in `test/risk.test.ts` (each signal, the verdict rule, pinning with `--block`, config validation, the CLI and the gate refusing / passing).

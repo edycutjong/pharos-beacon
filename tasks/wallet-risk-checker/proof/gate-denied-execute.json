@@ -10,10 +10,10 @@
     },
     "command": "tasks/wallet-risk-checker/index.ts gate --to 0xD6936bEcCA1A13c6A426309a694560292e9b579E --amount 0.0001 --execute --proof gate-denied-execute",
     "git": {
-      "commit": "a5791ff7ad07",
+      "commit": "8fb9de4b2c42",
       "dirty": false
     },
-    "createdAt": "2026-10-18T13:24:57.411Z"
+    "createdAt": "2026-10-18T15:20:17.653Z"
   },
   "gate": {
     "blockOn": "high",
@@ -28,9 +28,9 @@
   "report": {
     "address": "0xD6936bEcCA1A13c6A426309a694560292e9b579E",
     "network": "atlantic",
-    "block": "31576605",
+    "block": "31579787",
     "lookbackBlocks": "30000",
-    "lookbackSeconds": 66455,
+    "lookbackSeconds": 66073,
     "verdict": "high",
     "signals": [
       {
@@ -43,7 +43,7 @@
         "id": "age",
         "level": "medium",
         "title": "wallet age (first block with a sent transaction)",
-        "detail": "It first sent a transaction in block 31566816, 5.8 hours before block 31576605. That is under 7 days: a new address has no track record."
+        "detail": "It first sent a transaction in block 31566816, 7.7 hours before block 31579787. That is under 7 days: a new address has no track record."
       },
       {
         "id": "funding",
@@ -67,11 +67,11 @@
         "id": "counterparties",
         "level": "info",
         "title": "token activity in the lookback range",
-        "detail": "1 token transfer with 1 counterpart in blocks 31546605–31576605 (about 18.5 hours)."
+        "detail": "1 token transfer with 1 counterpart in blocks 31549787–31579787 (about 18.4 hours)."
       }
     ],
     "reasons": [
-      "It first sent a transaction in block 31566816, 5.8 hours before block 31576605. That is under 7 days: a new address has no track record.",
+      "It first sent a transaction in block 31566816, 7.7 hours before block 31579787. That is under 7 days: a new address has no track record.",
       "It moved tokens with 0xf1a9…0001, which is on our flagged list (demo flagged address; source: our own list: we made this address up for the risky example and put it here ourselves). Transaction: 0x43c4a2e8aef5d32272cf8911551da1ac05fcb15a0cee84be72afa74df4f3b4da.",
       "It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later. The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours."
     ]
