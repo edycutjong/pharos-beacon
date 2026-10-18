@@ -185,6 +185,8 @@ export interface Report {
   afterRaw: bigint;
   timestamp?: string;
   why: string[];
+  /** Short labels for the compact view: exit, new position, pass-through, mint, burn, to/from a contract. */
+  tags: string[];
 }
 
 export async function explain(call: Call, m: Move, wl: Watchlist, namer: Namer, kindOf: (a: Hex) => Promise<Kind>, rank: { largest: bigint }): Promise<Report> {
@@ -200,18 +202,37 @@ export async function explain(call: Call, m: Move, wl: Watchlist, namer: Namer, 
   const timestamp = block?.timestamp ? new Date(Number(BigInt(block.timestamp)) * 1000).toISOString() : undefined;
   const multiple = Number((m.amountRaw * 100n) / m.token.thresholdRaw) / 100;
   const why: string[] = [`${multiple}× the ${group(m.token.threshold)} ${m.token.symbol} threshold`];
+  const tags: string[] = [];
   const sym = m.token.symbol;
-  if (beforeRaw === 0n && afterRaw === 0n) why.push(`pass-through: the address held 0 ${sym} before and after block ${m.block}, so it received and passed this on within the block`);
-  else if (direction === "OUT" && afterRaw === 0n) why.push(`EXIT: it left this address with 0 ${sym}`);
-  else if (direction === "IN" && beforeRaw === 0n) why.push(`NEW POSITION: the address held 0 ${sym} before this`);
-  else if (direction === "OUT" && beforeRaw > 0n) why.push(`${pct(m.amountRaw, beforeRaw)} of its ${sym} balance before the move`);
-  else if (direction === "IN" && beforeRaw > 0n) why.push(`it adds ${pct(m.amountRaw, beforeRaw)} to its ${sym} balance`);
+  if (beforeRaw === 0n && afterRaw === 0n) {
+    why.push(`pass-through: the address held 0 ${sym} before and after block ${m.block}, so it received and passed this on within the block`);
+    tags.push("pass-through");
+  } else if (direction === "OUT" && afterRaw === 0n) {
+    why.push(`EXIT: it left this address with 0 ${sym}`);
+    tags.push("EXIT");
+  } else if (direction === "IN" && beforeRaw === 0n) {
+    why.push(`NEW POSITION: the address held 0 ${sym} before this`);
+    tags.push("NEW POSITION");
+  }
+  else if (direction === "OUT" && beforeRaw > 0n) {
+    why.push(`${pct(m.amountRaw, beforeRaw)} of its ${sym} balance before the move`);
+    tags.push(`${pct(m.amountRaw, beforeRaw)} of balance`);
+  } else if (direction === "IN" && beforeRaw > 0n) {
+    why.push(`it adds ${pct(m.amountRaw, beforeRaw)} to its ${sym} balance`);
+    tags.push(`+${pct(m.amountRaw, beforeRaw)} balance`);
+  }
   if (m.amountRaw === rank.largest) why.push(`the largest ${m.token.symbol} move touching the watchlist in this range`);
   const other = direction === "OUT" ? m.to : direction === "IN" ? m.from : undefined;
   if (other && other !== ZERO && !wl.labels[other.toLowerCase()] && !watched.has(other) && (await kindOf(other)) === "contract")
-    why.push(`${direction === "OUT" ? "sent to" : "received from"} a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)`);
-  if (other === ZERO) why.push(m.from === ZERO ? "a mint into the watched address" : "a burn from the watched address");
-  return { move: m, subject, direction, fromName: f.text, toName: t.text, fromKnown: f.known, toKnown: t.known, multiple, beforeRaw, afterRaw, ...(timestamp ? { timestamp } : {}), why };
+    {
+      why.push(`${direction === "OUT" ? "sent to" : "received from"} a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)`);
+      tags.push(direction === "OUT" ? "to a contract" : "from a contract");
+    }
+  if (other === ZERO) {
+    why.push(m.from === ZERO ? "a mint into the watched address" : "a burn from the watched address");
+    tags.push(m.from === ZERO ? "mint" : "burn");
+  }
+  return { move: m, subject, direction, fromName: f.text, toName: t.text, fromKnown: f.known, toKnown: t.known, multiple, beforeRaw, afterRaw, ...(timestamp ? { timestamp } : {}), why, tags };
 }
 
 export function reportText(r: Report, explorer: (tx: string) => string, index?: number): string {
@@ -223,6 +244,16 @@ export function reportText(r: Report, explorer: (tx: string) => string, index?: 
     `    why it matters: ${r.why.join("; ")}`,
     `    balance of ${short(r.subject)}: ${fmtAmount(r.beforeRaw, m.token.decimals, m.token.symbol)} → ${fmtAmount(r.afterRaw, m.token.decimals, m.token.symbol)}`,
     `    ${explorer(m.tx)}`,
+  ].join("\n");
+}
+
+/** A view that fits a narrow terminal (about 55 columns): three short lines per report. */
+export function compactText(r: Report, index: number): string {
+  const m = r.move;
+  return [
+    `[${index}] ${r.direction} ${fmtAmount(m.amountRaw, m.token.decimals, m.token.symbol)} · blk ${m.block}`,
+    `  ${r.fromName === "null address (mint or burn)" ? "null address" : r.fromName} → ${r.toName === "null address (mint or burn)" ? "null address" : r.toName}`,
+    `  ${r.multiple}× threshold${r.tags.length ? ` · ${r.tags.slice(0, 2).join(" · ")}` : ""}`,
   ].join("\n");
 }
 
@@ -275,6 +306,14 @@ export function summaryTable(rows: Row[]): string {
   const w = head.map((h, i) => Math.max(h.length, ...body.map((b) => b[i]!.length)));
   const line = (cells: string[]) => cells.map((c, i) => (i < 2 ? c.padEnd(w[i]!) : c.padStart(w[i]!))).join("  ");
   return [line(head), line(w.map((n) => "-".repeat(n))), ...body.map(line)].join("\n");
+}
+
+/** Only the rows that saw a significant move, one line each (about 55 columns). */
+export function compactSummary(rows: Row[]): string {
+  const live = rows.filter((r) => r.significant > 0);
+  const f = (raw: bigint, d: number) => fmtAmount(raw, d, "").replace(/(\.\d{2})\d*$/, "$1");
+  const lines = live.map((r) => `${r.label} ${r.token}: ${r.significant} sig, in ${f(r.inRaw, r.decimals)}, out ${f(r.outRaw, r.decimals)}`);
+  return [...lines, `${rows.length - live.length} quiet rows (no significant move) hidden`].join("\n");
 }
 
 /** A short Discord message for one report (Discord caps a message at 2,000 characters). */

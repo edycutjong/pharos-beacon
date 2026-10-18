@@ -185,6 +185,16 @@ describe("CLI", () => {
     const b = await run(["--watchlist", list, "--state", state], c);
     expect(b.out).toContain("nothing to scan");
   });
+  it("--compact prints three short lines per report and only the rows that moved", async () => {
+    const c = chain([log(1500, 0, 1, 4000n * U, OUTSIDER, WATCH[0]!), log(1600, 0, 2, 9000n * U, WATCH[1]!, POOL)]);
+    const a = await run(["--watchlist", list, "--from-block", "1000", "--compact"], c);
+    expect(a.out).toContain("[1] IN 4,000 USDC · blk 1500");
+    expect(a.out).toContain("  unlabelled wallet → w1\n  4× threshold");
+    expect(a.out).toContain("w2 USDC: 1 sig, in 0, out 9,000");
+    expect(a.out).toContain("3 quiet rows (no significant move) hidden");
+    expect(a.out).not.toContain("watching 0x");
+    expect(a.out.split("\n").filter((l) => l.length > 55 && !l.startsWith("blocks") && !l.startsWith("whale watch"))).toEqual([]);
+  });
   it("sends significant moves to the notifier once, largest first, capped, and not again on a rerun", async () => {
     const c = chain([log(1500, 0, 1, 4000n * U, OUTSIDER, WATCH[0]!), log(1600, 0, 2, 9000n * U, OUTSIDER, WATCH[1]!), log(1700, 0, 3, 2000n * U, OUTSIDER, WATCH[2]!)]);
     const sent: string[] = [];
