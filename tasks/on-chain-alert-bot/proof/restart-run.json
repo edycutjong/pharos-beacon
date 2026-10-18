@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "task": "on-chain-alert-bot",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/on-chain-alert-bot/index.ts --rules tasks/on-chain-alert-bot/rules.atlantic.json --state /tmp/p91/bot.cursor.json --sent /tmp/p91/bot.sent.json --log /tmp/p91/bot-run2.log --poll-ms 2500 --max-polls 3 --proof restart-run",
+    "git": {
+      "commit": "241ad1506067",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T00:41:28.476Z"
+  },
+  "network": "atlantic",
+  "rules": [
+    {
+      "id": "big-wphrs-transfer",
+      "kind": "large-transfer",
+      "address": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+      "event": "Transfer(address,address,uint256)",
+      "min": "0.005"
+    },
+    {
+      "id": "wphrs-deposit",
+      "kind": "contract-event",
+      "address": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+      "event": "Deposit(address,uint256)"
+    }
+  ],
+  "notifier": "discord",
+  "startHead": "31555738",
+  "polls": 3,
+  "alertsSent": 0,
+  "alreadySent": 0,
+  "nextBlock": "31555744",
+  "delivered": []
+}
