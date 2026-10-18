@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "task": "trend-watcher",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/trend-watcher/index.ts observe --metric balance --network atlantic --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --state tasks/trend-watcher/state/big-spike.json --proof big-spike-6",
+    "git": {
+      "commit": "7a20b79c6549",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T13:29:50.918Z"
+  },
+  "metric": {
+    "kind": "balance",
+    "network": "atlantic",
+    "address": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+  },
+  "rule": {
+    "direction": "fall",
+    "steps": 3
+  },
+  "observation": {
+    "block": "31576778",
+    "value": "15027032205000000000",
+    "at": "2026-10-18T13:29:50.978Z"
+  },
+  "added": "added",
+  "evaluation": {
+    "streak": 3,
+    "triggers": [
+      5
+    ],
+    "state": "triggered"
+  },
+  "acted": [
+    {
+      "index": 6,
+      "block": "31576778",
+      "notifier": "console"
+    }
+  ],
+  "history": [
+    {
+      "block": "31576747",
+      "value": "15030116205000000000",
+      "at": "2026-10-18T13:29:16.861Z"
+    },
+    {
+      "block": "31576751",
+      "value": "15020095205000000000",
+      "at": "2026-10-18T13:29:22.564Z"
+    },
+    {
+      "block": "31576757",
+      "value": "15030095205000000000",
+      "at": "2026-10-18T13:29:28.125Z"
+    },
+    {
+      "block": "31576767",
+      "value": "15029074205000000000",
+      "at": "2026-10-18T13:29:40.080Z"
+    },
+    {
+      "block": "31576772",
+      "value": "15028053205000000000",
+      "at": "2026-10-18T13:29:45.284Z"
+    },
+    {
+      "block": "31576778",
+      "value": "15027032205000000000",
+      "at": "2026-10-18T13:29:50.978Z"
+    }
+  ]
+}
