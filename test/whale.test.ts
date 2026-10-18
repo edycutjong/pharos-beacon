@@ -130,7 +130,7 @@ describe("explain", () => {
     expect(text).toContain("OUT 3,000 USDC · block 10");
     expect(text).toContain("3× the 1,000 USDC threshold");
     expect(text).toContain("33.3% of its USDC balance");
-    expect(text).toContain("the largest USDC move in this window");
+    expect(text).toContain("the largest USDC move touching the watchlist in this range");
     expect(text).toContain("9,000 USDC → 6,000 USDC");
     expect(text).toContain("https://x/0x");
   });

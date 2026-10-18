@@ -206,7 +206,7 @@ export async function explain(call: Call, m: Move, wl: Watchlist, namer: Namer, 
   else if (direction === "IN" && beforeRaw === 0n) why.push(`NEW POSITION: the address held 0 ${sym} before this`);
   else if (direction === "OUT" && beforeRaw > 0n) why.push(`${pct(m.amountRaw, beforeRaw)} of its ${sym} balance before the move`);
   else if (direction === "IN" && beforeRaw > 0n) why.push(`it adds ${pct(m.amountRaw, beforeRaw)} to its ${sym} balance`);
-  if (m.amountRaw === rank.largest) why.push(`the largest ${m.token.symbol} move in this window`);
+  if (m.amountRaw === rank.largest) why.push(`the largest ${m.token.symbol} move touching the watchlist in this range`);
   const other = direction === "OUT" ? m.to : direction === "IN" ? m.from : undefined;
   if (other && other !== ZERO && !wl.labels[other.toLowerCase()] && !watched.has(other) && (await kindOf(other)) === "contract")
     why.push(`${direction === "OUT" ? "sent to" : "received from"} a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)`);
