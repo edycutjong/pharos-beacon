@@ -124,6 +124,16 @@ describe("checkAddress", () => {
     expect(r.signals[0]!.detail).toContain("It is a contract");
     expect(r.signals.find((s) => s.id === "age")!.detail).toContain("code first appears in block 10000");
   });
+  it("--block pins the check to an earlier block: the same report comes back later, and a future block is refused", async () => {
+    const w = { firstActive: 1_000, balance: 1n, logs: [transfer(99_990, 7, WALLET, FLAGGED)], head: 105_000 };
+    const pinned = await checkAddress(chain(w), WALLET, { ...opts, lookbackBlocks: 5_000n, block: 100_000n });
+    const later = await checkAddress(chain({ ...w, head: 105_000 }), WALLET, { ...opts, lookbackBlocks: 5_000n, block: 100_000n });
+    expect(pinned.block).toBe(100_000n);
+    expect(JSON.stringify(pinned.signals)).toBe(JSON.stringify(later.signals));
+    expect(pinned.verdict).toBe("high");
+    expect((await checkAddress(chain(w), WALLET, { ...opts, lookbackBlocks: 5_000n })).verdict).toBe("low"); // at the head the transfer is older than the 5,000-block lookback
+    await expect(checkAddress(chain(w), WALLET, { ...opts, block: 200_000n })).rejects.toThrow(/past the chain head/);
+  });
   it("only reads the pinned lookback range", async () => {
     const c = chain({ firstActive: 1_000, balance: 1n, logs: [transfer(10, 1, WALLET, FLAGGED)] });
     const r = await checkAddress(c, WALLET, { ...opts, lookbackBlocks: 1_000n });

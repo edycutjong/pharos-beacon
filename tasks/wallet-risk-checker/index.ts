@@ -1,7 +1,7 @@
 // Wallet Risk Checker (Medium · 100 pts): reads a wallet's or contract's on-chain history through the Chain MCP, checks six signals
 // and answers low / medium / high with a plain-language reason for each red flag. `gate` puts it in front of a Policy Gatekeeper
 // send: a high-risk recipient is refused before the policy is even asked.
-//   npm run wallet-risk-checker -- check 0x… [--network pharos|atlantic] [--config f] [--lookback 30000] [--proof label]
+//   npm run wallet-risk-checker -- check 0x… [--network pharos|atlantic] [--block N] [--config f] [--lookback 30000] [--proof label]
 //   npm run wallet-risk-checker -- gate --to 0x… --amount 0.0001 [--policy f] [--config f] [--block-on high|medium] [--execute] [--proof label]
 import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -34,9 +34,9 @@ export async function main(
 ): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- check <address> [--network pharos|atlantic] [--lookback N] [--config f] [--proof label]  |  gate --to <address> --amount <PHRS> [--policy f] [--block-on high|medium] [--execute] [--proof label]`,
+      usage: `npm run ${TASK} -- check <address> [--network pharos|atlantic] [--lookback N] [--block N] [--config f] [--proof label]  |  gate --to <address> --amount <PHRS> [--policy f] [--block-on high|medium] [--execute] [--proof label]`,
       options: {
-        network: { type: "string", default: "pharos" }, config: { type: "string", default: join(HERE, "risk-config.json") }, lookback: { type: "string", default: "30000" },
+        network: { type: "string", default: "pharos" }, config: { type: "string", default: join(HERE, "risk-config.json") }, lookback: { type: "string", default: "30000" }, block: { type: "string" },
         to: { type: "string" }, amount: { type: "string" }, policy: { type: "string", default: join(HERE, "gate-policy.json") }, "block-on": { type: "string", default: "high" },
         execute: { type: "boolean", default: false }, proof: { type: "string" }, state: { type: "string" }, audit: { type: "string" },
       },
@@ -56,6 +56,8 @@ export async function main(
     throw new UsageError(`${values.config}: ${(e as Error).message.split("\n")[0]}`);
   }
   const lookbackBlocks = BigInt(values.lookback!);
+  if (values.block !== undefined && !/^\d+$/.test(values.block)) throw new UsageError("--block must be a block number");
+  const block = values.block === undefined ? undefined : BigInt(values.block);
 
   if (cmd === "check") {
     const raw = positionals[1];
@@ -63,7 +65,7 @@ export async function main(
     const network = choice("--network", values.network, ["pharos", "atlantic"] as const);
     const mcp = await connect(network, false);
     onExit(() => mcp.close());
-    const report = await checkAddress(mcp.call, getAddress(raw), { network, config, lookbackBlocks });
+    const report = await checkAddress(mcp.call, getAddress(raw), { network, config, lookbackBlocks, ...(block !== undefined ? { block } : {}) });
     console.log(reportText(report));
     if (values.proof !== undefined) {
       console.log(`proof: ${writeProof(new URL(`proof/${values.proof}.json`, import.meta.url), { config: { flagged: config.flagged.length, trustedSpenders: config.trustedSpenders.length, youngDays: config.youngDays }, report: reportForProof(report) }, proofMeta(TASK, mcp))}`);

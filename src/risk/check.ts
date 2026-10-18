@@ -110,11 +110,15 @@ export interface CheckOptions {
   config: RiskConfig;
   /** Blocks of token history to read for the counterparty and approval signals (default 30,000). */
   lookbackBlocks?: bigint;
+  /** Check the address as of this block instead of the chain head (archive reads), so a report can be reproduced later. */
+  block?: bigint;
 }
 
 export async function checkAddress(call: Call, address: Hex, o: CheckOptions): Promise<RiskReport> {
   const target = getAddress(address);
-  const head = num(((await call("get_block_number")) as { blockNumber: string }).blockNumber);
+  const chainHead = num(((await call("get_block_number")) as { blockNumber: string }).blockNumber);
+  if (o.block !== undefined && o.block > chainHead) throw new Error(`block ${o.block} is past the chain head (${chainHead})`);
+  const head = o.block ?? chainHead;
   const lookback = o.lookbackBlocks ?? 30_000n;
   const signals: Signal[] = [];
   const flagged = new Map(o.config.flagged.map((f) => [f.address.toLowerCase(), f]));
