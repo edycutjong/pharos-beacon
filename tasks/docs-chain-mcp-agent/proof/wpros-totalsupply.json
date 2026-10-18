@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "task": "docs-chain-mcp-agent",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/docs-chain-mcp-agent/index.ts --contract 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0 --function totalSupply --proof",
+    "git": {
+      "commit": "7e6b5d2713dd",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T04:05:02.356Z"
+  },
+  "head": "20534880",
+  "step": {
+    "target": {
+      "contract": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
+      "label": "WPROS (Wrapped PROS)",
+      "fn": "totalSupply"
+    },
+    "docs": {
+      "question": "What does the totalSupply() function of a token like WPROS (Wrapped PROS) do on Pharos, and how should its result be read?",
+      "documented": false,
+      "excerpt": [],
+      "sources": [
+        {
+          "title": "Get PROS Gas",
+          "url": "https://docs.pharos.xyz/getting-started/get-pros-gas"
+        },
+        {
+          "title": "Pacific Mainnet",
+          "url": "https://docs.pharos.xyz/getting-started/network/pacific-mainnet"
+        },
+        {
+          "title": "Token Registry",
+          "url": "https://docs.pharos.xyz/getting-started/token-registry"
+        },
+        {
+          "title": "Pharos MCP",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/mcp"
+        },
+        {
+          "title": "About Pharos",
+          "url": "https://docs.pharos.xyz/introduction/readme"
+        },
+        {
+          "title": "Pharos Skill Engine",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide"
+        },
+        {
+          "title": "Why Pharos",
+          "url": "https://docs.pharos.xyz/introduction/why-pharos"
+        },
+        {
+          "title": "Node Management",
+          "url": "https://docs.pharos.xyz/node-and-validator-guide/node-management"
+        },
+        {
+          "title": "Pharos Node Monitoring",
+          "url": "https://docs.pharos.xyz/pharos-node-monitoring"
+        },
+        {
+          "title": "Circle CCTP",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/circle-cctp"
+        },
+        {
+          "title": "Write Your First Token",
+          "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
+        },
+        {
+          "title": "Rust",
+          "url": "https://docs.pharos.xyz/developer-guide/rust"
+        },
+        {
+          "title": "Write Your First Token",
+          "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
+        },
+        {
+          "title": "Gas Model",
+          "url": "https://docs.pharos.xyz/getting-started/gas-model"
+        },
+        {
+          "title": "Write Your First Uniswap Contract",
+          "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract"
+        },
+        {
+          "title": "Canonical Contracts",
+          "url": "https://docs.pharos.xyz/getting-started/canonical-contracts"
+        },
+        {
+          "title": "FAQs",
+          "url": "https://docs.pharos.xyz/getting-started/faqs"
+        },
+        {
+          "title": "Interoperability",
+          "url": "https://docs.pharos.xyz/developer-guide/interoperability"
+        }
+      ],
+      "listedInDocs": true,
+      "groundedIn": []
+    },
+    "chain": {
+      "block": "20534880",
+      "raw": "23265853327450767742350284"
+    },
+    "interpretation": "The docs do not describe totalSupply(), so there is no explanation to read this against and no unit is applied. Raw result: 23265853327450767742350284."
+  }
+}
