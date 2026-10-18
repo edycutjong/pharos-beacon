@@ -87,6 +87,8 @@ export async function main(
   const auditFile = values.audit ?? (values.execute || values.proof ? join(HERE, "audit/gate-audit.jsonl") : join(scratch, "audit.jsonl"));
   const mcp = await connect("atlantic", values.execute);
   onExit(() => mcp.close());
+  // Provenance is captured before the run appends to the audit log, so `dirty` is about code, not about this run's own output.
+  const meta = values.proof !== undefined ? proofMeta(TASK, mcp) : undefined;
   const report = await checkAddress(mcp.call, to, { network: "atlantic", config, lookbackBlocks });
   console.log(reportText(report));
   const refuse = report.verdict === "high" || (blockOn === "medium" && report.verdict === "medium");
@@ -116,7 +118,7 @@ export async function main(
   console.log(`audit log: ${verifyAudit(auditFile)} entries, hash chain intact (${basename(auditFile)})`);
   if (values.proof !== undefined) {
     const name = `${values.proof}.json`;
-    console.log(`proof: ${writeProof(new URL(`proof/${name}`, import.meta.url), { gate: { blockOn, denied, outcome: denied ? "denied by wallet_risk, nothing sent" : outcomes[0]?.status }, request, report: reportForProof(report), outcomes }, proofMeta(TASK, mcp))}`);
+    console.log(`proof: ${writeProof(new URL(`proof/${name}`, import.meta.url), { gate: { blockOn, denied, outcome: denied ? "denied by wallet_risk, nothing sent" : outcomes[0]?.status }, request, report: reportForProof(report), outcomes }, meta!)}`);
   }
   if (outcomes.some((o) => o.status === "error" || o.status === "reverted")) return 1;
   return denied ? 3 : 0;

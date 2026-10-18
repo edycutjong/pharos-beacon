@@ -214,7 +214,7 @@ export async function checkAddress(call: Call, address: Hex, o: CheckOptions): P
       detail: `It moved tokens with ${short(h.address)}, which is on our flagged list (${f.reason}; source: ${f.source}). Transaction${h.txs.size === 1 ? "" : "s"}: ${[...h.txs].join(", ")}.${hits.length > 1 ? ` ${hits.length - 1} more flagged counterpart${hits.length === 2 ? "" : "s"} too.` : ""}`,
     });
   } else {
-    signals.push({ id: "flagged", level: "ok", title: "interaction with flagged addresses", detail: `None of its ${counterparts.size} token counterpart${counterparts.size === 1 ? "" : "s"} in ${window} is on our flagged list (${o.config.flagged.length} addresses). Native-coin transfers leave no log and are not covered.` });
+    signals.push({ id: "flagged", level: "ok", title: "interaction with flagged addresses", detail: `None of its ${counterparts.size} token counterpart${counterparts.size === 1 ? "" : "s"} in ${window} is on our flagged list (${o.config.flagged.length} address${o.config.flagged.length === 1 ? "" : "es"}). Native-coin transfers leave no log and are not covered.` });
   }
 
   // 5. approvals: the latest approval per (token, spender), non-zero, to a spender we do not recognise
