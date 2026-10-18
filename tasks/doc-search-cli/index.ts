@@ -11,6 +11,8 @@ const TASK = "doc-search-cli";
 export const EXIT_NOT_FOUND = 3;
 
 // askQuestion answers "I cannot find information about this in the docs." when the docs hold nothing relevant.
+// An answer that opens by saying the docs do not list/provide/document the thing ("The Pharos docs do **not** list a supported bridge lane").
+const LEADING_REFUSAL = /^[^.!?\n]*\b(?:do|does)(?: not|n't)\s+(?:list|provide|document|describe|include|support)\b/i;
 const NO_ANSWER = /\b(?:cannot|can't|could not|couldn't|unable to|did not|didn't|do not|don't)\s+(?:find|locate)\b|\bno (?:relevant |matching )?(?:information|results?|mention)\b|\bnot (?:covered|documented|mentioned)\b/i;
 
 export interface Result {
@@ -26,10 +28,25 @@ export interface Result {
 
 /** An answer is good only with at least one cited source and a reply that does not say it found nothing. */
 export function isGoodAnswer(answer: string, sources: unknown[]): boolean {
-  return sources.length > 0 && !NO_ANSWER.test(answer);
+  const plain = answer.replace(/[*_`]/g, "").replace(/[\u2018\u2019]/g, "'");
+  return sources.length > 0 && !NO_ANSWER.test(plain) && !LEADING_REFUSAL.test(plain);
 }
 
 const dedupe = <T extends { url: string }>(items: T[]): T[] => [...new Map(items.map((i) => [i.url, i])).values()];
+
+/** The pages the answer itself links come first (a reader follows those), then the rest in the docs' order; titles that
+ *  repeat get their docs section appended ("Write Your First Token (foundry)") so two pages never look like one listed twice. */
+export function arrange(answer: string, sources: Result["sources"]): Result["sources"] {
+  const linked = (u: string) => answer.includes(u) || answer.includes(`](${new URL(u).pathname})`);
+  const ordered = [...sources.filter((s) => linked(s.url)), ...sources.filter((s) => !linked(s.url))];
+  const count = new Map<string, number>();
+  for (const s of ordered) count.set(s.title, (count.get(s.title) ?? 0) + 1);
+  return ordered.map((s) => {
+    if ((count.get(s.title) ?? 0) < 2) return s;
+    const section = new URL(s.url).pathname.split("/").filter(Boolean).slice(-2, -1)[0];
+    return section ? { ...s, title: `${s.title} (${section})` } : s;
+  });
+}
 
 export async function search(client: DocsClient, question: string, goal?: string): Promise<Result> {
   let answer = "";
@@ -38,7 +55,7 @@ export async function search(client: DocsClient, question: string, goal?: string
   try {
     const a = await askDocs(client, question, goal);
     answer = a.answer;
-    sources = dedupe(a.sources);
+    sources = arrange(a.answer, dedupe(a.sources));
   } catch (e) {
     askError = e instanceof Error ? e.message : String(e);
   }

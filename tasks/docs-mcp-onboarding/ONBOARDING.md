@@ -30,7 +30,7 @@ Query (#2): `How do I set up a wallet and add the Atlantic testnet network?`
 
 Result: the answer gave the network name, RPC `https://atlantic.dplabs-internal.com`, chain ID `688689` and the explorer, enough to
 configure a wallet. A browser wallet needs a human, so adding the network to a wallet extension is logged as "needs a browser
-wallet login" (HUMAN-TODO). I used a key in a shell variable with Foundry instead (step 8). The missing currency symbol is **gap 5**.
+wallet login" (HUMAN-TODO). I used a key in a shell variable with Foundry instead (step 8). The currency symbol the network page lacks is **gap 5** (the docs do give it, on a tutorial page).
 
 ### 3. Faucet
 Query (#3): `Where is the faucet for Atlantic testnet PHRS and how do I claim tokens?`
@@ -119,7 +119,7 @@ login itself needs a browser wallet, so it is logged as "needs a browser wallet 
 | 2 | **Missing:** no faucet URL or claim steps (#3). #11 also says "Get testnet PHRS from the faucet" with no link. | `Where is the faucet for Atlantic testnet PHRS and how do I claim tokens?` | Every other step needs PHRS, so this is the real blocker for a newcomer. | On the Atlantic Testnet page: the faucet URL, the amount per claim, the cooldown, whether a login is needed, and the contact for "directly from the team". |
 | 3 | **Missing:** the SkillEngine install starts with "unzip `pharos-skill-engine-0.1.0.zip`" but no page says where to download it (#6). | `Where do I download the Pharos Skill Engine package pharos-skill-engine-0.1.0.zip?` | The install cannot be completed from the docs. | A download link or `git clone` URL (and the version/commit) at the top of the Skill Engine page, plus a checksum. |
 | 4 | **Wrong/inconsistent:** the Atlantic MCP config example sets `PHAROS_NATIVE_SYMBOL` to `PROS` (#7) while Atlantic's native token is `PHRS` (#9); the Pharos MCP page lists "Native token PROS" (#13) without saying it is mainnet-only. | `How do I point the Pharos MCP server at Atlantic testnet instead of mainnet?` | A copy-pasted config labels balances with the wrong symbol. | Use `PHRS` in the Atlantic example, and label the "Native token" row on the MCP page as "PROS (mainnet) / PHRS (Atlantic)". |
-| 5 | **Missing:** the add-network answer gives no currency symbol (#2), and wallets require one. | `How do I set up a wallet and add the Atlantic testnet network?` | A wallet's "Add network" form has a mandatory symbol field. | Add `Currency symbol: PHRS (18 decimals)` to the network table of the Atlantic Testnet page. |
+| 5 | **Hard to find:** the Atlantic Testnet network page, which answer #2 cites, has no currency symbol, and a wallet's "Add network" form requires one. The symbol (`Symbol: PHRS`) is only on the Piggy Bank Tutorial page, which a newcomer adding a network would not open (re-checked 2026-10-18 with `getPage` on the network page and `searchDocumentation` for the symbol). | `How do I set up a wallet and add the Atlantic testnet network?` | A wallet's "Add network" form has a mandatory symbol field. | Add `Currency symbol: PHRS (18 decimals)` to the network table of the Atlantic Testnet page. |
 
 Smaller friction: the testnet MCP answer used `/absolute/path/to/pharos-mcp/...` and only a second question (#8) revealed it is built from
 the GitHub repository, so the MCP page should link the repository and the `npm install && npm run build` steps next to the config.

@@ -8,22 +8,30 @@
     },
     "command": "bin/pharos-docs.mjs how do I deploy a contract? --proof",
     "git": {
-      "commit": "a355a3e1e01b",
+      "commit": "ef69a21a2b85",
       "dirty": false
     },
-    "createdAt": "2026-10-18T01:34:22.339Z"
+    "createdAt": "2026-10-18T13:55:39.783Z"
   },
   "result": {
     "question": "how do I deploy a contract?",
     "found": true,
-    "answer": "For Pharos, you can deploy with **Foundry**:\n\n1. Compile and test your contract:\n\n   ```sh\n   forge build\n   forge test\n   ```\n2. Create a Foundry script that loads your deployer key, starts broadcasting, and deploys the contract:\n\n   ```solidity\n   uint256 deployerPrivateKey = vm.envUint(\"PRIVATE_KEY\");\n   vm.startBroadcast(deployerPrivateKey);\n\n   Token token = new Token(1_000_000);\n\n   vm.stopBroadcast();\n   ```\n\n   Replace `Token` and its constructor arguments with your contract’s details.\n3. Set the key and deploy to your chosen network:\n\n   ```sh\n   export PRIVATE_KEY=<your_private_key>\n   forge script script/DeployToken.s.sol --rpc-url <PHAROS_RPC_URL> --broadcast\n   ```\n\nYour wallet needs enough testnet tokens to cover deployment costs. See the [Write Your First Token](/developer-guide/foundry/write-your-first-token) for the full example, or the [Write Your First Token](/developer-guide/hardhat/write-your-first-token) if you use Hardhat.",
+    "answer": "On Pharos, compile and test your contract, then deploy it with Foundry or Hardhat. You’ll need a Pharos RPC URL and a funded wallet for deployment gas.\n\n**Foundry:** Set your private key, then run your deployment script:\n\n```bash\nexport PRIVATE_KEY=<your-private-key>\nforge build\nforge test\nforge script script/DeployToken.s.sol \\\n  --rpc-url <PHAROS_RPC_URL> \\\n  --broadcast\n```\n\nYour script should load `PRIVATE_KEY`, start broadcasting, and create the contract with `new YourContract(...)`. See the [Write Your First Token](/developer-guide/foundry/write-your-first-token) for a complete example.\n\n**Hardhat:** Store the key with `npx hardhat vars set PRIVATE_KEY`, then compile and deploy:\n\n```bash\nnpx hardhat compile\nnpx hardhat test\nnpx hardhat ignition deploy ./ignition/modules/Token.js --network pharos\n```\n\nSee the [Write Your First Token](/developer-guide/hardhat/write-your-first-token) for network configuration and an example.",
     "sources": [
       {
-        "title": "Write Your First Uniswap Contract",
+        "title": "Write Your First Token (foundry)",
+        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
+      },
+      {
+        "title": "Write Your First Token (hardhat)",
+        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
+      },
+      {
+        "title": "Write Your First Uniswap Contract (foundry)",
         "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-uniswap-contract"
       },
       {
-        "title": "Write Your First Uniswap Contract",
+        "title": "Write Your First Uniswap Contract (hardhat)",
         "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract"
       },
       {
@@ -31,19 +39,11 @@
         "url": "https://docs.pharos.xyz/node-and-validator-guide/validator-node-deployment"
       },
       {
-        "title": "Write Your First Token",
-        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
-      },
-      {
-        "title": "Write Your First NFT",
+        "title": "Write Your First NFT (hardhat)",
         "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-nft"
       },
       {
-        "title": "Write Your First Token",
-        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
-      },
-      {
-        "title": "Write Your First NFT",
+        "title": "Write Your First NFT (foundry)",
         "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-nft"
       },
       {

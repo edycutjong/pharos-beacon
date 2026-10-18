@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "task": "dapp-support-agent",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/dapp-support-agent/index.ts 0x360551d640f569c208de26a7380230fac002cdc7fc7378501decc6a6bc64227c --network pharos --proof mainnet-third-party-revert",
+    "git": {
+      "commit": "78057f483c00",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T14:04:42.506Z"
+  },
+  "diagnosis": {
+    "hash": "0x360551d640f569c208de26a7380230fac002cdc7fc7378501decc6a6bc64227c",
+    "outcome": "failed",
+    "cause": "revert-reason",
+    "headline": "The contract refused the transaction and gave this reason: \"BC\".",
+    "why": "The contract checked a condition, it was not met, and the contract stopped the transaction with the message \"BC\". Nothing was changed; you only paid the network fee.",
+    "fix": [
+      "Change the input that the message points at (an amount, an address or a deadline) and send again.",
+      "If you did not expect this, ask the dApp's support, quoting the message and the transaction link."
+    ],
+    "evidence": [
+      "receipt status 0x0 in block 20567567",
+      "replayed with eth_call at block 20567566 (the state the transaction started from), same sender, value, data and gas limit",
+      "revert reason string: \"BC\""
+    ],
+    "facts": {
+      "from": "0x7ac6d25fd5e437cb7c57aee77ac2d0a6cb85936c",
+      "to": "0x69dc8e2d95c3281a643810fb5624b26da8610da4",
+      "block": "20567567",
+      "gasLimit": "1500003",
+      "gasUsed": "54896",
+      "value": "0",
+      "revertData": "0x08c379a0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000024243000000000000000000000000000000000000000000000000000000000000"
+    }
+  }
+}
