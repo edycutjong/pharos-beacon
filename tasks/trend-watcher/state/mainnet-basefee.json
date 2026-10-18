@@ -1,0 +1,14 @@
+{
+  "metric": {
+    "kind": "basefee",
+    "network": "pharos"
+  },
+  "observations": [
+    {
+      "block": "20555981",
+      "value": "10000000000",
+      "at": "2026-10-18T09:33:46.574Z"
+    }
+  ],
+  "acted": []
+}
