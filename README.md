@@ -33,7 +33,7 @@ review and merge of each task's pull request are by [@edycutjong](https://github
 
 ```bash
 npm ci
-npm test            # 468 tests: guardian, gatekeeper, read-contract-state, watcher, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, whale watcher, wallet risk checker, Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 471 tests: guardian, gatekeeper, dry-run executor, gas optimizer, read-contract-state, watcher, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, whale watcher, wallet risk checker, Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
@@ -62,6 +62,8 @@ Mainnet (chain 1672) is read-only here.
 | `src/lib/networks.ts` | chain definitions + known token addresses (from SkillEngine `assets/`), explorer links |
 | `src/guardian/` | Threshold Guardian: policy schema, MCP reader, evaluator, guard |
 | `src/gatekeeper/` | Policy Gatekeeper: policy schema, pure evaluator, hash-chained audit log, request runner |
+| `src/dryrun/` | Dry-Run Executor: simulation (`eth_call` + `estimate_gas`), balance changes, the simulate-then-send gate |
+| `src/gas/` | Gas Fee Optimizer: price samples, percentile target, the hold-until-cheap loop, paid-vs-request report |
 | `skills/<name>/` | agent skills in SkillEngine format (`SKILL.md` + `references/`), installable with `npx skills add` |
 | `tasks/<slug>/` | one Arena task each: entry point + README + proof (start from `tasks/_template/`) |
 | `test/` | vitest tests; a task's own tests can also live in `tasks/<slug>/*.test.ts` |
