@@ -10,17 +10,17 @@
     },
     "command": "tasks/batch-executor/index.ts --plan all-success --approve --execute --compact --proof video-all-success",
     "git": {
-      "commit": "c60ba7b4499a",
+      "commit": "a5242adb1f95",
       "dirty": false
     },
-    "createdAt": "2026-10-18T10:35:18.137Z"
+    "createdAt": "2026-10-18T10:36:35.170Z"
   },
   "sender": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
   "plan": "all-success",
   "result": {
     "status": "executed",
     "sim": {
-      "block": "31571970",
+      "block": "31572037",
       "actions": [
         {
           "action": {
@@ -118,9 +118,9 @@
     },
     "dropped": [],
     "sent": {
-      "tx": "0x840220ba6a2e21d5ed4d44b75273957c43181db9aadb679938cac573365e2bc9",
+      "tx": "0xbb09121a18152298b12fb3ba18345daf40c133df12a1a010890a4a8beaefe53f",
       "status": "success",
-      "block": "31571974",
+      "block": "31572042",
       "gasUsed": "83113",
       "effectiveGasPrice": "1000000000"
     },
@@ -233,7 +233,7 @@
     "approvals": [
       {
         "token": "WPHRS",
-        "tx": "0x054799542a79b67933fe49823255b8cf3cbe52f4c4c4917c09d58b6116d45da0"
+        "tx": "0x2b0beac813d3e25f357e06675905ef3e208efdc8da9c6336f93be28271ba37de"
       }
     ]
   }
