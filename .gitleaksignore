@@ -6,3 +6,14 @@ d7778f61f3a8201e3c8395d8cc4f68822676efff:test/helpers/fake-logs.ts:generic-api-k
 2cbea20d2072e9e840478cdfb147fc83ca973c20:test/dapp-support-agent.test.ts:generic-api-key:10
 6351cdd26a9fc1d5be2364bd0eb6bdc6aabe03bc:test/doc-grounded-builder-agent.test.ts:generic-api-key:10
 3f59caef1294d52bffdc64a8984d04c87ea08903:test/dryrun.test.ts:generic-api-key:10
+# public token addresses in the whale proofs ("token": "0x…"), not credentials
+62e23b0b4ed5c27dc9cad3dd5443c9813d448e9c:tasks/whale-watching-agent/proof/video-run.json:generic-api-key:56
+62e23b0b4ed5c27dc9cad3dd5443c9813d448e9c:tasks/whale-watching-agent/proof/video-run.json:generic-api-key:61
+9dc88ae3ab52c0e07bcba52d359769bdaa5f301d:tasks/whale-watching-agent/proof/rerun-no-repeat.json:generic-api-key:56
+9dc88ae3ab52c0e07bcba52d359769bdaa5f301d:tasks/whale-watching-agent/proof/rerun-no-repeat.json:generic-api-key:61
+24877ab133e5339e5b10f8e287be5ca332cd9d42:tasks/whale-watching-agent/proof/video-run.json:generic-api-key:56
+24877ab133e5339e5b10f8e287be5ca332cd9d42:tasks/whale-watching-agent/proof/video-run.json:generic-api-key:61
+c4cc075fefd189a3d483f09ee582a6c28bb635c9:tasks/whale-watching-agent/proof/rerun-no-repeat.json:generic-api-key:56
+c4cc075fefd189a3d483f09ee582a6c28bb635c9:tasks/whale-watching-agent/proof/rerun-no-repeat.json:generic-api-key:61
+37d468ca7cf406de2e85c302ecb4893e0b305ce0:tasks/whale-watching-agent/proof/usdc-wpros-40k-blocks.json:generic-api-key:56
+37d468ca7cf406de2e85c302ecb4893e0b305ce0:tasks/whale-watching-agent/proof/usdc-wpros-40k-blocks.json:generic-api-key:61
