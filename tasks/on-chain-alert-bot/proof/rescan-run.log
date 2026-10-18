@@ -1,0 +1,4 @@
+alert bot on atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c · head 31555745 · notify discord · 2 rules
+  rule big-wphrs-transfer: large-transfer on 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (>= 0.005 WPHRS)
+  rule wphrs-deposit: contract-event on 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (Deposit(address,uint256))
+stopped after 1 polls: 0 alerts sent, 2 already sent earlier (not repeated); next block to scan 31555746
