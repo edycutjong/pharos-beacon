@@ -146,6 +146,7 @@ export async function main(
         amountRaw: r.move.amountRaw.toString(), amount: fmtAmount(r.move.amountRaw, r.move.token.decimals, r.move.token.symbol),
         from: r.move.from, fromName: r.fromName, to: r.move.to, toName: r.toName, why: r.why,
         balanceBefore: r.beforeRaw.toString(), balanceAfter: r.afterRaw.toString(),
+        ...(r.receiver ? { receiver: r.receiver.address, receiverName: r.receiver.name, receiverBalanceBefore: r.receiver.beforeRaw.toString(), receiverBalanceAfter: r.receiver.afterRaw.toString() } : {}),
       })),
       summary: rows.map((r) => ({ label: r.label, address: r.address, token: r.token, transfers: r.transfers, significant: r.significant, inRaw: r.inRaw.toString(), outRaw: r.outRaw.toString(), largestRaw: r.largestRaw.toString() })),
       ...(kind ? { notify: { kind, delivered, alreadySent: skipped } } : {}),
