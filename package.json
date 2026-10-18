@@ -14,7 +14,8 @@
     "read-contract-state": "tsx tasks/read-contract-state/index.ts",
     "event-log-monitor": "tsx tasks/event-log-monitor/index.ts",
     "on-chain-alert-bot": "tsx tasks/on-chain-alert-bot/index.ts",
-    "emit-events": "tsx scripts/emit-events.ts"
+    "emit-events": "tsx scripts/emit-events.ts",
+    "doc-search-cli": "tsx tasks/doc-search-cli/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -34,5 +35,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "bin": {
+    "pharos-docs": "bin/pharos-docs.mjs"
   }
 }

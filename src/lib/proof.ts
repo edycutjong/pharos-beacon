@@ -12,8 +12,9 @@ import { writeJsonAtomic } from "./state.js";
 
 export interface ProofMeta {
   task: string;
-  network: Network;
-  chainId: number;
+  /** "docs" for tasks that read only the Developer Docs MCP (no chain). */
+  network: Network | "docs";
+  chainId: number | null;
   mcp: { endpoint: string; server?: string; version?: string };
   /** The command as run, e.g. `tasks/read-contract-state/index.ts --proof`: repo paths relative, home as `~`, URLs without credentials or query. */
   command: string;
@@ -65,7 +66,7 @@ export function scrubArg(arg: string): string {
 }
 
 /** Metadata for a proof written by `task` after reading through `mcp`. */
-export function proofMeta(task: string, mcp: Pick<ChainMcp, "network" | "chainId" | "endpoint" | "server">, argv = process.argv): ProofMeta {
+export function proofMeta(task: string, mcp: Pick<ChainMcp, "endpoint"> & { server?: ChainMcp["server"]; network: Network | "docs"; chainId: number | null }, argv = process.argv): ProofMeta {
   const commit = git(["rev-parse", "--short=12", "HEAD"]);
   const script = argv[1] ? scrubArg(argv[1]) : "";
   return {
