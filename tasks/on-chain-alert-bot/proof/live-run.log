@@ -1,0 +1,14 @@
+alert bot on atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c · head 31555664 · notify discord · 2 rules
+  rule big-wphrs-transfer: large-transfer on 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (>= 0.005 WPHRS)
+  rule wphrs-deposit: contract-event on 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (Deposit(address,uint256))
+ALERT wphrs-deposit → discord message 1561176862451834920
+  | 🔔 **Deposit event** on Pharos Atlantic testnet (rule `wphrs-deposit`)
+  | **What:** Deposit on 0x838800b758277CC111B2d48Ab01e5E164f8E9471, to 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  | **Value:** 0.0102 WPHRS
+  | **Block:** 31555669 · **Tx:** https://atlantic.pharosscan.xyz/tx/0x9490dbf1e6f8e1e15e48dc667505114c4e607810d4cce72fa4eaeddfd430f046
+ALERT big-wphrs-transfer → discord message 1561176876892954723
+  | 🔔 **Large transfer** on Pharos Atlantic testnet (rule `big-wphrs-transfer`: at least 0.005 WPHRS)
+  | **What:** Transfer on 0x838800b758277CC111B2d48Ab01e5E164f8E9471, 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 → 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  | **Value:** 0.01 WPHRS
+  | **Block:** 31555672 · **Tx:** https://atlantic.pharosscan.xyz/tx/0x9ce6f668093284a0fee10cc9ca5980fe1719416e7e660e2fbc595c2eedca996b
+stopped after 32 polls: 2 alerts sent, 0 already sent earlier (not repeated); next block to scan 31555721
