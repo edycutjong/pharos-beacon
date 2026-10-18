@@ -1,0 +1,86 @@
+{
+  "meta": {
+    "task": "docs-chain-mcp-agent",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/docs-chain-mcp-agent/index.ts --contract 0xc879c018db60520f4355c26ed1a6d572cdac1815 --function decimals --proof",
+    "git": {
+      "commit": "17ec03a845b1",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T04:03:59.197Z"
+  },
+  "head": "20534820",
+  "step": {
+    "target": {
+      "contract": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "label": "USDC (Circle-deployed)",
+      "fn": "decimals"
+    },
+    "docs": {
+      "question": "What does the decimals() function of a token like USDC (Circle-deployed) do on Pharos, and how should its result be read?",
+      "documented": true,
+      "excerpt": [
+        "decimals() returns the number of decimal places used to display a token’s integer-unit amounts.",
+        "The Pharos x402 example also uses six decimals, converting $0.01 to 10000 raw units."
+      ],
+      "sources": [
+        {
+          "title": "Token Registry",
+          "url": "https://docs.pharos.xyz/getting-started/token-registry"
+        },
+        {
+          "title": "Rust",
+          "url": "https://docs.pharos.xyz/developer-guide/rust"
+        },
+        {
+          "title": "Write Your First Token",
+          "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
+        },
+        {
+          "title": "Write Your First Token",
+          "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
+        },
+        {
+          "title": "About Pharos",
+          "url": "https://docs.pharos.xyz/introduction/readme"
+        },
+        {
+          "title": "x402 Pacific Mainnet",
+          "url": "https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet"
+        },
+        {
+          "title": "x402 Atlantic Testnet",
+          "url": "https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet"
+        },
+        {
+          "title": "Write Your First Uniswap Contract",
+          "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract"
+        },
+        {
+          "title": "Fordefi",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/wallets/fordefi"
+        },
+        {
+          "title": "Circle CCTP",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/circle-cctp"
+        }
+      ],
+      "listedInDocs": true,
+      "groundedIn": [
+        "https://docs.pharos.xyz/developer-guide/rust",
+        "https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet"
+      ]
+    },
+    "chain": {
+      "block": "20534820",
+      "raw": "6"
+    },
+    "interpretation": "Docs: \"decimals() returns the number of decimal places used to display a token’s integer-unit amounts. The Pharos x402 example also uses six decimals, converting $0.01 to 10000 raw units.\" The chain returned 6, so 1 whole token is 10^6 base units, and an amount shown with 6 decimal places is the base-unit integer divided by that."
+  }
+}
