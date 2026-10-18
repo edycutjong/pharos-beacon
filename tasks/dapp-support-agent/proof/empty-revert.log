@@ -1,0 +1,23 @@
+Transaction  0xf05ce6e6b1394e833196fc88b27bbea37a96300cc0683c7a26fbd7aa15db2515
+Network      atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c
+Explorer     https://atlantic.pharosscan.xyz/tx/0xf05ce6e6b1394e833196fc88b27bbea37a96300cc0683c7a26fbd7aa15db2515
+
+Result       FAILED
+Cause        insufficient-balance
+
+What happened
+  Your wallet does not hold enough WPHRS: it has 0.0022 WPHRS and the transaction tried to withdraw 1,000,000 WPHRS.
+
+Why
+  The contract did not say why it refused (it returned no message), but the numbers explain it: when the transaction ran, your wallet held 0.0022 WPHRS and the transaction tried to withdraw 1,000,000 WPHRS, which is more than it holds. This cause is inferred from the balance, not reported by the contract.
+
+What you can do
+  - Withdraw at most 0.0022 WPHRS, or first add at least 999,999.9978 WPHRS to your wallet.
+  - Check the amount's decimals: whole tokens must be multiplied by the token's decimals before sending.
+
+Evidence (for the curious)
+  · receipt status 0x0 in block 31560424
+  · replayed with eth_call at block 31560423 (the state the transaction started from), same sender, value, data and gas limit
+  · revert data was empty (0x)
+  · balanceOf(0x317bca01bb101c0f1e86c21576a4e14d92b02975) at block 31560423 = 2200000000000000, amount in the call = 1000000000000000000000000
+proof: tasks/dapp-support-agent/proof/empty-revert.json
