@@ -3,7 +3,7 @@
 **Task:** [Dry-Run Executor](https://pharos-agent-arena.vercel.app/tasks/dry-run-executor) (SkillEngine · Medium · 100 pts):
 simulates a transaction's outcome/cost before submitting for real.
 **Run:** `npm run dry-run-executor -- (--to 0x… --value 0.0001 | --token USDC --to 0x… --amount 1.5 | --to 0x… --data 0x…) [--execute] [--proof name]`
-(Atlantic needs the one-time `npm run setup:mcp`, keyless for simulation.) Without `--execute` nothing is ever signed or sent.
+(Atlantic needs the one-time `npm run setup:mcp`, keyless for simulation with `--from 0x…`; no key needed.) Without `--execute` nothing is ever signed or sent.
 **Uses:** Chain MCP ✅ (`eth_call`, `estimate_gas`, `get_balance`, `get_block`, `get_gas_price`, and for `--execute` nonce, broadcast, receipt) ·
 SkillEngine ✅ packaged as an agent skill, [`skills/dry-run-executor/`](../../skills/dry-run-executor/SKILL.md) · Docs MCP: not used
 
