@@ -124,6 +124,14 @@ describe("run + interpret", () => {
     expect(text).toContain("balanceOf(address) is named on https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token");
     expect(slug(balanceTarget)).toBe("usdc-balanceof");
   });
+  it("lists the page that names the function first and marks it, so the checked line points at a visible source", async () => {
+    const docs = fakeDocs({ balanceOf: BALANCE_ANSWER }, PAGES);
+    const steps = await run(docs.client, fakeChain().call, [balanceTarget], 100n);
+    const grounded = steps[0]!.docs.groundedIn[0]!;
+    const shown = format(steps, "100").split("sources:\n")[1]!.split("\n");
+    expect(shown[0]).toContain(grounded);
+    expect(shown[0]).toContain("(names balanceOf)");
+  });
 });
 
 describe("units are optional", () => {

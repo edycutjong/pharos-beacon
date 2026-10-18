@@ -1,6 +1,6 @@
 // The agent behind the doc-grounded-builder-agent task: "how do I X on Pharos?" → plan from the Docs MCP (sources cited) →
 // do X through the Chain MCP → verify on chain against the plan. Funds only move with execute on Atlantic, never on mainnet.
-import { encodeFunctionData, erc20Abi, decodeFunctionResult, formatEther, formatUnits, isAddress, parseEther, toHex, type Hex } from "viem";
+import { encodeFunctionData, erc20Abi, decodeFunctionResult, formatEther, formatUnits, isAddress, parseAbi, parseEther, toHex, type Hex } from "viem";
 import { askDocs, getDocPage, searchDocs, type DocsClient } from "../../src/lib/docs-mcp.js";
 import type { ChainMcp } from "../../src/lib/mcp.js";
 import { explorerTx } from "../../src/lib/networks.js";
@@ -41,6 +41,10 @@ export interface Plan {
   sources: { title: string; url: string }[];
   /** Cited pages (fetched with getPage) that contain every word of `needs`. */
   groundedIn: string[];
+  /** One line of the first grounding page that names the method (what the plan's method rests on). */
+  groundLine?: string;
+  /** How the grounding page was found: cited by the docs answer, or by a searchDocumentation lookup of the method. */
+  groundedVia?: "cited" | "search";
   /** True when the docs describe the request: not refusal-shaped AND a cited page names the method. */
   covered: boolean;
   /** The answer said it could not find this. */
@@ -73,6 +77,8 @@ export async function plan(docs: Docs, kind: Kind, request: string, needs?: stri
   const refused = sentences(answer).some(refusal);
   const words = recipe?.needs ?? needs ?? [];
   const groundedIn: string[] = [];
+  let groundLine: string | undefined;
+  let groundedVia: Plan["groundedVia"];
   if (words.length && !refused) {
     const pages = new Map<string, Promise<string>>();
     const named = async (url: string) => {
@@ -80,8 +86,14 @@ export async function plan(docs: Docs, kind: Kind, request: string, needs?: stri
       const text = await pages.get(url)!;
       return words.every((w) => text.includes(w));
     };
+    const lineOf = async (url: string) => {
+      const line = (await pages.get(url)!).split("\n").map((l) => l.trim()).find((l) => l.includes(words[0]!));
+      return line && line.length > 160 ? `${line.slice(0, 157)}...` : line;
+    };
     await Promise.all(sources.slice(0, MAX_PAGES).map(async (s) => void ((await named(s.url)) && groundedIn.push(s.url))));
+    groundedVia = "cited";
     if (!groundedIn.length) {
+      groundedVia = "search";
       // askQuestion cites only some of the pages it drew on: look the method up with searchDocumentation and read those pages.
       const hits = await searchDocs(docs, words.join(" "), { limit: 3 }).catch(() => []);
       await Promise.all(
@@ -93,10 +105,11 @@ export async function plan(docs: Docs, kind: Kind, request: string, needs?: stri
       );
     }
     groundedIn.sort((a, b) => sources.findIndex((s) => s.url === a) - sources.findIndex((s) => s.url === b));
+    if (groundedIn.length) groundLine = await lineOf(groundedIn[0]!);
   }
   const excerpt = sentences(answer).filter((s) => !refusal(s)).slice(0, 3);
   const covered = !!answer && !refused && sources.length > 0 && (words.length === 0 || groundedIn.length > 0);
-  return { question, excerpt: covered ? excerpt : [], sources, groundedIn, covered, refused, steps: [], expected: "" };
+  return { question, excerpt: covered ? excerpt : [], sources, groundedIn, ...(covered && groundLine ? { groundLine, groundedVia } : {}), covered, refused, steps: [], expected: "" };
 }
 
 export interface Check {
@@ -154,6 +167,16 @@ async function balanceAt(call: Call, address: Hex, block: string) {
   return BigInt((await call("get_balance", { address, block })).balanceWei);
 }
 
+/** Multicall3 is deployed at the same address on Pharos mainnet and Atlantic; its getEthBalance reads a balance by another route than get_balance. */
+const MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11" as Hex;
+const multicallAbi = parseAbi(["function getEthBalance(address addr) view returns (uint256 balance)"]);
+async function balanceViaMulticall(call: Call, address: Hex, block: string) {
+  const data = encodeFunctionData({ abi: multicallAbi, functionName: "getEthBalance", args: [address] });
+  const { result } = await call("eth_call", { transaction: { to: MULTICALL3, data }, block });
+  if (typeof result !== "string" || result === "0x") throw new Error("Multicall3.getEthBalance returned no data");
+  return decodeFunctionResult({ abi: multicallAbi, functionName: "getEthBalance", data: result as Hex }) as bigint;
+}
+
 async function view(call: Call, to: Hex, fn: "totalSupply" | "decimals" | "symbol", block: string) {
   const data = encodeFunctionData({ abi: erc20Abi, functionName: fn });
   const { result } = await call("eth_call", { transaction: { to, data }, block });
@@ -191,10 +214,14 @@ export async function handle(request: string, params: Params, deps: Deps): Promi
     const b = await call("get_balance", { address, block: head });
     const again = await balanceAt(call, address, head);
     return done({
-      steps: [`Chain MCP get_balance(${address}) at block ${head} (docs: eth_getBalance returns wei)`, `Divide by 10^18 for PHRS`, `Re-read at block ${head}`],
-      expected: `${formatEther(BigInt(b.balanceWei))} PHRS: the wei balance divided by 10^18, identical on a re-read at the same block`,
+      steps: [`Chain MCP get_balance(${address}) at block ${head} (docs: eth_getBalance returns wei)`, `Divide by 10^18 for PHRS`, `Re-read at block ${head}, and read the same balance through Multicall3.getEthBalance`],
+      expected: `${formatEther(BigInt(b.balanceWei))} PHRS: the wei balance divided by 10^18, identical on a re-read and through Multicall3.getEthBalance at the same block`,
       observed: `${b.balanceWei} wei = ${formatEther(BigInt(b.balanceWei))} PHRS at block ${head}`,
-      checks: [eq("re-read at the same block equals the first read", again, b.balanceWei), eq("tool's PHRS figure equals wei / 10^18", b.balance, formatEther(BigInt(b.balanceWei)))],
+      checks: [
+        eq("re-read at the same block equals the first read", again, b.balanceWei),
+        eq("tool's PHRS figure equals wei / 10^18", b.balance, formatEther(BigInt(b.balanceWei))),
+        eq("Multicall3.getEthBalance (a different route, eth_call) gives the same wei", await balanceViaMulticall(call, address, head), b.balanceWei),
+      ],
     });
   }
 
@@ -214,11 +241,16 @@ export async function handle(request: string, params: Params, deps: Deps): Promi
   if (kind === "receipt") {
     if (!params.txHash) throw new Error("receipt needs --tx 0x…");
     const r = await call("get_transaction_receipt", { hash: params.txHash });
+    const blk = r ? await call("get_block", { block: BigInt(r.blockNumber).toString() }) : undefined;
+    const listed = !!blk && Array.isArray(blk.transactions) && blk.transactions.some((t: unknown) => String(typeof t === "string" ? t : (t as { hash?: string })?.hash).toLowerCase() === params.txHash!.toLowerCase());
     return done({
-      steps: [`Chain MCP get_transaction_receipt(${params.txHash})`, "Read status, blockNumber, gasUsed"],
-      expected: "a receipt with status 0x1 (success)",
+      steps: [`Chain MCP get_transaction_receipt(${params.txHash})`, "Read status, blockNumber, gasUsed", "Chain MCP get_block(receipt block): the hash is in that block's transaction list"],
+      expected: "a receipt with status 0x1 (success), for a transaction that is listed in the block the receipt names",
       observed: r ? `status ${r.status}, block ${BigInt(r.blockNumber)}, gasUsed ${BigInt(r.gasUsed)}` : "no receipt (the node does not know this hash)",
-      checks: [r ? (r.status === "0x1" ? ok("receipt status", "0x1 success") : bad("receipt status", `${r.status}: the transaction reverted`)) : bad("receipt found", "none")],
+      checks: [
+        r ? (r.status === "0x1" ? ok("receipt status", "0x1 success") : bad("receipt status", `${r.status}: the transaction reverted`)) : bad("receipt found", "none"),
+        ...(r ? [listed ? ok("the block's transaction list contains the hash", `block ${BigInt(r.blockNumber)}`) : bad("the block's transaction list contains the hash", `not in block ${BigInt(r.blockNumber)}`)] : []),
+      ],
       tx: { hash: params.txHash, explorer: explorerTx(network!, params.txHash) },
     });
   }
@@ -285,9 +317,19 @@ export function format(o: Outcome, i: number, n: number): string {
   out.push("  1. PLAN (Docs MCP, before acting)");
   out.push(`     asked: ${o.plan.question}`);
   if (o.plan.covered) {
-    out.push(...o.plan.excerpt.map((x) => `     "${x}"`), ...(o.plan.groundedIn.length ? [`     (checked: ${RECIPES[o.kind as Exclude<Kind, "other">].needs.join(" + ")} is named on ${o.plan.groundedIn[0]})`] : []));
+    out.push("     docs answer (askQuestion), the by-hand route a person would follow:", ...o.plan.excerpt.map((x) => `       "${x}"`));
+    if (o.plan.groundedIn.length) {
+      out.push(
+        `     the method this agent runs, ${RECIPES[o.kind as Exclude<Kind, "other">].needs.join(" + ")}, is named on ${o.plan.groundedVia === "search" ? "a page found with searchDocumentation" : "a page the docs answer cites"}:`,
+        ...(o.plan.groundLine ? [`       "${o.plan.groundLine}"`] : []),
+        `       ${o.plan.groundedIn[0]}`,
+      );
+    }
   } else out.push(`     NOT COVERED: ${o.plan.refused ? "the docs answer says they cannot confirm this" : "no cited page names the method"}`);
-  if (o.plan.sources.length) out.push("     sources:", ...o.plan.sources.slice(0, 4).map((s) => `       - ${s.title}: ${s.url}`));
+  // the page the method rests on is listed first, so it is among the sources shown
+  const grounded = new Set(o.plan.groundedIn);
+  const listed = [...o.plan.sources.filter((s) => grounded.has(s.url)), ...o.plan.sources.filter((s) => !grounded.has(s.url))];
+  if (listed.length) out.push("     sources:", ...listed.slice(0, 4).map((s) => `       - ${s.title}: ${s.url}`));
   if (o.status === "not-covered" || o.status === "no-executor") {
     out.push(`  RESULT: ${o.status === "not-covered" ? "THE DOCS DON'T COVER THIS" : "NOT EXECUTED"}. ${o.note}`);
     return out.join("\n");
