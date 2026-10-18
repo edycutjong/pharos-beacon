@@ -9,7 +9,7 @@
 import { decodeFunctionResult, encodeFunctionData, erc20Abi, formatUnits, getAddress, isAddress, parseAbi, type Hex } from "viem";
 import { choice, isMain, parseCli, runCli, UsageError, type RunContext } from "../../src/lib/cli.js";
 import { askDocs, docsMcp, DOCS_MCP_URL, getDocPage, type DocsClient } from "../../src/lib/docs-mcp.js";
-import { chainMcp, type ChainMcp } from "../../src/lib/mcp.js";
+import { chainMcp, ChainToolError, type ChainMcp } from "../../src/lib/mcp.js";
 import { TOKENS } from "../../src/lib/networks.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { largestTransferRecipient, withCommas } from "../read-contract-state/index.js";
@@ -137,8 +137,15 @@ export async function readOnChain(call: Call, t: Target, block: bigint, withUnit
   const reading: Reading = { block: block.toString(), raw: String(value) };
   // Units are only fetched for a function the docs explained; for an undocumented one the answer stays raw.
   if (withUnits && (t.fn === "balanceOf" || t.fn === "totalSupply")) {
-    reading.decimals = Number(await view(call, t.contract, "decimals", block));
-    reading.symbol = String(await view(call, t.contract, "symbol", block));
+    // A contract without decimals() / symbol() is not an error: the reading falls back to the raw value.
+    try {
+      reading.decimals = Number(await view(call, t.contract, "decimals", block));
+      reading.symbol = String(await view(call, t.contract, "symbol", block));
+    } catch (e) {
+      if (!(e instanceof ChainToolError) && !/returned no data/.test(String(e))) throw e;
+      delete reading.decimals;
+      delete reading.symbol;
+    }
   }
   return reading;
 }

@@ -1,8 +1,9 @@
 import { encodeFunctionResult, erc20Abi, parseAbi, type Hex } from "viem";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UsageError } from "../src/lib/cli.js";
+import { ChainToolError } from "../src/lib/mcp.js";
 import type { DocsClient } from "../src/lib/docs-mcp.js";
-import { excerptFor, explain, format, interpret, main, run, slug, type Call, type Target } from "../tasks/docs-chain-mcp-agent/index.js";
+import { excerptFor, explain, format, interpret, main, readOnChain, run, slug, type Call, type Target } from "../tasks/docs-chain-mcp-agent/index.js";
 
 const USDC = "0xc879c018db60520f4355c26ed1a6d572cdac1815" as Hex;
 const HOLDER = "0x94807fE4300D15909C1a4fd39f76c61D68aee11E" as Hex;
@@ -122,6 +123,20 @@ describe("run + interpret", () => {
     expect(text).toMatch(/3\. Reading:/);
     expect(text).toContain("balanceOf(address) is named on https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token");
     expect(slug(balanceTarget)).toBe("usdc-balanceof");
+  });
+});
+
+describe("units are optional", () => {
+  it("a token without decimals() still gets its raw balance, not a crash", async () => {
+    const base = fakeChain().call;
+    const call = (async (tool: string, args: any) => {
+      if (tool === "eth_call" && args.transaction.data.startsWith("0x313ce567")) throw new ChainToolError("eth_call", "execution reverted", 3);
+      return base(tool as never, args);
+    }) as unknown as Call;
+    const e = { question: "", documented: true, excerpt: ["balanceOf(address) reads the balance."], sources: [], listedInDocs: true, groundedIn: ["u"] };
+    const r = await readOnChain(call, balanceTarget, 100n, true);
+    expect(r).toEqual({ block: "100", raw: "26001969072" });
+    expect(interpret(balanceTarget, e, r)).toContain("Raw balance 26001969072 base units.");
   });
 });
 
