@@ -4,7 +4,7 @@
 tracks a set of addresses and reports significant moves.
 **Run:** `npm run whale-watching-agent` (keyless, Pharos mainnet, read-only; it scans the last 5,000 blocks by default). Pin a range with
 `-- --from-block 20506432 --to-block 20546432`; `--state f` remembers where it stopped so the next run continues from there;
-`--notify discord` also posts the biggest moves (see below); `--compact` prints a narrow 3-line-per-report view (used for the demo video); `--proof label` writes `proof/<label>.json`.
+`--notify discord` also posts the moves furthest above their thresholds (see below); `--compact` prints a narrow 3-line-per-report view (used for the demo video); `--proof label` writes `proof/<label>.json`.
 **Uses:** Chain MCP ✅ (`get_block_number`, `get_logs`, `eth_call`, `get_code`, `get_block`) · SkillEngine: only the token registry
 (`src/lib/networks.ts`) · Docs MCP: not used. The agent never sends a transaction; its only outbound call is the optional Discord message.
 
@@ -12,8 +12,8 @@ tracks a set of addresses and reports significant moves.
 
 [`watchlist.json`](watchlist.json) holds 7 addresses, the two token thresholds and our own labels. It is a config
 file, not code: edit it and re-run. The addresses are not a list from anyone else: [`scripts/find-whales.ts`](../../scripts/find-whales.ts)
-(`npm run find-whales`) ranks the addresses that moved the most USDC and WPROS over 40,000 blocks of Transfer logs; the top ones are in the
-file, and its `source` field says so. They are named `watch-1` … `watch-7` because we do not know who they are.
+(`npm run find-whales`) ranks the addresses that moved the most USDC and WPROS over 40,000 blocks of Transfer logs ([`find-whales-output.txt`](find-whales-output.txt) is its output at head 20546432); `watch-1` to `watch-6` are the six top USDC movers and
+`watch-7` is the third WPROS mover, and the `source` field says so. They are named `watch-1` … `watch-7` because we do not know who they are.
 
 ## Requirements → evidence
 
@@ -26,7 +26,7 @@ file, and its `source` field says so. They are named `watch-1` … `watch-7` bec
 
 ## Beyond the requirements: Discord alerts
 
-`--notify discord` posts the largest significant moves (`--discord-max`, default 5) to a Discord channel through the same webhook notifier
+`--notify discord` posts the significant moves that are the largest multiple of their token's threshold (`--discord-max`, default 5; ranked by that multiple because the raw amounts of a 6- and an 18-decimal token are not comparable) to a Discord channel through the same webhook notifier
 as the [On-Chain Alert Bot](../on-chain-alert-bot/README.md) (`~/.config/discord/webhook-alerts`, read at run time, never committed). A
 sent-set (`--sent`) makes a re-run send nothing twice. Live: 3 messages, ids in the proof
 (`notify.delivered`: `1561287457109180488`, `1561287458828849172`, `1561287460376547469`), and the re-run
