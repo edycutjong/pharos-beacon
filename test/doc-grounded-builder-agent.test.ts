@@ -49,7 +49,7 @@ const PAGES = {
 };
 
 /** Fake Chain MCP with a movable balance book. */
-function fakeChain(over: { receiptStatus?: string; recipientDelta?: bigint } = {}) {
+function fakeChain(over: { receiptStatus?: string; recipientDelta?: bigint; blockLacksTx?: boolean; multicallDelta?: bigint } = {}) {
   const bal = new Map<string, bigint>([[ME.toLowerCase(), 10n ** 18n], [TO.toLowerCase(), 5n]]);
   const seen: string[] = [];
   const call = (async (tool: string, args: any) => {
@@ -62,12 +62,13 @@ function fakeChain(over: { receiptStatus?: string; recipientDelta?: bigint } = {
       }
       case "get_transaction_count": return { nonce: "7" };
       case "estimate_gas": return { gas: "21000" };
-      case "get_block": return { baseFeePerGas: "1000000000" };
+      case "get_block": return args.block === "latest" ? { baseFeePerGas: "1000000000" } : { baseFeePerGas: "1000000000", transactions: over.blockLacksTx ? [] : [TX] };
       case "get_gas_price": return { maxPriorityFeePerGasWei: "0" };
       case "get_transaction_receipt": return args.hash === TX ? { status: over.receiptStatus ?? "0x1", blockNumber: "0x64", gasUsed: "0x5208" } : null;
       case "eth_call": {
         const sel = args.transaction.data.slice(0, 10);
         const enc = (functionName: any, result: unknown) => ({ result: encodeFunctionResult({ abi: erc20Abi, functionName, result } as never) });
+        if (sel === "0x4d2301cc") return { result: ("0x" + ((bal.get(("0x" + args.transaction.data.slice(34)).toLowerCase()) ?? 0n) + (over.multicallDelta ?? 0n)).toString(16).padStart(64, "0")) as Hex };
         if (sel === "0x18160ddd") return enc("totalSupply", 5n * 10n ** 18n);
         if (sel === "0x313ce567") return enc("decimals", 18);
         if (sel === "0x95d89b41") return enc("symbol", "WPROS");
@@ -158,6 +159,31 @@ describe("handle", () => {
     expect((await handle("look up the receipt of a transaction", P, deps(fakeDocs(DOCS, PAGES), fakeChain()).d)).status).toBe("success");
     expect((await handle("look up the receipt of a transaction", P, deps(fakeDocs(DOCS, PAGES), fakeChain({ receiptStatus: "0x0" })).d)).status).toBe("failure");
     expect((await handle("look up the receipt of a transaction", { ...P, txHash: ("0x" + "cd".repeat(32)) as Hex }, deps(fakeDocs(DOCS, PAGES), fakeChain()).d)).status).toBe("failure");
+  });
+
+  it("receipt: a hash that is not in the block the receipt names fails the cross-check", async () => {
+    const o = await handle("look up the receipt of a transaction", P, deps(fakeDocs(DOCS, PAGES), fakeChain({ blockLacksTx: true })).d);
+    expect(o.status).toBe("failure");
+    expect(o.checks.find((c) => c.name.startsWith("the block's transaction list"))?.ok).toBe(false);
+    const good = await handle("look up the receipt of a transaction", P, deps(fakeDocs(DOCS, PAGES), fakeChain()).d);
+    expect(good.checks.map((c) => c.name)).toContain("the block's transaction list contains the hash");
+  });
+
+  it("balance: Multicall3.getEthBalance is read by a second route and a mismatch fails", async () => {
+    const good = await handle("check my PHRS balance", P, deps(fakeDocs(DOCS, PAGES), fakeChain()).d);
+    expect(good.checks.map((c) => c.name).some((n) => n.startsWith("Multicall3.getEthBalance"))).toBe(true);
+    expect(good.status).toBe("success");
+    const bad = await handle("check my PHRS balance", P, deps(fakeDocs(DOCS, PAGES), fakeChain({ multicallDelta: 1n })).d);
+    expect(bad.status).toBe("failure");
+  });
+
+  it("PLAN prints the page the method rests on, with how it was found, and lists it first among the sources", async () => {
+    const o = await handle("check my PHRS balance", P, deps(fakeDocs(DOCS, PAGES), fakeChain()).d);
+    const text = format(o, 0, 1);
+    expect(text).toContain("docs answer (askQuestion), the by-hand route a person would follow:");
+    expect(text).toContain("is named on a page the docs answer cites:");
+    expect(text).toContain(`"eth_getBalance eth_getTransactionReceipt"`);
+    expect(text.split("sources:\n")[1]!.split("\n")[0]).toContain(RPC_PAGE);
   });
 
   it("send without --execute is prepared: unsigned tx shown, no signer, no broadcast", async () => {

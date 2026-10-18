@@ -10,12 +10,12 @@
     },
     "command": "tasks/docs-chain-mcp-agent/index.ts --contract 0xc879c018db60520f4355c26ed1a6d572cdac1815 --function balanceOf --arg 0x94807fE4300D15909C1a4fd39f76c61D68aee11E --proof",
     "git": {
-      "commit": "e3bb90c50281",
+      "commit": "fd6fc6919bb2",
       "dirty": false
     },
-    "createdAt": "2026-10-18T04:04:16.707Z"
+    "createdAt": "2026-10-18T14:03:06.100Z"
   },
-  "head": "20534832",
+  "head": "20573640",
   "step": {
     "target": {
       "contract": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
@@ -28,8 +28,8 @@
       "question": "What does the balanceOf(address) function of a token like USDC (Circle-deployed) do on Pharos, and how should its result be read?",
       "documented": true,
       "excerpt": [
-        "balanceOf(address) reads the USDC balance held by the address you pass.",
-        "USDC uses 6 decimals, so divide the returned value by 1,000,000 to get USDC."
+        "balanceOf(address) reads the USDC token balance held by the address you pass.",
+        "The Pharos Skill Engine shows the same balanceOf call pattern."
       ],
       "sources": [
         {
@@ -79,11 +79,11 @@
       ]
     },
     "chain": {
-      "block": "20534832",
-      "raw": "26001969072",
+      "block": "20573640",
+      "raw": "25556196300",
       "decimals": 6,
       "symbol": "USDC"
     },
-    "interpretation": "Docs: \"balanceOf(address) reads the USDC balance held by the address you pass. USDC uses 6 decimals, so divide the returned value by 1,000,000 to get USDC.\" The chain returned 26001969072 base units for the holder 0x94807fE4300D15909C1a4fd39f76c61D68aee11E (the --arg address); the same block's decimals() is 6, so that is 26,001.969072 USDC."
+    "interpretation": "Docs: \"balanceOf(address) reads the USDC token balance held by the address you pass. The Pharos Skill Engine shows the same balanceOf call pattern.\" The chain returned 25556196300 base units for the holder 0x94807fE4300D15909C1a4fd39f76c61D68aee11E (the --arg address); the same block's decimals() is 6, so that is 25,556.1963 USDC."
   }
 }

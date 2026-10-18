@@ -8,10 +8,10 @@
     },
     "command": "bin/pharos-docs.mjs what is the best pizza recipe in Naples? --proof",
     "git": {
-      "commit": "c6d9750771ed",
+      "commit": "5f2873619013",
       "dirty": false
     },
-    "createdAt": "2026-10-18T01:34:54.932Z"
+    "createdAt": "2026-10-18T13:56:11.279Z"
   },
   "result": {
     "question": "what is the best pizza recipe in Naples?",
