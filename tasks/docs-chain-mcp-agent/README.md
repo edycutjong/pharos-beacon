@@ -13,7 +13,7 @@ explains a contract function from the Developer Docs MCP, then calls it via Chai
 | 1 | The explanation comes from Docs MCP, with sources referenced | step 1 of every function is `askQuestion`; the sentences that name the function are printed verbatim and the cited pages are listed | every proof has `docs.excerpt` and `docs.sources` · [usdc-balanceof](proof/usdc-balanceof.json) |
 | 2 | The agent then calls the same function on chain via Chain MCP | step 2 is an `eth_call` of the same selector on the same contract, after the docs step, pinned to one block | `chain.raw` + `chain.block` in each proof |
 | 3 | Interprets the result in the context of the explanation | step 3 quotes the docs excerpt it relies on and applies it (decimals → "26,001.969072 USDC"); with no docs explanation it says so and gives the raw value | the `interpretation` field of each proof |
-| 4 | Works for at least 2 different functions or contracts | 5 functions on 3 contracts (USDC, WPROS, Multicall3): 3 explained by the docs and read, 2 that the docs do not describe, reported as such | the five proofs below |
+| 4 | Works for at least 2 different functions or contracts | 5 functions on 3 contracts (the CLI accepts six; the demo runs five) (USDC, WPROS, Multicall3): 3 explained by the docs and read, 2 that the docs do not describe, reported as such | the five proofs below |
 
 ## How it works
 
