@@ -51,15 +51,16 @@ export interface DecodedEvent {
   amountRaw?: bigint;
 }
 
-const first = (fields: Record<string, string>, names: string[]) => names.find((n) => n in fields);
+/** The first parameter with one of these names, but only if it really is of `type` (a `string sender` is not an address). */
+const first = (spec: EventSpec, names: string[], type: string) => names.find((n) => spec.item.inputs.some((i) => i.name === n && i.type === type));
 
 export function decodeLog(spec: EventSpec, log: RpcLog): DecodedEvent {
   const { args } = decodeEventLog({ abi: [spec.item], topics: log.topics as [Hex, ...Hex[]], data: log.data as Hex }) as { args: Record<string, unknown> };
   const fields: Record<string, string> = {};
   for (const [k, v] of Object.entries(args ?? {})) fields[k] = typeof v === "bigint" ? v.toString() : String(v);
-  const f = first(fields, FROM);
-  const t = first(fields, TO);
-  const a = first(fields, AMOUNT);
+  const f = first(spec, FROM, "address");
+  const t = first(spec, TO, "address");
+  const a = first(spec, AMOUNT, "uint256");
   return {
     event: spec.item.name,
     contract: getAddress(log.address),

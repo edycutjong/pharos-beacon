@@ -14,7 +14,7 @@ import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { readState, writeState } from "../../src/lib/state.js";
 import { consoleNotifier, discordNotifier, loadWebhook, type Notifier } from "../../src/watch/discord.js";
 import { tokenInfo } from "../../src/watch/token.js";
-import { watch } from "../../src/watch/watch.js";
+import { savedCursor, watch } from "../../src/watch/watch.js";
 import { parseFrom } from "../event-log-monitor/index.js";
 import { alertText, compileRules, match } from "./rules.js";
 
@@ -103,6 +103,8 @@ export async function main(
   emit(`alert bot on ${network} (chain ${mcp.chainId}) via ${mcp.endpoint} · head ${head} · notify ${notifier.name} · ${rules.length} rule${rules.length === 1 ? "" : "s"}`);
   for (const r of rules) emit(`  rule ${r.id}: ${r.kind} on ${r.address}${r.minText ? ` (>= ${r.minText} ${tokens.get(r.address.toLowerCase())?.symbol ?? ""})` : ` (${r.spec.signature})`}`);
 
+  const resume = savedCursor(stateFile);
+  if (resume !== undefined) emit(`resuming from the saved cursor: next block ${resume} (--from-block is only used when there is no state file)`);
   const sent = readState<Sent>(sentFile, {}, checkSent);
   const delivered: { rule: string; key: string; tx: string; messageId?: string; text: string; at: string }[] = [];
   let skipped = 0;

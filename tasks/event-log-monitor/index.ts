@@ -13,7 +13,7 @@ import { explorerTx } from "../../src/lib/networks.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { amountText, decodeLog, parseEvent, type DecodedEvent } from "../../src/watch/decode.js";
 import { tokenInfo } from "../../src/watch/token.js";
-import { watch } from "../../src/watch/watch.js";
+import { savedCursor, watch } from "../../src/watch/watch.js";
 
 const TASK = "event-log-monitor";
 
@@ -84,6 +84,8 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
   emit(`watching ${spec.signature} on ${contract}${info ? ` (${info.symbol}, ${info.decimals} decimals)` : ""}`);
   emit(`${network} (chain ${mcp.chainId}) via ${mcp.endpoint} · head ${head} · poll ${pollMs} ms · state ${stateFile}`);
 
+  const resume = savedCursor(stateFile);
+  if (resume !== undefined) emit(`resuming from the saved cursor: next block ${resume} (--from-block is only used when there is no state file)`);
   const caught: { block: string; logIndex: number; tx: Hex; event: string; from?: Hex; to?: Hex; amountRaw?: string; amount: string }[] = [];
   const r = await watch({
     call: mcp.call, address: contract, topics: [spec.topic0], stateFile, from: parseFrom(values["from-block"]!, head), pollMs, maxPolls, untilEvents, signal, sleep,

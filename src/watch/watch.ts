@@ -94,6 +94,12 @@ export async function pollOnce(o: WatchOptions): Promise<{ head: bigint; scanned
   return { head, scannedTo: safe, fresh, next: cursor };
 }
 
+/** The first block a saved state would resume at, or undefined when there is no state file yet. */
+export function savedCursor(stateFile: string): bigint | undefined {
+  const s = readState<WatchState | null>(stateFile, null, checkState);
+  return s ? BigInt(s.next) : undefined;
+}
+
 /** Poll until `signal` aborts, `maxPolls` is reached or `untilEvents` logs were handled. */
 export async function watch(o: WatchOptions): Promise<WatchResult> {
   const pollMs = o.pollMs ?? 3_000;

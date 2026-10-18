@@ -1,6 +1,7 @@
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { encodeAbiParameters } from "viem";
 import { describe, expect, it } from "vitest";
 import { amountText, decodeLog, parseEvent } from "../src/watch/decode.js";
 import { eventKey, pollOnce, watch } from "../src/watch/watch.js";
@@ -90,5 +91,17 @@ describe("watch", () => {
     ac.abort();
     expect((await watch({ ...base(chain, join(dir(), "b.json"), []), signal: ac.signal })).polls).toBe(0);
     expect((await watch({ ...base(chain, join(dir(), "c.json"), []), maxPolls: 4 })).polls).toBe(4);
+  });
+});
+
+describe("decode field types", () => {
+  it("does not read a non-address `sender` or non-uint `value` as from/amount", () => {
+    const spec = parseEvent("Note(string sender, address indexed to, bytes32 value)");
+    const data = encodeAbiParameters([{ type: "string" }, { type: "bytes32" }], ["hi", `0x${"11".repeat(32)}`]);
+    const log = { address: TOKEN, blockNumber: "0x1", logIndex: "0x0", transactionHash: `0x${"ab".repeat(32)}`, topics: [spec.topic0, `0x${"00".repeat(12)}${BOB.slice(2)}`], data } as any;
+    const e = decodeLog(spec, log);
+    expect(e.from).toBeUndefined();
+    expect(e.amountRaw).toBeUndefined();
+    expect(e.to).toBe(BOB);
   });
 });
