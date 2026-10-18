@@ -120,9 +120,24 @@ export async function scanMoves(call: Call, token: TokenMeta, watched: Hex[], fr
 
 export const isSignificant = (m: Move) => m.amountRaw >= m.token.thresholdRaw;
 
-export async function balanceAt(call: Call, token: Hex, holder: Hex, block: bigint): Promise<bigint> {
+async function balanceOnce(call: Call, token: Hex, holder: Hex, block: bigint): Promise<bigint> {
   const { result } = (await call("eth_call", { transaction: { to: token, data: encodeFunctionData({ abi: erc20Abi, functionName: "balanceOf", args: [holder] }) }, block: block.toString() })) as { result: Hex };
   return decodeFunctionResult({ abi: erc20Abi, functionName: "balanceOf", data: result }) as bigint;
+}
+
+/**
+ * A historical balance, read twice. One pinned run once printed a "before" of 0 for an address that held 29,914 at that block
+ * (the next two runs and a direct eth_call agreed on 29,914), so a read that the second read does not confirm is retried
+ * once more and two of three must agree; if none do, the report fails loudly instead of printing a number nobody can stand behind.
+ * This catches a transient bad read, not one the node returns every time.
+ */
+export async function balanceAt(call: Call, token: Hex, holder: Hex, block: bigint): Promise<bigint> {
+  const reads = [await balanceOnce(call, token, holder, block), await balanceOnce(call, token, holder, block)];
+  if (reads[0] === reads[1]) return reads[0]!;
+  reads.push(await balanceOnce(call, token, holder, block));
+  const agreed = reads.find((v, i) => reads.indexOf(v) !== i);
+  if (agreed === undefined) throw new Error(`balanceOf(${holder}) at block ${block} came back different three times (${reads.join(", ")}); not reporting a number`);
+  return agreed;
 }
 
 export type Kind = "wallet" | "contract";
@@ -228,11 +243,22 @@ export async function explain(call: Call, m: Move, wl: Watchlist, namer: Namer, 
     tags.push(`+${pct(m.amountRaw, beforeRaw)} balance`);
   }
   if (receiver) {
-    if (receiver.beforeRaw === 0n) {
-      why.push(`NEW POSITION for ${receiver.name}: it held 0 ${sym} before this`);
-      tags.push("NEW POSITION");
+    if (receiver.beforeRaw === 0n && receiver.afterRaw === 0n) {
+      why.push(`pass-through for ${receiver.name}: it held 0 ${sym} before and after block ${m.block}, so it received and passed this on within the block`);
+      tags.push("receiver: pass-through");
+    } else if (receiver.beforeRaw === 0n) {
+      why.push(`NEW POSITION for ${receiver.name}: it held 0 ${sym} before block ${m.block}`);
+      tags.push("receiver: NEW POSITION");
     } else why.push(`it adds ${pct(m.amountRaw, receiver.beforeRaw)} to the ${sym} balance of ${receiver.name}`);
   }
+  // The balances are read at block boundaries, so a balance can move by more (or less) than this one transfer: say so.
+  const fmtSigned = (d: bigint) => `${d < 0n ? "−" : "+"}${fmtAmount(d < 0n ? -d : d, m.token.decimals, sym)}`;
+  const delta = (name: string, before: bigint, after: bigint, expected: bigint) => {
+    if (after - before === expected || (before === 0n && after === 0n)) return;
+    why.push(`the ${sym} balance of ${name} changed by ${fmtSigned(after - before)} in block ${m.block}, this move is ${fmtSigned(expected)}; the rest is other activity in the same block, not resolved here`);
+  };
+  delta(direction === "IN" ? t.text : f.text, beforeRaw, afterRaw, direction === "IN" ? m.amountRaw : -m.amountRaw);
+  if (receiver) delta(receiver.name, receiver.beforeRaw, receiver.afterRaw, m.amountRaw);
   if (m.amountRaw === rank.largest) why.push(`the largest ${m.token.symbol} move touching the watchlist in this range`);
   const other = direction === "OUT" ? m.to : direction === "IN" ? m.from : undefined;
   if (other && other !== ZERO && !wl.labels[other.toLowerCase()] && !watched.has(other) && (await kindOf(other)) === "contract")
