@@ -1,0 +1,41 @@
+Terminal output shown in the demo video (assets: two real runs recorded with asciinema, separate from the proof runs).
+Both ran against Pharos mainnet via the hosted Chain MCP and the Docs MCP; the command is typed on screen.
+
+=== documented
+
+Pharos mainnet (chain 1672), every read pinned to block 20535003
+
+[1/1] USDC (Circle-deployed) · decimals()
+  contract 0xC879C018dB60520F4355C26eD1a6D572cdAC1815  (this address is listed on the docs Token Registry page)
+  1. Docs MCP (askQuestion):
+     "decimals() is a read-only token contract call that returns the number of decimal places used to display token amounts."
+     "For USDC, Pharos examples use 6 decimals: the returned value 6 means divide raw token units by 10⁶ to get USDC."
+     "* 1_000_000 raw units = 1 USDC * 10_000 raw units = 0.01 USDC So decimals() returns the precision count, not a balance or token amount."
+     (checked: decimals() is named on https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet, https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet)
+     sources:
+       - Token Registry: https://docs.pharos.xyz/getting-started/token-registry
+       - Circle CCTP: https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/circle-cctp
+       - About Pharos: https://docs.pharos.xyz/introduction/readme
+       - x402 Pacific Mainnet: https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet
+  2. Chain MCP (eth_call @ 20535003): 6
+  3. Reading: Docs: "decimals() is a read-only token contract call that returns the number of decimal places used to display token amounts. For USDC, Pharos examples use 6 decimals: the returned value 6 means divide raw token units by 10⁶ to get USDC. * 1_000_000 raw units = 1 USDC * 10_000 raw units = 0.01 USDC So decimals() returns the precision count, not a balance or token amount." The chain returned 6, so 1 whole token is 10^6 base units, and an amount shown with 6 decimal places is the base-unit integer divided by that.
+
+via https://mcp.pharos.xyz/mcp (Chain MCP) and https://docs.pharos.xyz/~gitbook/mcp (Docs MCP)
+
+=== undocumented
+
+Pharos mainnet (chain 1672), every read pinned to block 20535049
+
+[1/1] Multicall3 (canonical contract) · getChainId()
+  contract 0xcA11bde05977b3631167028862bE2a173976CA11  (this address is NOT on the docs Token Registry page)
+  1. Docs MCP (askQuestion):
+     NOT DESCRIBED in the docs: no cited page names getChainId, so no explanation is given (nothing is filled in from general knowledge).
+     sources:
+       - About Pharos: https://docs.pharos.xyz/introduction/readme
+       - Why Pharos: https://docs.pharos.xyz/introduction/why-pharos
+       - Pharos MCP: https://docs.pharos.xyz/tooling-and-infrastructure/mcp
+       - Node Debugging & Configuration: https://docs.pharos.xyz/node-and-validator-guide/node-debugging-and-configuration
+  2. Chain MCP (eth_call @ 20535049): 1672
+  3. Reading: The docs do not describe getChainId(), so there is no explanation to read this against and no unit is applied. Raw result: 1672.
+
+via https://mcp.pharos.xyz/mcp (Chain MCP) and https://docs.pharos.xyz/~gitbook/mcp (Docs MCP)
