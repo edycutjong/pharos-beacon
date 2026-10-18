@@ -1,0 +1,56 @@
+# cast: send.cast (output of the video recording, ANSI and npm echo removed)
+$ npm run doc-grounded-builder-agent -- "send PHRS on Atlantic" --execute
+[1/1] request: "send PHRS on Atlantic"  → send on atlantic
+  1. PLAN (Docs MCP, before acting)
+     asked: How do I send PHRS on Pharos Atlantic testnet?
+     "Use cast send to transfer native PHRS."
+     "Atlantic Testnet uses chain ID 688689 and RPC https://atlantic.dplabs-internal.com (Atlantic Testnet)."
+     "Replace the recipient and amount as needed."
+     (checked: cast send + --value is named on https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide)
+     sources:
+       - Pharos Network Snapshots: https://docs.pharos.xyz/node-and-validator-guide/pharos-network-snapshots
+       - ZAN RPC: https://docs.pharos.xyz/tooling-and-infrastructure/rpc/zan
+       - Network: https://docs.pharos.xyz/getting-started/network
+       - Atlantic Testnet: https://docs.pharos.xyz/getting-started/network/atlantic-testnet
+  2. EXECUTE (Chain MCP)
+     1) Docs: a native transfer is `cast send <to> --value <amount>`; here the Chain MCP prepares it (nonce 42, gas 21000, fees from the latest block)
+     2) Sign locally and broadcast through the Chain MCP (send_raw_transaction)
+     3) Re-read the receipt and both balances through the Chain MCP
+     unsigned transaction (for signature):
+       from: 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+       to: 0x000000000000000000000000000000000000dEaD
+       value: 1000000000000000 wei (0.001 PHRS)
+       chainId: 688689
+       nonce: 42
+       gas: 21000
+       maxFeePerGas: 2000000000
+       maxPriorityFeePerGas: 0
+     tx 0x710349f2cbf29a57c253449b9bfdb0427372bcdea4e9b2b5be9f8dca2c4b8eb7  https://atlantic.pharosscan.xyz/tx/0x710349f2cbf29a57c253449b9bfdb0427372bcdea4e9b2b5be9f8dca2c4b8eb7
+  3. VERIFY (on chain)
+     expected: receipt status 0x1, recipient +1000000000000000 wei, sender −(1000000000000000 wei + gasUsed × effectiveGasPrice)
+     observed: success in block 31561931; recipient 3761145791673329147 → 3762145791673329147 wei, sender 14942846638999979000 → 14941825638999979000 wei, fee 21000000000000 wei
+     ok   sender can cover value + max fee: 14942846638999979000 wei ≥ 1042000000000000 wei
+     ok   receipt status: success
+     ok   recipient balance rose by the amount: 1000000000000000
+     ok   sender fell by the amount + gasUsed × effectiveGasPrice: 1021000000000000
+  RESULT: SUCCESS
+summary: 1 requests · 1 verified · 0 prepared · 0 not covered/executed · 0 failed
+via Docs MCP https://docs.pharos.xyz/~gitbook/mcp and the Pharos Chain MCP
+⠙$
+
+# cast: uncovered.cast (output of the video recording, ANSI and npm echo removed)
+$ npm run doc-grounded-builder-agent -- "how do I bridge to Solana on Pharos?"
+[1/1] request: "how do I bridge to Solana on Pharos?"  → no executor
+  1. PLAN (Docs MCP, before acting)
+     asked: how do I bridge to Solana on Pharos?
+     NOT COVERED: the docs answer says they cannot confirm this
+     sources:
+       - About Pharos: https://docs.pharos.xyz/introduction/readme
+       - Why Pharos: https://docs.pharos.xyz/introduction/why-pharos
+       - Chainlink CCIP: https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/chainlink-ccip
+       - x402 Atlantic Testnet: https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet
+  RESULT: THE DOCS DON'T COVER THIS. The docs don't cover this, so no plan is made and nothing is executed (no improvised steps).
+summary: 1 requests · 0 verified · 0 prepared · 1 not covered/executed · 0 failed
+via Docs MCP https://docs.pharos.xyz/~gitbook/mcp and the Pharos Chain MCP
+⠙$
+
