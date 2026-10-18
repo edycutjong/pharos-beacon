@@ -50,3 +50,5 @@ ab63ae3ab3622128c4ff3021500c283760d7ba89:tasks/batch-executor/proof/one-fails.js
 350b08430683c335e724c94b8664edba690d5059:tasks/batch-executor/proof/all-success.json:generic-api-key:165
 350b08430683c335e724c94b8664edba690d5059:tasks/batch-executor/proof/all-success.json:generic-api-key:189
 350b08430683c335e724c94b8664edba690d5059:tasks/batch-executor/proof/all-success.json:generic-api-key:213
+819b1debeaf83d8dd80b639e7414b1c593a7448d:tasks/whale-watching-agent/proof/between-labelled.json:generic-api-key:56
+819b1debeaf83d8dd80b639e7414b1c593a7448d:tasks/whale-watching-agent/proof/between-labelled.json:generic-api-key:61
