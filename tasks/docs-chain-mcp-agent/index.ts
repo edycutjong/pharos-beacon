@@ -211,7 +211,9 @@ export function format(steps: Step[], block: string): string {
     if (d.error) out.push(`     docs call failed: ${d.error}`);
     else if (d.documented) out.push(...d.excerpt.map((x) => `     "${x}"`), `     (checked: ${signature(t)} is named on ${d.groundedIn.join(", ")})`);
     else out.push(`     NOT DESCRIBED in the docs: ${d.sources.length ? `no cited page names ${t.fn}` : "askQuestion found nothing"}, so no explanation is given (nothing is filled in from general knowledge).`);
-    if (d.sources.length) out.push("     sources:", ...d.sources.slice(0, 4).map((x) => `       - ${x.title}: ${x.url}`));
+    // The page that names the function is listed first and marked, so the "(checked: …)" line points at a page the reader can see.
+    const named = (x: { url: string }) => d.groundedIn.includes(x.url);
+    if (d.sources.length) out.push("     sources:", ...[...d.sources.filter(named), ...d.sources.filter((x) => !named(x))].slice(0, 4).map((x) => `       - ${x.title}: ${x.url}${named(x) ? `  (names ${t.fn})` : ""}`));
     out.push(`  2. Chain MCP (eth_call @ ${c.block}): ${c.raw}`);
     out.push(`  3. Reading: ${s.interpretation}`, "");
   });

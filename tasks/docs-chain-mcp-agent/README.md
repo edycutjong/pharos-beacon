@@ -12,8 +12,8 @@ explains a contract function from the Developer Docs MCP, then calls it via Chai
 |---|---|---|---|
 | 1 | The explanation comes from Docs MCP, with sources referenced | step 1 of every function is `askQuestion`; the sentences that name the function are printed verbatim and the cited pages are listed | every proof has `docs.excerpt` and `docs.sources` · [usdc-balanceof](proof/usdc-balanceof.json) |
 | 2 | The agent then calls the same function on chain via Chain MCP | step 2 is an `eth_call` of the same selector on the same contract, after the docs step, pinned to one block | `chain.raw` + `chain.block` in each proof |
-| 3 | Interprets the result in the context of the explanation | step 3 quotes the docs excerpt it relies on and applies it (decimals → "26,001.969072 USDC"); with no docs explanation it says so and gives the raw value | the `interpretation` field of each proof |
-| 4 | Works for at least 2 different functions or contracts | 5 functions on 3 contracts (the CLI accepts six; the demo runs five) (USDC, WPROS, Multicall3): 3 explained by the docs and read, 2 that the docs do not describe, reported as such | the five proofs below |
+| 3 | Interprets the result in the context of the explanation | step 3 quotes the docs excerpt it relies on and applies it (decimals → "25,556.1963 USDC"); with no docs explanation it says so and gives the raw value | the `interpretation` field of each proof |
+| 4 | Works for at least 2 different functions or contracts | 5 functions on 3 contracts (USDC, WPROS, Multicall3; the CLI accepts six function names, the demo runs five): 3 explained by the docs and read, 2 that the docs do not describe, reported as such | the five proofs below |
 
 ## How it works
 
@@ -24,6 +24,9 @@ For each function the agent does three things in order.
    (the page is printed as `checked: … is named on <url>`). It also checks that the contract address is listed on the docs
    [Token Registry](https://docs.pharos.xyz/getting-started/token-registry) page. If there is no grounded explanation the agent prints
    `NOT DESCRIBED in the docs` and gives none: no explanation and no unit from general knowledge.
+   What "yes" means is only that: a page `askQuestion` cited names the function. A figure inside a quoted sentence (a unit, a count) is not checked
+   against a page; the Reading takes the unit from the chain's own `decimals()`. The policy is cited pages only. The [Doc-Grounded Builder](../doc-grounded-builder-agent/)
+   also falls back to `searchDocumentation`, so it can ground `totalSupply` on a page this agent never sees (the Rust guide) and reports it as described where this agent says "not described".
 2. **Chain MCP.** The same function, same contract, `eth_call` at the block read from `get_block_number` (one block for the whole run).
 3. **Reading.** Deterministic code (no language model, so the same inputs give the same report) combines the two: it quotes the docs excerpt, then
    applies it. `decimals()` → "1 token is 10^N base units". `balanceOf` / `totalSupply` → the base-unit integer divided by the chain's own
@@ -38,31 +41,31 @@ Each proof is a separate run committed on its own, so every file records `"dirty
 
 | # | Contract | Function | Docs explanation | Chain result | Proof |
 |---|---|---|---|---|---|
-| 1 | USDC (Circle-deployed) `0xc879…1815` | `decimals()` | yes, grounded | `6` | [proof](proof/usdc-decimals.json) |
-| 2 | USDC (Circle-deployed) `0xc879…1815` | `balanceOf(address)` | yes, grounded | `26001969072` → 26,001.969072 USDC | [proof](proof/usdc-balanceof.json) |
-| 3 | WPROS `0x52c4…f0b0` | `decimals()` | yes, grounded (the registry lists the address, not the decimals; the chain gives 18) | `18` | [proof](proof/wpros-decimals.json) |
-| 4 | WPROS `0x52c4…f0b0` | `totalSupply()` | no: no cited page names it | `23265853327450767742350284` (raw, no unit applied) | [proof](proof/wpros-totalsupply.json) |
+| 1 | USDC (Circle-deployed) `0xc879…1815` | `decimals()` | yes (a cited page names `decimals()`) | `6` | [proof](proof/usdc-decimals.json) |
+| 2 | USDC (Circle-deployed) `0xc879…1815` | `balanceOf(address)` | yes (a cited page names `balanceOf(address)`) | `25556196300` → 25,556.1963 USDC | [proof](proof/usdc-balanceof.json) |
+| 3 | WPROS `0x52c4…f0b0` | `decimals()` | yes (a cited page names `decimals()`; the registry lists the address, not the decimals, so the unit is the chain's 18) | `18` | [proof](proof/wpros-decimals.json) |
+| 4 | WPROS `0x52c4…f0b0` | `totalSupply()` | no: no cited page names it | `23287628294322235119052474` (raw, no unit applied) | [proof](proof/wpros-totalsupply.json) |
 | 5 | Multicall3 `0xcA11…CA11` | `getChainId()` | no: no cited page names it | `1672` (raw) | [proof](proof/multicall3-getchainid.json) |
 
 An explained function (proof 2, abridged only by the 4-source cap in the printout):
 
 ```text
 $ npm run docs-chain-mcp-agent -- --contract 0xc879c018db60520f4355c26ed1a6d572cdac1815 --function balanceOf --arg 0x94807fE4300D15909C1a4fd39f76c61D68aee11E
-Pharos mainnet (chain 1672), every read pinned to block 20534832
+Pharos mainnet (chain 1672), every read pinned to block 20573640
 
 [1/1] USDC (Circle-deployed) · balanceOf(address)  holder 0x94807fE4300D15909C1a4fd39f76c61D68aee11E [the --arg address]
   contract 0xC879C018dB60520F4355C26eD1a6D572cdAC1815  (this address is listed on the docs Token Registry page)
   1. Docs MCP (askQuestion):
-     "balanceOf(address) reads the USDC balance held by the address you pass."
-     "USDC uses 6 decimals, so divide the returned value by 1,000,000 to get USDC."
+     "balanceOf(address) reads the USDC token balance held by the address you pass."
+     "The Pharos Skill Engine shows the same balanceOf call pattern."
      (checked: balanceOf(address) is named on https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide)
      sources:
+       - Pharos Skill Engine: https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide  (names balanceOf)
        - About Pharos: https://docs.pharos.xyz/introduction/readme
        - Token Registry: https://docs.pharos.xyz/getting-started/token-registry
        - Fordefi: https://docs.pharos.xyz/tooling-and-infrastructure/wallets/fordefi
-       - Pharos Skill Engine: https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide
-  2. Chain MCP (eth_call @ 20534832): 26001969072
-  3. Reading: Docs: "balanceOf(address) reads the USDC balance held by the address you pass. USDC uses 6 decimals, so divide the returned value by 1,000,000 to get USDC." The chain returned 26001969072 base units for the holder 0x94807fE4300D15909C1a4fd39f76c61D68aee11E (the --arg address); the same block's decimals() is 6, so that is 26,001.969072 USDC.
+  2. Chain MCP (eth_call @ 20573640): 25556196300
+  3. Reading: Docs: "balanceOf(address) reads the USDC token balance held by the address you pass. The Pharos Skill Engine shows the same balanceOf call pattern." The chain returned 25556196300 base units for the holder 0x94807fE4300D15909C1a4fd39f76c61D68aee11E (the --arg address); the same block's decimals() is 6, so that is 25,556.1963 USDC.
 
 via https://mcp.pharos.xyz/mcp (Chain MCP) and https://docs.pharos.xyz/~gitbook/mcp (Docs MCP)
 ```
@@ -71,7 +74,7 @@ A function the docs do not describe (proof 4):
 
 ```text
 $ npm run docs-chain-mcp-agent -- --contract 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0 --function totalSupply
-Pharos mainnet (chain 1672), every read pinned to block 20534880
+Pharos mainnet (chain 1672), every read pinned to block 20573677
 
 [1/1] WPROS (Wrapped PROS) · totalSupply()
   contract 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0  (this address is listed on the docs Token Registry page)
@@ -82,8 +85,8 @@ Pharos mainnet (chain 1672), every read pinned to block 20534880
        - Pacific Mainnet: https://docs.pharos.xyz/getting-started/network/pacific-mainnet
        - Token Registry: https://docs.pharos.xyz/getting-started/token-registry
        - Pharos MCP: https://docs.pharos.xyz/tooling-and-infrastructure/mcp
-  2. Chain MCP (eth_call @ 20534880): 23265853327450767742350284
-  3. Reading: The docs do not describe totalSupply(), so there is no explanation to read this against and no unit is applied. Raw result: 23265853327450767742350284.
+  2. Chain MCP (eth_call @ 20573677): 23287628294322235119052474
+  3. Reading: The docs do not describe totalSupply(), so there is no explanation to read this against and no unit is applied. Raw result: 23287628294322235119052474.
 
 via https://mcp.pharos.xyz/mcp (Chain MCP) and https://docs.pharos.xyz/~gitbook/mcp (Docs MCP)
 ```
@@ -92,4 +95,4 @@ via https://mcp.pharos.xyz/mcp (Chain MCP) and https://docs.pharos.xyz/~gitbook/
 
 - Read-only: no key, no transaction, no mainnet write. Nothing is written unless `--proof` is passed.
 - The demo (no flags) picks a USDC holder with `get_logs` (the recipient of a large recent transfer that still holds a balance), as Read Contract State does.
-- 12 tests in `test/docs-chain-mcp-agent.test.ts` (grounding, refusals, the docs-before-chain order, one pinned block, units only for a documented function, flag errors, a token without decimals()).
+- 13 tests in `test/docs-chain-mcp-agent.test.ts` (grounding, refusals, the docs-before-chain order, one pinned block, units only for a documented function, flag errors, a token without decimals()).
