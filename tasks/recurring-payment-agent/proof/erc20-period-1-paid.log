@@ -1,0 +1,10 @@
+$ npm run recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/wphrs.json --now 2026-11-01T09:00:00Z --execute --proof erc20-period-1-paid
+clock: injected --now 2026-11-01T09:00:00.000Z (not the real time)
+paying wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 (Atlantic)
+RECEIPT [console] Recurring payment wphrs-demo #1: 0.0001 WPHRS paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (due 2026-11-01) https://atlantic.pharosscan.xyz/tx/0x56c3f1cec826aa04b105d164ba9b563c13c5fd663d75ac57a59b9b6064d37c95
+  period 1 (due 2026-11-01): paid — block 31576890, gas used 35376
+
+plan wphrs-demo: 0.0001 WPHRS weekly to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B, from 2026-11-01, 2 periods
+period  due         status   amount          tx / note
+1       2026-11-01  paid     0.0001 WPHRS    0x56c3f1ce…d37c95 block 31576890
+next payment: period 2 on 2026-11-08 (09:00Z), 0.0001 WPHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
