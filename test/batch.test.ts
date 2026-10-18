@@ -126,6 +126,16 @@ describe("runBatch", () => {
     expect(formatResult(r)).toContain("3 transactions to sign and send alone → 1 batch transaction");
   });
 
+  it("a run that had to approve says so on the steps line, in both layouts", async () => {
+    const c = chain();
+    const r = await runBatch(c.call, FROM, resolveActions(specs, FROM), { execute: true, dropFailing: false, send: send(c, [0, 1, 2]) });
+    const withApprove = { ...r, approvals: [{ token: "WPHRS", tx: `0x${"cd".repeat(32)}` as Hex }] };
+    expect(formatResult(withApprove)).toContain("→ 1 batch transaction (+1 one-time approve transaction this run");
+    expect(formatCompact(withApprove)).toContain("steps: 3 transactions alone → 1 (+1 approve tx this run)");
+    expect(formatCompact(withApprove).split("\n").every((l) => l.length < 62)).toBe(true);
+    expect(formatResult(r)).not.toContain("approve transaction");
+  });
+
   it("partial failure: the failed action is named, the rest are applied and not undone", async () => {
     const c = chain({ failing: [1] });
     const r = await runBatch(c.call, FROM, resolveActions(specs, FROM), { execute: true, dropFailing: false, send: send(c, [0, 2]) });

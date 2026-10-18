@@ -45,7 +45,8 @@ export function formatResult(r: BatchResult): string {
     const word = c.savedGas >= 0n ? "saved" : "cost MORE by";
     const abs = c.savedGas >= 0n ? c.savedGas : -c.savedGas;
     out.push(`gas: ${c.comparable} action(s) sent one by one ≈ ${c.individualGas} (sum of estimates) vs ${c.batchGasUsed} used by the batch → ${word} ${abs} (${c.savedPct.replace("-", "")}%)`);
-    out.push(`steps: ${c.txAlone} transactions to sign and send alone → 1 batch transaction`);
+    const ap = r.approvals?.length ?? 0;
+    out.push(`steps: ${c.txAlone} transactions to sign and send alone → 1 batch transaction${ap ? ` (+${ap} one-time approve transaction${ap === 1 ? "" : "s"} this run: the allowance Multicall3 needs; see "Gas, honestly" in the README)` : ""}`);
   }
   return out.join("\n");
 }
@@ -93,7 +94,8 @@ export function formatCompact(r: BatchResult): string {
   if (r.comparison) {
     const c = r.comparison;
     out.push(`gas: ${c.comparable} sent alone ≈ ${c.individualGas} vs ${c.batchGasUsed} batched → ${c.savedGas >= 0n ? "saved" : "cost more by"} ${c.savedPct.replace("-", "")}%`);
-    out.push(`steps: ${c.txAlone} transactions alone → 1`);
+    const ap = r.approvals?.length ?? 0;
+    out.push(`steps: ${c.txAlone} transactions alone → 1${ap ? ` (+${ap} approve tx this run)` : ""}`);
   }
   return out.join("\n");
 }
