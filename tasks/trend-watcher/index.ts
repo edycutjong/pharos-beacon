@@ -75,7 +75,7 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   const o = res.observation;
   console.log(`observed ${describeMetric(spec)}: ${fmt(spec, BigInt(o.value))} at block ${o.block} — ${res.added === "added" ? "stored" : res.added === "duplicate" ? "NOT stored: block already in the history (de-duplicated)" : "NOT stored: older than the newest stored block"}`);
   console.log(historyTable(spec, res.state.observations, rule, last));
-  console.log(res.acted.length ? `acted ${res.acted.length}× (the trend was met)` : `no action: ${res.evaluation.state === "too-few" ? `only ${res.state.observations.length} of the ${steps + 1} observations a ${steps}-move trend needs` : `streak ${res.evaluation.streak} of ${steps}`}`);
+  console.log(res.acted.length ? `acted ${res.acted.length}× (the trend was met)` : `no action: ${res.evaluation.state === "too-few" ? `only ${res.state.observations.length} of the ${steps + 1} observations a ${steps}-move trend needs` : res.evaluation.state === "triggered" ? "the trend was already acted on" : `streak ${res.evaluation.streak} of ${steps}`}`);
 
   if (values.proof) {
     const ev = evaluate(res.state.observations, rule);
