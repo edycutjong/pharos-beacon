@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "task": "event-log-monitor",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/event-log-monitor/index.ts --contract 0x838800b758277CC111B2d48Ab01e5E164f8E9471 --event Transfer --state /tmp/p91/mon.json --log /tmp/p91/monitor-run2.log --poll-ms 2500 --max-polls 4 --proof restart-run",
+    "git": {
+      "commit": "a627ed6391e5",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T00:38:59.315Z"
+  },
+  "contract": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+  "event": "Transfer(address,address,uint256)",
+  "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+  "startHead": "31555659",
+  "polls": 4,
+  "newEvents": 0,
+  "nextBlock": "31555662",
+  "caught": []
+}
