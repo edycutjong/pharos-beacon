@@ -6,9 +6,9 @@ risk check of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos at block 2054
   [ok    ] nonce and balance (freshly funded?)
            It has sent 44628 transactions (nonce 44628) and holds 52893234045000000000 wei, so it has been used.
   [ok    ] interaction with flagged addresses
-           None of its 1 token counterpart in blocks 20518019–20548019 is on our flagged list (1 address). Native-coin transfers leave no log and are not covered.
+           None of its 1 token counterpart in blocks 20518019–20548019 (about 8.5 hours) is on our flagged list (1 address). Native-coin transfers leave no log and are not covered.
   [ok    ] approvals to unknown spenders
-           0 open token approvals in blocks 20518019–20548019, none to a spender we do not recognise.
+           0 open token approvals in blocks 20518019–20548019 (about 8.5 hours), none to a spender we do not recognise.
   [info  ] token activity in the lookback range
-           1152 token transfers with 1 counterpart in blocks 20518019–20548019 (30000 blocks).
+           1152 token transfers with 1 counterpart in blocks 20518019–20548019 (about 8.5 hours).
 RISK: LOW — no red flags

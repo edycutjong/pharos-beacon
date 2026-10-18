@@ -117,7 +117,8 @@ export async function main(
     outcomes = await withLock(stateFile, () => runRequests(policy, [request], { stateFile, auditFile, execute: values.execute!, send }));
     outcomes.forEach((o, i) => console.log(formatOutcome(o, i)));
   }
-  console.log(`audit log: ${verifyAudit(auditFile)} entries, hash chain intact (${basename(auditFile)})`);
+  const entries = verifyAudit(auditFile);
+  console.log(`audit log: ${entries} ${entries === 1 ? "entry" : "entries"}, hash chain intact (${basename(auditFile)})`);
   if (values.proof !== undefined) {
     const name = `${values.proof}.json`;
     console.log(`proof: ${writeProof(new URL(`proof/${name}`, import.meta.url), { gate: { blockOn, denied, outcome: denied ? "denied by wallet_risk, nothing sent" : outcomes[0]?.status }, request, report: reportForProof(report), outcomes }, meta!)}`);

@@ -4,7 +4,8 @@
 observations across runs and acts only once a multi-observation trend is confirmed.
 **Run** (the committed history in `state/history.json` belongs to the Atlantic balance below; for another metric add `--state <file>`): `npm run trend-watcher -- observe --metric balance|supply|basefee [--network atlantic|pharos] [--address 0x…] [--token 0x…] [--steps 3] [--direction fall|rise] [--block N] [--discord] [--proof name]`
 and `-- history <same flags> [--last 12]`. Mainnet (`pharos`) is read through the hosted Chain MCP: keyless. `atlantic` needs the one-time `npm run setup:mcp` (no key to observe; the demo helper that moves a balance needs the testnet keys).
-**Skill:** [`skills/trend-watcher/SKILL.md`](../../skills/trend-watcher/SKILL.md).
+**Skill:** [`skills/trend-watcher/SKILL.md`](../../skills/trend-watcher/SKILL.md). **Install as a skill:** `npx skills add https://github.com/edycutjong/pharos-beacon --skill trend-watcher`.
+**See it in one command** (keyless, no waiting): `npm run trend-watcher -- history --metric balance --network pharos --address 0x1F3546a29EeC2102c8d52E21a45114124014c85C --state tasks/trend-watcher/state/mainnet-balance.json` prints the stored mainnet history with the row marked `◀ TREND MET`.
 **Uses:** Chain MCP ✅ (`get_block_number`, then `get_balance` / `eth_call` totalSupply / `get_block` AT that block; the demo helper also uses `get_transaction_count`, `estimate_gas`, `get_block`, `get_gas_price`, `send_raw_transaction`, `get_transaction_receipt`) · SkillEngine: skill folder in the SkillEngine layout · Docs MCP: not used.
 
 ## How it works
@@ -26,7 +27,7 @@ Because the trigger points are recomputed from the stored history and each trigg
 | 2 | "Trend rule needs at least 3 observations to trigger and is configurable." | `--steps N` (≥ 2, so ≥ 3 observations; 1 is refused) and `--direction fall|rise`; 2 observations print "only 2 of the 3 observations a 2-move trend needs" and cannot trigger | `evaluate()` in [`src/trend/watch.ts`](../../src/trend/watch.ts) · `test/trend.test.ts` "needs at least 3 observations" · [`proof/s1-baseline.json`](proof/s1-baseline.json) (`too-few`) |
 | 3 | "Handles restarts without losing or duplicating history." | Atomic write, dedupe by block, stale blocks refused. Tested with a real `kill -9` of a process that appends in a loop: the file always parses, blocks have no gap and no duplicate. Live: re-reading block 31570206 stored nothing and took no action (the block is already recorded as acted) | [`proof/s7-dedupe.json`](proof/s7-dedupe.json) (`"added": "duplicate"`, `"acted": []`) · `test/trend.test.ts` "survives kill -9" |
 | 4 | "Shows the stored history and the exact moment the trend condition was met." | `history` prints every observation with block, value, move, streak, and a `◀ TREND MET` marker on the exact row (see below) | [`proof/history.log`](proof/history.log) · [`proof/s6-trend-met.json`](proof/s6-trend-met.json) (`evaluation.triggers`, `acted`) |
-| 5 | "Demonstrates that a single spike does not trigger it." | Observation #2 was a fall, #3 a rise: a lone dip that reversed. The run on #3 reports streak 0 and acts on nothing; only three falls in a row (#4 to #6) fire | [`proof/s2-fall.json`](proof/s2-fall.json) · [`proof/s3-rise.json`](proof/s3-rise.json) (`triggers: []`) · [`proof/s4-fall.json`](proof/s4-fall.json) (streak back at 1: the rise reset it) · `test/trend.test.ts` "a single spike never triggers" |
+| 5 | "Demonstrates that a single spike does not trigger it." | Observation #2 was a fall, #3 a rise: a lone dip that reversed. The run on #3 reports streak 0 and acts on nothing; only three falls in a row (#4 to #6) fire | [`proof/s2-fall.json`](proof/s2-fall.json) · [`proof/s3-rise.json`](proof/s3-rise.json) (`triggers: []`) · [`proof/s4-fall.json`](proof/s4-fall.json) (streak back at 1: the rise reset it) · `test/trend.test.ts` "a single spike never triggers" · a 10× deeper dip that reverses: [`proof/big-spike-2.json`](proof/big-spike-2.json) → [`big-spike-3.json`](proof/big-spike-3.json) (below) |
 
 ## The live run (Atlantic, real observations, a trend we made)
 
@@ -45,8 +46,7 @@ a *rise*: wallet 1 pays wallet 2). Every observation is a real Chain MCP read of
 | 7 | same block again (`--block 31570206`) | none | 31570206 | [`s7-dedupe`](proof/s7-dedupe.json) | not stored (duplicate), no second alert |
 
 Each move is a real Atlantic transaction (0.001 PHRS, status success; the links above). The run proofs record the observations, the history and the evaluation; the terminal output of the runs
-behind steps 3 and 6 (and 5) is in [`proof/video-casts.log`](proof/video-casts.log), and the video shows steps 3 and 6. A stray test rise `0x6461e6ef…d5c4` and one more small test move (hash not recorded)
-happened before observation #1 and are not part of the history. In the proofs `evaluation.triggers` counts from 0 and `acted[].index` from 1: both mean observation #6.
+behind steps 3 and 6 (and 5) is in [`proof/video-casts.log`](proof/video-casts.log), and the video shows steps 3 and 6. In the proofs `evaluation.triggers` counts from 0 and `acted[].index` from 1: both mean observation #6.
 
 ```text
 history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic · 6 observations, showing 6 · rule: 3 consecutive falls
@@ -57,6 +57,56 @@ history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlanti
   #5   block 31570193  15.027137205 PHRS          fall  streak 2
   #6   block 31570206  15.026116205 PHRS          fall  streak 3   ◀ TREND MET: 3 consecutive falls
 trend: █▅▇▅▃▁   (triggered, current streak 3/3)
+```
+
+## A trend on mainnet data we do not control
+
+The wallet `0x1F35…c85C` ([the wallet the Wallet Risk Checker calls clean](../wallet-risk-checker/README.md); it has sent 44,628 transactions) pays gas all day, so its native PROS balance falls between top-ups.
+Four runs, each its own process, read its balance **at four pinned mainnet blocks** (`--block`) into [`state/mainnet-balance.json`](state/mainnet-balance.json); the third fall fires the rule.
+These are archive reads of past blocks taken in one sitting (2026-10-18), not four live waits: the history was replayed, the numbers are real.
+
+| # | Block | Balance (PROS) | Move | Run proof |
+|---|---|---|---|---|
+| 1 | 20548019 | 52.893234045 | start | [`mainnet-balance-1`](proof/mainnet-balance-1.json) |
+| 2 | 20548119 | 52.889172915 | fall | [`mainnet-balance-2`](proof/mainnet-balance-2.json) |
+| 3 | 20548219 | 52.877331345 | fall | [`mainnet-balance-3`](proof/mainnet-balance-3.json) |
+| 4 | 20548319 | 52.873256895 | fall: **TREND MET** | [`mainnet-balance-4`](proof/mainnet-balance-4.json) · [history](proof/mainnet-balance-history.log) |
+
+```text
+$ npm run trend-watcher -- observe --metric balance --network pharos --address 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548319 --state tasks/trend-watcher/state/mainnet-balance.json --proof mainnet-balance-4
+ACTION [console] TREND MET: native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos — 3 consecutive falls at observation #4 (block 20548319, 2026-10-18T13:28:50.017Z). █▆▂▁ slope -0.00665905 PHRS per observation, -0.0000665905 PHRS per block (-0.01997715 PHRS over 3 observations, 300 blocks)
+history: native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos · 4 observations, showing 4 · rule: 3 consecutive falls
+  #1   block 20548019  52.893234045 PHRS          start streak 0
+  #2   block 20548119  52.889172915 PHRS          fall  streak 1
+  #3   block 20548219  52.877331345 PHRS          fall  streak 2
+  #4   block 20548319  52.873256895 PHRS          fall  streak 3   ◀ TREND MET: 3 consecutive falls
+```
+
+(Sampled every 100 blocks, the balance then stays at 52.873256895 up to block 20548619; the four blocks above are the ones with three falls in a row.) The alert unit says "PHRS" because the formatter uses the Atlantic coin name for any native balance; mainnet's coin is PROS.
+
+## A bigger dip that reverses does not fire; small steady falls do
+
+In the table above the "spike" (#3 rise after #2 fall) has the same size as each trend step (0.001 PHRS). A second Atlantic run on a separate history ([`state/big-spike.json`](state/big-spike.json)) makes the dip **10× deeper**:
+observation #2 follows a real 0.01 PHRS move (a drop of 0.010021 PHRS), #3 follows 0.01 coming back, then three 0.001 falls (#4–#6, a drop of 0.001021 each). Only the small, persistent falls fire.
+
+| # | Move tx | Balance (PHRS) | Result | Run proof |
+|---|---|---|---|---|
+| 1 | none | 15.030116205 | baseline | [`big-spike-1`](proof/big-spike-1.json) |
+| 2 | fall 0.01: [`0x5e1f18…8526`](https://atlantic.pharosscan.xyz/tx/0x5e1f189cbd8cd1c6127018d17169741247568e03ec2c363449e182353e378526) | 15.020095205 | **10× dip**, streak 1, no action | [`big-spike-2`](proof/big-spike-2.json) |
+| 3 | rise 0.01: [`0x7075f1…7be0`](https://atlantic.pharosscan.xyz/tx/0x7075f148604480bbaeb0cb9683023a5c86c3f4639fa7f9707433f15dc78a7be0) | 15.030095205 | the dip reverses, streak 0, **no action** | [`big-spike-3`](proof/big-spike-3.json) |
+| 4 | fall 0.001: [`0x85b79b…8fd9`](https://atlantic.pharosscan.xyz/tx/0x85b79bd185bf400288099bc53325975721befa8fb0f1dc0c347c748bf1a28fd9) | 15.029074205 | streak 1 | [`big-spike-4`](proof/big-spike-4.json) |
+| 5 | fall 0.001: [`0x6437ca…be9e`](https://atlantic.pharosscan.xyz/tx/0x6437caec699f91c9987665e356b9d1e19f4cd25fe4dc89d9d09490000a42be9e) | 15.028053205 | streak 2 | [`big-spike-5`](proof/big-spike-5.json) |
+| 6 | fall 0.001: [`0x40921e…2ba9`](https://atlantic.pharosscan.xyz/tx/0x40921e55e14b0d700a1625be7a5803f83d62add28b67238bb56b5617f0d92ba9) | 15.027032205 | streak 3: **TREND MET** (console action, no Discord) | [`big-spike-6`](proof/big-spike-6.json) |
+
+```text
+history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic · 6 observations, showing 6 · rule: 3 consecutive falls
+  #1   block 31576747  15.030116205 PHRS          start streak 0
+  #2   block 31576751  15.020095205 PHRS          fall  streak 1
+  #3   block 31576757  15.030095205 PHRS          rise  streak 0
+  #4   block 31576767  15.029074205 PHRS          fall  streak 1
+  #5   block 31576772  15.028053205 PHRS          fall  streak 2
+  #6   block 31576778  15.027032205 PHRS          fall  streak 3   ◀ TREND MET: 3 consecutive falls
+trend: █▁▇▇▆▅   (triggered, current streak 3/3)
 ```
 
 ## Beyond the requirements: sparkline and slope
@@ -70,13 +120,14 @@ TREND MET: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlan
 
 ## A real metric that does not trend (said plainly)
 
-Mainnet base fee, three observations through the hosted Chain MCP ([`state/mainnet-basefee.json`](state/mainnet-basefee.json), proofs
-`mainnet-basefee-1..3`): 10 gwei each time. Three observations are fewer than the four a 3-step rule needs, so every proof reads `too-few`: nothing could fire for lack of data, and this proof does not show a flat series being rejected.
+Mainnet base fee, five observations through the hosted Chain MCP ([`state/mainnet-basefee.json`](state/mainnet-basefee.json), proofs `mainnet-basefee-1..5`): 10 gwei each time. The first three are fewer than the four a 3-step rule needs, so those proofs read `too-few`;
+with #4 and #5 the series has enough observations and the rule is **evaluated and rejects a flat series**: `no action: streak 0 of 3` ([`mainnet-basefee-5.json`](proof/mainnet-basefee-5.json), [log](proof/mainnet-basefee-5.log)).
 `--metric supply --token <ERC-20>` watches a token's `totalSupply()` the same way.
 
 ## Limits
 
-- The Atlantic trend is **made by us** with two of our own wallets; real chain metrics seldom fall three times in a row inside a session.
+- The Atlantic trends are **made by us** with two of our own wallets; the mainnet trend is real data but replayed from pinned blocks in one sitting, not watched live; real chain metrics seldom fall three times in a row inside a session.
+- A stray test rise `0x6461e6ef…d5c4` and one more small test move (hash not recorded) happened before observation #1 of the first Atlantic run and are not part of its history.
 - One metric per history file (another is refused). History is capped at 1,000 observations.
 - The action is a console line or one Discord message. If a crash lands between the message and its record, the next run repeats that one alert rather than losing it.
 - A run observes once; scheduling (cron, a loop) is yours.

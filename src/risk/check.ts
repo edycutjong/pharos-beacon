@@ -71,6 +71,8 @@ export interface RiskReport {
   /** The head the check was pinned to. */
   block: bigint;
   lookbackBlocks: bigint;
+  /** The lookback window as measured in block time. */
+  lookbackSeconds: number;
   verdict: Verdict;
   signals: Signal[];
   /** The reasons that moved the verdict (every medium and high signal), in plain language. */
@@ -189,7 +191,9 @@ export async function checkAddress(call: Call, address: Hex, o: CheckOptions): P
   const sent = await q([TRANSFER_TOPIC, id]);
   const received = await q([TRANSFER_TOPIC, null, id]);
   const approvals = await q([APPROVAL_TOPIC, id]);
-  const window = `blocks ${from}–${head}`;
+  // The window in time too: block counts mean little to a reader (30,000 blocks is about 8.4 hours on Pharos mainnet).
+  const lookbackSeconds = (await stamp(head)) - (await stamp(from));
+  const window = `blocks ${from}–${head} (about ${ago(lookbackSeconds)})`;
 
   const counterparts = new Map<string, { address: Hex; txs: Set<string> }>();
   const note = (log: RpcLog, topicIndex: 1 | 2) => {
@@ -235,8 +239,15 @@ export async function checkAddress(call: Call, address: Hex, o: CheckOptions): P
   if (flaggedSpender) {
     signals.push({ id: "approvals", level: "high", title: "approvals to unknown spenders", detail: `It has an open approval to ${short(flaggedSpender.spender)}, which is on our flagged list. That address can move the approved tokens at any time (tx ${flaggedSpender.tx}).` });
   } else if (unlimitedUnknown.length) {
-    const u = unlimitedUnknown[0]!;
-    signals.push({ id: "approvals", level: "medium", title: "approvals to unknown spenders", detail: `It gave ${short(u.spender)} an unlimited allowance (2^255 or more) on token ${short(u.token)} (tx ${u.tx}). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later.${unlimitedUnknown.length > 1 ? ` ${unlimitedUnknown.length - 1} more like it.` : ""}` });
+    // An unlimited allowance to an address with no code is the approval-phishing pattern: a spender is normally a contract (router,
+    // vault), and a plain wallet holding such an allowance can drain the token whenever its owner likes. Needs no list of ours.
+    let bare: (typeof unlimitedUnknown)[number] | undefined;
+    for (const a of unlimitedUnknown) {
+      const c = ((await call("get_code", { address: a.spender, block: head.toString() })) as { code: Hex }).code;
+      if (c === "0x" || c === "0x0") { bare = a; break; }
+    }
+    const u = bare ?? unlimitedUnknown[0]!;
+    signals.push({ id: "approvals", level: bare ? "high" : "medium", title: "approvals to unknown spenders", detail: `It gave ${short(u.spender)} an unlimited allowance (2^255 or more) on token ${short(u.token)} (tx ${u.tx}). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later.${bare ? " The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours." : ""}${unlimitedUnknown.length > 1 ? ` ${unlimitedUnknown.length - 1} more like it.` : ""}` });
   } else if (unknown.length) {
     const u = unknown[0]!;
     signals.push({ id: "approvals", level: "medium", title: "approvals to unknown spenders", detail: `It has an open approval to ${short(u.spender)} that we do not recognise (tx ${u.tx}).${unknown.length > 1 ? ` ${unknown.length - 1} more.` : ""}` });
@@ -249,12 +260,12 @@ export async function checkAddress(call: Call, address: Hex, o: CheckOptions): P
     id: "counterparties",
     level: "info",
     title: "token activity in the lookback range",
-    detail: `${sent.length + received.length} token transfer${sent.length + received.length === 1 ? "" : "s"} with ${counterparts.size} counterpart${counterparts.size === 1 ? "" : "s"} in ${window} (${lookback} blocks).`,
+    detail: `${sent.length + received.length} token transfer${sent.length + received.length === 1 ? "" : "s"} with ${counterparts.size} counterpart${counterparts.size === 1 ? "" : "s"} in ${window}.`,
   });
 
   const verdict = verdictOf(signals);
   const reasons = signals.filter((s) => rank[s.level] > 0).map((s) => s.detail);
-  return { address: target, network: o.network, block: head, lookbackBlocks: lookback, verdict, signals, reasons };
+  return { address: target, network: o.network, block: head, lookbackBlocks: lookback, lookbackSeconds, verdict, signals, reasons };
 }
 
 const MARK: Record<Level, string> = { ok: "ok    ", info: "info  ", medium: "MEDIUM", high: "HIGH  " };

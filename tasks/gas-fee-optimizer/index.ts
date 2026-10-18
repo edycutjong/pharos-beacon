@@ -3,7 +3,7 @@
 // At the deadline it sends whatever the price. Then it reports what was paid against the price when you asked.
 //   npm run gas-fee-optimizer -- sample [--count 6] [--interval 5]
 //   npm run gas-fee-optimizer -- history [--last 10]
-//   npm run gas-fee-optimizer -- send --to 0x… --value 0.0001 --deadline 90 (--target-gwei 1.2 | --target-percentile 25 [--window 20]) [--interval 5] [--execute] [--proof name]
+//   npm run gas-fee-optimizer -- send --to 0x… --value 0.0001 --deadline 90 (--target-gwei 1.2 | --target-percentile 25 [--window 20]) [--interval 5] [--lead 8] [--execute] [--proof name]
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { formatEther, formatGwei, getAddress, isAddress, parseEther, parseGwei, type Hex } from "viem";
@@ -27,10 +27,10 @@ const num = (flag: string, v: string | undefined, min: number, fallback?: number
 export async function main({ onExit, signal }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- sample|history|send [flags]  (send: --to 0x… --value <PHRS> --deadline <seconds> (--target-gwei <n> | --target-percentile <1-100> [--window N]) [--interval s] [--execute] [--proof name])`,
+      usage: `npm run ${TASK} -- sample|history|send [flags]  (send: --to 0x… --value <PHRS> --deadline <seconds> (--target-gwei <n> | --target-percentile <1-100> [--window N]) [--interval s] [--lead s] [--execute] [--proof name])`,
       options: {
         count: { type: "string" }, interval: { type: "string" }, last: { type: "string" },
-        to: { type: "string" }, value: { type: "string" }, deadline: { type: "string" },
+        to: { type: "string" }, value: { type: "string" }, deadline: { type: "string" }, lead: { type: "string" },
         "target-gwei": { type: "string" }, "target-percentile": { type: "string" }, window: { type: "string" },
         execute: { type: "boolean", default: false }, proof: { type: "string" },
         // GAS_STATE: another history file (a recording that must not touch the committed one).
@@ -50,12 +50,14 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
   if (cmd !== "sample" && cmd !== "send") throw new UsageError(`unknown command ${cmd}: use sample, history or send`);
 
   const interval = num("--interval", values.interval, 1, 5);
-  let to: Hex | undefined, wei = 0n, deadlineS = 0, target: Target | undefined;
+  let to: Hex | undefined, wei = 0n, deadlineS = 0, leadS = 0, target: Target | undefined;
   if (cmd === "send") {
     if (!values.to || !isAddress(values.to)) throw new UsageError("--to must be a 0x address");
     to = getAddress(values.to);
     try { wei = parseEther(values.value ?? ""); } catch { throw new UsageError("--value must be an amount of PHRS, e.g. 0.0001"); }
     deadlineS = num("--deadline", values.deadline, 1);
+    leadS = num("--lead", values.lead, 0, 8);
+    if (leadS >= deadlineS) throw new UsageError("--lead must be shorter than --deadline");
     if (!!values["target-gwei"] === !!values["target-percentile"]) throw new UsageError("give exactly one of --target-gwei or --target-percentile");
     if (values["target-gwei"]) {
       try { target = { kind: "price", wei: parseGwei(values["target-gwei"]) }; } catch { throw new UsageError("--target-gwei must be a number, e.g. 1.2"); }
@@ -86,8 +88,11 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
   }
 
   const deadline = new Date(Date.now() + deadlineS * 1000);
-  console.log(`request: send ${formatEther(wei)} PHRS to ${to} · target ${target!.kind === "price" ? `${formatGwei(target!.wei)} gwei` : `p${target!.p} of the last ${target!.window} samples`} · deadline ${deadline.toISOString().slice(11, 19)}Z (${deadlineS}s)`);
-  const decision = await withLock(stateFile, () => holdUntilFavourable({ deadline, target: target!, intervalMs: interval * 1000, stateFile, sample: sampleOnce, log: (l) => console.log(`  ${l}`) }));
+  // The send itself (nonce, gas estimate, broadcast, block) takes a few seconds, so the hold ends `--lead` seconds early:
+  // the transaction is broadcast, and normally mined, before the deadline instead of after it.
+  const decideBy = new Date(deadline.getTime() - leadS * 1000);
+  console.log(`request: send ${formatEther(wei)} PHRS to ${to} · target ${target!.kind === "price" ? `${formatGwei(target!.wei)} gwei` : `p${target!.p} of the last ${target!.window} samples`} · deadline ${deadline.toISOString().slice(11, 19)}Z (${deadlineS}s) · send decided by ${decideBy.toISOString().slice(11, 19)}Z (${leadS}s lead)`);
+  const decision = await withLock(stateFile, () => holdUntilFavourable({ deadline: decideBy, target: target!, intervalMs: interval * 1000, stateFile, sample: sampleOnce, log: (l) => console.log(`  ${l}`) }));
   console.log(`decision: send now — ${decision.reason} after ${(decision.heldMs / 1000).toFixed(1)}s (${decision.samplesTaken} samples${decision.sampleErrors ? `, ${decision.sampleErrors} failed` : ""})`);
   console.log(historyTable(loadSamples(stateFile), 6));
 
@@ -95,18 +100,23 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
   if (values.execute) {
     const signer = testnetSigner(mcp);
     const signed = await signer.send({ to: to!, value: wei });
+    const broadcastAt = new Date();
+    console.log(`broadcast ${(Math.abs(deadline.getTime() - broadcastAt.getTime()) / 1000).toFixed(1)}s ${broadcastAt <= deadline ? "before" : "AFTER"} the deadline (${broadcastAt.toISOString().slice(11, 23)}Z)`);
     const r = await signer.waitForReceipt(signed.hash);
+    // Block time is whole seconds: say it as the chain does.
+    const mined = await mcp.call("get_block", { block: r.blockNumber.toString() }).then((b) => (b ? new Date(Number(BigInt(b.timestamp)) * 1000) : null), () => null);
+    if (mined) console.log(`mined in block ${r.blockNumber} at ${mined.toISOString().slice(11, 19)}Z, ${(Math.abs(deadline.getTime() - mined.getTime()) / 1000).toFixed(0)}s ${mined <= deadline ? "before" : "AFTER"} the deadline (${deadline.toISOString().slice(11, 19)}Z)`);
     console.log(`${r.status === "success" ? "SENT" : "SENT but REVERTED"}: ${explorerTx("atlantic", signed.hash)} (block ${r.blockNumber}, gas used ${r.gasUsed})`);
     const eff = r.effectiveGasPrice ?? decision.requestPriceWei;
     const rep = paidReport(r.gasUsed, eff, decision.requestPriceWei);
     console.log(`price at request ${formatGwei(decision.requestPriceWei)} gwei · price paid ${formatGwei(eff)} gwei · gas paid ${formatEther(rep.paidWei)} PHRS vs ${formatEther(rep.atRequestPriceWei)} PHRS at the request price (${rep.savedWei >= 0n ? "saved" : "paid more"} ${formatEther(rep.savedWei < 0n ? -rep.savedWei : rep.savedWei)} PHRS, ${rep.savedPct}%)`);
-    result = { sent: true, tx: signed.hash, status: r.status, block: r.blockNumber.toString(), gasUsed: r.gasUsed.toString(), effectiveGasPriceWei: eff.toString(), paid: rep };
+    result = { sent: true, tx: signed.hash, status: r.status, block: r.blockNumber.toString(), broadcastMsBeforeDeadline: deadline.getTime() - broadcastAt.getTime(), minedAt: mined?.toISOString() ?? null, gasUsed: r.gasUsed.toString(), effectiveGasPriceWei: eff.toString(), paid: rep };
     if (r.status === "reverted") return 1;
   } else console.log("not sent: pass --execute to send");
 
   if (values.proof) {
     const samples = loadSamples(stateFile);
-    console.log(`proof: ${writeProof(join(HERE, "proof", `${values.proof}.json`), { request: { to, valueWei: wei.toString(), deadlineSeconds: deadlineS, target }, decision, history: samples.slice(-Math.max(decision.samplesTaken, 1)), result }, meta!)}`);
+    console.log(`proof: ${writeProof(join(HERE, "proof", `${values.proof}.json`), { request: { to, valueWei: wei.toString(), deadlineSeconds: deadlineS, leadSeconds: leadS, target }, decision, history: samples.slice(-Math.max(decision.samplesTaken, 1)), result }, meta!)}`);
   }
   return 0;
 }
