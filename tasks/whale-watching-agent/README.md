@@ -4,7 +4,7 @@
 tracks a set of addresses and reports significant moves.
 **Run:** `npm run whale-watching-agent` (keyless, Pharos mainnet, read-only; it scans the last 5,000 blocks by default). Pin a range with
 `-- --from-block 20506432 --to-block 20546432`; `--state f` remembers where it stopped so the next run continues from there;
-`--notify discord` also posts the biggest moves (see below); `--proof label` writes `proof/<label>.json`.
+`--notify discord` also posts the biggest moves (see below); `--compact` prints a narrow 3-line-per-report view (used for the demo video); `--proof label` writes `proof/<label>.json`.
 **Uses:** Chain MCP ✅ (`get_block_number`, `get_logs`, `eth_call`, `get_code`, `get_block`) · SkillEngine: only the token registry
 (`src/lib/networks.ts`) · Docs MCP: not used. The agent never sends a transaction; its only outbound call is the optional Discord message.
 
@@ -38,9 +38,10 @@ sent-set (`--sent`) makes a re-run send nothing twice. Live: 3 messages, ids in 
 |---|---|---|
 | 7 watched addresses, USDC ≥ 25,000 and WPROS ≥ 2,000 | 4,650 transfers touch a watched address, 16 are significant (10 USDC, 6 WPROS), 3 sent to Discord | [`proof/usdc-wpros-40k-blocks.json`](proof/usdc-wpros-40k-blocks.json) |
 | Same range again with the same sent-set | 0 sent, 3 already sent earlier | [`proof/rerun-no-repeat.json`](proof/rerun-no-repeat.json) |
+| Same range with `--compact` (the run recorded for the demo video; a different sent-set, so 3 more Discord messages) | the same 16 significant moves | [`proof/video-run.json`](proof/video-run.json) |
 
 The range is pinned (`--to-block 20546432`), so the same report comes back on any day; the explorer links open the real transactions.
-Both proofs were produced by committed code (`dirty: false`).
+All three proofs were produced by committed code (`dirty: false`).
 
 ```text
 $ npm run whale-watching-agent -- --from-block 20506432 --to-block 20546432 --notify discord --discord-max 3 --sent /tmp/p102/whale-sent.json --proof usdc-wpros-40k-blocks
@@ -113,4 +114,4 @@ notify discord: 3 sent (message ids 1561287457109180488, 1561287458828849172, 15
   deposit, swap or bridge" for a contract counterpart is a heuristic and says so; we do not know what the contract is.
 - A pass-through (the address held 0 before and after the block) shows as an IN and an OUT of the same size, so `totals` counts it twice.
 - The balance context is read at the move's block and the one before, so several moves in one block share one before/after pair.
-- 14 tests in `test/whale.test.ts` (watchlist validation, pinned range, de-duplication, labels, exit / new position / pass-through, summary, CLI, Discord de-dup).
+- 15 tests in `test/whale.test.ts` (watchlist validation, pinned range, de-duplication, labels, exit / new position / pass-through, summary, CLI, compact view, Discord de-dup).
