@@ -2,7 +2,7 @@ import { decodeFunctionData, encodeAbiParameters, encodeErrorResult, parseEther,
 import { describe, expect, it, vi } from "vitest";
 import { ChainToolError, type ChainMcp } from "../src/lib/mcp.js";
 import { MULTICALL3, PlanError, batchCalldata, compare, multicallAbi, resolveActions, runBatch, simulateBatch, type Send } from "../src/batch/batch.js";
-import { formatResult } from "../tasks/batch-executor/index.js";
+import { formatCompact, formatResult } from "../tasks/batch-executor/index.js";
 
 const FROM = "0x317bca01Bb101C0F1E86C21576a4e14D92B02975" as Hex;
 const R1 = "0x1111111111111111111111111111111111111111";
@@ -175,6 +175,15 @@ describe("runBatch", () => {
     expect(s).not.toHaveBeenCalled();
   });
 
+  it("the compact report is short and names the failed action", async () => {
+    const c = chain({ failing: [1] });
+    const r = await runBatch(c.call, FROM, resolveActions(specs, FROM), { execute: true, dropFailing: false, send: send(c, [0, 2]) });
+    const lines = formatCompact(r).split("\n");
+    expect(lines.length).toBeLessThanOrEqual(14);
+    expect(Math.max(...lines.map((l) => l.length))).toBeLessThan(105);
+    expect(lines.join("\n")).toMatch(/2 NOT APPLIED {2}0\.002 WPHRS → 0x2222…2222 \(insufficient allowance\)/);
+  });
+
   it("never sends a failing PHRS action (its value would stay in Multicall3) unless it is dropped", async () => {
     const c = chain({ failing: [0] });
     const s = vi.fn() as unknown as Send;
@@ -206,6 +215,10 @@ describe("batch-executor CLI", () => {
   };
   it("asks for --plan", async () => {
     expect(await run([])).toContain("--plan <file.json> is required");
+  });
+  it("a bare --plan name that does not exist is a usage error", async () => {
+    process.env.PRIVATE_KEY ??= "0x" + "11".repeat(32);
+    expect(await run(["--plan", "no-such-plan"])).toMatch(/no-such-plan: ENOENT/);
   });
   it("refuses a plan with fewer than 3 actions, naming the file", async () => {
     const { writeFileSync, mkdtempSync } = await import("node:fs");
