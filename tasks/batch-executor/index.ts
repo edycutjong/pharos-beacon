@@ -83,8 +83,8 @@ export function formatCompact(r: BatchResult): string {
   for (const d of r.dropped) out.push(`  dropped before sending: ${reason(d.failure)} (${d.label.replace(/ to 0x([0-9a-fA-F]{4})\w*([0-9a-fA-F]{4})$/, " → 0x$1…$2")})`);
   if (r.status === "blocked") out.push(`BLOCKED: ${r.blockReason ?? "no viable batch"}`);
   if (r.status === "simulated") out.push("not sent: pass --execute");
-  for (const a of r.approvals ?? []) out.push(`approved ${a.token} for Multicall3: ${short(a.tx)}…${a.tx.slice(-4)}`);
-  if (r.sent) out.push(`${r.status === "executed" ? "SENT" : "REVERTED"} ${short(r.sent.tx)}…${r.sent.tx.slice(-4)} · block ${r.sent.block} · gas used ${r.sent.gasUsed}`);
+  for (const a of r.approvals ?? []) out.push(`approved ${a.token} for Multicall3: ${short(a.tx)}`);
+  if (r.sent) out.push(`${r.status === "executed" ? "SENT" : "REVERTED"} ${short(r.sent.tx)} · block ${r.sent.block} · gas used ${r.sent.gasUsed}`);
   r.outcomes?.forEach((o, i) => out.push(`  ${i + 1} ${o.applied ? "APPLIED" : "NOT APPLIED"}  ${actionText(o.action)}${o.applied ? "" : ` (${reason(o.failure)})`}`));
   if (r.outcomes) {
     const ok = r.outcomes.filter((o) => o.applied).length;

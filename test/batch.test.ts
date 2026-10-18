@@ -181,6 +181,7 @@ describe("runBatch", () => {
     const lines = formatCompact(r).split("\n");
     expect(lines.length).toBeLessThanOrEqual(14);
     expect(Math.max(...lines.map((l) => l.length))).toBeLessThan(105);
+    expect(lines.join("\n")).toContain("SENT 0xabab…abab · block 101");
     expect(lines.join("\n")).toMatch(/2 NOT APPLIED {2}0\.002 WPHRS → 0x2222…2222 \(insufficient allowance\)/);
   });
 
