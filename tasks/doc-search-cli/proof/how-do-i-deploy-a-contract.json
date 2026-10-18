@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "task": "doc-search-cli",
+    "network": "docs",
+    "chainId": null,
+    "mcp": {
+      "endpoint": "https://docs.pharos.xyz/~gitbook/mcp"
+    },
+    "command": "bin/pharos-docs.mjs how do I deploy a contract? --proof",
+    "git": {
+      "commit": "a355a3e1e01b",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T01:34:22.339Z"
+  },
+  "result": {
+    "question": "how do I deploy a contract?",
+    "found": true,
+    "answer": "For Pharos, you can deploy with **Foundry**:\n\n1. Compile and test your contract:\n\n   ```sh\n   forge build\n   forge test\n   ```\n2. Create a Foundry script that loads your deployer key, starts broadcasting, and deploys the contract:\n\n   ```solidity\n   uint256 deployerPrivateKey = vm.envUint(\"PRIVATE_KEY\");\n   vm.startBroadcast(deployerPrivateKey);\n\n   Token token = new Token(1_000_000);\n\n   vm.stopBroadcast();\n   ```\n\n   Replace `Token` and its constructor arguments with your contract’s details.\n3. Set the key and deploy to your chosen network:\n\n   ```sh\n   export PRIVATE_KEY=<your_private_key>\n   forge script script/DeployToken.s.sol --rpc-url <PHAROS_RPC_URL> --broadcast\n   ```\n\nYour wallet needs enough testnet tokens to cover deployment costs. See the [Write Your First Token](/developer-guide/foundry/write-your-first-token) for the full example, or the [Write Your First Token](/developer-guide/hardhat/write-your-first-token) if you use Hardhat.",
+    "sources": [
+      {
+        "title": "Write Your First Uniswap Contract",
+        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-uniswap-contract"
+      },
+      {
+        "title": "Write Your First Uniswap Contract",
+        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract"
+      },
+      {
+        "title": "Validator Node Deployment",
+        "url": "https://docs.pharos.xyz/node-and-validator-guide/validator-node-deployment"
+      },
+      {
+        "title": "Write Your First Token",
+        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
+      },
+      {
+        "title": "Write Your First NFT",
+        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-nft"
+      },
+      {
+        "title": "Write Your First Token",
+        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
+      },
+      {
+        "title": "Write Your First NFT",
+        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-nft"
+      },
+      {
+        "title": "Call EVM From WASM",
+        "url": "https://docs.pharos.xyz/developer-guide/interoperability/call-evm-from-wasm"
+      },
+      {
+        "title": "Rust",
+        "url": "https://docs.pharos.xyz/developer-guide/rust"
+      },
+      {
+        "title": "Write Your First dApp",
+        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-dapp"
+      }
+    ],
+    "closest": []
+  }
+}
