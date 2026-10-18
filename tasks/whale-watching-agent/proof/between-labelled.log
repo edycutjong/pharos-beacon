@@ -1,0 +1,135 @@
+$ npm run whale-watching-agent -- --from-block 20506432 --to-block 20546432 --proof between-labelled
+whale watch on pharos (chain 1672) via https://mcp.pharos.xyz/mcp
+blocks 20506432–20546432 (40001 blocks, pinned) · 7 addresses · USDC ≥ 25000, WPROS ≥ 2000
+watchlist source: scripts/find-whales.ts at head 20546432 ranked the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (output in find-whales-output.txt). watch-1 to watch-6 are the six top USDC movers; watch-7 is the third WPROS mover (the first two are already in the list). Our own list; edit it freely.
+  watching 0xB9012614F6151D5569E48E21bABf5fF3F14F0459  watch-1 · wallet
+  watching 0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f  watch-2 · contract
+  watching 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647  watch-3 · contract
+  watching 0xfd78EE919681417d192449715b2594ab58f5D002  watch-4 · contract
+  watching 0x936564245B69f5a293b42cbd752E0eE3bb68b470  watch-5 · contract
+  watching 0xFf70F4A1d11995621854F3692acF286d8aCd04b2  watch-6 · contract
+  watching 0x1F3546a29EeC2102c8d52E21a45114124014c85C  watch-7 · wallet
+scanned USDC: 2379 transfers touch a watched address, 10 at or above 25000
+scanned WPROS: 2271 transfers touch a watched address, 6 at or above 2000
+
+4650 transfers touch a watched address · 16 at or above their token's threshold
+
+[1] IN 31,000 USDC · block 20508896 · 2026-10-17T20:26:04.000Z
+    0xbd7A…05A7 (unlabelled wallet) → 0xF350…411f (watch-2)
+    why it matters: 1.24× the 25,000 USDC threshold; it adds <0.1% to its USDC balance
+    balance of 0xF350…411f: 32,426,746.7934 USDC → 32,457,746.7934 USDC
+    https://www.pharosscan.xyz/tx/0x7d98cdfd3a325c99371c63284f5877a4866bc4f661ae0371f96870440fccd1c4
+
+[2] IN 37,274.7906 USDC · block 20520505 · 2026-10-17T23:50:52.000Z
+    0xbdCD…F423 (unlabelled wallet) → 0xF350…411f (watch-2)
+    why it matters: 1.49× the 25,000 USDC threshold; it adds 0.1% to its USDC balance
+    balance of 0xF350…411f: 32,477,724.7934 USDC → 32,514,999.5841 USDC
+    https://www.pharosscan.xyz/tx/0x04cc4f4285787afdd367e8a34a48feb6a4e75b9c2e2d35409ccd31221a03d36f
+
+[3] IN 50,133.0752 USDC · block 20522547 · 2026-10-18T00:27:10.000Z
+    0xb300…028d (unlabelled contract) → 0xFf70…04b2 (watch-6)
+    why it matters: 2× the 25,000 USDC threshold; pass-through: the address held 0 USDC before and after block 20522547, so it received and passed this on within the block; received from a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
+    balance of 0xFf70…04b2: 0 USDC → 0 USDC
+    https://www.pharosscan.xyz/tx/0x4c6cc8106d8bda409221beae3fa171a6572f1822c8595dca013ca2b87141eace
+
+[4] OUT 50,133.0752 USDC · block 20522547 · 2026-10-18T00:27:10.000Z
+    0xFf70…04b2 (watch-6) → 0x00fC…223e (unlabelled contract)
+    why it matters: 2× the 25,000 USDC threshold; pass-through: the address held 0 USDC before and after block 20522547, so it received and passed this on within the block; sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
+    balance of 0xFf70…04b2: 0 USDC → 0 USDC
+    https://www.pharosscan.xyz/tx/0x4c6cc8106d8bda409221beae3fa171a6572f1822c8595dca013ca2b87141eace
+
+[5] IN 49,000 USDC · block 20522685 · 2026-10-18T00:29:27.000Z
+    0xA54d…49f5 (unlabelled wallet) → 0xfd78…D002 (watch-4)
+    why it matters: 1.96× the 25,000 USDC threshold; pass-through: the address held 0 USDC before and after block 20522685, so it received and passed this on within the block
+    balance of 0xfd78…D002: 0 USDC → 0 USDC
+    https://www.pharosscan.xyz/tx/0xe47ea8be7877136bde1c11add8754757f35dd6601ee99eb9e82144a3aeadfa5d
+
+[6] OUT 49,000 USDC · block 20522685 · 2026-10-18T00:29:27.000Z
+    0xfd78…D002 (watch-4) → 0x0000…0000 (null address (mint or burn))
+    why it matters: 1.96× the 25,000 USDC threshold; pass-through: the address held 0 USDC before and after block 20522685, so it received and passed this on within the block; a burn from the watched address
+    balance of 0xfd78…D002: 0 USDC → 0 USDC
+    https://www.pharosscan.xyz/tx/0xe47ea8be7877136bde1c11add8754757f35dd6601ee99eb9e82144a3aeadfa5d
+
+[7] IN 299,999.5 USDC · block 20528623 · 2026-10-18T02:18:34.000Z
+    0x0000…0000 (null address (mint or burn)) → 0xB901…0459 (watch-1)
+    why it matters: 11.99× the 25,000 USDC threshold; NEW POSITION: the address held 0 USDC before this; the largest USDC move touching the watchlist in this range; a mint into the watched address
+    balance of 0xB901…0459: 0 USDC → 299,999.5 USDC
+    https://www.pharosscan.xyz/tx/0x5779ac323897b98eb911e31042164de26382f0c02f019e1bdc97f91527cb126e
+
+[8] BETWEEN 299,999.5 USDC · block 20531788 · 2026-10-18T03:12:07.000Z
+    0xB901…0459 (watch-1) → 0xF350…411f (watch-2)
+    why it matters: 11.99× the 25,000 USDC threshold; EXIT: it left this address with 0 USDC; it adds 0.9% to the USDC balance of watch-2; the largest USDC move touching the watchlist in this range
+    balance of 0xB901…0459: 299,999.5 USDC → 0 USDC
+    balance of 0xF350…411f: 32,530,036.7208 USDC → 32,830,036.2208 USDC
+    https://www.pharosscan.xyz/tx/0x9383d54494558d4019beea5c39d0044d570dd2e2659d9b1b5b710899967b0ab8
+
+[9] IN 30,000.4 USDC · block 20539774 · 2026-10-18T05:28:42.000Z
+    0x6565…f01e (unlabelled wallet) → 0xF350…411f (watch-2)
+    why it matters: 1.2× the 25,000 USDC threshold; it adds <0.1% to its USDC balance
+    balance of 0xF350…411f: 32,843,958.0909 USDC → 32,873,958.4909 USDC
+    https://www.pharosscan.xyz/tx/0x8ef1ff201a8ed782933f03832a7f2ed3aec01a1ba1bd9f828850c1435a674402
+
+[10] IN 39,843.9988 USDC · block 20540626 · 2026-10-18T05:42:19.000Z
+    0xC20f…9EbF (unlabelled wallet) → 0xF350…411f (watch-2)
+    why it matters: 1.59× the 25,000 USDC threshold; it adds 0.1% to its USDC balance
+    balance of 0xF350…411f: 32,893,958.4909 USDC → 32,933,802.4897 USDC
+    https://www.pharosscan.xyz/tx/0x6e65b6c3f0310218fd99e8c00590852d3ced4c1dc1a17c010a23e7ede541a484
+
+[11] IN 7,596.6233 WPROS · block 20542276 · 2026-10-18T06:09:26.000Z
+    0x4fD4…5FAE (unlabelled contract) → 0x912c…f647 (watch-3)
+    why it matters: 3.79× the 2,000 WPROS threshold; it adds 1.6% to its WPROS balance; the largest WPROS move touching the watchlist in this range; received from a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
+    balance of 0x912c…f647: 449,987.4693 WPROS → 457,584.0927 WPROS
+    https://www.pharosscan.xyz/tx/0xd323d8e7efa5648e82731b0740b11584bfe856ae0eb079de4179310cb3598abd
+
+[12] OUT 3,336.5673 WPROS · block 20542279 · 2026-10-18T06:09:28.000Z
+    0x912c…f647 (watch-3) → 0xf38d…d875 (unlabelled contract)
+    why it matters: 1.66× the 2,000 WPROS threshold; 0.7% of its WPROS balance before the move; sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
+    balance of 0x912c…f647: 456,178.4382 WPROS → 451,324.5832 WPROS
+    https://www.pharosscan.xyz/tx/0xd7cc5fd303f0fdeaeb6ec37df742137a8ddd6815133d50efcab791599c84bdcb
+
+[13] OUT 2,157.2769 WPROS · block 20542279 · 2026-10-18T06:09:28.000Z
+    0x912c…f647 (watch-3) → 0xf38d…d875 (unlabelled contract)
+    why it matters: 1.07× the 2,000 WPROS threshold; 0.4% of its WPROS balance before the move; sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
+    balance of 0x912c…f647: 456,178.4382 WPROS → 451,324.5832 WPROS
+    https://www.pharosscan.xyz/tx/0xf241b4524dd571d037736a2aac7d61519af65f7a14c8b6c4bbdea031c288aecc
+
+[14] BETWEEN 2,050.189 WPROS · block 20543422 · 2026-10-18T06:27:19.000Z
+    0x912c…f647 (watch-3) → 0x9365…b470 (watch-5)
+    why it matters: 1.02× the 2,000 WPROS threshold; 0.4% of its WPROS balance before the move; it adds 8.2% to the WPROS balance of watch-5
+    balance of 0x912c…f647: 444,147.4477 WPROS → 441,997.2586 WPROS
+    balance of 0x9365…b470: 24,991.232 WPROS → 27,041.421 WPROS
+    https://www.pharosscan.xyz/tx/0x24ca2a125a9b165317931d5fede65400dd0a8f6082b9b6e257c0298b56d2952b
+
+[15] BETWEEN 2,037.5421 WPROS · block 20543742 · 2026-10-18T06:31:57.000Z
+    0x912c…f647 (watch-3) → 0x9365…b470 (watch-5)
+    why it matters: 1.01× the 2,000 WPROS threshold; 0.2% of its WPROS balance before the move; NEW POSITION for watch-5: it held 0 WPROS before this
+    balance of 0x912c…f647: 733,702.2898 WPROS → 437,884.254 WPROS
+    balance of 0x9365…b470: 0 WPROS → 32,206.4575 WPROS
+    https://www.pharosscan.xyz/tx/0xd7835a34e9b43d26d816a538ac5ab94839bccc71526e217748f0d8ee5543f01a
+
+[16] BETWEEN 2,031.0823 WPROS · block 20545539 · 2026-10-18T06:59:23.000Z
+    0x912c…f647 (watch-3) → 0x9365…b470 (watch-5)
+    why it matters: 1.01× the 2,000 WPROS threshold; 0.4% of its WPROS balance before the move; it adds 5.5% to the WPROS balance of watch-5
+    balance of 0x912c…f647: 436,826.1409 WPROS → 434,795.0586 WPROS
+    balance of 0x9365…b470: 36,585.8102 WPROS → 38,616.8925 WPROS
+    https://www.pharosscan.xyz/tx/0x27589082b1593f3ffb0ba9c36c295ce192f460aa091d687abc39a72334383f28
+
+summary across all watched addresses (significant moves only in/out/largest)
+watched address      token  transfers  significant     in (sig.)   out (sig.)      largest
+-------------------  -----  ---------  -----------  ------------  -----------  -----------
+watch-1 0xB901…0459  USDC           2            2     299,999.5    299,999.5    299,999.5
+watch-1 0xB901…0459  WPROS          0            0             0            0            0
+watch-2 0xF350…411f  USDC          23            5  438,118.6894            0    299,999.5
+watch-2 0xF350…411f  WPROS          0            0             0            0            0
+watch-3 0x912c…f647  USDC        2139            0             0            0            0
+watch-3 0x912c…f647  WPROS       2139            6    7,596.6233  11,612.6577   7,596.6233
+watch-4 0xfd78…D002  USDC          50            2        49,000       49,000       49,000
+watch-4 0xfd78…D002  WPROS          0            0             0            0            0
+watch-5 0x9365…b470  USDC        1346            0             0            0            0
+watch-5 0x9365…b470  WPROS       1346            3    6,118.8134            0    2,050.189
+watch-6 0xFf70…04b2  USDC          49            2   50,133.0752  50,133.0752  50,133.0752
+watch-6 0xFf70…04b2  WPROS          2            0             0            0            0
+watch-7 0x1F35…c85C  USDC         660            0             0            0            0
+watch-7 0x1F35…c85C  WPROS        660            0             0            0            0
+
+totals: USDC: 10 significant, 936,384.34 USDC moved · WPROS: 6 significant, 19,209.281 WPROS moved
