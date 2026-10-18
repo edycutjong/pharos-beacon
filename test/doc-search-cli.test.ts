@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { EXIT_NOT_FOUND, format, isGoodAnswer, main, search } from "../tasks/doc-search-cli/index.js";
+import { arrange, EXIT_NOT_FOUND, format, isGoodAnswer, main, search } from "../tasks/doc-search-cli/index.js";
 import type { DocsClient } from "../src/lib/docs-mcp.js";
 
 // Reply shapes recorded from the live Docs MCP (2026-10-18).
@@ -42,6 +42,30 @@ describe("isGoodAnswer", () => {
     expect(isGoodAnswer("Chain ID is 688689.", [])).toBe(false);
     expect(isGoodAnswer(NONE, [{}])).toBe(false);
     expect(isGoodAnswer("The docs do not mention that, and I couldn't find it.", [{}])).toBe(false);
+  });
+  it("an answer that opens with a bolded refusal is not an answer (live reply, 2026-10-18: bridge to Solana)", () => {
+    expect(isGoodAnswer("The Pharos docs do **not** list a supported Pharos–Solana bridge lane or provide steps for bridging assets to Solana.", [{}])).toBe(false);
+    // a partial answer that admits one gap but gives the rest stays an answer (the faucet example)
+    expect(isGoodAnswer("The docs don’t specify the faucet URL or claim steps. They do say to get testnet PHRS from the Pharos faucet.", [{}])).toBe(true);
+  });
+});
+
+describe("arrange", () => {
+  const F = "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token";
+  const H = "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token";
+  const V = "https://docs.pharos.xyz/node-and-validator-guide/validator-node-deployment";
+  it("lists the pages the answer links first, and tells same-titled pages apart by their docs section", () => {
+    const out = arrange(`See [Write Your First Token](/developer-guide/foundry/write-your-first-token) or [it](${H}).`, [
+      { title: "Validator Node Deployment", url: V },
+      { title: "Write Your First Token", url: F },
+      { title: "Write Your First Token", url: H },
+    ]);
+    expect(out.map((s) => s.title)).toEqual(["Write Your First Token (foundry)", "Write Your First Token (hardhat)", "Validator Node Deployment"]);
+    expect(out.map((s) => s.url)).toEqual([F, H, V]);
+  });
+  it("leaves unique titles and the docs' own order alone when nothing is linked", () => {
+    const src = [{ title: "A", url: V }, { title: "B", url: F }];
+    expect(arrange("no links", src)).toEqual(src);
   });
 });
 
