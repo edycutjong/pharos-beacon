@@ -10,10 +10,10 @@
     },
     "command": "tasks/dapp-support-agent/index.ts 0x8b9b9353b9df376bf05067d5cc3fc921730ddc7a78cbbdac0c071e5d2970bf93 --proof allowance",
     "git": {
-      "commit": "31619816d64b",
-      "dirty": true
+      "commit": "832484cfa002",
+      "dirty": false
     },
-    "createdAt": "2026-10-18T03:41:23.556Z"
+    "createdAt": "2026-10-18T03:41:45.206Z"
   },
   "diagnosis": {
     "hash": "0x8b9b9353b9df376bf05067d5cc3fc921730ddc7a78cbbdac0c071e5d2970bf93",
