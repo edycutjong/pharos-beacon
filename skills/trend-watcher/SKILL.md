@@ -41,7 +41,7 @@ npm run setup:mcp        # only for Atlantic (testnet); mainnet (--network pharo
 
 ## Guardrails
 
-- The history file belongs to ONE metric; a different metric is refused, a corrupt file is refused, never guessed at.
+- The default history file (`tasks/trend-watcher/state/history.json`) belongs to ONE metric; give each metric its own `--state <file>`; a different metric is refused, a corrupt file is refused, never guessed at.
 - The same block is stored once (`--block N` re-reads a block and is de-duplicated); an older block is refused.
 - The action runs once per trend. A crash between the action and its record can repeat that one alert, never lose it.
 - A trigger needs the full streak in the stored history: do not lower `--steps` to make something fire, and say plainly when the
