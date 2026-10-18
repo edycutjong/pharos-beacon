@@ -10,6 +10,9 @@ viem wallet, confirms the receipt through the Chain MCP, and its proof files hol
 MCP (`src/lib/docs-mcp.ts`), which the two Docs MCP tasks use. Each task lives in its own folder under `tasks/`; tasks that
 ship as agent skills also have a folder under `skills/`.
 
+**How it is built.** Written with AI assistance (Claude Code). The feature choices, the design decisions and the
+review and merge of each task's pull request are by [@edycutjong](https://github.com/edycutjong).
+
 ## Tasks
 
 | Task | Tier | What | Proof |
