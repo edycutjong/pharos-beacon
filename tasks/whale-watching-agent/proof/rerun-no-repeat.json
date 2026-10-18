@@ -10,16 +10,16 @@
     },
     "command": "tasks/whale-watching-agent/index.ts --from-block 20506432 --to-block 20546432 --notify discord --discord-max 3 --sent /tmp/p102/whale-sent.json --proof rerun-no-repeat",
     "git": {
-      "commit": "1d7de0b65fc2",
+      "commit": "65be8a64512f",
       "dirty": false
     },
-    "createdAt": "2026-10-18T08:01:13.573Z"
+    "createdAt": "2026-10-18T09:02:27.103Z"
   },
-  "watchlistSource": "npx tsx scripts/find-whales.ts --blocks 40000 at head 20546432: the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (getLogsRange over Transfer logs). Our own list; edit it freely.",
+  "watchlistSource": "scripts/find-whales.ts at head 20546432 ranked the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (output in find-whales-output.txt). watch-1 to watch-6 are the six top USDC movers; watch-7 is the third WPROS mover (the first two are already in the list). Our own list; edit it freely.",
   "range": {
     "from": "20506432",
     "to": "20546432",
-    "head": "20549584"
+    "head": "20553736"
   },
   "watched": [
     {
@@ -83,7 +83,7 @@
         "it adds <0.1% to its USDC balance"
       ],
       "balanceBefore": "32426746793453",
-      "balanceAfter": "13705999657969"
+      "balanceAfter": "32457746793453"
     },
     {
       "tx": "0x04cc4f4285787afdd367e8a34a48feb6a4e75b9c2e2d35409ccd31221a03d36f",
@@ -536,6 +536,7 @@
   ],
   "notify": {
     "kind": "discord",
-    "delivered": []
+    "delivered": [],
+    "alreadySent": 3
   }
 }
