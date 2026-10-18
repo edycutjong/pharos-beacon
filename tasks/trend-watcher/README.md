@@ -74,15 +74,18 @@ These are archive reads of past blocks taken in one sitting (2026-10-18), not fo
 
 ```text
 $ npm run trend-watcher -- observe --metric balance --network pharos --address 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548319 --state tasks/trend-watcher/state/mainnet-balance.json --proof mainnet-balance-4
-ACTION [console] TREND MET: native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos — 3 consecutive falls at observation #4 (block 20548319, 2026-10-18T13:28:50.017Z). █▆▂▁ slope -0.00665905 PHRS per observation, -0.0000665905 PHRS per block (-0.01997715 PHRS over 3 observations, 300 blocks)
+ACTION [console] TREND MET: native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos — 3 consecutive falls at observation #4 (block 20548319, 2026-10-18T15:24:09.162Z). █▆▂▁ slope -0.00665905 PROS per observation, -0.0000665905 PROS per block (-0.01997715 PROS over 3 observations, 300 blocks)
+observed native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos: 52.873256895 PROS at block 20548319 — stored
 history: native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos · 4 observations, showing 4 · rule: 3 consecutive falls
-  #1   block 20548019  52.893234045 PHRS          start streak 0
-  #2   block 20548119  52.889172915 PHRS          fall  streak 1
-  #3   block 20548219  52.877331345 PHRS          fall  streak 2
-  #4   block 20548319  52.873256895 PHRS          fall  streak 3   ◀ TREND MET: 3 consecutive falls
+  #1   block 20548019  52.893234045 PROS          start streak 0
+  #2   block 20548119  52.889172915 PROS          fall  streak 1
+  #3   block 20548219  52.877331345 PROS          fall  streak 2
+  #4   block 20548319  52.873256895 PROS          fall  streak 3   ◀ TREND MET: 3 consecutive falls
+trend: █▆▂▁   (triggered, current streak 3/3)
+acted 1× (the trend was met)
 ```
 
-(Sampled every 100 blocks, the balance then stays at 52.873256895 up to block 20548619; the four blocks above are the ones with three falls in a row.) The alert unit says "PHRS" because the formatter uses the Atlantic coin name for any native balance; mainnet's coin is PROS.
+(Sampled every 100 blocks, the balance then stays at 52.873256895 up to block 20548619; the four blocks above are the ones with three falls in a row.) The alert and history now name the network's own coin (PROS on mainnet, PHRS on Atlantic); these four runs were repeated after that fix (same pinned blocks, same balances).
 
 ## A bigger dip that reverses does not fire; small steady falls do
 
@@ -134,5 +137,5 @@ with #4 and #5 the series has enough observations and the rule is **evaluated an
 
 ## Tests
 
-`npm test` — 18 tests in [`test/trend.test.ts`](../../test/trend.test.ts): the rule (minimum steps, flat resets, single spike up or down, re-trigger after a reset, rise), de-dupe and stale
+`npm test` — 19 tests in [`test/trend.test.ts`](../../test/trend.test.ts): the rule (minimum steps, flat resets, single spike up or down, re-trigger after a reset, rise), de-dupe and stale
 blocks, persistence across runs, a failed action retried and never repeated, wrong-metric / corrupt / out-of-order files refused, a `kill -9` mid-write loop, the three metrics, sparkline, slope and the history marker.

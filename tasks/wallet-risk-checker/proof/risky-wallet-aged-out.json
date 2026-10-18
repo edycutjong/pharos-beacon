@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "task": "wallet-risk-checker",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/wallet-risk-checker/index.ts check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --block 31578000 --lookback 5000 --proof risky-wallet-aged-out",
+    "git": {
+      "commit": "8feee97ad578",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T15:20:11.866Z"
+  },
+  "config": {
+    "flagged": 1,
+    "trustedSpenders": 0,
+    "youngDays": 7
+  },
+  "report": {
+    "address": "0xD6936bEcCA1A13c6A426309a694560292e9b579E",
+    "network": "atlantic",
+    "block": "31578000",
+    "lookbackBlocks": "5000",
+    "lookbackSeconds": 11024,
+    "verdict": "medium",
+    "signals": [
+      {
+        "id": "kind",
+        "level": "info",
+        "title": "wallet or contract (get_code)",
+        "detail": "It is a plain wallet (no code)."
+      },
+      {
+        "id": "age",
+        "level": "medium",
+        "title": "wallet age (first block with a sent transaction)",
+        "detail": "It first sent a transaction in block 31566816, 6.6 hours before block 31578000. That is under 7 days: a new address has no track record."
+      },
+      {
+        "id": "funding",
+        "level": "ok",
+        "title": "nonce and balance (freshly funded?)",
+        "detail": "It has sent 3 transactions (nonce 3) and holds 9355648000000000 wei, so it has been used."
+      },
+      {
+        "id": "flagged",
+        "level": "ok",
+        "title": "interaction with flagged addresses",
+        "detail": "None of its 0 token counterparts in blocks 31573000–31578000 (about 3.1 hours) is on our flagged list (1 address). Native-coin transfers leave no log and are not covered."
+      },
+      {
+        "id": "approvals",
+        "level": "ok",
+        "title": "approvals to unknown spenders",
+        "detail": "0 open token approvals in blocks 31573000–31578000 (about 3.1 hours), none to a spender we do not recognise."
+      },
+      {
+        "id": "counterparties",
+        "level": "info",
+        "title": "token activity in the lookback range",
+        "detail": "0 token transfers with 0 counterparts in blocks 31573000–31578000 (about 3.1 hours)."
+      }
+    ],
+    "reasons": [
+      "It first sent a transaction in block 31566816, 6.6 hours before block 31578000. That is under 7 days: a new address has no track record."
+    ]
+  }
+}

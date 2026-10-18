@@ -24,4 +24,8 @@ describe("gas-fee-optimizer CLI --lead", () => {
     expect(r.code).not.toBe(0);
     expect(r.stderr).toContain("--lead must be a number ≥ 0");
   });
+  it("a short deadline needs no --lead: the default lead is capped at half of it", async () => {
+    const r = await run([...SEND, "--deadline", "6"]);
+    expect(r.stderr).not.toContain("--lead");
+  });
 });
