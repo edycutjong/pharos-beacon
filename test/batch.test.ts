@@ -154,6 +154,8 @@ describe("runBatch", () => {
     expect(r.dropped).toEqual([{ label: expect.stringContaining("0.002 WPHRS"), failure: "reverted: insufficient allowance" }]);
     expect(r.outcomes).toHaveLength(2);
     expect(r.outcomes!.every((o) => o.applied)).toBe(true);
+    expect(r.sim.actions.map((a) => a.ok)).toEqual([true, true]); // the trimmed batch's own flags, read by position
+    expect(r.sim.actions.map((a) => a.action.index)).toEqual([0, 2]); // numbering stays the plan's
   });
 
   it("a batch that reverts as a whole is blocked and never sent", async () => {

@@ -140,8 +140,8 @@ export async function simulateBatch(call: Call, sender: Hex, actions: Action[]):
     sim.batchFailure = failureOf(e);
   }
   // 2. what each action costs alone (the comparison), or why it could not go alone
-  for (const action of actions) {
-    const f = flags?.[action.index];
+  for (const [position, action] of actions.entries()) {
+    const f = flags?.[position]; // by position in THIS batch: after --drop-failing, action.index still names the plan's number
     const s: ActionSim = { action, ok: f?.success ?? false };
     if (f && !f.success) s.failure = explainRevertData(f.returnData);
     if (!flags) s.failure = sim.batchFailure!;
