@@ -10,10 +10,10 @@ Without an allowance to Multicall3 the WPHRS actions simulate as WOULD FAIL (tha
 ## How it works
 
 A **plan** ([`plans/all-success.json`](plans/all-success.json), [`plans/one-fails.json`](plans/one-fails.json)) lists at least 3 independent actions: a PHRS send (`native`) or an ERC-20 send (`erc20`: `WPHRS`, `USDC`, `USDT`, `WBTC`, `WETH`).
-Each action needs its own recipient (otherwise they would not be independent).
+Each action needs its own asset-and-recipient pair (the same address may receive PHRS and WPHRS in one plan, but a pair that appears twice is refused with the action's number); a plan with fewer than 3 actions is refused with the count.
 
 1. **Bundle.** All actions become calls of one transaction to Multicall3 (`0xcA11bde05977b3631167028862bE2a173976CA11`, already deployed on Atlantic; we did not deploy it): `aggregate3Value`, with `allowFailure = true` on every call, so one reverting action does not undo the others.
-   Multicall3 is the caller, so an ERC-20 send is `transferFrom(you, recipient, amount)` against an allowance you give Multicall3; `--approve` raises it to exactly what the batch spends.
+   Multicall3 is the caller, so an ERC-20 send is `transferFrom(you, recipient, amount)` against an allowance you give Multicall3; `--approve` raises it to exactly the plan's total per token (including an action that `--drop-failing` later removes).
 2. **Simulate first.** One `eth_call` of the whole batch returns, per action, whether it would succeed (and its decoded revert reason if not). Each action is also estimated alone (`estimate_gas` of the plain send), and the batch itself is estimated.
 3. **Send** (`--execute`): one signed transaction. Then every recipient's balance is read back, and each action is reported **APPLIED** (the recipient received exactly the amount) or **NOT APPLIED** with its reason.
 4. **Report** the gas of the sent batch against the sum of the individual estimates, and the steps (N transactions → 1).
@@ -22,15 +22,15 @@ Each action needs its own recipient (otherwise they would not be independent).
 
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | "Accepts a list of at least 3 independent actions." | The plan's `actions` list; fewer than 3, a repeated recipient or a malformed action is refused with the action's number | [`plans/all-success.json`](plans/all-success.json) (4 actions), [`plans/one-fails.json`](plans/one-fails.json) (4) · `resolveActions` in [`src/batch/batch.ts`](../../src/batch/batch.ts) · tests "needs at least 3 actions", "rejects bad actions", "refuses a plan with fewer than 3 actions" |
+| 1 | "Accepts a list of at least 3 independent actions." | The plan's `actions` list; fewer than 3, a repeated asset-and-recipient pair or a malformed action is refused (with the action's number, or the count) or the count | [`plans/all-success.json`](plans/all-success.json) (4 actions), [`plans/one-fails.json`](plans/one-fails.json) (4) · `resolveActions` in [`src/batch/batch.ts`](../../src/batch/batch.ts) · tests "needs at least 3 actions", "rejects bad actions", "refuses a plan with fewer than 3 actions" |
 | 2 | "Executes them as a batch: multicall, a single prepared transaction, or an equivalent." | One Multicall3 `aggregate3Value` transaction | all-success: tx [`0xd49fce…3bda`](https://atlantic.pharosscan.xyz/tx/0xd49fceaf08ce9f5d0fa5f25e10cdf562490b35f3833ed569a92ad0ae54e43bda), block 31571864, 4 actions in 1 tx · [`proof/all-success.json`](proof/all-success.json) |
 | 3 | "Reports the gas saving or step reduction compared with running them individually." | `gas:` line (sum of the actions' individual estimates vs gas used by the batch) and `steps:` line (N transactions → 1) | [`proof/all-success.json`](proof/all-success.json): 4 alone ≈ 221288 vs 134413 batched, saved 39.25% · see "Gas, honestly" below |
 | 4 | "Handles partial failure clearly: which action failed and what happened to the rest." | The failing action is named with its decoded reason; the rest are read back from the chain as APPLIED | tx [`0x15dfe6…8ec9`](https://atlantic.pharosscan.xyz/tx/0x15dfe684a92a9188e6ad68f0871f44cf930a35a788c9d0fcbffa9743deaa8ec9), block 31571884: action 3 (1 USDC from an address holding none) NOT APPLIED with `ERC20InsufficientBalance`; actions 1, 2 and 4 APPLIED · [`proof/one-fails.json`](proof/one-fails.json) |
 
 ## The live runs (Atlantic)
 
-Sender: wallet 1 `0x317bca01Bb101C0F1E86C21576a4e14D92B02975`. Recipients: our wallet 2 `0x8D34…D91B` and arbitrary addresses `0x1111…1111` … `0x6666…6666` (no one holds their keys; testnet dust).
-The tokens are WPHRS (wrapped PHRS, the Atlantic token registry's `WPHRS`): we wrapped 0.003 PHRS ourselves first (tx [`0xb5bfd4…a427`](https://atlantic.pharosscan.xyz/tx/0xb5bfd4b2325a0926f0c43c2d1b5ccc45460cf801786088cae3f13b74e351a427), made with the [Dry-Run Executor](../dry-run-executor/README.md), calldata `deposit()`).
+Sender: wallet 1 `0x317bca01Bb101C0F1E86C21576a4e14D92B02975`. Recipients: our second wallet `0x8D34…D91B` (`PRIVATE_KEY_2`, the one the other tasks use) and arbitrary addresses `0x1111…1111` … `0x6666…6666` (no one holds their keys; testnet dust).
+The tokens are WPHRS (wrapped PHRS, the Atlantic token registry's `WPHRS`) and USDC. The wallet already held some WPHRS; before the video runs we wrapped more PHRS (txs [`0xb5bfd4…a427`](https://atlantic.pharosscan.xyz/tx/0xb5bfd4b2325a0926f0c43c2d1b5ccc45460cf801786088cae3f13b74e351a427), block 31571942, and [`0xefae66…c57f`](https://atlantic.pharosscan.xyz/tx/0xefae660b4b6d3784fc129745ecf9b3398440222c0c06565f0a331638172ac57f), block 31572024: `deposit()` calldata sent with the [Dry-Run Executor](../dry-run-executor/README.md)'s `--data` option; that output is not committed as a proof).
 The `USDC` action fails on purpose: that wallet holds 0 USDC.
 
 | Run | What | Result | Proof |
@@ -63,25 +63,26 @@ steps: 3 transactions alone → 1
 The video shows three more real runs, recorded while their proofs were written: [`video-all-success`](proof/video-all-success.json) (tx [`0xbb0912…e53f`](https://atlantic.pharosscan.xyz/tx/0xbb09121a18152298b12fb3ba18345daf40c133df12a1a010890a4a8beaefe53f)),
 [`video-one-fails`](proof/video-one-fails.json) (tx [`0x29f65e…604b`](https://atlantic.pharosscan.xyz/tx/0x29f65e3194afca62c244ca4b2367da2ec29980ef65a3d1f41f6f14cbb39a604b), the one on the explorer shot) and
 [`video-drop-failing`](proof/video-drop-failing.json) (tx [`0x5b6698…5906`](https://atlantic.pharosscan.xyz/tx/0x5b6698fbd658c3e5238483b3bc84e45771be1c83a274222d9310315dbff95906)).
-Same plans, the narrow `--compact` layout, so their numbers differ slightly from runs 1–3 (gas estimates move with chain state).
+Same plans, the narrow `--compact` layout. Their numbers differ from runs 1–2 because the gas estimates move with chain state (all-success: 83113 gas batched, 47.65% saved, against 134413 and 39.25% in run 1); the drop-failing video run matches run 3 exactly.
 
 ## Gas, honestly
 
 - "Alone" is `estimate_gas` of the plain send (`transfer` for a token, a plain value send for PHRS) at simulation time, **not** a measured transaction; "batched" is the gas the receipt says the batch used. The individual estimates move with chain state: the same WPHRS send was estimated at 66758 gas in run 1 and 45917 in the video runs (a recipient's first token balance costs more).
   So the percentages are for these plans on those blocks, not a constant. We measured only ERC-20 sends mixed with one PHRS send; we did not measure a batch of PHRS sends only.
 - An action that would fail alone (run 2's USDC) has no individual estimate and is left out of the "alone" sum (`3 sent alone`), while the batch still paid for trying it. The comparison counts the batch's cost against the actions that could have run separately.
-- The step reduction is exact: N transactions to sign and send, versus 1.
+- The step reduction is exact for the batch itself: N transactions to sign and send, versus 1.
+- **The batched figure and the "N → 1" count leave out the one-time `approve` transaction(s)** the token actions need (about 46.7k gas each: 1 in run 1, 2 in run 2 because of the USDC action, 1 in run 3). Counting them, run 1 still saves about 18% (134413 + 46710 = 181123 against 221288), while runs 2 and 3 cost more than sending alone (212875 against 154530, and 115833 against 112849). Once an allowance exists, later batches need no approve, so the saving pays off from the second batch on.
 
 ## Beyond the requirements: dry-run each action first, drop the ones that would fail
 
 With `--drop-failing` the tool looks at the simulation first (the same `eth_call` and `estimate_gas` approach as the [Dry-Run Executor](../dry-run-executor/README.md), applied to the whole batch), removes every action that would fail, rebuilds the batch from the rest and simulates it again before anything is signed.
-Run 3 above is that: the USDC action is listed as dropped with its reason, and the 3 remaining actions all apply (`proof/drop-failing.json` → `dropped`). If no action would succeed, nothing is sent (exit 3).
+Run 3 above is that: the USDC action is listed as dropped with its reason, and the 3 remaining actions all apply (`proof/drop-failing.json` → `dropped`). If no action would succeed, no batch is sent (exit 3). With `--approve`, the approvals for the whole plan are sent before the simulation, since the simulation needs the allowance to pass.
 Without the flag a failing token action stays inside the batch (run 2), which is what requirement 4 asks to see.
 
 ## Limits
 
 - **A failing PHRS action is never sent on purpose.** `aggregate3Value` keeps the PHRS of a call that failed inside Multicall3, so such a batch is BLOCKED ("its PHRS would stay stuck in Multicall3") unless `--drop-failing` removes the action. Token actions have no such problem.
-- **An allowance to Multicall3 is an allowance anyone can route through Multicall3.** `--approve` raises it to exactly the batch total, and a run spends it; on a real wallet with real funds that is a risk you should weigh. This tool is Atlantic testnet only (the signer refuses any other chain).
+- **An allowance to Multicall3 is an allowance anyone can route through Multicall3.** `--approve` raises it to exactly the plan's total, and a run spends the allowance of the actions that apply (the allowance of an action that fails stays open: run 2 left 1 USDC approved on the demo wallet, which we revoked afterwards in tx [`0x0027ad…55c3`](https://atlantic.pharosscan.xyz/tx/0x0027ad9c7d5ba711647da8ac9c1ae3ab0e03fa174eef69909286bba08e7b55c3)); on a real wallet with real funds that is a risk you should weigh. This tool is Atlantic testnet only (the signer refuses any other chain).
 - Multicall3 emits no per-action events, so "what happened to each action" is read from the recipients' balances (the received amount must equal the planned one). A recipient who also receives funds from someone else in the same block would confuse that check.
 - `--proof <name>` writes `tasks/batch-executor/proof/<name>.json`, the only file any variant of the command writes (the keyless simulation writes nothing).
 - Only PHRS and the five registry ERC-20s, only sends. Claims and arbitrary contract calls are not in the plan format.

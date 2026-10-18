@@ -28,7 +28,7 @@ export function formatResult(r: BatchResult): string {
   });
   for (const d of r.dropped) out.push(`  dropped before sending: ${d.label} — ${d.failure}`);
   if (sim.batchGas !== undefined) out.push(`  batch gas estimate ${sim.batchGas} × ${sim.gasPriceWei} wei = ${formatEther(sim.batchGas * sim.gasPriceWei)} PHRS`);
-  if (r.status === "blocked") out.push(`BLOCKED: ${r.blockReason ?? "no viable batch"}; nothing was signed or sent`);
+  if (r.status === "blocked") out.push(`BLOCKED: ${r.blockReason ?? "no viable batch"}; no batch was signed or sent`);
   if (r.status === "simulated") out.push("not sent: pass --execute to send it");
   for (const a of r.approvals ?? []) out.push(`approved Multicall3 to move ${a.token}: ${explorerTx("atlantic", a.tx)}`);
   if (r.sent) out.push(`${r.status === "executed" ? "SENT" : "SENT but REVERTED"}: ${explorerTx("atlantic", r.sent.tx)} (block ${r.sent.block}, gas used ${r.sent.gasUsed})`);
