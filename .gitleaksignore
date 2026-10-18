@@ -3,3 +3,4 @@ c99b7bab85fbe622430d1f0355bc277515f48018:.env.example:generic-api-key:2
 e1578fd58ad4b3e1fa9e1bc41e72727c0bfaffb8:tasks/on-chain-alert-bot/rules.pharos.json:generic-api-key:4
 d7778f61f3a8201e3c8395d8cc4f68822676efff:tasks/on-chain-alert-bot/rules.atlantic.json:generic-api-key:4
 d7778f61f3a8201e3c8395d8cc4f68822676efff:test/helpers/fake-logs.ts:generic-api-key:3
+2cbea20d2072e9e840478cdfb147fc83ca973c20:test/dapp-support-agent.test.ts:generic-api-key:10
