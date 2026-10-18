@@ -260,7 +260,7 @@ export async function checkAddress(call: Call, address: Hex, o: CheckOptions): P
     id: "counterparties",
     level: "info",
     title: "token activity in the lookback range",
-    detail: `${sent.length + received.length} token transfer${sent.length + received.length === 1 ? "" : "s"} with ${counterparts.size} counterpart${counterparts.size === 1 ? "" : "s"} in ${window} (${lookback} blocks).`,
+    detail: `${sent.length + received.length} token transfer${sent.length + received.length === 1 ? "" : "s"} with ${counterparts.size} counterpart${counterparts.size === 1 ? "" : "s"} in ${window}.`,
   });
 
   const verdict = verdictOf(signals);
