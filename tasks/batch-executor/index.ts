@@ -35,7 +35,7 @@ function gasLines(r: BatchResult, compact: boolean): string[] {
   }
   out.push(compact
     ? `gas used by the batch (receipt): ${c.batchGasUsed}`
-    : `gas used by the batch (receipt): ${c.batchGasUsed}; against the one-by-one estimate that is ${verb(c.savedGas, c.individualGas)}, but estimates run high on token transfers: README "Gas, honestly"`);
+    : `gas used by the batch (receipt): ${c.batchGasUsed}; that is ${pct(c.savedGas >= 0n ? c.savedGas : -c.savedGas, c.individualGas)}% ${c.savedGas >= 0n ? "less" : "more"} than the one-by-one estimate, which runs high on token transfers: README "Gas, honestly"`);
   const ap = (r.approvals ?? []).reduce((t, a) => t + (a.gasUsed ?? 0n), 0n);
   if (ap > 0n) {
     const withAp = c.batchGasUsed + ap;
