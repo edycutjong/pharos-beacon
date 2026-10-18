@@ -124,9 +124,10 @@ via Docs MCP https://docs.pharos.xyz/~gitbook/mcp and the Pharos Chain MCP
 
 - Four request kinds have executors (balance, send, total supply, receipt). A new "how do I…" request the docs describe is planned and cited
   but not executed.
+- Balance and send are native PHRS on Atlantic only: a request that names a token or mainnet ("my USDC balance") is classed as "other", looked up in the docs and not executed.
 - "Covered" means a cited (or searched) docs page contains the method name; it does not prove the page explains it well. For total supply the
   page that names `totalSupply` in the docs search is the Rust guide.
 - Verification of a read is a same-block re-read, which catches a flaky endpoint, not a wrong contract; a send is verified against both balances.
 - The docs say Atlantic lists a WPHRS contract but not its wrapping method, so "wrap PHRS" stays uncovered here rather than guessing `deposit()`.
-- 29 tests ([`test/doc-grounded-builder-agent.test.ts`](../../test/doc-grounded-builder-agent.test.ts)) cover the classifier, the refusal patterns, the grounding fallback, prepared vs executed sends,
+- 31 tests ([`test/doc-grounded-builder-agent.test.ts`](../../test/doc-grounded-builder-agent.test.ts)) cover the classifier, the refusal patterns, the grounding fallback, prepared vs executed sends,
   a failed balance check, and "not covered ⇒ no chain call".

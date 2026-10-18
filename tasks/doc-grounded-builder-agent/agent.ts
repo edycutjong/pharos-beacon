@@ -19,8 +19,10 @@ export function classify(request: string): Kind {
   if (/\b(wrap|unwrap|bridge|swap|stake|deploy|mint)\b/.test(r)) return "other";
   if (/\b(receipt|look ?up (?:a |the )?(?:tx|transaction)|transaction status|tx status)\b/.test(r)) return "receipt";
   if (/total ?supply/.test(r)) return "supply";
-  if (/\b(send|transfer|pay)\b/.test(r)) return "send";
-  if (/\bbalance\b/.test(r)) return "balance";
+  // The balance and send executors are native PHRS on Atlantic: a token or mainnet wording is not theirs to answer.
+  const native = !/\b(tokens?|erc-?20|usdc|usdt|wpros|weth|link|mainnet|pacific|pros)\b/.test(r);
+  if (/\b(send|transfer|pay)\b/.test(r)) return native ? "send" : "other";
+  if (/\bbalance\b/.test(r)) return native ? "balance" : "other";
   return "other";
 }
 

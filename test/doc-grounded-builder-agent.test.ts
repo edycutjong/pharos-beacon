@@ -95,6 +95,8 @@ describe("classify", () => {
     ["wrap PHRS into WPHRS", "other"],
     ["how do I bridge to Solana on Pharos?", "other"],
     ["deploy a token", "other"],
+    ["how do I check my USDC token balance on mainnet?", "other"],
+    ["send tokens on Pharos mainnet", "other"],
   ])("%s → %s", (r, k) => expect(classify(r)).toBe(k));
 });
 
