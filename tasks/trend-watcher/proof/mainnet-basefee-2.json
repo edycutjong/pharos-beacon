@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "task": "trend-watcher",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/trend-watcher/index.ts observe --metric basefee --network pharos --state tasks/trend-watcher/state/mainnet-basefee.json --proof mainnet-basefee-2",
+    "git": {
+      "commit": "1be48e693b4c",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T09:33:51.748Z"
+  },
+  "metric": {
+    "kind": "basefee",
+    "network": "pharos"
+  },
+  "rule": {
+    "direction": "fall",
+    "steps": 3
+  },
+  "observation": {
+    "block": "20555987",
+    "value": "10000000000",
+    "at": "2026-10-18T09:33:51.821Z"
+  },
+  "added": "added",
+  "evaluation": {
+    "streak": 0,
+    "triggers": [],
+    "state": "too-few"
+  },
+  "acted": [],
+  "history": [
+    {
+      "block": "20555981",
+      "value": "10000000000",
+      "at": "2026-10-18T09:33:46.574Z"
+    },
+    {
+      "block": "20555987",
+      "value": "10000000000",
+      "at": "2026-10-18T09:33:51.821Z"
+    }
+  ]
+}
