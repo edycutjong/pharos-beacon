@@ -92,4 +92,4 @@ via https://mcp.pharos.xyz/mcp (Chain MCP) and https://docs.pharos.xyz/~gitbook/
 
 - Read-only: no key, no transaction, no mainnet write. Nothing is written unless `--proof` is passed.
 - The demo (no flags) picks a USDC holder with `get_logs` (the recipient of a large recent transfer that still holds a balance), as Read Contract State does.
-- 11 tests in `test/docs-chain-mcp-agent.test.ts` (grounding, refusals, the docs-before-chain order, one pinned block, units only for a documented function, flag errors).
+- 12 tests in `test/docs-chain-mcp-agent.test.ts` (grounding, refusals, the docs-before-chain order, one pinned block, units only for a documented function, flag errors, a token without decimals()).
