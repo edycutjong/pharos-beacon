@@ -10,16 +10,16 @@
     },
     "command": "tasks/whale-watching-agent/index.ts --from-block 20506432 --to-block 20546432 --notify discord --discord-max 3 --sent /tmp/p102/whale-sent.json --proof usdc-wpros-40k-blocks",
     "git": {
-      "commit": "cb9dd4f6d16c",
-      "dirty": true
+      "commit": "9dc88ae3ab52",
+      "dirty": false
     },
-    "createdAt": "2026-10-18T07:54:07.975Z"
+    "createdAt": "2026-10-18T07:58:58.097Z"
   },
   "watchlistSource": "npx tsx scripts/find-whales.ts --blocks 40000 at head 20546432: the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (getLogsRange over Transfer logs). Our own list; edit it freely.",
   "range": {
     "from": "20506432",
     "to": "20546432",
-    "head": "20549123"
+    "head": "20549440"
   },
   "watched": [
     {
@@ -203,12 +203,12 @@
       "toName": "watch-1",
       "why": [
         "11.99× the 25,000 USDC threshold",
-        "pass-through: the address held 0 USDC before and after block 20528623, so it received and passed this on within the block",
+        "NEW POSITION: the address held 0 USDC before this",
         "the largest USDC move touching the watchlist in this range",
         "a mint into the watched address"
       ],
       "balanceBefore": "0",
-      "balanceAfter": "0"
+      "balanceAfter": "299999500000"
     },
     {
       "tx": "0x9383d54494558d4019beea5c39d0044d570dd2e2659d9b1b5b710899967b0ab8",
@@ -268,7 +268,7 @@
         "it adds 0.1% to its USDC balance"
       ],
       "balanceBefore": "32893958490916",
-      "balanceAfter": "13705999657969"
+      "balanceAfter": "32933802489726"
     },
     {
       "tx": "0xd323d8e7efa5648e82731b0740b11584bfe856ae0eb079de4179310cb3598abd",
@@ -311,7 +311,7 @@
         "sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)"
       ],
       "balanceBefore": "456178438245636135548639",
-      "balanceAfter": "451324583270095140331269"
+      "balanceAfter": "468019860208623208342620"
     },
     {
       "tx": "0xf241b4524dd571d037736a2aac7d61519af65f7a14c8b6c4bbdea031c288aecc",
@@ -539,18 +539,18 @@
     "delivered": [
       {
         "key": "0xd323d8e7efa5648e82731b0740b11584bfe856ae0eb079de4179310cb3598abd:3",
-        "messageId": "1561286238902943824",
-        "at": "2026-10-18T07:54:06.650000+00:00"
+        "messageId": "1561287457109180488",
+        "at": "2026-10-18T07:58:57.093000+00:00"
       },
       {
         "key": "0xd7cc5fd303f0fdeaeb6ec37df742137a8ddd6815133d50efcab791599c84bdcb:0",
-        "messageId": "1561286240911884370",
-        "at": "2026-10-18T07:54:07.129000+00:00"
+        "messageId": "1561287458828849172",
+        "at": "2026-10-18T07:58:57.503000+00:00"
       },
       {
         "key": "0xf241b4524dd571d037736a2aac7d61519af65f7a14c8b6c4bbdea031c288aecc:4",
-        "messageId": "1561286243797704815",
-        "at": "2026-10-18T07:54:07.817000+00:00"
+        "messageId": "1561287460376547469",
+        "at": "2026-10-18T07:58:57.872000+00:00"
       }
     ]
   }
