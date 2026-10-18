@@ -11,8 +11,14 @@ const TASK = "doc-search-cli";
 export const EXIT_NOT_FOUND = 3;
 
 // askQuestion answers "I cannot find information about this in the docs." when the docs hold nothing relevant.
-// An answer that opens by saying the docs do not list/provide/document the thing ("The Pharos docs do **not** list a supported bridge lane").
-const LEADING_REFUSAL = /^[^.!?\n]*\b(?:do|does)(?: not|n't)\s+(?:list|provide|document|describe|include|support)\b/i;
+// A refusal OPENS the reply with the docs as its subject: "The Pharos docs do **not** list a supported bridge lane", "The docs don't currently document ...".
+// It is a refusal only when the negation follows the docs subject directly: "The setup guide says to request PHRS from the faucet, but it doesn't provide a URL" opens with an answer,
+// and "The faucet does not support mainnet; use Atlantic." is an answer about the faucet.
+const REFUSAL_VERBS = "list|provide|document|describe|include|support|specify|mention|give|cover|contain|state";
+const LEADING_REFUSAL = new RegExp(String.raw`^\W*(?:[\w'-]+\s+){0,4}?(?:docs?|documentation|pages?|guides?)\s+(?:\w+ly\s+)?(?:do|does)(?: not|n't)(?:\s+(?:currently|explicitly|directly|specifically|yet))*\s+(?:${REFUSAL_VERBS})\b`, "i");
+// A refusal followed by an explicit contrast is a half-answer and is kept: "The docs don't give the URL. They say to use the Atlantic wallet."
+// Deliberately narrow: a later "but their pages don't specify a Solana route" is more refusal, not a contrast.
+const CONTRAST = /(?:^|[.!?]\s+|\n)\s*(?:however\b|that said\b|they (?:do )?(?:say|state|mention|list|give|describe|note|recommend|show)\b|they do\b|it does\b|the (?:pharos )?(?:docs|documentation) (?:do |does )?(?:say|state|mention|list|give|describe|note|recommend|show)\b|the (?:pharos )?(?:docs|documentation) do (?!not\b))|,\s*but (?:they|it|the docs) (?:do )?(?!not\b|n't)\w+/i;
 const NO_ANSWER = /\b(?:cannot|can't|could not|couldn't|unable to|did not|didn't|do not|don't)\s+(?:find|locate)\b|\bno (?:relevant |matching )?(?:information|results?|mention)\b|\bnot (?:covered|documented|mentioned)\b/i;
 
 export interface Result {
@@ -29,7 +35,7 @@ export interface Result {
 /** An answer is good only with at least one cited source and a reply that does not say it found nothing. */
 export function isGoodAnswer(answer: string, sources: unknown[]): boolean {
   const plain = answer.replace(/[*_`]/g, "").replace(/[\u2018\u2019]/g, "'");
-  return sources.length > 0 && !NO_ANSWER.test(plain) && !LEADING_REFUSAL.test(plain);
+  return sources.length > 0 && !NO_ANSWER.test(plain) && (!LEADING_REFUSAL.test(plain) || CONTRAST.test(plain));
 }
 
 const dedupe = <T extends { url: string }>(items: T[]): T[] => [...new Map(items.map((i) => [i.url, i])).values()];
