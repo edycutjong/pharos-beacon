@@ -101,7 +101,7 @@ export async function main(
     denied = true;
     const reason = `recipient risk is ${report.verdict.toUpperCase()}: ${report.reasons.join(" | ")}`;
     const entry = appendAudit(auditFile, { event: "decision", policy: policy.name, label: request.label, request: { to, amount: values.amount }, clock: "real", requestTime: new Date().toISOString(), decision: "deny", rule: "wallet_risk", reason });
-    console.log(`\nGATE: DENY by wallet_risk (audit #${entry.seq}). ${values.amount} PHRS → ${to} was NOT sent, and the policy was not asked.`);
+    console.log(`\nGATE: DENY by wallet_risk (audit #${entry.seq}). ${values.amount} PHRS → ${to} was NOT sent, and the policy was not asked.\nThis refusal is not remembered: the verdict covers only the lookback window above, so the same address can score lower once that activity is older than the window.`);
   } else {
     console.log(`\nGATE: recipient risk is ${report.verdict.toUpperCase()}, below ${blockOn.toUpperCase()}: passing the request to the Policy Gatekeeper (${policy.name}).`);
     let sender: ChainMcp | undefined;
