@@ -2,7 +2,7 @@
 // through the Chain MCP → verify on chain against the plan. Anything that moves funds is PREPARED (unsigned tx shown);
 // it is signed and sent only with --execute, on Atlantic testnet, never on mainnet.
 //   npm run doc-grounded-builder-agent -- ["request" …] [--address 0x…] [--to 0x…] [--amount PHRS] [--token 0x…] [--tx 0x…] [--execute] [--json] [--proof]
-// With no request it runs the six-request demo. A request the docs don't cover ends with "the docs don't cover this".
+// With no request it runs the five-request demo. A request the docs don't cover ends with "the docs don't cover this".
 import { getAddress, isAddress, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { isMain, parseCli, runCli, UsageError, type RunContext } from "../../src/lib/cli.js";
@@ -20,7 +20,6 @@ export const DEMO = [
   "send PHRS on Atlantic",
   "read a token's total supply",
   "look up the receipt of a transaction",
-  "wrap PHRS into WPHRS",
   "how do I bridge to Solana on Pharos?",
 ];
 /** Keyless defaults: a public Atlantic contract as the address to read, a burn address as the recipient (when the second test wallet's key is present it is the recipient instead: no one else's send can touch its balance in the same block), a known Atlantic tx. */
