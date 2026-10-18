@@ -1,0 +1,6 @@
+{
+  "network": "pharos",
+  "rules": [
+    { "id": "usdc-over-100", "kind": "large-transfer", "token": "0xc879c018db60520f4355c26ed1a6d572cdac1815", "minAmount": "100" }
+  ]
+}

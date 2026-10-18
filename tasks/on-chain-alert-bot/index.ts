@@ -86,7 +86,7 @@ export async function main(
   const infoOf = new Map<string, { decimals: number; symbol: string } | undefined>();
   for (const r of rules) if (!infoOf.has(r.address.toLowerCase())) infoOf.set(r.address.toLowerCase(), tokens.get(r.address.toLowerCase()) ?? (r.kind === "contract-event" ? await tokenInfo(mcp.call, r.address) : undefined));
 
-  const notifier = (makeNotifier ?? ((k, wf) => (k === "console" ? consoleNotifier() : discordNotifier(loadWebhook(wf))))) (kind, values["webhook-file"]);
+  const notifier = (makeNotifier ?? ((k, wf) => (k === "console" ? consoleNotifier(() => {}) /* the ALERT block below is the console delivery */ : discordNotifier(loadWebhook(wf))))) (kind, values["webhook-file"]);
   const stem = basename(values.rules, ".json");
   const dir = join(tmpdir(), "beacon-on-chain-alert-bot"); // a try-out never writes into the repo (pass --state / --sent to keep them)
   const stateFile = values.state ?? join(dir, `${stem}.cursor.json`);
