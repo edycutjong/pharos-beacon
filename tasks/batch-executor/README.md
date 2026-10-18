@@ -4,8 +4,10 @@
 **Run** (Atlantic testnet only; one-time `npm run setup:mcp`, keys in `~/.config/pharos/testnet.env`):
 `npm run batch-executor -- --plan one-fails --from 0x317bca01Bb101C0F1E86C21576a4e14D92B02975` (keyless: simulates the batch as that sender, sends nothing; with `PRIVATE_KEY` set the sender is your own address) ·
 `npm run batch-executor -- --plan <name|file.json> [--approve] [--drop-failing] [--execute] [--compact] [--proof name]`.
-Without an allowance to Multicall3 the WPHRS actions simulate as WOULD FAIL (that is what a keyless run shows: the allowance is spent by each run); `--approve --execute` gives it.
+Without an allowance to Multicall3 the WPHRS actions simulate as WOULD FAIL (that is what a keyless run shows: the allowance is spent by each run), so the keyless `--plan one-fails` line above prints actions 2, 3 and 4 as WOULD FAIL (action 3 for the missing allowance, not for the missing USDC); `--approve --execute` gives it, and that is the run behind the partial-failure proof.
 **Skill:** [`skills/batch-executor/SKILL.md`](../../skills/batch-executor/SKILL.md) · **Uses:** Chain MCP ✅ (`get_block_number`, `get_block`, `get_gas_price`, `eth_call`, `estimate_gas`, `get_balance`, `get_transaction_count`, `send_raw_transaction`, `get_transaction_receipt`); viem signs locally.
+
+**Install as a skill:** `npx skills add https://github.com/edycutjong/pharos-beacon --skill batch-executor`.
 
 ## How it works
 
@@ -82,6 +84,7 @@ Without the flag a failing token action stays inside the batch (run 2), which is
 ## Limits
 
 - **A failing PHRS action is never sent on purpose.** `aggregate3Value` keeps the PHRS of a call that failed inside Multicall3, so such a batch is BLOCKED ("its PHRS would stay stuck in Multicall3") unless `--drop-failing` removes the action. Token actions have no such problem.
+- **Multicall3's own README warns against this design:** its Security section says "Never approve Multicall3 to spend your tokens. If you do, anyone can steal your tokens." ([mds1/multicall](https://github.com/mds1/multicall#security), read 2026-10-18). Our token path needs exactly that allowance. What limits the exposure here: Atlantic testnet only, an allowance of exactly the plan's total, and demo-dust balances. A production version should use a batch contract that only the owner can call (not built here: it would be a contract of ours to deploy and audit).
 - **An allowance to Multicall3 is an allowance anyone can route through Multicall3.** `--approve` raises it to exactly the plan's total, and a run spends the allowance of the actions that apply (the allowance of an action that fails stays open: run 2 left 1 USDC approved on the demo wallet, which we revoked afterwards in tx [`0x0027ad…55c3`](https://atlantic.pharosscan.xyz/tx/0x0027ad9c7d5ba711647da8ac9c1ae3ab0e03fa174eef69909286bba08e7b55c3)); on a real wallet with real funds that is a risk you should weigh. This tool is Atlantic testnet only (the signer refuses any other chain).
 - Multicall3 emits no per-action events, so "what happened to each action" is read from the recipients' balances (the received amount must equal the planned one). A recipient who also receives funds from someone else in the same block would confuse that check.
 - `--proof <name>` writes `tasks/batch-executor/proof/<name>.json`, the only file any variant of the command writes (the keyless simulation writes nothing).
@@ -90,6 +93,6 @@ Without the flag a failing token action stays inside the batch (run 2), which is
 
 ## Tests
 
-`npm test` — 21 tests in [`test/batch.test.ts`](../../test/batch.test.ts): plan validation (minimum 3, repeated recipient, bad type / address / token / amount), the simulation per action and alone, a failing action named with its reason, a batch that reverts as a whole,
+`npm test` — 22 tests in [`test/batch.test.ts`](../../test/batch.test.ts): plan validation (minimum 3, repeated recipient, bad type / address / token / amount), the simulation per action and alone, a failing action named with its reason, a batch that reverts as a whole,
 no send without `--execute`, an all-success batch with the gas comparison, a partial failure (named, the rest applied), `--drop-failing` (including the position fix for a trimmed batch), nothing sent when everything would fail, a failing PHRS action blocked,
 a mined revert, a negative saving worded as "cost more", the compact layout, and the CLI's usage errors (including `--from`).
