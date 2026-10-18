@@ -1,0 +1,45 @@
+{
+  "network": "pharos",
+  "source": "npx tsx scripts/find-whales.ts --blocks 40000 at head 20546432: the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (getLogsRange over Transfer logs). Our own list; edit it freely.",
+  "addresses": [
+    {
+      "address": "0xB9012614F6151D5569E48E21bABf5fF3F14F0459",
+      "label": "watch-1"
+    },
+    {
+      "address": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "label": "watch-2"
+    },
+    {
+      "address": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "label": "watch-3"
+    },
+    {
+      "address": "0xfd78EE919681417d192449715b2594ab58f5D002",
+      "label": "watch-4"
+    },
+    {
+      "address": "0x936564245B69f5a293b42cbd752E0eE3bb68b470",
+      "label": "watch-5"
+    },
+    {
+      "address": "0xFf70F4A1d11995621854F3692acF286d8aCd04b2",
+      "label": "watch-6"
+    },
+    {
+      "address": "0x1F3546a29EeC2102c8d52E21a45114124014c85C",
+      "label": "watch-7"
+    }
+  ],
+  "tokens": [
+    {
+      "address": "0xc879c018db60520f4355c26ed1a6d572cdac1815",
+      "threshold": "25000"
+    },
+    {
+      "address": "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0",
+      "threshold": "2000"
+    }
+  ],
+  "labels": {}
+}
