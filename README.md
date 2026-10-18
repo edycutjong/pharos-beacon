@@ -31,7 +31,7 @@ review and merge of each task's pull request are by [@edycutjong](https://github
 
 ```bash
 npm ci
-npm test            # 410 tests: guardian, gatekeeper, read-contract-state, watcher, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 421 tests: guardian, gatekeeper, read-contract-state, watcher, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
