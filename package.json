@@ -11,7 +11,10 @@
     "guard": "tsx tasks/threshold-guardian/index.ts",
     "setup:mcp": "bash scripts/setup-testnet-mcp.sh",
     "policy-gatekeeper": "tsx tasks/policy-gatekeeper/index.ts",
-    "read-contract-state": "tsx tasks/read-contract-state/index.ts"
+    "read-contract-state": "tsx tasks/read-contract-state/index.ts",
+    "event-log-monitor": "tsx tasks/event-log-monitor/index.ts",
+    "on-chain-alert-bot": "tsx tasks/on-chain-alert-bot/index.ts",
+    "emit-events": "tsx scripts/emit-events.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,7 @@
+{
+  "network": "atlantic",
+  "rules": [
+    { "id": "big-wphrs-transfer", "kind": "large-transfer", "token": "0x838800b758277CC111B2d48Ab01e5E164f8E9471", "minAmount": "0.005" },
+    { "id": "wphrs-deposit", "kind": "contract-event", "contract": "0x838800b758277CC111B2d48Ab01e5E164f8E9471", "event": "Deposit" }
+  ]
+}
