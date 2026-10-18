@@ -11,7 +11,7 @@ a small wrapper on the Developer Docs MCP that searches the Pharos docs from a t
 |---|---|---|---|
 | 1 | Accepts a natural-language question as input, e.g. `pharos-docs "how do I deploy a contract?"` | the bin is called `pharos-docs`; the question is the argument (unquoted words are joined) | [`bin/pharos-docs.mjs`](../../bin/pharos-docs.mjs) · [Example 1](#example-1) |
 | 2 | Returns a concise answer plus links or references to the source doc sections | the answer from `askQuestion`, then its cited pages as absolute links (de-duplicated by URL, the pages the answer itself links first, same-titled pages told apart by their docs section, 5 shown, `--sources N` for more) | [`index.ts`](index.ts) `format` · Examples 1–3 |
-| 3 | Handles "no good answer found" gracefully instead of inventing one | no cited source, or a reply that says it found nothing → "Not found in the Pharos docs", the model's text is dropped, the 3 closest pages from `searchDocumentation` are listed, exit code 3 | [Example 4](#example-4-a-question-the-docs-cannot-answer) · [Example 5](#example-5-a-pharos-question-the-docs-do-not-cover) · `test/doc-search-cli.test.ts` |
+| 3 | Handles "no good answer found" gracefully instead of inventing one | no cited source, or a reply that says it found nothing or OPENS by saying the docs/pages do not list, provide, document or specify it (a negation about anything else, such as "the faucet does not support mainnet", is an answer; an explicit contrast sentence such as "They do say …" keeps a half-answer) → "Not found in the Pharos docs", the model's text is dropped, the 3 closest pages from `searchDocumentation` are listed, exit code 3 | [Example 4](#example-4-a-question-the-docs-cannot-answer) · [Example 5](#example-5-a-pharos-question-the-docs-do-not-cover) · `test/doc-search-cli.test.ts` |
 | 4 | README with install and usage instructions and 3 example queries with outputs | this file | Examples 1–5 below (rendered by the CLI from the `proof/*.json` runs) |
 
 ## Install
@@ -189,6 +189,8 @@ Each proof was written from a clean, committed tree (`meta.git.dirty` is false).
 
 ## Tests
 
-`npm test` runs 14 tests for this task (`test/doc-search-cli.test.ts`) against a fake Docs client with replies recorded from the live
-server: answer + de-duplicated sources (linked pages first, same-titled pages told apart), a bolded refusal counting as not found, the off-topic path (no answer text printed, closest pages from `searchDocumentation`),
+`npm test` runs 26 tests for this task (`test/doc-search-cli.test.ts`) against a fake Docs client with replies recorded from the live
+server: answer + de-duplicated sources (linked pages first, same-titled pages told apart), a bolded refusal counting as not found, the refusal rule (docs as the subject, verb list, contrast sentence, four live replies to the faucet question and the two live Solana replies), the off-topic path (no answer text printed, closest pages from `searchDocumentation`),
 `askQuestion` failing, both calls failing, relative links made absolute, the `--sources` cap, `--json`, exit codes, and usage errors.
+
+The model words its reply differently from run to run (the faucet question was answered as a half-answer in 3 of 4 runs and as "I cannot find" in the fourth). (replies and exit codes: [`proof/gate-runs-2026-10-18.txt`](proof/gate-runs-2026-10-18.txt).) The gate is therefore a stated rule, pinned by the tests above, not a property of one reply; re-run on 2026-10-18 after the rule was tightened, the faucet question exited 0 four times out of four and the Solana question exited 3 four times out of four.

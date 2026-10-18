@@ -17,6 +17,7 @@ export type Cause =
   | "panic"
   | "empty-revert"
   | "unknown-error"
+  | "state-unavailable"
   | "not-reproduced";
 
 export interface Diagnosis {
@@ -142,7 +143,12 @@ function explainRevert(c: Ctx, data: Hex): Pick<Diagnosis, "cause" | "headline" 
         cause: "revert-reason",
         headline: `The contract refused the transaction and gave this reason: "${a[0]}".`,
         why: `The contract checked a condition, it was not met, and the contract stopped the transaction with the message "${a[0]}". Nothing was changed; you only paid the network fee.`,
-        fix: ["Change the input that the message points at (an amount, an address or a deadline) and send again.", "If you did not expect this, ask the dApp's support, quoting the message and the transaction link."],
+        fix: [
+          // a short code with no spaces ("BC") says nothing by itself: point at where its meaning is written down
+          ...(c.to && /^\S{1,6}$/.test(String(a[0])) ? [`The message is a short code, not a sentence. Look the contract (${c.to.slice(0, 6)}…${c.to.slice(-4)}) up on the block explorer; if its source is verified, search it for "${a[0]}" to see which check it belongs to.`] : []),
+          "Change the input that the message points at (an amount, an address or a deadline) and send again.",
+          "If you did not expect this, ask the dApp's support, quoting the message and the transaction link.",
+        ],
         evidence: [`revert reason string: ${JSON.stringify(a[0])}`],
       };
     case "Panic": {
@@ -255,6 +261,9 @@ function outOfGas(c: Ctx, estimate: { needed: bigint } | { revert: string } | nu
   };
 }
 
+/** What an archive-less node says when the block's state is gone. */
+const STATE_GONE = /missing trie node|state (?:is )?(?:not available|pruned|unavailable)|pruned|no state available|historical state/i;
+
 /** Diagnose `hash` on the network `call` is connected to. */
 export async function diagnose(call: Call, hash: Hex): Promise<Diagnosis> {
   const base = { hash } as const;
@@ -313,6 +322,12 @@ export async function diagnose(call: Call, hash: Hex): Promise<Diagnosis> {
         if (err instanceof ChainToolError && err.code === 3) est = { revert: typeof err.data === "string" && err.data !== "0x" ? explainRevert(c, err.data as Hex).headline.replace(/\.$/, "") : "the contract also refuses the call itself" };
       }
       return failed(outOfGas(c, est, true));
+    }
+    if (STATE_GONE.test(e.reason)) {
+      // the node no longer keeps this block's state: say so, and still report what the receipt alone proves
+      const gone = `this node no longer keeps the state of block ${before}, so the call cannot be replayed (${e.reason})`;
+      const d = gasUsed >= gasLimit ? outOfGas(c, null, false) : { cause: "state-unavailable" as const, headline: "The transaction failed, but this node no longer keeps the state needed to replay it, so the cause cannot be read from here.", why: `The receipt says the transaction failed (status 0x0 in block ${block}, used ${num(gasUsed)} of ${num(gasLimit)} gas). Finding the reason means replaying it against the state of block ${before}, and the node no longer has that state.`, fix: ["Look at the transaction on the explorer: it may show the reason.", "Ask the dApp's support, quoting the transaction link."], evidence: [] };
+      return { ...failed(d), evidence: [`receipt status 0x0 in block ${block}`, gone, ...d.evidence.filter((x) => !x.startsWith("replaying"))] };
     }
     return failed({
       cause: "unknown-error",
