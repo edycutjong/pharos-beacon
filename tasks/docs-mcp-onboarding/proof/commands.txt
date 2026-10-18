@@ -1,0 +1,6 @@
+$ curl https://mcp.pharos.xyz/health   # from transcript #4
+{"status":"ok","chain":"Pharos","chainId":1672,"rpcUrl":"https://rpc.pharos.xyz"}
+HTTP 200
+
+$ git clone https://github.com/PharosNetwork/pharos-mcp.git && cd pharos-mcp && npm install && npm run build   # from transcript #8 (2026-10-18)
+HEAD 9a3750c Align get_logs block-range cap with the upstream RPC limit; npm install and npm run build both exit 0; dist/src/index.js exists
