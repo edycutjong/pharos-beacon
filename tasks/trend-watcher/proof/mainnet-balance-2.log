@@ -1,7 +1,7 @@
 $ npm run trend-watcher -- observe --metric balance --network pharos --address 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548119 --state tasks/trend-watcher/state/mainnet-balance.json --proof mainnet-balance-2
-observed native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos: 52.889172915 PHRS at block 20548119 — stored
+observed native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos: 52.889172915 PROS at block 20548119 — stored
 history: native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos · 2 observations, showing 2 · rule: 3 consecutive falls
-  #1   block 20548019  52.893234045 PHRS          start streak 0
-  #2   block 20548119  52.889172915 PHRS          fall  streak 1
+  #1   block 20548019  52.893234045 PROS          start streak 0
+  #2   block 20548119  52.889172915 PROS          fall  streak 1
 trend: █▁   (too-few, current streak 1/3)
 no action: only 2 of the 4 observations a 3-move trend needs

@@ -83,28 +83,28 @@ scanned WPROS: 2271 transfers touch a watched address, 6 at or above 2000
 
 [12] OUT 3,336.5673 WPROS · block 20542279 · 2026-10-18T06:09:28.000Z
     0x912c…f647 (watch-3) → 0xf38d…d875 (unlabelled contract)
-    why it matters: 1.66× the 2,000 WPROS threshold; 0.7% of its WPROS balance before the move; sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
+    why it matters: 1.66× the 2,000 WPROS threshold; 0.7% of its WPROS balance before the move; the WPROS balance of watch-3 changed by −4,853.8549 WPROS in block 20542279, this move is −3,336.5673 WPROS; the rest is other activity in the same block, not resolved here; sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
     balance of 0x912c…f647: 456,178.4382 WPROS → 451,324.5832 WPROS
     https://www.pharosscan.xyz/tx/0xd7cc5fd303f0fdeaeb6ec37df742137a8ddd6815133d50efcab791599c84bdcb
 
 [13] OUT 2,157.2769 WPROS · block 20542279 · 2026-10-18T06:09:28.000Z
     0x912c…f647 (watch-3) → 0xf38d…d875 (unlabelled contract)
-    why it matters: 1.07× the 2,000 WPROS threshold; 0.4% of its WPROS balance before the move; sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
+    why it matters: 1.07× the 2,000 WPROS threshold; 0.4% of its WPROS balance before the move; the WPROS balance of watch-3 changed by −4,853.8549 WPROS in block 20542279, this move is −2,157.2769 WPROS; the rest is other activity in the same block, not resolved here; sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)
     balance of 0x912c…f647: 456,178.4382 WPROS → 451,324.5832 WPROS
     https://www.pharosscan.xyz/tx/0xf241b4524dd571d037736a2aac7d61519af65f7a14c8b6c4bbdea031c288aecc
 
 [14] BETWEEN 2,050.189 WPROS · block 20543422 · 2026-10-18T06:27:19.000Z
     0x912c…f647 (watch-3) → 0x9365…b470 (watch-5)
-    why it matters: 1.02× the 2,000 WPROS threshold; 0.4% of its WPROS balance before the move; it adds 8.2% to the WPROS balance of watch-5
+    why it matters: 1.02× the 2,000 WPROS threshold; 0.4% of its WPROS balance before the move; it adds 8.2% to the WPROS balance of watch-5; the WPROS balance of watch-3 changed by −2,150.189 WPROS in block 20543422, this move is −2,050.189 WPROS; the rest is other activity in the same block, not resolved here
     balance of 0x912c…f647: 444,147.4477 WPROS → 441,997.2586 WPROS
     balance of 0x9365…b470: 24,991.232 WPROS → 27,041.421 WPROS
     https://www.pharosscan.xyz/tx/0x24ca2a125a9b165317931d5fede65400dd0a8f6082b9b6e257c0298b56d2952b
 
 [15] BETWEEN 2,037.5421 WPROS · block 20543742 · 2026-10-18T06:31:57.000Z
     0x912c…f647 (watch-3) → 0x9365…b470 (watch-5)
-    why it matters: 1.01× the 2,000 WPROS threshold; 0.2% of its WPROS balance before the move; NEW POSITION for watch-5: it held 0 WPROS before this
-    balance of 0x912c…f647: 733,702.2898 WPROS → 437,884.254 WPROS
-    balance of 0x9365…b470: 0 WPROS → 32,206.4575 WPROS
+    why it matters: 1.01× the 2,000 WPROS threshold; 0.4% of its WPROS balance before the move; it adds 6.8% to the WPROS balance of watch-5; the WPROS balance of watch-5 changed by +2,292.248 WPROS in block 20543742, this move is +2,037.5421 WPROS; the rest is other activity in the same block, not resolved here
+    balance of 0x912c…f647: 439,921.7961 WPROS → 437,884.254 WPROS
+    balance of 0x9365…b470: 29,914.2095 WPROS → 32,206.4575 WPROS
     https://www.pharosscan.xyz/tx/0xd7835a34e9b43d26d816a538ac5ab94839bccc71526e217748f0d8ee5543f01a
 
 [16] BETWEEN 2,031.0823 WPROS · block 20545539 · 2026-10-18T06:59:23.000Z

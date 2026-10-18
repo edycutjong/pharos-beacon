@@ -236,10 +236,10 @@ describe("an unpaid period is never shown as finished", () => {
     await runDue(opts(p, file, f, "2026-11-08T09:00:00Z")); // period 2 fails: nothing to pay with
     const late = D("2026-11-15T10:00:00Z"); // both periods due, nothing scheduled after
     const table = historyTable(p, loadLedger(file, p), late);
-    expect(table).toContain("unpaid and due: period 2 (failed); the next run tries it again");
+    expect(table).toContain("failed: period 2; the next run retries it");
     expect(table.split("\n").at(-1)).toMatch(/^no later period is scheduled; the plan is not complete/);
     expect(table).not.toContain("the plan is complete");
-    expect(compactTable(p, loadLedger(file, p), late)).toContain("retry at next run: #2");
+    expect(compactTable(p, loadLedger(file, p), late)).toContain("next run retries: #2");
     // funded again: the next run pays it, and only then is the plan complete
     f.native = parseEther("10");
     await runDue(opts(p, file, f, "2026-11-15T10:00:00Z"));
@@ -247,7 +247,8 @@ describe("an unpaid period is never shown as finished", () => {
     // a due period nobody has processed yet shows as pending, not as a finished plan
     const fresh = historyTable(p, loadLedger(tmp(), p), late);
     expect(fresh).toMatch(/pending.*due, not yet processed/);
-    expect(fresh).toContain("unpaid and due: period 1 (pending), period 2 (pending)");
+    expect(fresh).toContain("due, not yet paid: period 1, 2; the next run pays or confirms them");
+    expect(fresh).not.toContain("failed:"); // never attempted is not a failure
   });
 });
 

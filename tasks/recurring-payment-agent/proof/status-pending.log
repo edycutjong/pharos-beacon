@@ -6,5 +6,5 @@ period  due         status   amount          tx / note
 2       2026-11-08  paid     0.001 PHRS      0x400359ae…a2ff2a block 31571315
 3       2026-11-15  paid     0.001 PHRS      0x813b85ab…85b55c block 31571475
 4       2026-11-22  pending  0.001 PHRS      due, not yet processed
-unpaid and due: period 4 (pending); the next run tries it again
+due, not yet paid: period 4; the next run pays or confirms it
 no later period is scheduled; the plan is not complete until the unpaid ones are paid

@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { ChainMcp } from "../src/lib/mcp.js";
-import { addObservation, describeSlope, evaluate, historyTable, loadTrend, observe, parseMetric, readMetric, saveTrend, slopeAt, sparkline, type MetricSpec, type Observation, type Rule } from "../src/trend/watch.js";
+import { addObservation, describeSlope, evaluate, fmt, historyTable, loadTrend, observe, parseMetric, readMetric, saveTrend, slopeAt, sparkline, type MetricSpec, type Observation, type Rule } from "../src/trend/watch.js";
 
 const WALLET = "0x1111111111111111111111111111111111111111";
 const spec: MetricSpec = { kind: "balance", network: "atlantic", address: WALLET };
@@ -158,6 +158,12 @@ describe("history, sparkline and slope (the extra)", () => {
     const s = slopeAt(o, 3, 3);
     expect(s).toMatchObject({ total: -600n, perObservation: -200n, perBlock: -20n, blocks: 30n });
     expect(describeSlope({ kind: "basefee", network: "atlantic" }, s)).toContain("per block");
+  });
+  it("names the network's own coin: PROS on mainnet, PHRS on Atlantic", () => {
+    const main: MetricSpec = { kind: "balance", network: "pharos", address: WALLET };
+    expect(fmt(main, 10n ** 18n)).toBe("1 PROS");
+    expect(fmt(spec, 10n ** 18n)).toBe("1 PHRS");
+    expect(describeSlope(main, slopeAt(obs([1000, 900, 700, 400], 100), 3, 3))).toContain("PROS per observation");
   });
   it("marks the exact observation where the trend was met", () => {
     const table = historyTable(spec, obs([10, 10, 5, 10, 9, 8, 7]), rule);

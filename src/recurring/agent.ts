@@ -334,10 +334,15 @@ export function historyRows(plan: Plan, ledger: Ledger, now: Date): { rows: Row[
 
 const short = (h: string) => `${h.slice(0, 6)}…${h.slice(-4)}`;
 
-/** Periods that are due but not paid are tried again by the next run; saying so keeps a failed period from looking abandoned. */
+/** Due periods that are not paid are picked up by the next run; "pending" (never sent, or signed and unconfirmed) and "failed" (tried, did not land) are said apart. */
 export function unpaidDue(rows: Row[]): string | undefined {
-  const o = rows.filter((r) => r.status !== "paid");
-  return o.length ? `unpaid and due: ${o.map((r) => `period ${r.period} (${r.status})`).join(", ")}; the next run tries ${o.length === 1 ? "it" : "them"} again` : undefined;
+  const list = (status: ShownStatus) => rows.filter((r) => r.status === status).map((r) => r.period);
+  const [pending, failed] = [list("pending"), list("failed")];
+  const parts = [
+    ...(pending.length ? [`due, not yet paid: period ${pending.join(", ")}; the next run ${pending.length === 1 ? "pays or confirms it" : "pays or confirms them"}`] : []),
+    ...(failed.length ? [`failed: period ${failed.join(", ")}; the next run retries ${failed.length === 1 ? "it" : "them"}`] : []),
+  ];
+  return parts.length ? parts.join(" · ") : undefined;
 }
 
 /** The same history in under 62 columns (a narrow terminal, a video): no wrapped rows, the reason is in the run's own lines. */
@@ -345,7 +350,8 @@ export function compactTable(plan: Plan, ledger: Ledger, now: Date): string {
   const { rows, next } = historyRows(plan, ledger, now);
   const lines = rows.map((r) => `${String(r.period).padEnd(2)} ${r.due}  ${r.status.padEnd(7)} ${r.tx === "-" ? "(no tx sent)" : short(r.tx)}`);
   const open = rows.filter((r) => r.status !== "paid");
-  const retry = open.length ? `retry at next run: ${open.map((r) => `#${r.period}`).join(" ")}` : undefined;
+  const next_ = (status: ShownStatus, verb: string) => { const l = open.filter((r) => r.status === status); return l.length ? `${verb}: ${l.map((r) => `#${r.period}`).join(" ")}` : undefined; };
+  const retry = [next_("pending", "next run pays"), next_("failed", "next run retries")].filter(Boolean).join(" · ") || undefined;
   const tail = next ? `next: #${next.period} on ${next.due.slice(0, 10)} ${next.due.slice(11, 16)}Z` : open.length ? "no later period is scheduled" : "no further payments: plan complete";
   return [`plan ${plan.id}: ${plan.frequency}, ${amountText(plan)}`, `to ${short(plan.recipient)}`, "#  due         status  tx", ...(lines.length ? lines : ["(nothing due yet)"]), ...(retry ? [retry] : []), tail].join("\n");
 }

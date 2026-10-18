@@ -14,7 +14,7 @@ import { explorerTx } from "../../src/lib/networks.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { testnetSigner } from "../../src/lib/signer.js";
 import { withLock } from "../../src/lib/state.js";
-import { historyTable, holdUntilFavourable, loadSamples, paidReport, saveSample, takeSample, type Target } from "../../src/gas/optimizer.js";
+import { deadlineGap, historyTable, holdUntilFavourable, loadSamples, paidReport, saveSample, takeSample, type Target } from "../../src/gas/optimizer.js";
 
 const TASK = "gas-fee-optimizer";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
@@ -56,7 +56,8 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
     to = getAddress(values.to);
     try { wei = parseEther(values.value ?? ""); } catch { throw new UsageError("--value must be an amount of PHRS, e.g. 0.0001"); }
     deadlineS = num("--deadline", values.deadline, 1);
-    leadS = num("--lead", values.lead, 0, 8);
+    // default: 8 s, but never more than half of a short deadline, so `--deadline 6` works without a flag the user never passed
+    leadS = num("--lead", values.lead, 0, Math.min(8, deadlineS / 2));
     if (leadS >= deadlineS) throw new UsageError("--lead must be shorter than --deadline");
     if (!!values["target-gwei"] === !!values["target-percentile"]) throw new UsageError("give exactly one of --target-gwei or --target-percentile");
     if (values["target-gwei"]) {
@@ -93,7 +94,9 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
   const decideBy = new Date(deadline.getTime() - leadS * 1000);
   console.log(`request: send ${formatEther(wei)} PHRS to ${to} · target ${target!.kind === "price" ? `${formatGwei(target!.wei)} gwei` : `p${target!.p} of the last ${target!.window} samples`} · deadline ${deadline.toISOString().slice(11, 19)}Z (${deadlineS}s) · send decided by ${decideBy.toISOString().slice(11, 19)}Z (${leadS}s lead)`);
   const decision = await withLock(stateFile, () => holdUntilFavourable({ deadline: decideBy, target: target!, intervalMs: interval * 1000, stateFile, sample: sampleOnce, log: (l) => console.log(`  ${l}`) }));
-  console.log(`decision: send now — ${decision.reason} after ${(decision.heldMs / 1000).toFixed(1)}s (${decision.samplesTaken} samples${decision.sampleErrors ? `, ${decision.sampleErrors} failed` : ""})`);
+  // with a lead, "the deadline" is not what ended the hold: the send-by time (deadline − lead) is
+  const why = decision.reason === "deadline reached" && leadS > 0 ? "send-by time reached (deadline − lead)" : decision.reason;
+  console.log(`decision: send now — ${why} after ${(decision.heldMs / 1000).toFixed(1)}s (${decision.samplesTaken} samples${decision.sampleErrors ? `, ${decision.sampleErrors} failed` : ""})`);
   console.log(historyTable(loadSamples(stateFile), 6));
 
   let result: Record<string, unknown> = { sent: false };
@@ -105,7 +108,10 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
     const r = await signer.waitForReceipt(signed.hash);
     // Block time is whole seconds: say it as the chain does.
     const mined = await mcp.call("get_block", { block: r.blockNumber.toString() }).then((b) => (b ? new Date(Number(BigInt(b.timestamp)) * 1000) : null), () => null);
-    if (mined) console.log(`mined in block ${r.blockNumber} at ${mined.toISOString().slice(11, 19)}Z, ${(Math.abs(deadline.getTime() - mined.getTime()) / 1000).toFixed(0)}s ${mined <= deadline ? "before" : "AFTER"} the deadline (${deadline.toISOString().slice(11, 19)}Z)`);
+    if (mined) {
+      const gap = deadlineGap(deadline, mined);
+      console.log(`mined in block ${r.blockNumber} at ${mined.toISOString().slice(11, 19)}Z, ${gap.side === "same second as" ? "in the same second as" : `${gap.seconds}s ${gap.side}`} the deadline (${deadline.toISOString().slice(11, 19)}Z, whole seconds)`);
+    }
     console.log(`${r.status === "success" ? "SENT" : "SENT but REVERTED"}: ${explorerTx("atlantic", signed.hash)} (block ${r.blockNumber}, gas used ${r.gasUsed})`);
     const eff = r.effectiveGasPrice ?? decision.requestPriceWei;
     const rep = paidReport(r.gasUsed, eff, decision.requestPriceWei);
