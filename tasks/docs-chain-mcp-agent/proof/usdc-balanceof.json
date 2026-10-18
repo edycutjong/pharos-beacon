@@ -1,0 +1,89 @@
+{
+  "meta": {
+    "task": "docs-chain-mcp-agent",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/docs-chain-mcp-agent/index.ts --contract 0xc879c018db60520f4355c26ed1a6d572cdac1815 --function balanceOf --arg 0x94807fE4300D15909C1a4fd39f76c61D68aee11E --proof",
+    "git": {
+      "commit": "e3bb90c50281",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T04:04:16.707Z"
+  },
+  "head": "20534832",
+  "step": {
+    "target": {
+      "contract": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "label": "USDC (Circle-deployed)",
+      "fn": "balanceOf",
+      "holder": "0x94807fE4300D15909C1a4fd39f76c61D68aee11E",
+      "holderLabel": "the --arg address"
+    },
+    "docs": {
+      "question": "What does the balanceOf(address) function of a token like USDC (Circle-deployed) do on Pharos, and how should its result be read?",
+      "documented": true,
+      "excerpt": [
+        "balanceOf(address) reads the USDC balance held by the address you pass.",
+        "USDC uses 6 decimals, so divide the returned value by 1,000,000 to get USDC."
+      ],
+      "sources": [
+        {
+          "title": "About Pharos",
+          "url": "https://docs.pharos.xyz/introduction/readme"
+        },
+        {
+          "title": "Token Registry",
+          "url": "https://docs.pharos.xyz/getting-started/token-registry"
+        },
+        {
+          "title": "Fordefi",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/wallets/fordefi"
+        },
+        {
+          "title": "Pharos Skill Engine",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide"
+        },
+        {
+          "title": "Wallet",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/wallets"
+        },
+        {
+          "title": "Circle CCTP",
+          "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/circle-cctp"
+        },
+        {
+          "title": "Get PROS Gas",
+          "url": "https://docs.pharos.xyz/getting-started/get-pros-gas"
+        },
+        {
+          "title": "x402 Atlantic Testnet",
+          "url": "https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet"
+        },
+        {
+          "title": "x402 Pacific Mainnet",
+          "url": "https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet"
+        },
+        {
+          "title": "Write Your First Uniswap Contract",
+          "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract"
+        }
+      ],
+      "listedInDocs": true,
+      "groundedIn": [
+        "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide"
+      ]
+    },
+    "chain": {
+      "block": "20534832",
+      "raw": "26001969072",
+      "decimals": 6,
+      "symbol": "USDC"
+    },
+    "interpretation": "Docs: \"balanceOf(address) reads the USDC balance held by the address you pass. USDC uses 6 decimals, so divide the returned value by 1,000,000 to get USDC.\" The chain returned 26001969072 base units for the holder 0x94807fE4300D15909C1a4fd39f76c61D68aee11E (the --arg address); the same block's decimals() is 6, so that is 26,001.969072 USDC."
+  }
+}
