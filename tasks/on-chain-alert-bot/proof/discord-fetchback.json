@@ -1,5 +1,5 @@
 {
-  "note": "Discord "get webhook message" request for each delivered alert id; URL and token omitted",
+  "note": "Discord get-webhook-message request for each delivered alert id; URL and token omitted",
   "fetchedAt": "2026-10-18T05:15:20.739828Z",
   "messages": [
     {
