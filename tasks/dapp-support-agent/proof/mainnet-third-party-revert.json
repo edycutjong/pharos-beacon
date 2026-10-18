@@ -10,10 +10,10 @@
     },
     "command": "tasks/dapp-support-agent/index.ts 0x360551d640f569c208de26a7380230fac002cdc7fc7378501decc6a6bc64227c --network pharos --proof mainnet-third-party-revert",
     "git": {
-      "commit": "78057f483c00",
+      "commit": "4ddd22d4eec9",
       "dirty": false
     },
-    "createdAt": "2026-10-18T14:04:42.506Z"
+    "createdAt": "2026-10-18T16:02:18.789Z"
   },
   "diagnosis": {
     "hash": "0x360551d640f569c208de26a7380230fac002cdc7fc7378501decc6a6bc64227c",
@@ -22,6 +22,7 @@
     "headline": "The contract refused the transaction and gave this reason: \"BC\".",
     "why": "The contract checked a condition, it was not met, and the contract stopped the transaction with the message \"BC\". Nothing was changed; you only paid the network fee.",
     "fix": [
+      "The message is a short code, not a sentence. Look the contract (0x69dc…0da4) up on the block explorer; if its source is verified, search it for \"BC\" to see which check it belongs to.",
       "Change the input that the message points at (an amount, an address or a deadline) and send again.",
       "If you did not expect this, ask the dApp's support, quoting the message and the transaction link."
     ],

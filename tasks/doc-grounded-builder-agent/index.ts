@@ -23,7 +23,8 @@ export const DEMO = [
   "how do I bridge to Solana on Pharos?",
 ];
 /** Keyless defaults: a public Atlantic contract as the address to read, a burn address as the recipient (when the second test wallet's key is present it is the recipient instead: no one else's send can touch its balance in the same block), a known Atlantic tx. */
-const DEFAULT_ADDRESS = getAddress(TOKENS.atlantic.WPHRS.address);
+// Without a key, "my" is the author's own public Atlantic test address (it is in every proof), never a contract: nothing can be signed from it.
+const DEFAULT_ADDRESS = getAddress("0x317bca01Bb101C0F1E86C21576a4e14D92B02975");
 const DEFAULT_TO = "0x000000000000000000000000000000000000dEaD" as Hex;
 const DEFAULT_TX = "0x01cd6b78d83947c46e45d2e6c283ed68ea9dc6a9493b422c30163d42f704fe88" as Hex;
 type Connect = Deps["chain"];
@@ -86,6 +87,7 @@ export async function main(
   };
   const deps: Deps = { docs, chain, signer: signerFor, ...(keyAddress ? { defaultFrom: keyAddress } : { defaultFrom: DEFAULT_ADDRESS }) };
 
+  if (!keyAddress && !values.address && !values.json) console.log(`(no key: "my" is the author's public test address ${DEFAULT_ADDRESS}; nothing can be signed from here)\n`);
   const outcomes: Outcome[] = [];
   for (const r of requests) outcomes.push(await handle(r, params, deps));
   console.log(values.json ? JSON.stringify(outcomes, (_, v) => (typeof v === "bigint" ? v.toString() : v), 2) : outcomes.map((o, i) => format(o, i, outcomes.length)).join("\n\n"));

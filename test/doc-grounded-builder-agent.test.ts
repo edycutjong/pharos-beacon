@@ -2,7 +2,7 @@ import { encodeFunctionResult, erc20Abi, type Hex } from "viem";
 import { describe, expect, it, vi } from "vitest";
 import { UsageError } from "../src/lib/cli.js";
 import type { DocsClient } from "../src/lib/docs-mcp.js";
-import { classify, format, handle, plan, refusal, type Deps, type Params } from "../tasks/doc-grounded-builder-agent/agent.js";
+import { classify, format, groundingLine, handle, plan, refusal, type Deps, type Params } from "../tasks/doc-grounded-builder-agent/agent.js";
 import { main } from "../tasks/doc-grounded-builder-agent/index.js";
 
 const ME = "0x317bca01Bb101C0F1E86C21576a4e14D92B02975" as Hex;
@@ -109,6 +109,24 @@ describe("refusal", () => {
   it("does not flag a plain answer", () => expect(refusal("Call eth_getBalance and divide by 10^18.")).toBe(false));
 });
 
+describe("groundingLine", () => {
+  it("prefers a line holding every word over an earlier line holding only the first", () => {
+    const text = "| references | Full `cast send` / `cast estimate` |\nUse `cast send <to> --value 1ether` to pay.";
+    expect(groundingLine(text, ["cast send", "--value"])).toBe("Use `cast send <to> --value 1ether` to pay.");
+  });
+  it("cuts a window around the word when it sits past character 200, never the line's start", () => {
+    const line = `${"lorem ".repeat(40)}the method is totalSupply here ${"ipsum ".repeat(40)}`;
+    const got = groundingLine(line, ["totalSupply"])!;
+    expect(got).toContain("totalSupply");
+    expect(got.startsWith("...")).toBe(true);
+    expect(got.length).toBeLessThanOrEqual(166);
+  });
+  it("keeps a short line whole and finds nothing when no line names the word", () => {
+    expect(groundingLine("a\n  eth_getBalance returns wei  \nb", ["eth_getBalance"])).toBe("eth_getBalance returns wei");
+    expect(groundingLine("a\nb", ["eth_getBalance"])).toBeUndefined();
+  });
+});
+
 describe("plan", () => {
   it("covers a request when a cited page names the method", async () => {
     const p = await plan(fakeDocs(DOCS, PAGES).client, "balance", "check my PHRS balance");
@@ -181,9 +199,18 @@ describe("handle", () => {
     const o = await handle("check my PHRS balance", P, deps(fakeDocs(DOCS, PAGES), fakeChain()).d);
     const text = format(o, 0, 1);
     expect(text).toContain("docs answer (askQuestion), the by-hand route a person would follow:");
-    expect(text).toContain("is named on a page the docs answer cites:");
+    expect(text).toContain("what this agent runs: Chain MCP get_balance");
+    expect(text).toContain("the docs name eth_getBalance on a page the docs answer cites:");
     expect(text).toContain(`"eth_getBalance eth_getTransactionReceipt"`);
     expect(text.split("sources:\n")[1]!.split("\n")[0]).toContain(RPC_PAGE);
+  });
+
+  it("the send PLAN says what the agent runs (a prepared transaction), not that it runs `cast`", async () => {
+    const pages = { ...PAGES, [RPC_PAGE]: "Run `cast send <to> --value 0.1ether` to send." };
+    const o = await handle("send PHRS on Atlantic", P, deps(fakeDocs(DOCS, pages), fakeChain()).d);
+    const text = format(o, 0, 1);
+    expect(text).toContain("what this agent runs: a Chain MCP-prepared transaction signed here and sent with send_raw_transaction");
+    expect(text).not.toContain("the method this agent runs");
   });
 
   it("send without --execute is prepared: unsigned tx shown, no signer, no broadcast", async () => {
