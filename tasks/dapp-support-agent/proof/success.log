@@ -1,0 +1,19 @@
+Transaction  0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b
+Network      atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c
+Explorer     https://atlantic.pharosscan.xyz/tx/0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b
+
+Result       DID NOT FAIL
+Cause        succeeded
+
+What happened
+  This transaction did not fail.
+
+Why
+  It was mined in block 31555629 with status success (used 47,676 of 66,758 gas).
+
+What you can do
+  - Nothing to fix. If something still looks wrong in the app, it is not a failed transaction: check the app's own status or the token's balance.
+
+Evidence (for the curious)
+  · receipt status 0x1
+proof: tasks/dapp-support-agent/proof/success.json

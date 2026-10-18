@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "task": "dapp-support-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/dapp-support-agent/index.ts 0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b --proof success",
+    "git": {
+      "commit": "6d8e7ef93f74",
+      "dirty": true
+    },
+    "createdAt": "2026-10-18T03:41:29.597Z"
+  },
+  "diagnosis": {
+    "hash": "0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b",
+    "outcome": "succeeded",
+    "cause": "succeeded",
+    "headline": "This transaction did not fail.",
+    "why": "It was mined in block 31555629 with status success (used 47,676 of 66,758 gas).",
+    "fix": [
+      "Nothing to fix. If something still looks wrong in the app, it is not a failed transaction: check the app's own status or the token's balance."
+    ],
+    "evidence": [
+      "receipt status 0x1"
+    ],
+    "facts": {
+      "from": "0x317bca01bb101c0f1e86c21576a4e14d92b02975",
+      "to": "0x838800b758277cc111b2d48ab01e5e164f8e9471",
+      "block": "31555629",
+      "gasLimit": "66758",
+      "gasUsed": "47676",
+      "value": "0"
+    }
+  }
+}
