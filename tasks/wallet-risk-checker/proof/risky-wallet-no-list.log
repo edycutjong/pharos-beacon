@@ -1,0 +1,17 @@
+$ npm run wallet-risk-checker -- check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --block 31566858 --config tasks/wallet-risk-checker/risk-config-no-list.json --proof risky-wallet-no-list
+risk check of 0xD6936bEcCA1A13c6A426309a694560292e9b579E on atlantic at block 31566858
+  [info  ] wallet or contract (get_code)
+           It is a plain wallet (no code).
+  [MEDIUM] wallet age (first block with a sent transaction)
+           It first sent a transaction in block 31566816, 2 minutes before block 31566858. That is under 7 days: a new address has no track record.
+  [ok    ] nonce and balance (freshly funded?)
+           It has sent 3 transactions (nonce 3) and holds 9355648000000000 wei, so it has been used.
+  [ok    ] interaction with flagged addresses
+           None of its 1 token counterpart in blocks 31536858–31566858 (about 18.4 hours) is on our flagged list (0 addresses). Native-coin transfers leave no log and are not covered.
+  [HIGH  ] approvals to unknown spenders
+           It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later. The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours.
+  [info  ] token activity in the lookback range
+           1 token transfer with 1 counterpart in blocks 31536858–31566858 (about 18.4 hours).
+RISK: HIGH — 2 red flags
+  1. It first sent a transaction in block 31566816, 2 minutes before block 31566858. That is under 7 days: a new address has no track record.
+  2. It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later. The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours.
