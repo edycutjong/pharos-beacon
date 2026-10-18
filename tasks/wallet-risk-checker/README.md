@@ -17,7 +17,7 @@ SkillEngine: only the token registry (`src/lib/networks.ts`) · Docs MCP: not us
 | age | first block with code (contract) or with a sent transaction (wallet), found by a binary search of archive reads (`get_code` / `get_transaction_count` at a block) and `get_block` timestamps | medium if younger than `youngDays` (7), or if the address has no history at all |
 | nonce and balance | `get_transaction_count`, `get_balance` | medium if it holds funds but has never sent anything (freshly funded) |
 | flagged addresses | Transfer logs of the registry tokens (+ `extraTokens`) with the address as sender or recipient, compared with [`risk-config.json`](risk-config.json) `flagged` | **high** |
-| approvals | Approval logs by the address; the latest allowance per token and spender | medium for an open approval to a spender that is not in `trustedSpenders` or the token registry (stated as "unlimited" at 2^255 or more); **high** if the spender is flagged |
+| approvals | Approval logs by the address; the latest allowance per token and spender | medium for an open approval to a spender that is not in `trustedSpenders` or the token registry (stated as "unlimited" at 2^255 or more); **high** if the spender is flagged, or if the allowance is unlimited and the spender is **not a contract** (`get_code` is empty: the approval-phishing pattern; it needs none of our lists) |
 | activity | the same logs, counted | info |
 
 **Verdict:** HIGH if any signal is high or three are medium, MEDIUM if one or two are medium, otherwise LOW. Every medium and high signal is printed again
@@ -25,8 +25,9 @@ as a numbered plain-language reason.
 
 **Where the flagged list comes from (read this):** it is **our own file**, [`risk-config.json`](risk-config.json), and each entry carries its `reason` and `source`.
 It is not a feed from a security vendor or a government list, and the one entry in it is an address we made up for the risky example. Add your own
-entries; the checker is only as good as the list. Transfers of the native coin leave no log, so they are not covered, and the token history is read for
-the last `--lookback` blocks (30,000 by default), not for all time.
+entries; the checker is only as good as the list. The risky example does **not** depend on it: with the list emptied the staged wallet is still HIGH
+([`proof/risky-wallet-no-list.log`](proof/risky-wallet-no-list.log), config [`risk-config-no-list.json`](risk-config-no-list.json)), because of the unlimited allowance to an address with no code. Transfers of the native coin leave no log, so they are not covered, and the token history is read for
+the last `--lookback` blocks (30,000 by default: about 8.5 hours on Pharos mainnet, about 18 hours on Atlantic; every window in the output is printed with its time span), not for all time.
 
 ## Requirements → evidence
 
@@ -35,7 +36,7 @@ the last `--lookback` blocks (30,000 by default), not for all time.
 | 1 | "Checks at least 4 signals" | 6 signals (table above): wallet-or-contract, age, freshly funded, flagged-address interaction, unusual approvals, activity | the six signal lines in each check sample below (the gate proofs carry them in `signals`) · `signals` in each check and gate proof |
 | 2 | "Outputs a risk level (low, medium or high) with the specific reasons." | `RISK: LOW|MEDIUM|HIGH` plus a numbered list of reasons, each in plain words, naming the block, address or transaction it comes from where there is one | last lines of each sample · `report.verdict` and `report.reasons` in the proofs |
 | 3 | "Explains each flag in plain language." | Each signal has a `detail` sentence ("It gave 0x5Be1…0aa0 an unlimited allowance … lets it take the token's whole balance later"); no codes to look up | the indented lines under each signal |
-| 4 | "Demonstrated on at least 1 clean and 1 risky example." | **Clean:** a mainnet wallet, [`0x1F35…c85C`](https://www.pharosscan.xyz/address/0x1F3546a29EeC2102c8d52E21a45114124014c85C): first transaction 39 days earlier, 44,628 sent transactions, nothing flagged → LOW. **Risky:** a wallet **we created and staged** on Atlantic (below) → HIGH. | [`proof/clean-wallet.json`](proof/clean-wallet.json) · [`proof/risky-wallet.json`](proof/risky-wallet.json) |
+| 4 | "Demonstrated on at least 1 clean and 1 risky example." | **Clean:** a mainnet wallet, [`0x1F35…c85C`](https://www.pharosscan.xyz/address/0x1F3546a29EeC2102c8d52E21a45114124014c85C): first transaction 39 days earlier, 44,628 sent transactions, nothing flagged → LOW. **Risky:** a wallet **we created and staged** on Atlantic (below) → HIGH, and still HIGH with the flagged list emptied. | [`proof/clean-wallet.json`](proof/clean-wallet.json) · [`proof/risky-wallet.json`](proof/risky-wallet.json) · [`proof/risky-wallet-no-list.json`](proof/risky-wallet-no-list.json) |
 
 ## The risky example is staged, and we say so
 
@@ -56,10 +57,10 @@ Nothing here is a real attacker: it shows that the signals fire on the pattern. 
 `gate --to 0x… --amount 0.0001` checks the recipient first. At HIGH (or MEDIUM with `--block-on medium`) it refuses, writes the refusal to the Gatekeeper's
 hash-chained audit log as rule `wallet_risk`, and **never asks the policy or sends**. Otherwise the request goes to the
 [Policy Gatekeeper](../policy-gatekeeper/README.md) with [`gate-policy.json`](gate-policy.json) (0.001 PHRS per transaction, 0.003 per hour), which allows or denies it as usual.
-Live: the staged risky wallet was refused ([`proof/gate-denied.json`](proof/gate-denied.json), no transaction), then the clean Atlantic wallet `0x8D34…D91B`
+Live: the staged risky wallet was refused ([`proof/gate-denied.json`](proof/gate-denied.json), no transaction; and again with `--execute`, so a send was requested and refused: [`proof/gate-denied-execute.json`](proof/gate-denied-execute.json), audit #4), then the clean Atlantic wallet `0x8D34…D91B`
 (128 days old, LOW) was paid 0.0001 PHRS from our main test wallet ([`proof/gate-allowed.json`](proof/gate-allowed.json), tx
 [`0x45cc6f34…9f51`](https://atlantic.pharosscan.xyz/tx/0x45cc6f3496866707c8d59599cc7ff45fcb6b2f311a14551c505fd8ec4d049f51), status 1). The audit log is committed:
-[`audit/gate-audit.jsonl`](audit/gate-audit.jsonl) (3 entries, chain intact).
+[`audit/gate-audit.jsonl`](audit/gate-audit.jsonl) (4 entries, chain intact).
 
 ## Reproduce a report later
 
@@ -74,7 +75,7 @@ clean wallet ([`proof/reproduce-clean-wallet.txt`](proof/reproduce-clean-wallet.
 Risky (Atlantic, `proof/risky-wallet.json`):
 
 ```text
-$ npm run wallet-risk-checker -- check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --proof risky-wallet
+$ npm run wallet-risk-checker -- check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --block 31566858 --proof risky-wallet
 risk check of 0xD6936bEcCA1A13c6A426309a694560292e9b579E on atlantic at block 31566858
   [info  ] wallet or contract (get_code)
            It is a plain wallet (no code).
@@ -84,20 +85,20 @@ risk check of 0xD6936bEcCA1A13c6A426309a694560292e9b579E on atlantic at block 31
            It has sent 3 transactions (nonce 3) and holds 9355648000000000 wei, so it has been used.
   [HIGH  ] interaction with a flagged address
            It moved tokens with 0xf1a9…0001, which is on our flagged list (demo flagged address; source: our own list: we made this address up for the risky example and put it here ourselves). Transaction: 0x43c4a2e8aef5d32272cf8911551da1ac05fcb15a0cee84be72afa74df4f3b4da.
-  [MEDIUM] approvals to unknown spenders
-           It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later.
+  [HIGH  ] approvals to unknown spenders
+           It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later. The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours.
   [info  ] token activity in the lookback range
-           1 token transfer with 1 counterpart in blocks 31536858–31566858 (30000 blocks).
+           1 token transfer with 1 counterpart in blocks 31536858–31566858 (about 18.4 hours).
 RISK: HIGH — 3 red flags
   1. It first sent a transaction in block 31566816, 2 minutes before block 31566858. That is under 7 days: a new address has no track record.
   2. It moved tokens with 0xf1a9…0001, which is on our flagged list (demo flagged address; source: our own list: we made this address up for the risky example and put it here ourselves). Transaction: 0x43c4a2e8aef5d32272cf8911551da1ac05fcb15a0cee84be72afa74df4f3b4da.
-  3. It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later.
+  3. It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later. The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours.
 ```
 
 Clean (Pharos mainnet, `proof/clean-wallet.json`):
 
 ```text
-$ npm run wallet-risk-checker -- check 0x1F3546a29EeC2102c8d52E21a45114124014c85C --proof clean-wallet
+$ npm run wallet-risk-checker -- check 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548019 --proof clean-wallet
 risk check of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos at block 20548019
   [info  ] wallet or contract (get_code)
            It is a plain wallet (no code).
@@ -106,21 +107,21 @@ risk check of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos at block 2054
   [ok    ] nonce and balance (freshly funded?)
            It has sent 44628 transactions (nonce 44628) and holds 52893234045000000000 wei, so it has been used.
   [ok    ] interaction with flagged addresses
-           None of its 1 token counterpart in blocks 20518019–20548019 is on our flagged list (1 address). Native-coin transfers leave no log and are not covered.
+           None of its 1 token counterpart in blocks 20518019–20548019 (about 8.5 hours) is on our flagged list (1 address). Native-coin transfers leave no log and are not covered.
   [ok    ] approvals to unknown spenders
-           0 open token approvals in blocks 20518019–20548019, none to a spender we do not recognise.
+           0 open token approvals in blocks 20518019–20548019 (about 8.5 hours), none to a spender we do not recognise.
   [info  ] token activity in the lookback range
-           1152 token transfers with 1 counterpart in blocks 20518019–20548019 (30000 blocks).
+           1152 token transfers with 1 counterpart in blocks 20518019–20548019 (about 8.5 hours).
 RISK: LOW — no red flags
 ```
 
-Gate, refused ([`proof/gate-denied.json`](proof/gate-denied.json); the check above it is the risky report):
+Gate, refused with a send requested ([`proof/gate-denied-execute.json`](proof/gate-denied-execute.json); the check above it is the risky report; the first refusal, without `--execute`, is [`proof/gate-denied.json`](proof/gate-denied.json), audit #1):
 
 ```text
-$ npm run wallet-risk-checker -- gate --to 0xD6936bEcCA1A13c6A426309a694560292e9b579E --amount 0.0001 --proof gate-denied
+$ npm run wallet-risk-checker -- gate --to 0xD6936bEcCA1A13c6A426309a694560292e9b579E --amount 0.0001 --execute --proof gate-denied-execute
 […]
-GATE: DENY by wallet_risk (audit #1). 0.0001 PHRS → 0xD6936bEcCA1A13c6A426309a694560292e9b579E was NOT sent, and the policy was not asked.
-audit log: 1 entries, hash chain intact (gate-audit.jsonl)
+GATE: DENY by wallet_risk (audit #4). 0.0001 PHRS → 0xD6936bEcCA1A13c6A426309a694560292e9b579E was NOT sent, and the policy was not asked.
+audit log: 4 entries, hash chain intact (gate-audit.jsonl)
 ```
 
 Gate, allowed and sent ([`proof/gate-allowed.json`](proof/gate-allowed.json)):
@@ -137,6 +138,7 @@ GATE: recipient risk is LOW, below HIGH: passing the request to the Policy Gatek
   tx executed: https://atlantic.pharosscan.xyz/tx/0x45cc6f3496866707c8d59599cc7ff45fcb6b2f311a14551c505fd8ec4d049f51
 audit log: 3 entries, hash chain intact (gate-audit.jsonl)
 ```
+(The allowed run printed 3 entries when it ran; the refusal above was recorded afterwards as #4.)
 
 ## Limits (honest)
 
@@ -145,4 +147,4 @@ audit log: 3 entries, hash chain intact (gate-audit.jsonl)
 - Age of a wallet is the time of its first *sent* transaction; a wallet that only ever received funds has no measurable age (signal 3 flags it instead).
 - A contract's source cannot be checked through the Chain MCP, so "verified code" is not one of the six signals; the report says to read the source.
 - "Unknown spender" means "not in `trustedSpenders` or the token registry", not "malicious".
-- 18 tests in `test/risk.test.ts` (each signal, the verdict rule, pinning with `--block`, config validation, the CLI and the gate refusing / passing).
+- 20 tests in `test/risk.test.ts` (each signal, the verdict rule, pinning with `--block`, config validation, the CLI and the gate refusing / passing).
