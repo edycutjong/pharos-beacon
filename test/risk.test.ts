@@ -27,6 +27,8 @@ interface World {
   logs?: RpcLog[];
   /** seconds per block */
   blockTime?: number;
+  /** other addresses (spenders) that have code */
+  withCode?: string[];
 }
 function chain(w: World) {
   const head = w.head ?? 100_000;
@@ -36,6 +38,7 @@ function chain(w: World) {
   const call = (async (tool: string, a: any = {}) => {
     calls.push({ tool, args: a });
     if (tool === "get_block_number") return { blockNumber: String(head) };
+    if (tool === "get_code" && (w.withCode ?? []).map((x) => x.toLowerCase()).includes(String(a.address).toLowerCase())) return { code: "0x6080" };
     if (tool === "get_code") return { code: w.contract && w.firstActive !== undefined && at(a) >= w.firstActive ? "0x6080" : "0x" };
     if (tool === "get_transaction_count") return { nonce: !w.contract && w.firstActive !== undefined && at(a) >= w.firstActive ? "3" : "0" };
     if (tool === "get_balance") return { balanceWei: String(w.balance ?? 0n) };
@@ -105,9 +108,27 @@ describe("checkAddress", () => {
     expect(r.verdict).toBe("high");
     expect(r.signals.find((s) => s.id === "flagged")!.title).toBe("on our flagged list");
   });
+  it("an unlimited approval to an unknown spender WITH code is medium; to an address with NO code it is HIGH on its own, with no list entry involved", async () => {
+    const base = { firstActive: 1_000, balance: 1n, logs: [approval(99_000, 1, WALLET, SPENDER, maxUint256)] };
+    const router = await checkAddress(chain({ ...base, withCode: [SPENDER] }), WALLET, opts);
+    expect(ids(router).approvals).toBe("medium");
+    expect(router.verdict).toBe("medium");
+    const bare = await checkAddress(chain(base), WALLET, { ...opts, config: config({ flagged: [] }) });
+    expect(ids(bare).approvals).toBe("high");
+    expect(bare.verdict).toBe("high");
+    expect(bare.signals.find((s) => s.id === "approvals")!.detail).toContain("not a contract");
+    // a small allowance to a plain wallet stays medium: only the unlimited pattern is called high
+    const small = await checkAddress(chain({ ...base, logs: [approval(99_000, 1, WALLET, SPENDER, 5n)] }), WALLET, opts);
+    expect(ids(small).approvals).toBe("medium");
+  });
+  it("prints the lookback window in time as well as blocks", async () => {
+    const r = await checkAddress(chain({ firstActive: 1_000, balance: 1n }), WALLET, { ...opts, lookbackBlocks: 30_000n });
+    expect(r.lookbackSeconds).toBe(30_000 * 100);
+    expect(reportText(r)).toContain("(about 35 days)");
+  });
   it("an unlimited approval to an unknown spender is medium; a trusted spender, a revoked approval and a small unknown one behave", async () => {
     const base = { firstActive: 1_000, balance: 1n };
-    const unlimited = await checkAddress(chain({ ...base, logs: [approval(99_000, 1, WALLET, SPENDER, maxUint256)] }), WALLET, opts);
+    const unlimited = await checkAddress(chain({ ...base, withCode: [SPENDER], logs: [approval(99_000, 1, WALLET, SPENDER, maxUint256)] }), WALLET, opts);
     expect(ids(unlimited).approvals).toBe("medium");
     expect(unlimited.signals.find((s) => s.id === "approvals")!.detail).toContain("unlimited");
     const trusted = await checkAddress(chain({ ...base, logs: [approval(99_000, 1, WALLET, SPENDER, maxUint256)] }), WALLET, { ...opts, config: config({ trustedSpenders: [{ address: SPENDER, label: "Test DEX" }] }) });
