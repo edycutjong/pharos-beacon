@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { encodeFunctionData, erc20Abi, formatEther, formatUnits, type Hex } from "viem";
+import { encodeFunctionData, erc20Abi, formatEther, formatUnits, getAddress, isAddress, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { isMain, parseCli, runCli, UsageError, type RunContext } from "../../src/lib/cli.js";
 import { secret } from "../../src/lib/env.js";
@@ -101,10 +101,10 @@ export function formatCompact(r: BatchResult): string {
 export async function main({ onExit }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values } = parseCli(
     {
-      usage: `npm run ${TASK} -- --plan <plan.json> [--drop-failing] [--approve] [--execute] [--compact] [--proof name]`,
+      usage: `npm run ${TASK} -- --plan <plan.json> [--drop-failing] [--approve] [--execute] [--compact] [--from 0x…] [--proof name]`,
       options: {
         plan: { type: "string" }, "drop-failing": { type: "boolean", default: false }, approve: { type: "boolean", default: false }, compact: { type: "boolean", default: false },
-        execute: { type: "boolean", default: false }, proof: { type: "string" },
+        execute: { type: "boolean", default: false }, from: { type: "string" }, proof: { type: "string" },
       },
     },
     argv,
@@ -112,9 +112,11 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   if (!values.plan) throw new UsageError("--plan <file.json> is required");
   // a bare name (--plan one-fails) is a plan shipped in tasks/batch-executor/plans/
   const planFile = /^[\w-]+$/.test(values.plan) ? join(HERE, "plans", `${values.plan}.json`) : values.plan;
+  if (values.from && (values.execute || values.approve)) throw new UsageError("--from only simulates as another sender; --execute and --approve always use your own key");
+  if (values.from && !isAddress(values.from)) throw new UsageError("--from must be a 0x address");
   const pk = secret("PRIVATE_KEY");
-  if (!pk) throw new UsageError("no sender: set PRIVATE_KEY (~/.config/pharos/testnet.env)");
-  const sender = privateKeyToAccount(pk as Hex).address;
+  if (!pk && !values.from) throw new UsageError("no sender: set PRIVATE_KEY (~/.config/pharos/testnet.env) or pass --from 0x… to simulate");
+  const sender = values.from ? getAddress(values.from) : privateKeyToAccount(pk as Hex).address;
   let actions: Action[];
   try { actions = resolveActions((JSON.parse(readFileSync(planFile, "utf8")) as { actions?: unknown }).actions, sender); } catch (e) {
     if (e instanceof PlanError || e instanceof SyntaxError || (e as NodeJS.ErrnoException).code === "ENOENT") throw new UsageError(`${values.plan}: ${(e as Error).message}`);

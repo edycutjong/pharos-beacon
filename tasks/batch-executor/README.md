@@ -2,8 +2,9 @@
 
 **Task:** [Batch Executor](https://pharos-agent-arena.vercel.app/tasks/batch-executor) (SkillEngine · Medium · 100 pts): a Skill that takes several independent actions and bundles them into one optimized execution.
 **Run** (Atlantic testnet only; one-time `npm run setup:mcp`, keys in `~/.config/pharos/testnet.env`):
-`npm run batch-executor -- --plan one-fails` (keyless: simulates the batch, sends nothing) ·
+`npm run batch-executor -- --plan one-fails --from 0x317bca01Bb101C0F1E86C21576a4e14D92B02975` (keyless: simulates the batch as that sender, sends nothing; with `PRIVATE_KEY` set the sender is your own address) ·
 `npm run batch-executor -- --plan <name|file.json> [--approve] [--drop-failing] [--execute] [--compact] [--proof name]`.
+Without an allowance to Multicall3 the WPHRS actions simulate as WOULD FAIL (that is what a keyless run shows: the allowance is spent by each run); `--approve --execute` gives it.
 **Skill:** [`skills/batch-executor/SKILL.md`](../../skills/batch-executor/SKILL.md) · **Uses:** Chain MCP ✅ (`get_block_number`, `get_block`, `get_gas_price`, `eth_call`, `estimate_gas`, `get_balance`, `get_transaction_count`, `send_raw_transaction`, `get_transaction_receipt`); viem signs locally.
 
 ## How it works
@@ -87,6 +88,6 @@ Without the flag a failing token action stays inside the batch (run 2), which is
 
 ## Tests
 
-`npm test` — 20 tests in [`test/batch.test.ts`](../../test/batch.test.ts): plan validation (minimum 3, repeated recipient, bad type / address / token / amount), the simulation per action and alone, a failing action named with its reason, a batch that reverts as a whole,
+`npm test` — 21 tests in [`test/batch.test.ts`](../../test/batch.test.ts): plan validation (minimum 3, repeated recipient, bad type / address / token / amount), the simulation per action and alone, a failing action named with its reason, a batch that reverts as a whole,
 no send without `--execute`, an all-success batch with the gas comparison, a partial failure (named, the rest applied), `--drop-failing` (including the position fix for a trimmed batch), nothing sent when everything would fail, a failing PHRS action blocked,
-a mined revert, a negative saving worded as "cost more", the compact layout, and the CLI's usage errors.
+a mined revert, a negative saving worded as "cost more", the compact layout, and the CLI's usage errors (including `--from`).

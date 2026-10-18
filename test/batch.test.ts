@@ -217,6 +217,10 @@ describe("batch-executor CLI", () => {
   it("asks for --plan", async () => {
     expect(await run([])).toContain("--plan <file.json> is required");
   });
+  it("--from is for simulating only", async () => {
+    expect(await run(["--plan", "one-fails", "--from", FROM, "--execute"])).toMatch(/--from only simulates/);
+    expect(await run(["--plan", "one-fails", "--from", "nope"])).toMatch(/--from must be a 0x address/);
+  });
   it("a bare --plan name that does not exist is a usage error", async () => {
     process.env.PRIVATE_KEY ??= "0x" + "11".repeat(32);
     expect(await run(["--plan", "no-such-plan"])).toMatch(/no-such-plan: ENOENT/);

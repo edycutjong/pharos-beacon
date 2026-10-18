@@ -31,7 +31,7 @@ The sender is the address of `PRIVATE_KEY` in `~/.config/pharos/testnet.env`. Ne
    `{"type":"native","to":"0x…","value":"0.0001"}` or `{"type":"erc20","token":"WPHRS","to":"0x…","amount":"0.0001"}`.
 2. **Simulate first** (sends nothing):
    ```bash
-   npm run batch-executor -- --plan <file.json>
+   npm run batch-executor -- --plan <file.json>      # add --from 0x… to simulate as another address without a key
    ```
 3. **Read the simulation to the user:** per action WOULD SUCCEED or WOULD FAIL with the reason, each action's gas alone, and the batch's gas.
 4. **Failing actions.** A failing PHRS action blocks the batch (its PHRS would stay stuck in Multicall3). Offer `--drop-failing`, which removes the failing actions and simulates the rest again. Do not work around a block.
