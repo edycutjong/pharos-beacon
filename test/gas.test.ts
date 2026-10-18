@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { historyTable, holdUntilFavourable, loadSamples, paidReport, percentilePrice, resolveTarget, takeSample, type Sample } from "../src/gas/optimizer.js";
+import { deadlineGap, historyTable, holdUntilFavourable, loadSamples, paidReport, percentilePrice, resolveTarget, takeSample, type Sample } from "../src/gas/optimizer.js";
 import type { ChainMcp } from "../src/lib/mcp.js";
 
 const gwei = (n: number) => BigInt(Math.round(n * 1e9));
@@ -118,5 +118,18 @@ describe("paidReport", () => {
     expect(paidReport(21000n, gwei(1), gwei(2))).toEqual({ paidWei: 21000n * gwei(1), atRequestPriceWei: 21000n * gwei(2), savedWei: 21000n * gwei(1), savedPct: "50.00" });
     expect(paidReport(21000n, gwei(3), gwei(2)).savedPct).toBe("-50.00");
     expect(paidReport(21000n, gwei(1), 0n).savedPct).toBe("0.00");
+  });
+});
+
+describe("deadlineGap", () => {
+  const dl = new Date("2026-10-18T13:09:26.500Z");
+  it("counts whole seconds against the deadline floored, so the printed times and the gap agree", () => {
+    expect(deadlineGap(dl, new Date("2026-10-18T13:09:19Z"))).toEqual({ seconds: 7, side: "before" }); // 26 − 19, not round(7.5) = 8
+  });
+  it("says 'same second' instead of guessing when the block and the deadline share a second", () => {
+    expect(deadlineGap(dl, new Date("2026-10-18T13:09:26Z"))).toEqual({ seconds: 0, side: "same second as" });
+  });
+  it("says AFTER from the next second on", () => {
+    expect(deadlineGap(dl, new Date("2026-10-18T13:09:27Z"))).toEqual({ seconds: 1, side: "AFTER" });
   });
 });

@@ -1,23 +1,24 @@
 $ npm run gas-fee-optimizer -- send --to 0xDf34d07C3782ba050381e212B3609124Ed7DBA08 --value 0.0001 --deadline 40 --target-gwei 0.5 --interval 5 --execute --proof deadline-lead
-request: send 0.0001 PHRS to 0xDf34d07C3782ba050381e212B3609124Ed7DBA08 · target 0.5 gwei · deadline 13:09:26Z (40s) · send decided by 13:09:18Z (8s lead)
-  13:08:46 price 1 gwei · target 0.5 · 32s to deadline
-  13:08:51 price 1 gwei · target 0.5 · 27s to deadline
-  13:08:57 price 1 gwei · target 0.5 · 22s to deadline
-  13:09:02 price 1 gwei · target 0.5 · 16s to deadline
-  13:09:07 price 1 gwei · target 0.5 · 11s to deadline
-  13:09:12 price 1 gwei · target 0.5 · 6s to deadline
-  13:09:17 price 1 gwei · target 0.5 · 1s to deadline
-decision: send now — deadline reached after 32.0s (7 samples)
-last 6 of 21 samples:
+request: send 0.0001 PHRS to 0xDf34d07C3782ba050381e212B3609124Ed7DBA08 · target 0.5 gwei · deadline 15:10:40Z (40s) · send decided by 15:10:32Z (8s lead)
+  15:10:01 price 1 gwei · target 0.5 · 32s to deadline
+  15:10:06 price 1 gwei · target 0.5 · 27s to deadline
+  15:10:11 price 1 gwei · target 0.5 · 22s to deadline
+  15:10:16 price 1 gwei · target 0.5 · 16s to deadline
+  15:10:21 price 1 gwei · target 0.5 · 11s to deadline
+  15:10:26 price 1 gwei · target 0.5 · 6s to deadline
+  15:10:31 price 1 gwei · target 0.5 · 1s to deadline
+decision: send now — send-by time reached (deadline − lead) after 32.0s (7 samples)
+last 6 of 29 samples:
   time (UTC)   block      base fee      priority      price (gwei)
-  13:08:51     31576179   1             0             1
-  13:08:57     31576180   1             0             1
-  13:09:02     31576182   1             0             1
-  13:09:07     31576183   1             0             1
-  13:09:12     31576184   1             0             1
-  13:09:17     31576186   1             0             1
-  min 1 · max 1 gwei over all 21
-broadcast 7.6s before the deadline (13:09:19.009Z)
-mined in block 31576187 at 13:09:19Z, 8s before the deadline (13:09:26Z)
-SENT: https://atlantic.pharosscan.xyz/tx/0xa6f5f5bfa52708fe5156ccbd428a60cf80fa975c6f5a0dbe1f92ff02c1dd5125 (block 31576187, gas used 21000)
+  15:10:06     31579469   1             0             1
+  15:10:11     31579475   1             0             1
+  15:10:16     31579479   1             0             1
+  15:10:21     31579480   1             0             1
+  15:10:26     31579485   1             0             1
+  15:10:31     31579491   1             0             1
+  min 1 · max 1 gwei over all 29
+broadcast 7.7s before the deadline (15:10:33.302Z)
+mined in block 31579493 at 15:10:33Z, 7s before the deadline (15:10:40Z, whole seconds)
+SENT: https://atlantic.pharosscan.xyz/tx/0x1484ea862952624332058fd61d66ae3cb658dad94e99a6219c7af249d5ee4957 (block 31579493, gas used 21000)
 price at request 1 gwei · price paid 1 gwei · gas paid 0.000021 PHRS vs 0.000021 PHRS at the request price (saved 0 PHRS, 0.00%)
+proof: tasks/gas-fee-optimizer/proof/deadline-lead.json

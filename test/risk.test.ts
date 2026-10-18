@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { encodeAbiParameters, encodeEventTopics, erc20Abi, getAddress, maxUint256, pad, type Hex, type RpcLog } from "viem";
 import { describe, expect, it } from "vitest";
 import { main } from "../tasks/wallet-risk-checker/index.js";
-import { checkAddress, firstBlock, parseRiskConfig, reportText, verdictOf, type RiskConfig, type Signal } from "../src/risk/check.js";
+import { checkAddress, codeIsEmpty, firstBlock, parseRiskConfig, reportText, verdictOf, type RiskConfig, type Signal } from "../src/risk/check.js";
 import { TOKENS } from "../src/lib/networks.js";
 
 const WPHRS = TOKENS.atlantic.WPHRS.address as Hex;
@@ -120,6 +120,16 @@ describe("checkAddress", () => {
     // a small allowance to a plain wallet stays medium: only the unlimited pattern is called high
     const small = await checkAddress(chain({ ...base, logs: [approval(99_000, 1, WALLET, SPENDER, 5n)] }), WALLET, opts);
     expect(ids(small).approvals).toBe("medium");
+  });
+  it("every spelling of empty code means no code (so HIGH does not drop to MEDIUM), and a missing field is an error, not a guess", async () => {
+    for (const empty of ["0x", "0x0", "0x00", ""]) expect(codeIsEmpty(empty)).toBe(true);
+    expect(codeIsEmpty("0x6080")).toBe(false);
+    expect(() => codeIsEmpty(undefined)).toThrow("not guessing");
+    const base = { firstActive: 1_000, balance: 1n, logs: [approval(99_000, 1, WALLET, SPENDER, maxUint256)] };
+    const inner = chain(base);
+    const emptyAsBlank = (async (tool: string, a: any) => { const r = await (inner as any)(tool, a); return tool === "get_code" && r.code === "0x" ? { code: "" } : r; }) as any;
+    const r = await checkAddress(emptyAsBlank, WALLET, { ...opts, config: config({ flagged: [] }) });
+    expect(ids(r).approvals).toBe("high");
   });
   it("prints the lookback window in time as well as blocks", async () => {
     const r = await checkAddress(chain({ firstActive: 1_000, balance: 1n }), WALLET, { ...opts, lookbackBlocks: 30_000n });

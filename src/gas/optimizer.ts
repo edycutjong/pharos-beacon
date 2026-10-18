@@ -126,6 +126,12 @@ export async function holdUntilFavourable(o: HoldOptions): Promise<HoldDecision>
   }
 }
 
+/** Block timestamps are whole seconds, so the gap to the deadline is counted on whole seconds too (the deadline floored). Same second = cannot tell. */
+export function deadlineGap(deadline: Date, minedAt: Date): { seconds: number; side: "before" | "same second as" | "AFTER" } {
+  const d = Math.floor(deadline.getTime() / 1000) - Math.floor(minedAt.getTime() / 1000);
+  return d > 0 ? { seconds: d, side: "before" } : d === 0 ? { seconds: 0, side: "same second as" } : { seconds: -d, side: "AFTER" };
+}
+
 /** `p`, or a rejection after `ms`: a read that hangs (the Chain MCP waits up to 30 s) must not push the send past the deadline. */
 function raceDeadline<T>(p: Promise<T>, ms: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout>;

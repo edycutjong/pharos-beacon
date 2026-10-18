@@ -116,6 +116,15 @@ export interface CheckOptions {
   block?: bigint;
 }
 
+/**
+ * True when `get_code` says there is no code. Servers spell empty code "0x", "0x0", "0x00…" or "": all of them mean none, so none of
+ * them may silently turn HIGH into MEDIUM. Anything that is not a string (a missing field) is an error, never "no code".
+ */
+export function codeIsEmpty(code: unknown): boolean {
+  if (typeof code !== "string") throw new Error("get_code returned no code field; not guessing wallet or contract");
+  return code === "" || /^0x0*$/i.test(code);
+}
+
 export async function checkAddress(call: Call, address: Hex, o: CheckOptions): Promise<RiskReport> {
   const target = getAddress(address);
   const chainHead = num(((await call("get_block_number")) as { blockNumber: string }).blockNumber);
@@ -128,7 +137,7 @@ export async function checkAddress(call: Call, address: Hex, o: CheckOptions): P
   for (const t of Object.values(TOKENS[o.network])) trusted.set(t.address.toLowerCase(), "a token in the Pharos token registry");
 
   const code = ((await call("get_code", { address: target, block: head.toString() })) as { code: Hex }).code;
-  const isContract = code !== "0x" && code !== "0x0";
+  const isContract = !codeIsEmpty(code);
   const nonce = num(((await call("get_transaction_count", { address: target, block: head.toString() })) as { nonce: string }).nonce);
   const balance = num(((await call("get_balance", { address: target, block: head.toString() })) as { balanceWei: string }).balanceWei);
 
@@ -244,7 +253,7 @@ export async function checkAddress(call: Call, address: Hex, o: CheckOptions): P
     let bare: (typeof unlimitedUnknown)[number] | undefined;
     for (const a of unlimitedUnknown) {
       const c = ((await call("get_code", { address: a.spender, block: head.toString() })) as { code: Hex }).code;
-      if (c === "0x" || c === "0x0") { bare = a; break; }
+      if (codeIsEmpty(c)) { bare = a; break; }
     }
     const u = bare ?? unlimitedUnknown[0]!;
     signals.push({ id: "approvals", level: bare ? "high" : "medium", title: "approvals to unknown spenders", detail: `It gave ${short(u.spender)} an unlimited allowance (2^255 or more) on token ${short(u.token)} (tx ${u.tx}). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later.${bare ? " The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours." : ""}${unlimitedUnknown.length > 1 ? ` ${unlimitedUnknown.length - 1} more like it.` : ""}` });

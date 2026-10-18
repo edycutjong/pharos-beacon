@@ -1,0 +1,114 @@
+{
+  "meta": {
+    "task": "dry-run-executor",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/dry-run-executor/index.ts --token WPHRS --to 0xc0e418e6f4fa59bb479f4c7d5df4db9e3a5bbc37 --amount 0.00001 --execute --proof alone-cold-wphrs-1",
+    "git": {
+      "commit": "4b1c8169ad7b",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T15:08:52.169Z"
+  },
+  "result": {
+    "simulation": {
+      "request": {
+        "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+        "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+        "value": "0",
+        "data": "0xa9059cbb000000000000000000000000c0e418e6f4fa59bb479f4c7d5df4db9e3a5bbc37000000000000000000000000000000000000000000000000000009184e72a000",
+        "token": {
+          "symbol": "WPHRS",
+          "decimals": 18
+        }
+      },
+      "block": "31579429",
+      "ok": true,
+      "gasPriceWei": "1000000000",
+      "changes": [
+        {
+          "who": "sender",
+          "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+          "asset": "PHRS",
+          "decimals": 18,
+          "before": "14923111919999979000",
+          "after": "14923045161999979000"
+        },
+        {
+          "who": "sender",
+          "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+          "asset": "WPHRS",
+          "decimals": 18,
+          "before": "3590000000000000",
+          "after": "3580000000000000"
+        },
+        {
+          "who": "recipient",
+          "address": "0xC0E418E6f4fA59bb479F4C7d5DF4dB9e3A5Bbc37",
+          "asset": "WPHRS",
+          "decimals": 18,
+          "before": "0",
+          "after": "10000000000000"
+        }
+      ],
+      "gas": "66758",
+      "costWei": "66758000000000"
+    },
+    "status": "executed",
+    "sent": {
+      "tx": "0xc67e7874645a550fc418ac470d893a1a384aa9a7984d401417ee6f9a31e8f64f",
+      "status": "success",
+      "block": "31579430",
+      "gasUsed": "52476",
+      "effectiveGasPrice": "1000000000"
+    },
+    "accuracy": {
+      "gas": {
+        "predicted": "66758",
+        "actual": "52476",
+        "errorPct": "-21.39"
+      },
+      "feeWei": {
+        "predicted": "66758000000000",
+        "actual": "52476000000000"
+      },
+      "changes": [
+        {
+          "who": "sender",
+          "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+          "asset": "PHRS",
+          "decimals": 18,
+          "before": "14923111919999979000",
+          "after": "14923045161999979000",
+          "actual": "14923059443999979000",
+          "delta": "14282000000000"
+        },
+        {
+          "who": "sender",
+          "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+          "asset": "WPHRS",
+          "decimals": 18,
+          "before": "3590000000000000",
+          "after": "3580000000000000",
+          "actual": "3580000000000000",
+          "delta": "0"
+        },
+        {
+          "who": "recipient",
+          "address": "0xC0E418E6f4fA59bb479F4C7d5DF4dB9e3A5Bbc37",
+          "asset": "WPHRS",
+          "decimals": 18,
+          "before": "0",
+          "after": "10000000000000",
+          "actual": "10000000000000",
+          "delta": "0"
+        }
+      ]
+    }
+  }
+}

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { encodeAbiParameters, encodeEventTopics, erc20Abi, getAddress, pad, type Hex, type RpcLog } from "viem";
 import { describe, expect, it } from "vitest";
 import { main, parseBlock } from "../tasks/whale-watching-agent/index.js";
-import { explain, isSignificant, kindResolver, loadTokens, makeNamer, parseWatchlist, reportText, scanMoves, summarise, summaryTable, ZERO } from "../src/whale/scan.js";
+import { balanceAt, explain, isSignificant, kindResolver, loadTokens, makeNamer, parseWatchlist, reportText, scanMoves, summarise, summaryTable, ZERO } from "../src/whale/scan.js";
 
 const USDC = "0xc879c018db60520f4355c26ed1a6d572cdac1815" as Hex;
 const WATCH = ["0x0000000000000000000000000000000000000a01", "0x0000000000000000000000000000000000000a02", "0x0000000000000000000000000000000000000a03", "0x0000000000000000000000000000000000000a04", "0x0000000000000000000000000000000000000a05"].map((a) => getAddress(a));
@@ -136,6 +136,29 @@ describe("explain", () => {
     const text = reportText(r, (tx) => tx);
     expect(text).toContain("3,000 USDC → 0 USDC");
     expect(text).toContain("0 USDC → 3,000 USDC");
+  });
+  it("a receiver that held 0 before and after is a pass-through, not a new position (tagged as the receiver's)", async () => {
+    const bal = (h: string, b: number) => (h.toLowerCase() === WATCH[0]!.toLowerCase() ? (b < 10 ? 3000n * U : 0n) : 0n);
+    const t = await setup(bal, [log(10, 0, 1, 3000n * U, WATCH[0]!, WATCH[1]!)]);
+    const r = await explain(t.call, t.m, t.w, t.namer, t.kindOf, { largest: 0n });
+    expect(r.why.join(";")).toContain("pass-through for w2");
+    expect(r.why.join(";")).not.toContain("NEW POSITION");
+    expect(r.tags).toContain("receiver: pass-through");
+    expect(r.tags).not.toContain("receiver: NEW POSITION");
+  });
+  it("says so when a balance moved by more than this one transfer, on both sides", async () => {
+    // WATCH[1] is credited 3000 by this move plus 500 from other activity in the same block; WATCH[0] pays 3000 and nothing else.
+    const bal = (h: string, b: number) => (h.toLowerCase() === WATCH[0]!.toLowerCase() ? (b < 10 ? 4000n * U : 1000n * U) : b < 10 ? 100n * U : 3600n * U);
+    const t = await setup(bal, [log(10, 0, 1, 3000n * U, WATCH[0]!, WATCH[1]!)]);
+    const why = (await explain(t.call, t.m, t.w, t.namer, t.kindOf, { largest: 0n })).why.join(";");
+    expect(why).toContain("balance of w2 changed by +3,500 USDC in block 10, this move is +3,000 USDC");
+    expect(why).not.toContain("balance of w1 changed");
+  });
+  it("a balance read the second read does not confirm is retried; with no two reads agreeing it throws", async () => {
+    const seq = (values: bigint[]) => { let i = 0; return (async () => ({ result: encodeAbiParameters([{ type: "uint256" }], [values[Math.min(i++, values.length - 1)]!]) })) as any; };
+    expect(await balanceAt(seq([0n, 29914n, 29914n]), USDC, WATCH[0]!, 10n)).toBe(29914n);
+    expect(await balanceAt(seq([7n, 7n]), USDC, WATCH[0]!, 10n)).toBe(7n);
+    await expect(balanceAt(seq([1n, 2n, 3n]), USDC, WATCH[0]!, 10n)).rejects.toThrow("came back different three times");
   });
   it("prints the amount with decimals, the multiple of the threshold and the explorer link", async () => {
     const { call, m, w, namer, kindOf } = await setup((_h, b) => (b < 10 ? 9000n * U : 6000n * U), [log(10, 0, 1, 3000n * U, WATCH[0]!, OUTSIDER)]);
