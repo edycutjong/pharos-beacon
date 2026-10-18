@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "task": "recurring-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/recurring-payment-agent/index.ts run --plan tasks/recurring-payment-agent/plans/rent.json --now 2026-11-01T09:00:00Z --execute --discord --proof period-1-paid",
+    "git": {
+      "commit": "cd98c0dbb72e",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T10:12:29.735Z"
+  },
+  "plan": {
+    "id": "rent-demo",
+    "frequency": "weekly",
+    "start": "2026-11-01T09:00:00.000Z",
+    "amount": "0.001",
+    "token": {
+      "symbol": "PHRS",
+      "decimals": 18
+    },
+    "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "periods": 4
+  },
+  "clock": {
+    "injected": true,
+    "now": "2026-11-01T09:00:00.000Z"
+  },
+  "events": [
+    {
+      "period": 1,
+      "action": "paid",
+      "detail": "block 31571296, gas used 21000",
+      "tx": "0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59"
+    }
+  ],
+  "ledger": {
+    "plan": {
+      "id": "rent-demo",
+      "frequency": "weekly",
+      "start": "2026-11-01T09:00:00.000Z",
+      "amount": "0.001",
+      "token": {
+        "symbol": "PHRS",
+        "decimals": 18
+      },
+      "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "periods": 4
+    },
+    "periods": [
+      {
+        "period": 1,
+        "due": "2026-11-01T09:00:00.000Z",
+        "status": "paid",
+        "attempts": [
+          {
+            "at": "2026-11-01T09:00:00.000Z",
+            "outcome": "signed (attempt 1), recorded before broadcast",
+            "hash": "0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59"
+          },
+          {
+            "at": "2026-11-01T09:00:00.000Z",
+            "outcome": "confirmed",
+            "hash": "0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59"
+          }
+        ],
+        "tx": {
+          "hash": "0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59",
+          "nonce": 52,
+          "raw": "0x02f870830a823134808477359400825208948d347c72431ed6e033d5f43e56c0987e97f5d91b87038d7ea4c6800080c080a041cf2286befc62aa22ea9e80470e2944945a29fa996f8058656a418a5c7ad90da04b517d1c956b47feee280c379ec93dd1a3d478feb0f9910dd4e9e8f24a979755",
+          "prepared": {
+            "chainId": "688689",
+            "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+            "value": "1000000000000000",
+            "nonce": "52",
+            "gas": "21000",
+            "maxFeePerGas": "2000000000",
+            "maxPriorityFeePerGas": "0"
+          }
+        },
+        "block": "31571296",
+        "gasUsed": "21000",
+        "paidAtRun": "2026-11-01T09:00:00.000Z",
+        "receipt": {
+          "notifier": "discord",
+          "id": "1561321078016577698"
+        }
+      }
+    ],
+    "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+  }
+}
