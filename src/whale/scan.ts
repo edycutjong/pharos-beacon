@@ -253,7 +253,7 @@ export function compactText(r: Report, index: number): string {
   return [
     `[${index}] ${r.direction} ${fmtAmount(m.amountRaw, m.token.decimals, m.token.symbol)} · blk ${m.block}`,
     `  ${r.fromName === "null address (mint or burn)" ? "null address" : r.fromName} → ${r.toName === "null address (mint or burn)" ? "null address" : r.toName}`,
-    `  ${Math.round(r.multiple * 10) / 10}× threshold${r.tags.length ? ` · ${r.tags.slice(0, 2).join(" · ")}` : ""}`,
+    `  ${r.multiple}× threshold${r.tags.length ? ` · ${r.tags.slice(0, 2).join(" · ")}` : ""}`,
   ].join("\n");
 }
 
