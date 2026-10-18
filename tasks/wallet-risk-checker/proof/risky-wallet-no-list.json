@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "task": "wallet-risk-checker",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/wallet-risk-checker/index.ts check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --block 31566858 --config tasks/wallet-risk-checker/risk-config-no-list.json --proof risky-wallet-no-list",
+    "git": {
+      "commit": "a047459ed918",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T13:24:46.959Z"
+  },
+  "config": {
+    "flagged": 0,
+    "trustedSpenders": 0,
+    "youngDays": 7
+  },
+  "report": {
+    "address": "0xD6936bEcCA1A13c6A426309a694560292e9b579E",
+    "network": "atlantic",
+    "block": "31566858",
+    "lookbackBlocks": "30000",
+    "lookbackSeconds": 66155,
+    "verdict": "high",
+    "signals": [
+      {
+        "id": "kind",
+        "level": "info",
+        "title": "wallet or contract (get_code)",
+        "detail": "It is a plain wallet (no code)."
+      },
+      {
+        "id": "age",
+        "level": "medium",
+        "title": "wallet age (first block with a sent transaction)",
+        "detail": "It first sent a transaction in block 31566816, 2 minutes before block 31566858. That is under 7 days: a new address has no track record."
+      },
+      {
+        "id": "funding",
+        "level": "ok",
+        "title": "nonce and balance (freshly funded?)",
+        "detail": "It has sent 3 transactions (nonce 3) and holds 9355648000000000 wei, so it has been used."
+      },
+      {
+        "id": "flagged",
+        "level": "ok",
+        "title": "interaction with flagged addresses",
+        "detail": "None of its 1 token counterpart in blocks 31536858–31566858 (about 18.4 hours) is on our flagged list (0 addresses). Native-coin transfers leave no log and are not covered."
+      },
+      {
+        "id": "approvals",
+        "level": "high",
+        "title": "approvals to unknown spenders",
+        "detail": "It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later. The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours."
+      },
+      {
+        "id": "counterparties",
+        "level": "info",
+        "title": "token activity in the lookback range",
+        "detail": "1 token transfer with 1 counterpart in blocks 31536858–31566858 (about 18.4 hours)."
+      }
+    ],
+    "reasons": [
+      "It first sent a transaction in block 31566816, 2 minutes before block 31566858. That is under 7 days: a new address has no track record.",
+      "It gave 0x5Be1…0aa0 an unlimited allowance (2^255 or more) on token 0x8388…9471 (tx 0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527). We do not recognise that spender, and an unlimited approval lets it take the token's whole balance later. The spender is also not a contract (no code at it): an unlimited approval to a plain wallet is the pattern of an approval-phishing drain, so this is high without needing any list of ours."
+    ]
+  }
+}

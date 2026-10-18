@@ -123,6 +123,20 @@ describe("explain", () => {
     const pass = await setup(() => 0n, [log(10, 0, 1, 3000n * U, OUTSIDER, WATCH[0]!)]);
     expect((await explain(pass.call, pass.m, pass.w, pass.namer, pass.kindOf, { largest: 0n })).why.join(";")).toContain("pass-through");
   });
+  it("a move between two watched addresses calls out the sender's exit and the receiver's new position, with both balances", async () => {
+    // WATCH[0] holds 3000 until block 9 and 0 after; WATCH[1] holds 0 until block 9 and 3000 after.
+    const bal = (h: string, b: number) => (h.toLowerCase() === WATCH[0]!.toLowerCase() ? (b < 10 ? 3000n * U : 0n) : b < 10 ? 0n : 3000n * U);
+    const t = await setup(bal, [log(10, 0, 1, 3000n * U, WATCH[0]!, WATCH[1]!)]);
+    const r = await explain(t.call, t.m, t.w, t.namer, t.kindOf, { largest: 0n });
+    expect(r.direction).toBe("BETWEEN");
+    expect(r.why.join(";")).toContain("EXIT");
+    expect(r.why.join(";")).toContain("NEW POSITION for w2");
+    expect([r.beforeRaw, r.afterRaw]).toEqual([3000n * U, 0n]);
+    expect([r.receiver?.beforeRaw, r.receiver?.afterRaw]).toEqual([0n, 3000n * U]);
+    const text = reportText(r, (tx) => tx);
+    expect(text).toContain("3,000 USDC → 0 USDC");
+    expect(text).toContain("0 USDC → 3,000 USDC");
+  });
   it("prints the amount with decimals, the multiple of the threshold and the explorer link", async () => {
     const { call, m, w, namer, kindOf } = await setup((_h, b) => (b < 10 ? 9000n * U : 6000n * U), [log(10, 0, 1, 3000n * U, WATCH[0]!, OUTSIDER)]);
     const r = await explain(call, m, w, namer, kindOf, { largest: m.amountRaw });

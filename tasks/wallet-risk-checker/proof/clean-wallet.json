@@ -8,12 +8,12 @@
       "server": "pharos-mcp-server",
       "version": "0.1.0"
     },
-    "command": "tasks/wallet-risk-checker/index.ts check 0x1F3546a29EeC2102c8d52E21a45114124014c85C --proof clean-wallet",
+    "command": "tasks/wallet-risk-checker/index.ts check 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548019 --proof clean-wallet",
     "git": {
-      "commit": "9a4e4a5b0f42",
+      "commit": "b2ad95836a12",
       "dirty": false
     },
-    "createdAt": "2026-10-18T07:36:58.095Z"
+    "createdAt": "2026-10-18T13:20:17.702Z"
   },
   "config": {
     "flagged": 1,
@@ -25,6 +25,7 @@
     "network": "pharos",
     "block": "20548019",
     "lookbackBlocks": "30000",
+    "lookbackSeconds": 30583,
     "verdict": "low",
     "signals": [
       {
@@ -49,19 +50,19 @@
         "id": "flagged",
         "level": "ok",
         "title": "interaction with flagged addresses",
-        "detail": "None of its 1 token counterpart in blocks 20518019–20548019 is on our flagged list (1 address). Native-coin transfers leave no log and are not covered."
+        "detail": "None of its 1 token counterpart in blocks 20518019–20548019 (about 8.5 hours) is on our flagged list (1 address). Native-coin transfers leave no log and are not covered."
       },
       {
         "id": "approvals",
         "level": "ok",
         "title": "approvals to unknown spenders",
-        "detail": "0 open token approvals in blocks 20518019–20548019, none to a spender we do not recognise."
+        "detail": "0 open token approvals in blocks 20518019–20548019 (about 8.5 hours), none to a spender we do not recognise."
       },
       {
         "id": "counterparties",
         "level": "info",
         "title": "token activity in the lookback range",
-        "detail": "1152 token transfers with 1 counterpart in blocks 20518019–20548019 (30000 blocks)."
+        "detail": "1152 token transfers with 1 counterpart in blocks 20518019–20548019 (about 8.5 hours)."
       }
     ],
     "reasons": []
