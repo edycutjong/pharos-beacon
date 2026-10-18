@@ -6,7 +6,7 @@ tracks a set of addresses and reports significant moves.
 `-- --from-block 20506432 --to-block 20546432`; `--state f` remembers where it stopped so the next run continues from there;
 `--notify discord` also posts the moves furthest above their thresholds (see below); `--compact` prints a narrow 3-line-per-report view (used for the demo video); `--proof label` writes `proof/<label>.json`.
 **Uses:** Chain MCP ✅ (`get_block_number`, `get_logs`, `eth_call`, `get_code`, `get_block`) · SkillEngine: only the token registry
-(`src/lib/networks.ts`) · Docs MCP: not used. The agent never sends a transaction; its only write is the optional Discord message.
+(`src/lib/networks.ts`) · Docs MCP: not used. The agent never sends a transaction; its only external write is the optional Discord message.
 
 ## Which addresses
 
