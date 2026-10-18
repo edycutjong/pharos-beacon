@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "task": "docs-mcp-onboarding",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/docs-mcp-onboarding/first-read.ts --atlantic-address 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 --proof",
+    "git": {
+      "commit": "754b71473eed",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T01:39:24.341Z"
+  },
+  "mainnet": {
+    "head": "20526425",
+    "state": {
+      "contract": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
+      "block": "20526425",
+      "name": "Wrapped PROS",
+      "symbol": "WPROS",
+      "decimals": 18,
+      "totalSupplyRaw": "23266087009252864068077875",
+      "totalSupply": "23266087.009252864068077875",
+      "holders": [],
+      "owner": null,
+      "paused": null
+    }
+  },
+  "atlantic": {
+    "block": "31557261",
+    "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+    "balance": {
+      "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+      "balanceWei": "14946124645999979000",
+      "balance": "14.946124645999979",
+      "symbol": "PHRS",
+      "balanceHex": "0xcf6b4d2d758a29f8"
+    },
+    "chainId": 688689
+  }
+}
