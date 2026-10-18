@@ -21,7 +21,7 @@ file, not code: edit it and re-run. The addresses are not a list from anyone els
 |---|---|---|---|
 | 1 | "Tracks at least 5 configurable addresses." | 7 addresses in `watchlist.json`; the parser rejects a list with fewer than 5, a repeated address or a missing label. Each is checked with `get_code` and printed as wallet or contract | first lines of the sample below · `test/whale.test.ts` "needs 5+ addresses" |
 | 2 | "A configurable 'significant' threshold per token or in value terms." | One threshold per token in human units (USDC ≥ 25,000, WPROS ≥ 2,000), turned into base units with the token's own `decimals()`. Moves below it are counted but not reported | `tokens` in `watchlist.json` · line `4650 transfers touch a watched address · 16 at or above their token's threshold` in the sample |
-| 3 | "Each report explains the move: what moved, how much, and where to (labelled where known)." | Every report has the direction (IN / OUT / BETWEEN), the amount with decimals, `from → to`, a `why it matters` line and the balance before and after, read with `eth_call` at the block before and at the move's block. Labels: our watchlist names, the Pharos token registry and the null address. **Counterparts we cannot label print as `unlabelled wallet` or `unlabelled contract` (from `get_code`) and are not claimed to be labelled** | the 16 reports in [`proof/usdc-wpros-40k-blocks.json`](proof/usdc-wpros-40k-blocks.json) (`significant[]`: `fromName`, `toName`, `why`) |
+| 3 | "Each report explains the move: what moved, how much, and where to (labelled where known)." | Every report has the direction (IN / OUT / BETWEEN), the amount with decimals, `from → to`, a `why it matters` line and the balance before and after, read with `eth_call` at the block before and at the move's block. For a move between two watched addresses the sender is judged as an exit or a share of its balance, and the receiver's balance before and after is printed as well. Labels: our watchlist names, the Pharos token registry and the null address. **Counterparts we cannot label print as `unlabelled wallet` or `unlabelled contract` (from `get_code`) and are not claimed to be labelled** | the 16 reports in [`proof/usdc-wpros-40k-blocks.json`](proof/usdc-wpros-40k-blocks.json) (`significant[]`: `fromName`, `toName`, `why`) |
 | 4 | "Produces a summary view of recent activity across all watched addresses." | A table with one row per watched address and token (all transfers, significant ones, significant in / out, largest) and a totals line | the `summary across all watched addresses` table in the sample · `summary` in the proof |
 
 ## Beyond the requirements: Discord alerts
@@ -37,11 +37,12 @@ sent-set (`--sent`) makes a re-run send nothing twice. Live: 3 messages, ids in 
 | Run | Result | File |
 |---|---|---|
 | 7 watched addresses, USDC ≥ 25,000 and WPROS ≥ 2,000 | 4,650 transfers touch a watched address, 16 are significant (10 USDC, 6 WPROS), 3 sent to Discord (the 3 furthest above their thresholds) | [`proof/usdc-wpros-40k-blocks.json`](proof/usdc-wpros-40k-blocks.json) |
+| Same range re-read after the fix for moves between two watched addresses (no Discord) | the same 4,650 / 16; the four BETWEEN reports now carry the sender's EXIT or percent label and the receiver's balance before → after (report [8] below is from this run) | [`proof/between-labelled.json`](proof/between-labelled.json) · [log](proof/between-labelled.log) |
 | Same range again with the same sent-set | 0 sent, 3 already sent earlier (`notify.alreadySent`) | [`proof/rerun-no-repeat.json`](proof/rerun-no-repeat.json) |
 | Same range with `--compact` (the run recorded for the demo video; a different sent-set, so 3 more Discord messages) | the same 16 significant moves | [`proof/video-run.json`](proof/video-run.json) |
 
 The range is pinned (`--to-block 20546432`), so the same range is re-read on any day (the transfers in it cannot change; the balance context comes from archive reads at those blocks); the explorer links open the real transactions.
-All three proofs were produced by committed code (`dirty: false`).
+All four proofs were produced by committed code (`dirty: false`). The Discord messages in the first proof were sent by the code before that fix, so the message for report [8] lacks the EXIT label; the other reports in the sample are identical in both runs.
 
 ```text
 $ npm run whale-watching-agent -- --from-block 20506432 --to-block 20546432 --notify discord --discord-max 3 --sent /tmp/p102/whale-sent.json --proof usdc-wpros-40k-blocks
@@ -70,8 +71,9 @@ scanned WPROS: 2271 transfers touch a watched address, 6 at or above 2000
 
 [8] BETWEEN 299,999.5 USDC · block 20531788 · 2026-10-18T03:12:07.000Z
     0xB901…0459 (watch-1) → 0xF350…411f (watch-2)
-    why it matters: 11.99× the 25,000 USDC threshold; the largest USDC move touching the watchlist in this range
+    why it matters: 11.99× the 25,000 USDC threshold; EXIT: it left this address with 0 USDC; it adds 0.9% to the USDC balance of watch-2; the largest USDC move touching the watchlist in this range
     balance of 0xB901…0459: 299,999.5 USDC → 0 USDC
+    balance of 0xF350…411f: 32,530,036.7208 USDC → 32,830,036.2208 USDC
     https://www.pharosscan.xyz/tx/0x9383d54494558d4019beea5c39d0044d570dd2e2659d9b1b5b710899967b0ab8
 
 [11] IN 7,596.6233 WPROS · block 20542276 · 2026-10-18T06:09:26.000Z
@@ -114,4 +116,4 @@ notify discord: 3 sent (message ids 1561302866998591588, 1561302870266216519, 15
   deposit, swap or bridge" for a contract counterpart is a heuristic and says so; we do not know what the contract is.
 - A pass-through (the address held 0 before and after the block) shows as an IN and an OUT of the same size, so `totals` counts it twice.
 - The balance context is read at the move's block and the one before, so several moves in one block share one before/after pair.
-- 16 tests in `test/whale.test.ts` (watchlist validation, pinned range, de-duplication, labels, exit / new position / pass-through, summary, CLI, compact view, Discord ranking and de-dup).
+- 17 tests in `test/whale.test.ts` (watchlist validation, pinned range, de-duplication, labels, exit / new position / pass-through, summary, CLI, compact view, Discord ranking and de-dup).

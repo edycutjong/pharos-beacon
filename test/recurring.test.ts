@@ -227,6 +227,30 @@ describe("history", () => {
   });
 });
 
+describe("an unpaid period is never shown as finished", () => {
+  it("says a failed or pending period is tried again, and 'complete' only when every period is paid", async () => {
+    const { compactTable } = await import("../src/recurring/agent.js");
+    const f = fake(), file = tmp(), p = plan({ periods: 2 });
+    await runDue(opts(p, file, f, "2026-11-01T09:00:00Z"));
+    f.native = 0n;
+    await runDue(opts(p, file, f, "2026-11-08T09:00:00Z")); // period 2 fails: nothing to pay with
+    const late = D("2026-11-15T10:00:00Z"); // both periods due, nothing scheduled after
+    const table = historyTable(p, loadLedger(file, p), late);
+    expect(table).toContain("unpaid and due: period 2 (failed); the next run tries it again");
+    expect(table.split("\n").at(-1)).toMatch(/^no later period is scheduled; the plan is not complete/);
+    expect(table).not.toContain("the plan is complete");
+    expect(compactTable(p, loadLedger(file, p), late)).toContain("retry at next run: #2");
+    // funded again: the next run pays it, and only then is the plan complete
+    f.native = parseEther("10");
+    await runDue(opts(p, file, f, "2026-11-15T10:00:00Z"));
+    expect(historyTable(p, loadLedger(file, p), late).split("\n").at(-1)).toBe("no further payments: the plan is complete");
+    // a due period nobody has processed yet shows as pending, not as a finished plan
+    const fresh = historyTable(p, loadLedger(tmp(), p), late);
+    expect(fresh).toMatch(/pending.*due, not yet processed/);
+    expect(fresh).toContain("unpaid and due: period 1 (pending), period 2 (pending)");
+  });
+});
+
 describe("compact output", () => {
   it("stays under 62 columns, with and without a failure", async () => {
     const { compactTable, wrapLine } = await import("../src/recurring/agent.js");

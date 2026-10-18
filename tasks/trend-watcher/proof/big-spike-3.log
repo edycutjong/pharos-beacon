@@ -1,0 +1,8 @@
+$ npm run trend-watcher -- observe --metric balance --network atlantic --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --state tasks/trend-watcher/state/big-spike.json --proof big-spike-3
+observed native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic: 15.030095205 PHRS at block 31576757 — stored
+history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic · 3 observations, showing 3 · rule: 3 consecutive falls
+  #1   block 31576747  15.030116205 PHRS          start streak 0
+  #2   block 31576751  15.020095205 PHRS          fall  streak 1
+  #3   block 31576757  15.030095205 PHRS          rise  streak 0
+trend: █▁▇   (too-few, current streak 0/3)
+no action: only 3 of the 4 observations a 3-move trend needs

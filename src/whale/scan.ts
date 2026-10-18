@@ -183,6 +183,8 @@ export interface Report {
   multiple: number;
   beforeRaw: bigint;
   afterRaw: bigint;
+  /** BETWEEN only: the receiving watched address (the subject is the sender). */
+  receiver?: { address: Hex; name: string; beforeRaw: bigint; afterRaw: bigint };
   timestamp?: string;
   why: string[];
   /** Short labels for the compact view: exit, new position, pass-through, mint, burn, to/from a contract. */
@@ -198,6 +200,10 @@ export async function explain(call: Call, m: Move, wl: Watchlist, namer: Namer, 
   const [f, t] = [await namer.name(m.from), await namer.name(m.to)];
   const afterRaw = await balanceAt(call, m.token.address, subject, m.block);
   const beforeRaw = await balanceAt(call, m.token.address, subject, m.block - 1n);
+  // A move between two watched addresses has two sides: the subject (the sender) is judged as an OUT, the receiver is read too.
+  const receiver = direction === "BETWEEN"
+    ? { address: m.to, name: t.text, beforeRaw: await balanceAt(call, m.token.address, m.to, m.block - 1n), afterRaw: await balanceAt(call, m.token.address, m.to, m.block) }
+    : undefined;
   const block = (await call("get_block", { block: m.block.toString() })) as { timestamp?: string } | null;
   const timestamp = block?.timestamp ? new Date(Number(BigInt(block.timestamp)) * 1000).toISOString() : undefined;
   const multiple = Number((m.amountRaw * 100n) / m.token.thresholdRaw) / 100;
@@ -207,19 +213,25 @@ export async function explain(call: Call, m: Move, wl: Watchlist, namer: Namer, 
   if (beforeRaw === 0n && afterRaw === 0n) {
     why.push(`pass-through: the address held 0 ${sym} before and after block ${m.block}, so it received and passed this on within the block`);
     tags.push("pass-through");
-  } else if (direction === "OUT" && afterRaw === 0n) {
+  } else if (direction !== "IN" && afterRaw === 0n) {
     why.push(`EXIT: it left this address with 0 ${sym}`);
     tags.push("EXIT");
   } else if (direction === "IN" && beforeRaw === 0n) {
     why.push(`NEW POSITION: the address held 0 ${sym} before this`);
     tags.push("NEW POSITION");
   }
-  else if (direction === "OUT" && beforeRaw > 0n) {
+  else if (direction !== "IN" && beforeRaw > 0n) {
     why.push(`${pct(m.amountRaw, beforeRaw)} of its ${sym} balance before the move`);
     tags.push(`${pct(m.amountRaw, beforeRaw)} of balance`);
   } else if (direction === "IN" && beforeRaw > 0n) {
     why.push(`it adds ${pct(m.amountRaw, beforeRaw)} to its ${sym} balance`);
     tags.push(`+${pct(m.amountRaw, beforeRaw)} balance`);
+  }
+  if (receiver) {
+    if (receiver.beforeRaw === 0n) {
+      why.push(`NEW POSITION for ${receiver.name}: it held 0 ${sym} before this`);
+      tags.push("NEW POSITION");
+    } else why.push(`it adds ${pct(m.amountRaw, receiver.beforeRaw)} to the ${sym} balance of ${receiver.name}`);
   }
   if (m.amountRaw === rank.largest) why.push(`the largest ${m.token.symbol} move touching the watchlist in this range`);
   const other = direction === "OUT" ? m.to : direction === "IN" ? m.from : undefined;
@@ -232,7 +244,7 @@ export async function explain(call: Call, m: Move, wl: Watchlist, namer: Namer, 
     why.push(m.from === ZERO ? "a mint into the watched address" : "a burn from the watched address");
     tags.push(m.from === ZERO ? "mint" : "burn");
   }
-  return { move: m, subject, direction, fromName: f.text, toName: t.text, fromKnown: f.known, toKnown: t.known, multiple, beforeRaw, afterRaw, ...(timestamp ? { timestamp } : {}), why, tags };
+  return { move: m, subject, direction, fromName: f.text, toName: t.text, fromKnown: f.known, toKnown: t.known, multiple, beforeRaw, afterRaw, ...(receiver ? { receiver } : {}), ...(timestamp ? { timestamp } : {}), why, tags };
 }
 
 export function reportText(r: Report, explorer: (tx: string) => string, index?: number): string {
@@ -243,6 +255,7 @@ export function reportText(r: Report, explorer: (tx: string) => string, index?: 
     `    ${short(m.from)} (${r.fromName}) → ${short(m.to)} (${r.toName})`,
     `    why it matters: ${r.why.join("; ")}`,
     `    balance of ${short(r.subject)}: ${fmtAmount(r.beforeRaw, m.token.decimals, m.token.symbol)} → ${fmtAmount(r.afterRaw, m.token.decimals, m.token.symbol)}`,
+    ...(r.receiver ? [`    balance of ${short(r.receiver.address)}: ${fmtAmount(r.receiver.beforeRaw, m.token.decimals, m.token.symbol)} → ${fmtAmount(r.receiver.afterRaw, m.token.decimals, m.token.symbol)}`] : []),
     `    ${explorer(m.tx)}`,
   ].join("\n");
 }
