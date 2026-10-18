@@ -90,7 +90,7 @@ async function tokenAt(call: Call, address: Hex, block: string): Promise<Token |
 
 /** "Send at most X, or add Y first": a wallet with nothing only gets the second half. */
 const topUp = (verb: string, who: string, balance: bigint, need: bigint, t: Token | null) =>
-  balance === 0n ? `${who[0]!.toUpperCase()}${who.slice(1)} holds none${t ? ` ${t.symbol}` : ""}: add at least ${amount(need, t)} before trying to ${verb} that much.` : `${verb[0]!.toUpperCase()}${verb.slice(1)} at most ${amount(balance, t)}, or first add at least ${amount(need - balance, t)} to ${who}.`;
+  balance === 0n ? `${who[0]!.toUpperCase()}${who.slice(1)} holds no${t ? ` ${t.symbol}` : " tokens"}: add at least ${amount(need, t)} before trying to ${verb} that much.` : `${verb[0]!.toUpperCase()}${verb.slice(1)} at most ${amount(balance, t)}, or first add at least ${amount(need - balance, t)} to ${who}.`;
 const amount = (raw: bigint, t: Token | null) => (t ? `${withCommas(formatUnits(raw, t.decimals))} ${t.symbol}` : `${num(raw)} (raw units)`);
 
 async function viewUint(call: Call, token: Hex, block: string, abi: typeof erc20Abi, functionName: "balanceOf" | "allowance", args: readonly Hex[]): Promise<bigint | null> {

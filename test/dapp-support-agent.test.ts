@@ -68,7 +68,7 @@ describe("dapp-support-agent", () => {
     const d = await diagnose(f.call, HASH);
     expect(d).toMatchObject({ outcome: "failed", cause: "insufficient-balance" });
     expect(d.headline).toBe("Your wallet does not hold enough USDC: it has 0 USDC and the transaction needed 1,000,000,000 USDC.");
-    expect(d.fix[0]).toContain("holds none USDC");
+    expect(d.fix[0]).toContain("holds no USDC: add at least 1,000,000,000 USDC before trying to send that much.");
     const replay = f.seen.find((s) => s.tool === "eth_call" && s.args.transaction.gas);
     expect(replay!.args.block).toBe("99");
     expect(replay!.args.transaction).toMatchObject({ from: ME, to: TOKEN, gas: "0x186a0" });
