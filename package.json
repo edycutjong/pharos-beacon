@@ -19,6 +19,7 @@
     "dapp-support-agent": "tsx tasks/dapp-support-agent/index.ts",
     "doc-search-cli": "tsx tasks/doc-search-cli/index.ts",
     "docs-chain-mcp-agent": "tsx tasks/docs-chain-mcp-agent/index.ts",
+    "doc-grounded-builder-agent": "tsx tasks/doc-grounded-builder-agent/index.ts",
     "docs-onboarding": "tsx tasks/docs-mcp-onboarding/ask.ts",
     "docs-onboarding:first-read": "tsx tasks/docs-mcp-onboarding/first-read.ts",
     "docs-onboarding:render": "tsx tasks/docs-mcp-onboarding/render.ts"

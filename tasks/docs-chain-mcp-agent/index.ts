@@ -43,7 +43,7 @@ const registryLabels: Record<string, string> = {
 };
 
 /** The docs say they do not cover it: askQuestion answers with a refusal-shaped sentence, often next to sources. */
-const NOT_DOCUMENTED =
+export const NOT_DOCUMENTED =
   /\b(?:cannot|can't|can not|could not|couldn't|unable to)\s+(?:find|locate|confirm|verify)\b|\b(?:does|do|did)\s*(?:not|n't)\s+(?:explain|describe|document|say|specify|mention|cover|list|include|define|give)\b|\bnot (?:covered|documented|described|mentioned|explained|specified)\b|\bno (?:relevant |matching )?(?:information|details|mention|documentation)\b/i;
 
 /** Plain prose: code blocks dropped, markdown emphasis, backticks and link targets removed. */
@@ -54,7 +54,7 @@ const prose = (text: string) =>
     .replace(/`/g, "")
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
 
-const sentences = (text: string) =>
+export const sentences = (text: string) =>
   prose(text)
     .replace(/\s+/g, " ")
     .split(/(?<=[.!?])\s+(?=[A-Z`*[])/)
