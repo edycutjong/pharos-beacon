@@ -81,10 +81,12 @@ Their terminal text is in [`proof/video-casts.log`](proof/video-casts.log) (the 
 - **One retry with backoff:** if the node refuses the send (and does not have the transaction), the agent waits and retries once on the **same nonce**, so at most one transaction can ever land.
   A second refusal marks the period `failed`. The retry is covered by unit tests only; the live run did not hit a refusal.
 
+The loop is shown in [`proof/every-dryrun.log`](proof/every-dryrun.log): two rounds, 3 s apart, on the real clock, as a dry run (nothing was due on that date, so nothing was paid; the paying runs above used the injected clock).
+
 ## Limits
 
 - The ERC-20 path (token balance check, `transfer(recipient, amount)` call data) is covered by unit tests; **the live payments are native PHRS**, because the demo uses no ERC-20.
-- The schedule is evaluated when you run it; running it on a timer (cron, a loop) is yours. A missed run pays the overdue periods in order at the next run (up to 120 per run).
+- "On time" means: each run pays every period whose due date has passed, once. `run --every <seconds> [--rounds N]` repeats that on the real clock (a loop in one process); without it, a timer (cron) is yours. A missed run pays the overdue periods in order at the next run (up to 120 per run).
 - The crash-recovery and node-refusal paths are proven by tests with an injected fake node, not by killing a live run.
 - Atlantic testnet only; the signer refuses any other chain. A recipient equal to the paying wallet is refused (no silent self-transfers).
 
