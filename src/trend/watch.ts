@@ -1,6 +1,7 @@
 import { formatEther, formatGwei, formatUnits, getAddress, isAddress, type Hex } from "viem";
 import { readState, writeState } from "../lib/state.js";
 import type { ChainMcp, Network } from "../lib/mcp.js";
+import { atlantic, pharos } from "../lib/networks.js";
 
 // A watcher with memory. Each run reads ONE observation of a metric at a pinned block, stores it, and acts only when the
 // stored history shows a trend: `steps` consecutive moves in one direction. The history is the single source of truth
@@ -45,7 +46,7 @@ export const describeMetric = (s: MetricSpec): string =>
   s.kind === "balance" ? `native balance of ${s.address} on ${s.network}` : s.kind === "supply" ? `totalSupply of ${s.token} on ${s.network}` : `base fee on ${s.network}`;
 
 export function fmt(s: MetricSpec, v: bigint): string {
-  if (s.kind === "balance") return `${formatEther(v)} PHRS`;
+  if (s.kind === "balance") return `${formatEther(v)} ${(s.network === "pharos" ? pharos : atlantic).nativeCurrency.symbol}`; // PROS on mainnet, PHRS on Atlantic
   if (s.kind === "basefee") return `${formatGwei(v)} gwei`;
   return `${formatUnits(v, s.decimals)}`;
 }
