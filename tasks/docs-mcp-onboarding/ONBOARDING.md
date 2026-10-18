@@ -6,7 +6,7 @@ transaction and a contract read) and say where the docs got me unstuck and where
 **Rules I followed.** Every answer I acted on came from the Developer Docs MCP (`https://docs.pharos.xyz/~gitbook/mcp`: `askQuestion`,
 `searchDocumentation`). No web search, no copies of the docs, no community help, and `sendFeedback` was not called. The one
 exception is that I (an AI agent) already knew what an EVM wallet, `cast` and an MCP config are; I did not use any Pharos-specific
-knowledge to choose an answer. Every call is a line in [`proof/transcript.jsonl`](proof/transcript.jsonl), rendered in
+knowledge to choose an answer, with one exception: query #10 names WPROS from prior knowledge (the answer and the address came from the docs). Every call is a line in [`proof/transcript.jsonl`](proof/transcript.jsonl), rendered in
 [`proof/transcript.md`](proof/transcript.md); each quote below (`>` lines) is copied from it and checked by a test
 (`test/docs-onboarding.test.ts`). `#N` is the call number in the transcript.
 
@@ -89,7 +89,7 @@ Queries (#9, #10): `What is the native token symbol of Atlantic testnet, PHRS or
 > * **WPROS** — `0x52c48d4213107b20bc583832b0d951fb9ca8f0b0`
 
 Result: worked. With the address from #10, `npm run docs-onboarding:first-read` read WPROS through the hosted Chain MCP: name
-`Wrapped PROS`, symbol `WPROS`, decimals 18, at mainnet block 20526380 ([`proof/first-read.json`](proof/first-read.json), `meta.git.dirty`
+`Wrapped PROS`, symbol `WPROS`, decimals 18, at mainnet block 20526425 ([`proof/first-read.json`](proof/first-read.json), `meta.git.dirty`
 false). The same run asked the self-hosted Atlantic server (chain 688689) for the balance of the test wallet, which returned `PHRS`.
 
 ### 8. First transaction
@@ -126,7 +126,7 @@ the GitHub repository, so the MCP page should link the repository and the `npm i
 
 ## What was built and run by the end
 
-- Hosted Chain MCP: health check OK, and a real read of WPROS at mainnet block 20526380 ([`proof/first-read.json`](proof/first-read.json)).
+- Hosted Chain MCP: health check OK, and a real read of WPROS at mainnet block 20526425 ([`proof/first-read.json`](proof/first-read.json)).
 - Self-hosted `pharos-mcp` built from the repository (HEAD `9a3750c`) and pointed at Atlantic (chain 688689): chain ID and balance read.
 - A first transaction on Atlantic, [`0x01cd6b78…fe88`](https://atlantic.pharosscan.xyz/tx/0x01cd6b78d83947c46e45d2e6c283ed68ea9dc6a9493b422c30163d42f704fe88), status success.
 - The [Doc-Search CLI](../doc-search-cli/README.md), a small `pharos-docs` tool built on the same Docs MCP, to make this kind of query a one-liner.
