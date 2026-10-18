@@ -32,7 +32,7 @@ await runCli(async ({ onExit, signal }) => {
   const plan: Record<(typeof KINDS)[number], { label: string; intent: { to: Hex; value?: bigint; data: Hex; gas: bigint } }> = {
     balance: { label: "USDC transfer of 1,000,000,000 USDC from a wallet that holds none", intent: { to: USDC, data: encodeFunctionData({ abi: erc20Abi, functionName: "transfer", args: [other, 10n ** 15n] }), gas } },
     allowance: { label: "USDC transferFrom(owner → me, 1 unit) with no approval", intent: { to: USDC, data: encodeFunctionData({ abi: erc20Abi, functionName: "transferFrom", args: [other, signer.address, 1n] }), gas } },
-    "out-of-gas": { label: "WPHRS deposit of 0.001 PHRS with a 30,000 gas limit (needs more)", intent: { to: WPHRS, value: parseEther("0.001"), data: encodeFunctionData({ abi: wphrs, functionName: "deposit" }), gas: 30_000n } },
+    "out-of-gas": { label: "WPHRS deposit of 0.001 PHRS with a 24,000 gas limit (needs more)", intent: { to: WPHRS, value: parseEther("0.001"), data: encodeFunctionData({ abi: wphrs, functionName: "deposit" }), gas: 24_000n } },
     "empty-revert": { label: "WPHRS withdraw of 1,000,000 WPHRS from a wallet that holds less", intent: { to: WPHRS, data: encodeFunctionData({ abi: wphrs, functionName: "withdraw", args: [parseEther("1000000")] }), gas } },
   };
   const made: { kind: string; label: string; hash: Hex; block: string; status: string; gasLimit: string; gasUsed: string; explorer: string }[] = [];
