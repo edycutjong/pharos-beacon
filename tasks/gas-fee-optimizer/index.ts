@@ -24,6 +24,11 @@ const num = (flag: string, v: string | undefined, min: number, fallback?: number
   return n;
 };
 
+/** `--lead`, or by default 8 s but never more than half of a short deadline, so `--deadline 6` works without a flag the user never passed. */
+export function defaultLead(flag: string | undefined, deadlineS: number): number {
+  return num("--lead", flag, 0, Math.min(8, deadlineS / 2));
+}
+
 export async function main({ onExit, signal }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
@@ -57,7 +62,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
     try { wei = parseEther(values.value ?? ""); } catch { throw new UsageError("--value must be an amount of PHRS, e.g. 0.0001"); }
     deadlineS = num("--deadline", values.deadline, 1);
     // default: 8 s, but never more than half of a short deadline, so `--deadline 6` works without a flag the user never passed
-    leadS = num("--lead", values.lead, 0, Math.min(8, deadlineS / 2));
+    leadS = defaultLead(values.lead, deadlineS);
     if (leadS >= deadlineS) throw new UsageError("--lead must be shorter than --deadline");
     if (!!values["target-gwei"] === !!values["target-percentile"]) throw new UsageError("give exactly one of --target-gwei or --target-percentile");
     if (values["target-gwei"]) {

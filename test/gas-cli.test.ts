@@ -3,6 +3,7 @@ import { execFile } from "node:child_process";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { REPO_ROOT } from "../src/lib/env.js";
+import { defaultLead } from "../tasks/gas-fee-optimizer/index.js";
 
 const run = (args: string[]): Promise<{ code: number; stderr: string }> =>
   new Promise((resolve) =>
@@ -24,8 +25,8 @@ describe("gas-fee-optimizer CLI --lead", () => {
     expect(r.code).not.toBe(0);
     expect(r.stderr).toContain("--lead must be a number ≥ 0");
   });
-  it("a short deadline needs no --lead: the default lead is capped at half of it", async () => {
-    const r = await run([...SEND, "--deadline", "6"]);
-    expect(r.stderr).not.toContain("--lead");
+  it("a short deadline needs no --lead: the default lead is capped at half of it", () => {
+    expect([defaultLead(undefined, 40), defaultLead(undefined, 6), defaultLead(undefined, 1)]).toEqual([8, 3, 0.5]);
+    expect(defaultLead("2", 6)).toBe(2); // a lead the user did pass is kept
   });
 });
