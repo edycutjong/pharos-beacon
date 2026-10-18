@@ -1,0 +1,10 @@
+$ npm run dry-run-executor -- --to 0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B --value 0.0001 --execute --proof executed
+simulation @ block 31564575: WOULD SUCCEED
+  from 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 → to 0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B · value 0.0001 PHRS
+  gas 21000 × 1000000000 wei = 0.000021 PHRS fee
+  sender    14.941825638999979 → 14.941704638999979 PHRS (predicted)
+  recipient 0 → 0.0001 PHRS (predicted)
+SENT: https://atlantic.pharosscan.xyz/tx/0x10e5988d3fd55808cc71c5e136b31918eba9c9659dcc57f76baa4621218c0628 (block 31564576)
+prediction vs receipt: gas 21000 → 21000 used (0.00%) · fee 0.000021 → 0.000021 PHRS
+  sender    PHRS: predicted 14.941704638999979, chain says 14.941704638999979 (exact)
+  recipient PHRS: predicted 0.0001, chain says 0.0001 (exact)
