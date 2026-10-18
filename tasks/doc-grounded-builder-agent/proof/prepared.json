@@ -8,10 +8,10 @@
     },
     "command": "tasks/doc-grounded-builder-agent/index.ts --proof",
     "git": {
-      "commit": "cfb12124aafb",
+      "commit": "a2af863671d7",
       "dirty": false
     },
-    "createdAt": "2026-10-18T14:08:16.802Z"
+    "createdAt": "2026-10-18T14:11:22.312Z"
   },
   "outcomes": [
     {
@@ -21,113 +21,84 @@
       "plan": {
         "question": "How do I check my PHRS balance on Pharos Atlantic testnet?",
         "excerpt": [
-          "The quickest way is to look up your wallet address on the Atlantic Testnet explorer.",
-          "Open the explorer, paste your address into search, and check the balance on its address page.",
-          "You can also view the balance in your wallet after selecting Pharos Atlantic Testnet."
+          "Check the native PHRS balance in your wallet with Pharos Atlantic Testnet selected, or run: The command prints the balance in PHRS.",
+          "You can also search your address on Pharos Scan.",
+          "See the Pharos Skill Engine for more balance-query examples."
         ],
         "sources": [
           {
-            "title": "Pharos Network Snapshots",
-            "url": "https://docs.pharos.xyz/node-and-validator-guide/pharos-network-snapshots"
+            "title": "Piggy Bank Tutorial",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide"
           },
           {
             "title": "Token Registry",
             "url": "https://docs.pharos.xyz/getting-started/token-registry"
           },
           {
-            "title": "x402 Atlantic Testnet",
-            "url": "https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet"
+            "title": "Get PROS Gas",
+            "url": "https://docs.pharos.xyz/getting-started/get-pros-gas"
+          },
+          {
+            "title": "RPC Infrastructure",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/rpc"
+          },
+          {
+            "title": "Pharos Skill Engine",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide"
+          },
+          {
+            "title": "Pharos MCP",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/mcp"
           },
           {
             "title": "About Pharos",
             "url": "https://docs.pharos.xyz/introduction/readme"
           },
           {
-            "title": "ZAN RPC",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/rpc/zan"
+            "title": "Write Your First NFT",
+            "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-nft"
           },
           {
-            "title": "Rapid Node Initialization",
-            "url": "https://docs.pharos.xyz/node-and-validator-guide/rapid-node-initialization"
+            "title": "x402 Pacific Mainnet",
+            "url": "https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet"
           },
           {
-            "title": "Alchemy RPC",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/rpc/alchemy"
-          },
-          {
-            "title": "Network",
-            "url": "https://docs.pharos.xyz/getting-started/network"
-          },
-          {
-            "title": "Node Debugging & Configuration",
-            "url": "https://docs.pharos.xyz/node-and-validator-guide/node-debugging-and-configuration"
-          },
-          {
-            "title": "Atlantic Testnet",
-            "url": "https://docs.pharos.xyz/getting-started/network/atlantic-testnet"
-          },
-          {
-            "title": "Block Explorer",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/block-explorer"
-          },
-          {
-            "title": "Get PROS Gas",
-            "url": "https://docs.pharos.xyz/getting-started/get-pros-gas"
-          },
-          {
-            "title": "Hemera SocialScan",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/block-explorer/hemera-socialscan"
-          },
-          {
-            "title": "Wallet",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/wallets"
-          },
-          {
-            "title": "Piggy Bank Tutorial",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide"
-          },
-          {
-            "title": "JSON-RPC API Methods (found with searchDocumentation)",
-            "url": "https://docs.pharos.xyz/api-and-sdk/json-rpc-methods"
-          },
-          {
-            "title": "Pharos MCP (found with searchDocumentation)",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/mcp"
+            "title": "Write Your First Token",
+            "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
           }
         ],
         "groundedIn": [
           "https://docs.pharos.xyz/getting-started/get-pros-gas",
-          "https://docs.pharos.xyz/api-and-sdk/json-rpc-methods",
           "https://docs.pharos.xyz/tooling-and-infrastructure/mcp"
         ],
         "groundLine": "\"method\": \"eth_getBalance\",",
-        "groundedVia": "search",
+        "groundedVia": "cited",
         "covered": true,
         "refused": false,
         "steps": [
-          "Chain MCP get_balance(0x317bca01Bb101C0F1E86C21576a4e14D92B02975) at block 31577784 (docs: eth_getBalance returns wei)",
+          "Chain MCP get_balance(0x317bca01Bb101C0F1E86C21576a4e14D92B02975) at block 31577886 (docs: eth_getBalance returns wei)",
           "Divide by 10^18 for PHRS",
-          "Re-read at block 31577784, and read the same balance through Multicall3.getEthBalance"
+          "Re-read at block 31577886, and read the same balance through Multicall3.getEthBalance"
         ],
-        "expected": "14.925153919999979 PHRS: the wei balance divided by 10^18, identical on a re-read and through Multicall3.getEthBalance at the same block"
+        "expected": "14.924132919999979 PHRS: the wei balance divided by 10^18, identical on a re-read and through Multicall3.getEthBalance at the same block"
       },
-      "expected": "14.925153919999979 PHRS: the wei balance divided by 10^18, identical on a re-read and through Multicall3.getEthBalance at the same block",
-      "observed": "14925153919999979000 wei = 14.925153919999979 PHRS at block 31577784",
+      "expected": "14.924132919999979 PHRS: the wei balance divided by 10^18, identical on a re-read and through Multicall3.getEthBalance at the same block",
+      "observed": "14924132919999979000 wei = 14.924132919999979 PHRS at block 31577886",
       "checks": [
         {
           "name": "re-read at the same block equals the first read",
           "ok": true,
-          "detail": "14925153919999979000"
+          "detail": "14924132919999979000"
         },
         {
           "name": "tool's PHRS figure equals wei / 10^18",
           "ok": true,
-          "detail": "14.925153919999979"
+          "detail": "14.924132919999979"
         },
         {
           "name": "Multicall3.getEthBalance (a different route, eth_call) gives the same wei",
           "ok": true,
-          "detail": "14925153919999979000"
+          "detail": "14924132919999979000"
         }
       ],
       "status": "success"
@@ -139,9 +110,9 @@
       "plan": {
         "question": "How do I send PHRS on Pharos Atlantic testnet?",
         "excerpt": [
-          "To send native PHRS on Atlantic Testnet, use Foundry’s cast: Replace 0xRECIPIENT_ADDRESS with the destination wallet and 0.1ether with the amount.",
-          "Your wallet needs enough PHRS for both the transfer and gas.",
-          "If you’re using a wallet app, add or select Atlantic Testnet with RPC https://atlantic.dplabs-internal.com, chain ID 688689, and symbol PHRS."
+          "To send native PHRS on Atlantic Testnet, use Foundry’s cast send: Replace the recipient and amount as needed.",
+          "The sending wallet needs enough PHRS to cover the transfer and gas.",
+          "Keep your private key secret; don’t paste it into shared scripts or commit it to source control."
         ],
         "sources": [
           {
@@ -194,19 +165,19 @@
         "covered": true,
         "refused": false,
         "steps": [
-          "Docs: a native transfer is `cast send <to> --value <amount>`; here the Chain MCP prepares it (nonce 84, gas 21000, fees from the latest block)",
+          "Docs: a native transfer is `cast send <to> --value <amount>`; here the Chain MCP prepares it (nonce 85, gas 21000, fees from the latest block)",
           "Show the unsigned transaction for signature (no key used, nothing sent)",
           "Re-read the receipt and both balances through the Chain MCP"
         ],
         "expected": "after signing: receipt status 0x1, recipient +1000000000000000 wei, sender −(1000000000000000 wei + gasUsed × effectiveGasPrice)"
       },
       "expected": "after signing: receipt status 0x1, recipient +1000000000000000 wei, sender −(1000000000000000 wei + gasUsed × effectiveGasPrice)",
-      "observed": "PREPARED, not signed and not sent; balances at block 31577787: sender 14925153919999979000 wei, recipient 15027032205000000000 wei",
+      "observed": "PREPARED, not signed and not sent; balances at block 31577889: sender 14924132919999979000 wei, recipient 15028032205000000000 wei",
       "checks": [
         {
           "name": "sender can cover value + max fee",
           "ok": true,
-          "detail": "14925153919999979000 wei ≥ 1042000000000000 wei"
+          "detail": "14924132919999979000 wei ≥ 1042000000000000 wei"
         }
       ],
       "unsigned": {
@@ -214,7 +185,7 @@
         "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
         "value": "1000000000000000 wei (0.001 PHRS)",
         "chainId": "688689",
-        "nonce": "84",
+        "nonce": "85",
         "gas": "21000",
         "maxFeePerGas": "2000000000",
         "maxPriorityFeePerGas": "0"
@@ -228,50 +199,50 @@
       "plan": {
         "question": "How do I read the total supply of an ERC-20 token on Pharos?",
         "excerpt": [
-          "Call the token contract’s totalSupply() view function.",
-          "With Foundry’s cast: This returns the raw integer amount.",
-          "To display tokens, divide by 10 decimals(); for example, divide by 10^18 when the token uses 18 decimals."
+          "Call the token contract’s read-only totalSupply() function using its address and ABI.",
+          "The Pharos token guide includes the totalSupply ABI entry and a Web3.py contract interaction example: Rust. totalSupply() returns the raw integer amount in the token’s smallest units. decimals() lets you convert it to the displayed token amount.",
+          "Use the RPC endpoint for the Pharos network where the token is deployed."
         ],
         "sources": [
-          {
-            "title": "About Pharos",
-            "url": "https://docs.pharos.xyz/introduction/readme"
-          },
-          {
-            "title": "Why Pharos",
-            "url": "https://docs.pharos.xyz/introduction/why-pharos"
-          },
-          {
-            "title": "x402 Atlantic Testnet",
-            "url": "https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet"
-          },
-          {
-            "title": "x402 Pacific Mainnet",
-            "url": "https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet"
-          },
-          {
-            "title": "Pharos MCP",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/mcp"
-          },
           {
             "title": "Write Your First Token",
             "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
           },
           {
-            "title": "Rust",
-            "url": "https://docs.pharos.xyz/developer-guide/rust"
-          },
-          {
-            "title": "x402",
-            "url": "https://docs.pharos.xyz/developer-guide/x402"
+            "title": "Circle CCTP",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/circle-cctp"
           },
           {
             "title": "Gas Model",
             "url": "https://docs.pharos.xyz/getting-started/gas-model"
           },
           {
-            "title": "Pharos Skill Engine",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide"
+            "title": "Write Your First Token",
+            "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
+          },
+          {
+            "title": "Token Registry",
+            "url": "https://docs.pharos.xyz/getting-started/token-registry"
+          },
+          {
+            "title": "Canonical Contracts",
+            "url": "https://docs.pharos.xyz/getting-started/canonical-contracts"
+          },
+          {
+            "title": "Rust",
+            "url": "https://docs.pharos.xyz/developer-guide/rust"
+          },
+          {
+            "title": "Node Management",
+            "url": "https://docs.pharos.xyz/node-and-validator-guide/node-management"
+          },
+          {
+            "title": "FAQs",
+            "url": "https://docs.pharos.xyz/getting-started/faqs"
+          },
+          {
+            "title": "eth_getProof — Storage State Verification (SPV)",
+            "url": "https://docs.pharos.xyz/api-and-sdk/eth-getproof"
           }
         ],
         "groundedIn": [
@@ -282,19 +253,19 @@
         "covered": true,
         "refused": false,
         "steps": [
-          "Chain MCP eth_call totalSupply() on 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 at block 20573960",
+          "Chain MCP eth_call totalSupply() on 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 at block 20574187",
           "Chain MCP eth_call decimals() (18) and symbol()",
-          "Divide by 10^decimals (docs), re-read at block 20573960"
+          "Divide by 10^decimals (docs), re-read at block 20574187"
         ],
-        "expected": "totalSupply() as a raw integer; 23,287,417.04468901667424395 WPROS once divided by 10^18, identical on a re-read at the same block"
+        "expected": "totalSupply() as a raw integer; 23,287,392.614271228214992834 WPROS once divided by 10^18, identical on a re-read at the same block"
       },
-      "expected": "totalSupply() as a raw integer; 23,287,417.04468901667424395 WPROS once divided by 10^18, identical on a re-read at the same block",
-      "observed": "23287417044689016674243950 base units = 23,287,417.04468901667424395 WPROS at block 20573960",
+      "expected": "totalSupply() as a raw integer; 23,287,392.614271228214992834 WPROS once divided by 10^18, identical on a re-read at the same block",
+      "observed": "23287392614271228214992834 base units = 23,287,392.614271228214992834 WPROS at block 20574187",
       "checks": [
         {
           "name": "re-read at the same block equals the first read",
           "ok": true,
-          "detail": "23287417044689016674243950"
+          "detail": "23287392614271228214992834"
         }
       ],
       "status": "success"
@@ -306,9 +277,9 @@
       "plan": {
         "question": "How do I look up a transaction receipt on Pharos?",
         "excerpt": [
-          "Use the transaction hash to look up its receipt: * Explorer: Open PharosScan and search for the transaction hash.",
-          "* Programmatically: Call eth_getTransactionReceipt with the hash, or use the Pharos MCP server’s get_transaction_receipt tool.",
-          "See Pharos MCP for details."
+          "Use the transaction hash with Pharos’s get_transaction_receipt method.",
+          "The Pharos MCP documents this method and the mainnet RPC endpoint.",
+          "For a direct RPC lookup, send eth_getTransactionReceipt to https://rpc.pharos.xyz: Replace <transaction-hash> with the transaction’s hash."
         ],
         "sources": [
           {
@@ -392,91 +363,6 @@
       "status": "success"
     },
     {
-      "request": "wrap PHRS into WPHRS",
-      "kind": "other",
-      "network": null,
-      "plan": {
-        "question": "wrap PHRS into WPHRS? How do I do this on Pharos?",
-        "excerpt": [],
-        "sources": [
-          {
-            "title": "Token Registry",
-            "url": "https://docs.pharos.xyz/getting-started/token-registry"
-          },
-          {
-            "title": "Piggy Bank Tutorial",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide"
-          },
-          {
-            "title": "About Pharos",
-            "url": "https://docs.pharos.xyz/introduction/readme"
-          },
-          {
-            "title": "Fordefi",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/wallets/fordefi"
-          },
-          {
-            "title": "Pharos Skill Engine",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide"
-          },
-          {
-            "title": "Why Pharos",
-            "url": "https://docs.pharos.xyz/introduction/why-pharos"
-          },
-          {
-            "title": "Publish Service Agent",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/overview/publish-skill-af"
-          },
-          {
-            "title": "x402 Pacific Mainnet",
-            "url": "https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet"
-          },
-          {
-            "title": "Circle CCTP",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/circle-cctp"
-          },
-          {
-            "title": "Get PROS Gas",
-            "url": "https://docs.pharos.xyz/getting-started/get-pros-gas"
-          },
-          {
-            "title": "Write Your First Uniswap Contract",
-            "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract"
-          },
-          {
-            "title": "Write Your First Uniswap Contract",
-            "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-uniswap-contract"
-          },
-          {
-            "title": "Rust",
-            "url": "https://docs.pharos.xyz/developer-guide/rust"
-          },
-          {
-            "title": "Call EVM From WASM",
-            "url": "https://docs.pharos.xyz/developer-guide/interoperability/call-evm-from-wasm"
-          },
-          {
-            "title": "Canonical Contracts",
-            "url": "https://docs.pharos.xyz/getting-started/canonical-contracts"
-          },
-          {
-            "title": "Pharos MCP",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/mcp"
-          }
-        ],
-        "groundedIn": [],
-        "covered": false,
-        "refused": true,
-        "steps": [],
-        "expected": ""
-      },
-      "expected": "",
-      "observed": "",
-      "checks": [],
-      "status": "not-covered",
-      "note": "The docs don't cover this, so no plan is made and nothing is executed (no improvised steps)."
-    },
-    {
       "request": "how do I bridge to Solana on Pharos?",
       "kind": "other",
       "network": null,
@@ -485,60 +371,64 @@
         "excerpt": [],
         "sources": [
           {
-            "title": "About Pharos",
-            "url": "https://docs.pharos.xyz/introduction/readme"
-          },
-          {
-            "title": "Why Pharos",
-            "url": "https://docs.pharos.xyz/introduction/why-pharos"
-          },
-          {
             "title": "Chainlink CCIP",
             "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/chainlink-ccip"
-          },
-          {
-            "title": "x402 Atlantic Testnet",
-            "url": "https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet"
-          },
-          {
-            "title": "Encyclopedia",
-            "url": "https://docs.pharos.xyz/introduction/encyclopedia"
-          },
-          {
-            "title": "Pharos MCP",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/mcp"
           },
           {
             "title": "Cross Chain Infrastructure",
             "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain"
           },
           {
-            "title": "Pharos Skill Engine",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide"
+            "title": "RPC Infrastructure",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/rpc"
           },
           {
-            "title": "Alchemy RPC",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/rpc/alchemy"
-          },
-          {
-            "title": "Goldsky",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/indexing/goldsky"
-          },
-          {
-            "title": "LayerZero",
-            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/layerzero"
+            "title": "Why Pharos",
+            "url": "https://docs.pharos.xyz/introduction/why-pharos"
           },
           {
             "title": "Circle CCTP",
             "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/circle-cctp"
           },
           {
-            "title": "Token Registry",
-            "url": "https://docs.pharos.xyz/getting-started/token-registry"
+            "title": "Oracle",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/oracles"
           },
           {
-            "title": "x402 Pacific Mainnet",
-            "url": "https://docs.pharos.xyz/developer-guide/x402/x402-pacific-mainnet"
+            "title": "Rust",
+            "url": "https://docs.pharos.xyz/developer-guide/rust"
+          },
+          {
+            "title": "Pharos MCP",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/mcp"
+          },
+          {
+            "title": "About Pharos",
+            "url": "https://docs.pharos.xyz/introduction/readme"
+          },
+          {
+            "title": "Write Your First Uniswap Contract",
+            "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-uniswap-contract"
+          },
+          {
+            "title": "LayerZero",
+            "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain/layerzero"
+          },
+          {
+            "title": "Network",
+            "url": "https://docs.pharos.xyz/getting-started/network"
+          },
+          {
+            "title": "Pharos Network Snapshots",
+            "url": "https://docs.pharos.xyz/node-and-validator-guide/pharos-network-snapshots"
+          },
+          {
+            "title": "Node Management",
+            "url": "https://docs.pharos.xyz/node-and-validator-guide/node-management"
+          },
+          {
+            "title": "Pacific Mainnet",
+            "url": "https://docs.pharos.xyz/getting-started/network/pacific-mainnet"
           },
           {
             "title": "Vision & Mission",
