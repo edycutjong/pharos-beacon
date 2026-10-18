@@ -1,0 +1,12 @@
+{
+  "youngDays": 7,
+  "flagged": [
+    {
+      "address": "0xf1a9000000000000000000000000000000000001",
+      "reason": "demo flagged address",
+      "source": "our own list: we made this address up for the risky example and put it here ourselves"
+    }
+  ],
+  "trustedSpenders": [],
+  "extraTokens": []
+}
