@@ -48,20 +48,23 @@ Runs 1–3 were recorded with the first output format, which set the sum of the 
 Output of the video's partial-failure run ([`proof/video-casts.log`](proof/video-casts.log), `--compact` layout; the default layout prints the full addresses and reasons):
 
 ```text
-batch @ 31572054: 4 actions → 1 transaction via Multicall3
+batch @ 31580419: 4 actions → 1 transaction via Multicall3
   1 0.0001 PHRS → 0x8D34…D91B      ok · alone 21000 gas
   2 0.0001 WPHRS → 0x4444…4444     ok · alone 45917 gas
   3 1 USDC → 0x5555…5555           WOULD FAIL: ERC20InsufficientBalance
   4 0.0003 WPHRS → 0x6666…6666     ok · alone 45932 gas
-approved WPHRS for Multicall3: 0x0d1a…d062
-SENT 0x29f6…604b · block 31572058 · gas used 85040
+approved WPHRS for Multicall3: 0x7965…2cc1
+approved USDC for Multicall3: 0x92c5…510d
+SENT 0x68e1…6d98 · block 31580423 · gas used 85040
   1 APPLIED  0.0001 PHRS → 0x8D34…D91B
   2 APPLIED  0.0001 WPHRS → 0x4444…4444
   3 NOT APPLIED  1 USDC → 0x5555…5555 (ERC20InsufficientBalance)
   4 APPLIED  0.0003 WPHRS → 0x6666…6666
 3 of 4 applied; the failure did not undo the rest
-gas: 3 sent alone ≈ 112849 vs 85040 batched → saved 24.64%
-steps: 3 transactions alone → 1
+gas est.: alone 112849 vs batch 114050 → costs more by 1.06%
+gas used by the batch (receipt): 85040
+with approve (+93635): 178675 used
+steps: 3 transactions alone → 1 (+2 approve tx this run)
 ```
 
 The current format, run 4 (full layout, from [`proof/all-success-mix.log`](proof/all-success-mix.log)):
@@ -90,10 +93,7 @@ steps: 4 transactions to sign and send alone → 1 batch transaction (+1 one-tim
 
 ### The video's own runs
 
-The video shows three more real runs, recorded while their proofs were written: [`video-all-success`](proof/video-all-success.json) (tx [`0xbb0912…e53f`](https://atlantic.pharosscan.xyz/tx/0xbb09121a18152298b12fb3ba18345daf40c133df12a1a010890a4a8beaefe53f)),
-[`video-one-fails`](proof/video-one-fails.json) (tx [`0x29f65e…604b`](https://atlantic.pharosscan.xyz/tx/0x29f65e3194afca62c244ca4b2367da2ec29980ef65a3d1f41f6f14cbb39a604b), the one on the explorer shot) and
-[`video-drop-failing`](proof/video-drop-failing.json) (tx [`0x5b6698…5906`](https://atlantic.pharosscan.xyz/tx/0x5b6698fbd658c3e5238483b3bc84e45771be1c83a274222d9310315dbff95906)).
-Same plans, the narrow `--compact` layout. Their numbers differ from runs 1–2 because the recipients were no longer new addresses, so the gas estimates are lower (all-success: 83113 gas batched against 134413 in run 1; its printed "47.65% saved" is the same estimate-against-receipt comparison as run 1's 39.25% and has the same bias); the drop-failing video run matches run 3 exactly.
+The video shows three more real runs, recorded again after the gas lines were reworded (the first recordings carried the mixed estimate-against-receipt line): [`video-all-success`](proof/video-all-success.json) (plan `video-all-success`: run 4's mix with new recipients; tx [`0x2ff703…4680`](https://atlantic.pharosscan.xyz/tx/0x2ff703bec4a23bbf8976a19848e398a7b889a9d662bef6a958c62ab58dc14680)), [`video-one-fails`](proof/video-one-fails.json) (tx [`0x68e15d…6d98`](https://atlantic.pharosscan.xyz/tx/0x68e15d5cd6afdda7d0d403746e4d57578ebdf76c26df19b37349d5ba48d66d98), the one on the explorer shot) and [`video-drop-failing`](proof/video-drop-failing.json) (tx [`0xf473d3…363a`](https://atlantic.pharosscan.xyz/tx/0xf473d37417dfe22a97a2a61dd4f3484c2a07c5ff0f59f5993a965eeff46e363a)). Same plans as runs 2–3, the narrow `--compact` layout ([`proof/video-casts.log`](proof/video-casts.log)). The partial-failure run's `gas est.` line says "costs more by 1.06%" because the one-by-one sum leaves out the failing USDC action while the batch estimate includes trying it (see below); runs 2–3's recipients are no longer new addresses, so their estimates are lower than run 1's.
 
 ## Gas, honestly
 
@@ -115,7 +115,7 @@ Without the flag a failing token action stays inside the batch (run 2), which is
 
 - **A failing PHRS action is never sent on purpose.** `aggregate3Value` keeps the PHRS of a call that failed inside Multicall3, so such a batch is BLOCKED ("its PHRS would stay stuck in Multicall3") unless `--drop-failing` removes the action. Token actions have no such problem.
 - **Multicall3's own README warns against this design:** its Security section says "Never approve Multicall3 to spend your tokens. If you do, anyone can steal your tokens." ([mds1/multicall](https://github.com/mds1/multicall#security), read 2026-10-18). Our token path needs exactly that allowance. What limits the exposure here: Atlantic testnet only, an allowance of exactly the plan's total, and demo-dust balances. A production version should use a batch contract that only the owner can call (not built here: it would be a contract of ours to deploy and audit).
-- **An allowance to Multicall3 is an allowance anyone can route through Multicall3.** `--approve` raises it to exactly the plan's total, and a run spends the allowance of the actions that apply (the allowance of an action that fails stays open: run 2 left 1 USDC approved on the demo wallet, which we revoked afterwards in tx [`0x0027ad…55c3`](https://atlantic.pharosscan.xyz/tx/0x0027ad9c7d5ba711647da8ac9c1ae3ab0e03fa174eef69909286bba08e7b55c3)); on a real wallet with real funds that is a risk you should weigh. This tool is Atlantic testnet only (the signer refuses any other chain).
+- **An allowance to Multicall3 is an allowance anyone can route through Multicall3.** `--approve` raises it to exactly the plan's total, and a run spends the allowance of the actions that apply (the allowance of an action that fails stays open: run 2 left 1 USDC approved on the demo wallet, which we revoked afterwards in tx [`0x0027ad…55c3`](https://atlantic.pharosscan.xyz/tx/0x0027ad9c7d5ba711647da8ac9c1ae3ab0e03fa174eef69909286bba08e7b55c3), and the video's partial-failure recording did the same and was revoked in tx [`0xe6f324…1262`](https://atlantic.pharosscan.xyz/tx/0xe6f324f00dc2d1934bd4642d9760ae2d04ce168d60aaf5c8b453f19c1b911262)); on a real wallet with real funds that is a risk you should weigh. This tool is Atlantic testnet only (the signer refuses any other chain).
 - Multicall3 emits no per-action events, so "what happened to each action" is read from the recipients' balances (the received amount must equal the planned one). A recipient who also receives funds from someone else in the same block would confuse that check.
 - `--proof <name>` writes `tasks/batch-executor/proof/<name>.json`, the only file any variant of the command writes (the keyless simulation writes nothing).
 - Only PHRS and the five registry ERC-20s, only sends. Claims and arbitrary contract calls are not in the plan format.
