@@ -39,7 +39,7 @@ a 0.01 WPHRS transfer ([`0x9ce6…996b`](https://atlantic.pharosscan.xyz/tx/0x9c
 and a 0.0001 WPHRS transfer ([`0xaf94…ae93`](https://atlantic.pharosscan.xyz/tx/0xaf94b342a2f0ef6ef94b70949a541148a37781058df77159980f94bb61adae93), below 0.005: no alert, as configured).
 Proof: [`proof/live-run.json`](proof/live-run.json) (`dirty: false`), output [`proof/live-run.log`](proof/live-run.log), the three transactions in [`proof/emit-events.log`](proof/emit-events.log).
 
-Discord's own clock lines up with the chain's, which is what lets someone who cannot open the channel check the delivery from outside:
+Discord's own clock lines up with the chain's, which lets someone who cannot open the channel check from outside that each message id was created about 3 s after its block (it does not by itself prove delivery; the fetched-back messages do):
 
 | Alert | Block (Atlantic) | Block time (UTC) | Message created by Discord (UTC) | Delay |
 |---|---|---|---|---|
@@ -47,7 +47,7 @@ Discord's own clock lines up with the chain's, which is what lets someone who ca
 | Large-transfer rule | 31555672 | 00:39:29 | 00:39:32.715 (id `1561176876892954723`) | about 3 s |
 
 The Discord times are the `timestamp` fields of the messages as fetched back from Discord ([`proof/discord-fetchback.json`](proof/discord-fetchback.json)); the block times are the blocks' own timestamps, read through the Chain MCP (`get_block`) and saved in [`proof/block-times.json`](proof/block-times.json).
-The message ids are Discord snowflakes, which encode the same creation time.
+The message ids are Discord snowflakes, which encode their creation time: creation time in ms = (id >> 22) + 1420070400000. `1561176862451834920` gives 1792283969272 = 2026-10-18T00:39:29.272Z and `1561176876892954723` gives 1792283972715 = 2026-10-18T00:39:32.715Z, both equal to the fetched-back `timestamp` fields to the millisecond.
 The Atlantic runs need the local Atlantic Chain MCP (`npm run setup:mcp` once); the mainnet command above does not.
 
 ```text
