@@ -67,6 +67,13 @@ period  due         status   amount          tx / note
 next payment: period 2 on 2026-12-01 (09:00Z), 1000000 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
 ```
 
+### The video's own runs
+
+The video shows three more real Atlantic runs recorded with asciinema while their proofs were written, in the narrow `--compact` layout (a terminal too narrow for the full table):
+period 3 paid at clock 2026-11-15 (tx [`0x813b85…b55c`](https://atlantic.pharosscan.xyz/tx/0x813b85abbbdb66cff2e24966ed13b30ed96cbeb21b35482d30ad36881d85b55c), block 31571475,
+[`video-period-3-paid`](proof/video-period-3-paid.json)), the same clock again with nothing paid ([`video-rerun`](proof/video-rerun.json)), and the unaffordable plan failing again ([`video-insufficient`](proof/video-insufficient.json)).
+Their terminal text is in [`proof/video-casts.log`](proof/video-casts.log) (the first four blocks are the runs in the table above, the last three the video's).
+
 ## Beyond the requirements: a Discord receipt and one retry
 
 - **Receipt per payment:** with `--discord` every payment (and every failure) posts one message with the period, amount, recipient and explorer link to the alert webhook (`~/.config/discord/webhook-alerts`).
@@ -83,6 +90,6 @@ next payment: period 2 on 2026-12-01 (09:00Z), 1000000 PHRS to 0x8D347c72431ed6E
 
 ## Tests
 
-`npm test` — 17 tests in [`test/recurring.test.ts`](../../test/recurring.test.ts): schedule maths (weekly, monthly clamp, due/next), bad plans, two consecutive periods and a re-run, nothing due early,
+`npm test` — 19 tests in [`test/recurring.test.ts`](../../test/recurring.test.ts): schedule maths (weekly, monthly clamp, due/next), bad plans, two consecutive periods and a re-run, nothing due early,
 insufficient balance (amount, and gas) then funded later, crash before and after the node took the transaction, one refusal retried and two refusals failed, a mined revert retried, the ERC-20 call data,
-Discord receipts (one per payment, a failing webhook changes nothing), a ledger for another plan and a self payment refused, and the history table.
+Discord receipts (one per payment, a failing webhook changes nothing), a ledger for another plan and a self payment refused, the history table, and the compact output.

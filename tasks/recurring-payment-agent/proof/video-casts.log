@@ -47,3 +47,50 @@ period  due         status   amount          tx / note
 next payment: period 2 on 2026-12-01 (09:00Z), 1000000 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
 proof: tasks/recurring-payment-agent/proof/insufficient-balance.json
 $ 
+===== v1-period3
+$ npm run -s recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/rent.json --now 2026-11-15T09:00:00Z --execute --compact --discord --proof video-period-3-paid
+clock: injected --now 2026-11-15T09:00:00.000Z (not the real
+    time)
+paying wallet 0x317bca…2975 (Atlantic)
+period 3 (due 2026-11-15): paid — block 31571475, gas used
+    21000
+
+plan rent-demo: weekly, 0.001 PHRS
+to 0x8D34…D91B
+#  due         status  tx
+1  2026-11-01  paid    0xb481…4b59
+2  2026-11-08  paid    0x4003…ff2a
+3  2026-11-15  paid    0x813b…b55c
+next: #4 on 2026-11-22 09:00Z
+proof: tasks/recurring-payment-agent/proof/video-period-3-paid.json
+$ 
+===== v2-rerun
+$ npm run -s recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/rent.json --now 2026-11-15T09:00:00Z --execute --compact --discord --proof video-rerun
+clock: injected --now 2026-11-15T09:00:00.000Z (not the real
+    time)
+paying wallet 0x317bca…2975 (Atlantic)
+
+plan rent-demo: weekly, 0.001 PHRS
+to 0x8D34…D91B
+#  due         status  tx
+1  2026-11-01  paid    0xb481…4b59
+2  2026-11-08  paid    0x4003…ff2a
+3  2026-11-15  paid    0x813b…b55c
+next: #4 on 2026-11-22 09:00Z
+proof: tasks/recurring-payment-agent/proof/video-rerun.json
+$ 
+===== v3-short
+$ npm run -s recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/insufficient.json --now 2026-11-01T09:00:00Z --execute --compact --discord --proof video-insufficient
+clock: injected --now 2026-11-01T09:00:00.000Z (not the real
+    time)
+paying wallet 0x317bca…2975 (Atlantic)
+period 1 (due 2026-11-01): failed — insufficient PHRS
+    balance: has 14.930973, needs 1000000; nothing was sent
+
+plan insufficient-demo: monthly, 1000000 PHRS
+to 0x8D34…D91B
+#  due         status  tx
+1  2026-11-01  failed  (no tx sent)
+next: #2 on 2026-12-01 09:00Z
+proof: tasks/recurring-payment-agent/proof/video-insufficient.json
+$ 
