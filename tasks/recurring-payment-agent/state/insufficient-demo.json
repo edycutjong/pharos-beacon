@@ -20,9 +20,13 @@
         {
           "at": "2026-11-01T09:00:00.000Z",
           "outcome": "failed: insufficient PHRS balance: has 14.931994638999979, needs 1000000; nothing was sent"
+        },
+        {
+          "at": "2026-11-01T09:00:00.000Z",
+          "outcome": "failed: insufficient PHRS balance: has 14.930973, needs 1000000; nothing was sent"
         }
       ],
-      "reason": "insufficient PHRS balance: has 14.931994638999979, needs 1000000; nothing was sent"
+      "reason": "insufficient PHRS balance: has 14.930973, needs 1000000; nothing was sent"
     }
   ],
   "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"

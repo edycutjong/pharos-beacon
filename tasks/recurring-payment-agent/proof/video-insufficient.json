@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "task": "recurring-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/recurring-payment-agent/index.ts run --plan tasks/recurring-payment-agent/plans/insufficient.json --now 2026-11-01T09:00:00Z --execute --compact --discord --proof video-insufficient",
+    "git": {
+      "commit": "64af306d1693",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T10:19:32.752Z"
+  },
+  "plan": {
+    "id": "insufficient-demo",
+    "frequency": "monthly",
+    "start": "2026-11-01T09:00:00.000Z",
+    "amount": "1000000",
+    "token": {
+      "symbol": "PHRS",
+      "decimals": 18
+    },
+    "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "periods": 3
+  },
+  "clock": {
+    "injected": true,
+    "now": "2026-11-01T09:00:00.000Z"
+  },
+  "events": [
+    {
+      "period": 1,
+      "action": "failed",
+      "detail": "insufficient PHRS balance: has 14.930973, needs 1000000; nothing was sent"
+    }
+  ],
+  "ledger": {
+    "plan": {
+      "id": "insufficient-demo",
+      "frequency": "monthly",
+      "start": "2026-11-01T09:00:00.000Z",
+      "amount": "1000000",
+      "token": {
+        "symbol": "PHRS",
+        "decimals": 18
+      },
+      "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "periods": 3
+    },
+    "periods": [
+      {
+        "period": 1,
+        "due": "2026-11-01T09:00:00.000Z",
+        "status": "failed",
+        "attempts": [
+          {
+            "at": "2026-11-01T09:00:00.000Z",
+            "outcome": "failed: insufficient PHRS balance: has 14.931994638999979, needs 1000000; nothing was sent"
+          },
+          {
+            "at": "2026-11-01T09:00:00.000Z",
+            "outcome": "failed: insufficient PHRS balance: has 14.930973, needs 1000000; nothing was sent"
+          }
+        ],
+        "reason": "insufficient PHRS balance: has 14.930973, needs 1000000; nothing was sent"
+      }
+    ],
+    "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+  }
+}
