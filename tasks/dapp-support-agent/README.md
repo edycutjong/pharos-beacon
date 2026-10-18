@@ -15,7 +15,7 @@ or on one of our own failed Atlantic transactions below (needs `npm run setup:mc
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
 | 1 | Accepts a tx hash and fetches the transaction and receipt via Chain MCP | the one positional argument is the hash (checked: `0x` + 64 hex); `diagnose` calls `get_transaction` then `get_transaction_receipt` | `tasks/dapp-support-agent/diagnose.ts` `diagnose` · every [proof](proof/balance.json) records the endpoint and tools |
-| 2 | Identifies the failure cause: revert reason, out of gas, insufficient balance or allowance, etc. | replays the exact call with `eth_call` at the block before and decodes the revert bytes (`Error(string)`, `Panic`, OpenZeppelin token errors, ownership, pause); out of gas = replay fails with an out-of-gas error, or gas used equals the gas limit | [balance](proof/balance.log) · [allowance](proof/allowance.log) · [out of gas](proof/out-of-gas.log) · [empty revert](proof/empty-revert.log) |
+| 2 | Identifies the failure cause: revert reason, out of gas, insufficient balance or allowance, etc. | replays the exact call with `eth_call` at the block before and decodes the revert bytes (`Error(string)`, `Panic`, OpenZeppelin token errors, ownership, pause); out of gas = replay fails with an out-of-gas error, or gas used equals the gas limit | [balance](proof/balance.log) · [allowance](proof/allowance.log) · [out of gas](proof/out-of-gas.log) · [empty revert](proof/empty-revert.log) · [reason string, mainnet](proof/mainnet-third-party-revert.json) |
 | 3 | Explains it without jargon and suggests a fix | every report has *What happened*, *Why*, *What you can do* in plain words; amounts carry the token's symbol and decimals; the raw evidence is last, under its own heading | the output block below · `formatDiagnosis` |
 | 4 | Demonstrated on at least 3 different failure types | 4 real failed transactions on Atlantic from our own wallet, one per type, plus a successful one; and two failed Pharos **mainnet** transactions from wallets we do not control (rows 6 and 7 below): a contract revert reason, and a failure the replay cannot reproduce | table below · [`proof/failed-txs.json`](proof/failed-txs.json) |
 
@@ -41,7 +41,7 @@ it says the contract gave no reason. No language model is involved: the same has
 
 ## Proof (live runs on Atlantic, chain 688689, and on Pharos mainnet, chain 1672)
 
-The failed transactions were sent by `npm run make-failed-txs -- --execute --proof` ([`scripts/make-failed-txs.ts`](../../scripts/make-failed-txs.ts)):
+The Atlantic failures (rows 1–4) were sent by `npm run make-failed-txs -- --execute --proof` ([`scripts/make-failed-txs.ts`](../../scripts/make-failed-txs.ts)):
 each is signed with an explicit gas limit and mined with status 0x0. Their receipts are in [`proof/failed-txs.json`](proof/failed-txs.json).
 (Two earlier attempts of the same script, before the out-of-gas limit was lowered to fit, left six other test transactions on the chain: four failed and two that succeeded. They are not used here.)
 
@@ -55,7 +55,7 @@ each is signed with an explicit gas limit and mined with status 0x0. Their recei
 | 6 | mainnet, not ours: revert with a reason string | [`0x3605…227c`](https://www.pharosscan.xyz/tx/0x360551d640f569c208de26a7380230fac002cdc7fc7378501decc6a6bc64227c) (block 20567567, from `0x7ac6…936c` to `0x69dc…0da4`; found by scanning receipts for status 0x0) | the contract's own message `"BC"`, read from the replay and quoted; the report does not guess what the code means | [`proof/mainnet-third-party-revert.json`](proof/mainnet-third-party-revert.json) |
 | 7 | mainnet, not ours: failure the replay cannot reproduce | [`0xa449…6951`](https://www.pharosscan.xyz/tx/0xa449024e34e2249da119183eb5b877f4b2294d70daf8d5b1c0929fe99b136951) (block 20567558, from `0xc5f6…0f45`) | the replay one block earlier succeeds (gas 166007 < limit 540000), so the agent says the cause cannot be read from here and does not invent one | [`proof/mainnet-third-party-not-reproduced.json`](proof/mainnet-third-party-not-reproduced.json) |
 
-Rows 6 and 7 replay with `eth_call` at an old mainnet block, so they need the hosted node to still serve that block's state; if it stops, the committed proofs remain.
+Rows 6 and 7 replay with `eth_call` at an old mainnet block, so they need the hosted node to still serve that block's state. It does, far beyond the review window: mainnet answered at a block 127 days old and Atlantic 20 million blocks back, while the window needs about 2.3M and 1.0M ([`proof/state-age.txt`](proof/state-age.txt)). If a node ever stops, the agent says it no longer keeps that block's state (and still reports out of gas from the receipt), and the committed proofs remain.
 
 The mainnet run of row 6 (output of the proof run, keyless):
 
@@ -75,6 +75,7 @@ Why
   The contract checked a condition, it was not met, and the contract stopped the transaction with the message "BC". Nothing was changed; you only paid the network fee.
 
 What you can do
+  - The message is a short code, not a sentence. Look the contract (0x69dc…0da4) up on the block explorer; if its source is verified, search it for "BC" to see which check it belongs to.
   - Change the input that the message points at (an amount, an address or a deadline) and send again.
   - If you did not expect this, ask the dApp's support, quoting the message and the transaction link.
 
@@ -123,7 +124,7 @@ What the agent says first, for each type (copied from the proof logs):
 
 ## Tests
 
-`npm test` runs 21 tests for this task (`test/dapp-support-agent.test.ts`): each cause (balance, allowance, reason string, panic, access and pause errors, unknown
+`npm test` runs 23 tests for this task (`test/dapp-support-agent.test.ts`): each cause (balance, allowance, reason string, panic, access and pause errors, unknown
 error selector, out of gas with and without a second problem, empty revert with and without an inference, a failure that cannot be reproduced), the success,
 not-found and pending answers, the replay block, the report layout and the CLI (hash validation, `--json`).
 

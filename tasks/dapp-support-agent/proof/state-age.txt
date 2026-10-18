@@ -1,0 +1,18 @@
+State age check, 2026-10-18 (read-only eth_call through the Chain MCP, no transaction sent)
+
+Does the node still serve the state the replays need, and for how long?
+
+Pharos mainnet (hosted Chain MCP, chain 1672), head 20581085
+  block time: 12684 s for the 13519 blocks 20567566..20581085 = 92,090 blocks/day
+  eth_call WPROS 0x52c4…f0b0 decimals() at block 20567566 (the row 6 replay block): 0x12 (18)   -> served
+  eth_call WPROS decimals() at block 19000000:                                                0x12 (18)   -> served
+  eth_call WPROS decimals() at block 10000000 (timestamp 0x6a2cd6a4, 127.5 days before head): 0x12 (18)   -> served
+  eth_call WPROS decimals() at block 1000 (before the contract exists):                       0x (no code) -> served, no "state missing" error
+  needed until the season closes (25 days after 2026-10-18): about 25 x 92,090 = 2.30M blocks back from head; the row 6 transaction would then be about 2.31M blocks old.
+
+Pharos Atlantic (local stdio pharos-mcp, chain 688689), head 31580970
+  block time: 216 s per 100k blocks measured over 100,000 blocks = 39,978 blocks/day
+  eth_call to the zero address at head minus 1,000 / 100,000 / 1M / 2M / 5M / 20M blocks: all served ("0x"), none refused
+  needed until the season closes: about 25 x 39,978 = 1.0M blocks back from head.
+
+Result: neither node pruned anything within 5x the window the reviewers need, so the replays still work on review day. If a node did stop serving a block's state, diagnose() now answers "this node no longer keeps the state of block N, so the call cannot be replayed" and still reports out of gas from the receipt alone (tests: "a node that no longer keeps the block's state says so…").
