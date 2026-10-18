@@ -32,7 +32,8 @@ PHRS transfer has no variable gas. For a contract call the gas used is usually l
 | Failing simulation, blocked: transfer of 1,000,000,000 USDC from a wallet that holds none | `WOULD FAIL — reverted: ERC20InsufficientBalance(…, 0, 1000000000000000)`, `BLOCKED`, exit 3, no transaction exists | [`proof/blocked.json`](proof/blocked.json) · [log](proof/blocked.log) |
 | Passing simulation, then the real send to a fresh address `0x0Ef32f97…aD4B` | [tx `0x10e59880…0628`](https://atlantic.pharosscan.xyz/tx/0x10e5988d3fd55808cc71c5e136b31918eba9c9659dcc57f76baa4621218c0628), block 31564576, `success`, 21000 gas = the estimate | [`proof/executed.json`](proof/executed.json) · [log](proof/executed.log) |
 
-Both proofs were produced by the commit they record, with `dirty: false`.
+A third run, simulation only (no `--execute`, the same fresh address, which by then held 0.0001 PHRS), is kept as a log: [`proof/simulate.log`](proof/simulate.log) (`not sent: pass --execute to send it`).
+Both proof JSON files were produced by the commit they record, with `dirty: false`.
 
 ```text
 $ npm run dry-run-executor -- --to 0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B --value 0.0001 --execute --proof executed
