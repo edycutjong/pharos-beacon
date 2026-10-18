@@ -81,15 +81,22 @@ export async function main(
   for (const w of wl.addresses) console.log(`  watching ${w.address}  ${w.label} · ${await kindOf(w.address)}`);
 
   const all: Move[] = [];
-  for (const t of tokens) all.push(...(await scanMoves(mcp.call, t, wl.addresses.map((a) => a.address), from, to)));
+  for (const t of tokens) {
+    const moves = await scanMoves(mcp.call, t, wl.addresses.map((a) => a.address), from, to);
+    all.push(...moves);
+    console.log(`scanned ${t.symbol}: ${moves.length} transfers touch a watched address, ${moves.filter(isSignificant).length} at or above ${t.threshold}`);
+  }
   const significant = all.filter(isSignificant);
   const largest = new Map<string, bigint>();
   for (const m of significant) if ((largest.get(m.token.address) ?? 0n) < m.amountRaw) largest.set(m.token.address, m.amountRaw);
   console.log(`\n${all.length} transfers touch a watched address · ${significant.length} at or above their token's threshold\n`);
 
   const reports: Report[] = [];
-  for (const m of significant) reports.push(await explain(mcp.call, m, wl, namer, kindOf, { largest: largest.get(m.token.address)! }));
-  reports.forEach((r, i) => console.log(`${reportText(r, (tx) => explorerTx(wl.network, tx), i + 1)}\n`));
+  for (const m of significant) {
+    const r = await explain(mcp.call, m, wl, namer, kindOf, { largest: largest.get(m.token.address)! });
+    reports.push(r);
+    console.log(`${reportText(r, (tx) => explorerTx(wl.network, tx), reports.length)}\n`); // printed as each is explained, not all at the end
+  }
   if (reports.length === 0) console.log("no significant moves in this window\n");
 
   const rows = summarise(wl, tokens, all);
