@@ -10,7 +10,7 @@ self-onboard using only the Developer Docs MCP and log where it broke down.
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
 | 1 | A step-by-step log of what you tried to do, the questions you asked Docs MCP, and the answers you got | 9 steps, each with the exact query, a verbatim excerpt of the answer, and what happened | [`ONBOARDING.md`](ONBOARDING.md#step-log) · [`proof/transcript.md`](proof/transcript.md) |
-| 2 | At least 3 concrete gaps or breakdowns (wrong, missing, or confusing answers), each with the exact query | 5 gaps (3 missing, 1 wrong/inconsistent, 1 missing field), each with its exact query and call number | [`ONBOARDING.md`](ONBOARDING.md#gaps-and-suggested-fixes) |
+| 2 | At least 3 concrete gaps or breakdowns (wrong, missing, or confusing answers), each with the exact query | 5 gaps (4 missing, 1 inconsistent), each with its exact query and call number | [`ONBOARDING.md`](ONBOARDING.md#gaps-and-suggested-fixes) |
 | 3 | A suggested fix for each gap: what the docs should have said | the last column of the gap table | [`ONBOARDING.md`](ONBOARDING.md#gaps-and-suggested-fixes) |
 | 4 | Ends with what you managed to build or run by the end | a real mainnet read through the hosted Chain MCP, a self-built Atlantic Chain MCP, one Atlantic transfer (tx below), and the Doc-Search CLI; what was not done is listed too | [`ONBOARDING.md`](ONBOARDING.md#what-was-built-and-run-by-the-end) · [`proof/first-read.json`](proof/first-read.json) · [`proof/first-tx.txt`](proof/first-tx.txt) |
 

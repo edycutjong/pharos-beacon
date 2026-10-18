@@ -10,7 +10,7 @@ knowledge to choose an answer. Every call is a line in [`proof/transcript.jsonl`
 [`proof/transcript.md`](proof/transcript.md); each quote below (`>` lines) is copied from it and checked by a test
 (`test/docs-onboarding.test.ts`). `#N` is the call number in the transcript.
 
-**Target.** The Season of AI task says "onboard into ai.pharos.xyz". That site turned out not to be in the docs at all (gap 1), so
+**Target.** The Season of AI task says "onboard into ai.pharos.xyz". That site is not found by the Docs MCP (gap 1), so
 I onboarded onto what the docs do describe: the Atlantic testnet, the Chain MCP, the SkillEngine and a first transaction.
 
 ## Step log
@@ -115,7 +115,7 @@ login itself needs a browser wallet, so it is logged as "needs a browser wallet 
 
 | # | Gap | Exact query | Why it hurts | What the docs should say |
 |---|---|---|---|---|
-| 1 | **Missing:** `ai.pharos.xyz` appears nowhere in the docs. Both the question and a plain search miss it (#1, #12, #13). | `What is ai.pharos.xyz and how do I get started with it?` | The task's own entry point is undocumented, so an agent that follows the rules cannot onboard to it. | A page "ai.pharos.xyz" in Getting Started: what the site is, how it relates to Anvita Flow, the sign-in flow (which wallet, which network), and the first thing to do after login. |
+| 1 | **Missing:** `ai.pharos.xyz` is not found by the Docs MCP: neither questions nor a plain search turn up the site (#1, #12, #13). | `What is ai.pharos.xyz and how do I get started with it?` | The task's own entry point is undocumented, so an agent that follows the rules cannot onboard to it. | A page "ai.pharos.xyz" in Getting Started: what the site is, how it relates to Anvita Flow, the sign-in flow (which wallet, which network), and the first thing to do after login. |
 | 2 | **Missing:** no faucet URL or claim steps (#3). #11 also says "Get testnet PHRS from the faucet" with no link. | `Where is the faucet for Atlantic testnet PHRS and how do I claim tokens?` | Every other step needs PHRS, so this is the real blocker for a newcomer. | On the Atlantic Testnet page: the faucet URL, the amount per claim, the cooldown, whether a login is needed, and the contact for "directly from the team". |
 | 3 | **Missing:** the SkillEngine install starts with "unzip `pharos-skill-engine-0.1.0.zip`" but no page says where to download it (#6). | `Where do I download the Pharos Skill Engine package pharos-skill-engine-0.1.0.zip?` | The install cannot be completed from the docs. | A download link or `git clone` URL (and the version/commit) at the top of the Skill Engine page, plus a checksum. |
 | 4 | **Wrong/inconsistent:** the Atlantic MCP config example sets `PHAROS_NATIVE_SYMBOL` to `PROS` (#7) while Atlantic's native token is `PHRS` (#9); the Pharos MCP page lists "Native token PROS" (#13) without saying it is mainnet-only. | `How do I point the Pharos MCP server at Atlantic testnet instead of mainnet?` | A copy-pasted config labels balances with the wrong symbol. | Use `PHRS` in the Atlantic example, and label the "Native token" row on the MCP page as "PROS (mainnet) / PHRS (Atlantic)". |

@@ -44,8 +44,8 @@ Exit codes: `0` answered, `3` the docs have no answer, `2` bad usage, `1` failur
 It connects to the Developer Docs MCP (`https://docs.pharos.xyz/~gitbook/mcp`, keyless) and calls `askQuestion`, which returns a
 written answer ending in a `# Sources` list. The answer is good only if it cites at least one page and does not say it found
 nothing. Otherwise the CLI prints a clear "not found" line, calls `searchDocumentation` for the closest pages and lists them as
-"may not answer it". If `askQuestion` itself fails, it says so and still lists the closest pages. It never prints an answer the
-docs did not give.
+"may not answer it". If `askQuestion` itself fails, it says so and still lists the closest pages. It prints only what
+`askQuestion` returned and adds nothing of its own.
 
 ## Docs MCP tools
 
