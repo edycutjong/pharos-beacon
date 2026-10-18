@@ -1,0 +1,22 @@
+Transaction  0x8b9b9353b9df376bf05067d5cc3fc921730ddc7a78cbbdac0c071e5d2970bf93
+Network      atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c
+Explorer     https://atlantic.pharosscan.xyz/tx/0x8b9b9353b9df376bf05067d5cc3fc921730ddc7a78cbbdac0c071e5d2970bf93
+
+Result       FAILED
+Cause        insufficient-allowance
+
+What happened
+  Your wallet is not approved to move that much USDC: it is allowed 0 USDC and the transaction needed 0.000001 USDC.
+
+Why
+  Moving tokens on someone else's behalf needs their permission first (an "approval" that sets how much the spender may take). Your wallet was allowed 0 USDC but tried to take 0.000001 USDC, so the token contract stopped it.
+
+What you can do
+  - The token's owner must approve first: from the owner's wallet call approve(0x317bca01Bb101C0F1E86C21576a4e14D92B02975, 0.000001 USDC or more) on the token 0xE0BE08c77f415F577A1B3A9aD7a1Df1479564ec8, wait for it to confirm, then send this transaction again.
+  - Approve only the amount you need, not an unlimited amount.
+
+Evidence (for the curious)
+  · receipt status 0x0 in block 31560418
+  · replayed with eth_call at block 31560417 (the state the transaction started from), same sender, value, data and gas limit
+  · token error ERC20InsufficientAllowance(spender=0x317bca01Bb101C0F1E86C21576a4e14D92B02975, allowance=0, needed=1) at block 31560417
+proof: tasks/dapp-support-agent/proof/allowance.json

@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "task": "dapp-support-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/dapp-support-agent/index.ts 0x8b9b9353b9df376bf05067d5cc3fc921730ddc7a78cbbdac0c071e5d2970bf93 --proof allowance",
+    "git": {
+      "commit": "31619816d64b",
+      "dirty": true
+    },
+    "createdAt": "2026-10-18T03:41:23.556Z"
+  },
+  "diagnosis": {
+    "hash": "0x8b9b9353b9df376bf05067d5cc3fc921730ddc7a78cbbdac0c071e5d2970bf93",
+    "outcome": "failed",
+    "cause": "insufficient-allowance",
+    "headline": "Your wallet is not approved to move that much USDC: it is allowed 0 USDC and the transaction needed 0.000001 USDC.",
+    "why": "Moving tokens on someone else's behalf needs their permission first (an \"approval\" that sets how much the spender may take). Your wallet was allowed 0 USDC but tried to take 0.000001 USDC, so the token contract stopped it.",
+    "fix": [
+      "The token's owner must approve first: from the owner's wallet call approve(0x317bca01Bb101C0F1E86C21576a4e14D92B02975, 0.000001 USDC or more) on the token 0xE0BE08c77f415F577A1B3A9aD7a1Df1479564ec8, wait for it to confirm, then send this transaction again.",
+      "Approve only the amount you need, not an unlimited amount."
+    ],
+    "evidence": [
+      "receipt status 0x0 in block 31560418",
+      "replayed with eth_call at block 31560417 (the state the transaction started from), same sender, value, data and gas limit",
+      "token error ERC20InsufficientAllowance(spender=0x317bca01Bb101C0F1E86C21576a4e14D92B02975, allowance=0, needed=1) at block 31560417"
+    ],
+    "facts": {
+      "from": "0x317bca01bb101c0f1e86c21576a4e14d92b02975",
+      "to": "0xe0be08c77f415f577a1b3a9ad7a1df1479564ec8",
+      "block": "31560418",
+      "gasLimit": "100000",
+      "gasUsed": "25772",
+      "value": "0",
+      "revertData": "0xfb8f41b2000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b0297500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+    }
+  }
+}
