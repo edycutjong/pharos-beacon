@@ -83,6 +83,7 @@ Without the flag a failing token action stays inside the batch (run 2), which is
 - **A failing PHRS action is never sent on purpose.** `aggregate3Value` keeps the PHRS of a call that failed inside Multicall3, so such a batch is BLOCKED ("its PHRS would stay stuck in Multicall3") unless `--drop-failing` removes the action. Token actions have no such problem.
 - **An allowance to Multicall3 is an allowance anyone can route through Multicall3.** `--approve` raises it to exactly the batch total, and a run spends it; on a real wallet with real funds that is a risk you should weigh. This tool is Atlantic testnet only (the signer refuses any other chain).
 - Multicall3 emits no per-action events, so "what happened to each action" is read from the recipients' balances (the received amount must equal the planned one). A recipient who also receives funds from someone else in the same block would confuse that check.
+- `--proof <name>` writes `tasks/batch-executor/proof/<name>.json`, the only file any variant of the command writes (the keyless simulation writes nothing).
 - Only PHRS and the five registry ERC-20s, only sends. Claims and arbitrary contract calls are not in the plan format.
 - We did not deploy a batch contract; the spike found Multicall3 live on Atlantic (`get_code` returned its code), so there is no bytecode of ours in this task.
 
