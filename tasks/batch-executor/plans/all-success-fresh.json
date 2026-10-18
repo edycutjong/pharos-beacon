@@ -1,0 +1,28 @@
+{
+  "name": "all-success-fresh",
+  "actions": [
+    {
+      "type": "native",
+      "to": "0xc53da88025deaffdeedc4ac4b046f45d0cf33fa8",
+      "value": "0.0001"
+    },
+    {
+      "type": "erc20",
+      "token": "WPHRS",
+      "to": "0xd69ea759dba653f7668fdf6f097f713bdfa03611",
+      "amount": "0.00001"
+    },
+    {
+      "type": "erc20",
+      "token": "WPHRS",
+      "to": "0x7cb93e4d7448cb5126a175f84b367cc5c16815c0",
+      "amount": "0.00002"
+    },
+    {
+      "type": "erc20",
+      "token": "WPHRS",
+      "to": "0x2b378fe2f752b3f8f0f4932a530bb8ad7754ad49",
+      "amount": "0.00003"
+    }
+  ]
+}
