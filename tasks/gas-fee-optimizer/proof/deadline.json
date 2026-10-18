@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "task": "gas-fee-optimizer",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/gas-fee-optimizer/index.ts send --to 0xDf34d07C3782ba050381e212B3609124Ed7DBA08 --value 0.0001 --deadline 40 --target-gwei 0.5 --interval 5 --execute --proof deadline",
+    "git": {
+      "commit": "930e954c28c2",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T06:19:33.630Z"
+  },
+  "request": {
+    "to": "0xDf34d07C3782ba050381e212B3609124Ed7DBA08",
+    "valueWei": "100000000000000",
+    "deadlineSeconds": 40,
+    "target": {
+      "kind": "price",
+      "wei": "500000000"
+    }
+  },
+  "decision": {
+    "reason": "deadline reached",
+    "requestPriceWei": "1000000000",
+    "decisionPriceWei": "1000000000",
+    "targetWei": "500000000",
+    "samplesTaken": 8,
+    "sampleErrors": 0,
+    "heldMs": 39999
+  },
+  "history": [
+    {
+      "at": "2026-10-18T06:19:33.725Z",
+      "block": "31564646",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    },
+    {
+      "at": "2026-10-18T06:19:38.956Z",
+      "block": "31564648",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    },
+    {
+      "at": "2026-10-18T06:19:44.137Z",
+      "block": "31564649",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    },
+    {
+      "at": "2026-10-18T06:19:49.304Z",
+      "block": "31564651",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    },
+    {
+      "at": "2026-10-18T06:19:54.480Z",
+      "block": "31564652",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    },
+    {
+      "at": "2026-10-18T06:19:59.638Z",
+      "block": "31564653",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    },
+    {
+      "at": "2026-10-18T06:20:04.786Z",
+      "block": "31564659",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    },
+    {
+      "at": "2026-10-18T06:20:09.944Z",
+      "block": "31564665",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    }
+  ],
+  "result": {
+    "sent": true,
+    "tx": "0xfa4027a81684e0560604f8e9687d7a8d253b9d110c58036fba0705dfb436479e",
+    "status": "success",
+    "block": "31564672",
+    "gasUsed": "21000",
+    "effectiveGasPriceWei": "1000000000",
+    "paid": {
+      "paidWei": "21000000000000",
+      "atRequestPriceWei": "21000000000000",
+      "savedWei": "0",
+      "savedPct": "0.00"
+    }
+  }
+}
