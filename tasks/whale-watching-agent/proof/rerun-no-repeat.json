@@ -10,16 +10,16 @@
     },
     "command": "tasks/whale-watching-agent/index.ts --from-block 20506432 --to-block 20546432 --notify discord --discord-max 3 --sent /tmp/p102/whale-sent.json --proof rerun-no-repeat",
     "git": {
-      "commit": "7063c3f577df",
+      "commit": "1d7de0b65fc2",
       "dirty": false
     },
-    "createdAt": "2026-10-18T07:56:23.315Z"
+    "createdAt": "2026-10-18T08:01:13.573Z"
   },
   "watchlistSource": "npx tsx scripts/find-whales.ts --blocks 40000 at head 20546432: the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (getLogsRange over Transfer logs). Our own list; edit it freely.",
   "range": {
     "from": "20506432",
     "to": "20546432",
-    "head": "20549268"
+    "head": "20549584"
   },
   "watched": [
     {
@@ -83,7 +83,7 @@
         "it adds <0.1% to its USDC balance"
       ],
       "balanceBefore": "32426746793453",
-      "balanceAfter": "32457746793453"
+      "balanceAfter": "13705999657969"
     },
     {
       "tx": "0x04cc4f4285787afdd367e8a34a48feb6a4e75b9c2e2d35409ccd31221a03d36f",
@@ -103,7 +103,7 @@
         "it adds 0.1% to its USDC balance"
       ],
       "balanceBefore": "32477724793453",
-      "balanceAfter": "13705999657969"
+      "balanceAfter": "32514999584139"
     },
     {
       "tx": "0x4c6cc8106d8bda409221beae3fa171a6572f1822c8595dca013ca2b87141eace",
@@ -332,7 +332,7 @@
         "sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)"
       ],
       "balanceBefore": "456178438245636135548639",
-      "balanceAfter": "728319261348569672524678"
+      "balanceAfter": "451324583270095140331269"
     },
     {
       "tx": "0x24ca2a125a9b165317931d5fede65400dd0a8f6082b9b6e257c0298b56d2952b",
