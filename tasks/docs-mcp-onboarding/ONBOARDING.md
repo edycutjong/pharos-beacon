@@ -6,7 +6,7 @@ transaction and a contract read) and say where the docs got me unstuck and where
 **Rules I followed.** Every answer I acted on came from the Developer Docs MCP (`https://docs.pharos.xyz/~gitbook/mcp`: `askQuestion`,
 `searchDocumentation`). No web search, no copies of the docs, no community help, and `sendFeedback` was not called. The one
 exception is that I (an AI agent) already knew what an EVM wallet, `cast` and an MCP config are; I did not use any Pharos-specific
-knowledge to choose an answer, with two exceptions: query #3 names PHRS and query #10 names WPROS from prior knowledge (the answers and the address came from the docs). The task statement's own terms (faucet, Chain MCP, SkillEngine) were used as given. Every call is a line in [`proof/transcript.jsonl`](proof/transcript.jsonl), rendered in
+knowledge to choose an answer, with two exceptions: query #3 names PHRS and "faucet" and query #10 names WPROS from prior knowledge (the answers and the address came from the docs). The terms Chain MCP and SkillEngine come from the task board's tool list. Every call is a line in [`proof/transcript.jsonl`](proof/transcript.jsonl), rendered in
 [`proof/transcript.md`](proof/transcript.md); each quote below (`>` lines) is copied from it and checked by a test
 (`test/docs-onboarding.test.ts`). `#N` is the call number in the transcript.
 
