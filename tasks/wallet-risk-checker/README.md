@@ -6,7 +6,7 @@ flags a wallet/contract's suspicious history before you transact with it.
 (`pharos` is mainnet, read through the hosted Chain MCP: keyless. `atlantic` is the testnet, read through the sponsor's Chain MCP server run locally: it needs the
 one-time `npm run setup:mcp`, no key). `-- gate --to 0x… --amount 0.0001 [--execute]` puts the check in front of a Policy Gatekeeper send (Atlantic, so also
 `setup:mcp`; the testnet key is needed only for `--execute`).
-**Uses:** Chain MCP ✅ (`get_block_number`, `get_code`, `get_transaction_count`, `get_balance`, `get_block`, `get_logs`; `send_raw_transaction` only for a gated send) ·
+**Uses:** Chain MCP ✅ (`get_block_number`, `get_code`, `get_transaction_count`, `get_balance`, `get_block`, `get_logs`; `send_raw_transaction` only for a gated send, which also uses `get_gas_price`, `estimate_gas` and `get_transaction_receipt`) ·
 SkillEngine: only the token registry (`src/lib/networks.ts`) · Docs MCP: not used.
 
 ## The six signals
@@ -32,7 +32,7 @@ the last `--lookback` blocks (30,000 by default), not for all time.
 
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | "Checks at least 4 signals" | 6 signals (table above): wallet-or-contract, age, freshly funded, flagged-address interaction, unusual approvals, activity | the six `[…]` lines in each sample below · `signals` in each check and gate proof |
+| 1 | "Checks at least 4 signals" | 6 signals (table above): wallet-or-contract, age, freshly funded, flagged-address interaction, unusual approvals, activity | the six signal lines in each check sample below (the gate proofs carry them in `signals`) · `signals` in each check and gate proof |
 | 2 | "Outputs a risk level (low, medium or high) with the specific reasons." | `RISK: LOW|MEDIUM|HIGH` plus a numbered list of reasons, each in plain words, naming the block, address or transaction it comes from where there is one | last lines of each sample · `report.verdict` and `report.reasons` in the proofs |
 | 3 | "Explains each flag in plain language." | Each signal has a `detail` sentence ("It gave 0x5Be1…0aa0 an unlimited allowance … lets it take the token's whole balance later"); no codes to look up | the indented lines under each signal |
 | 4 | "Demonstrated on at least 1 clean and 1 risky example." | **Clean:** a mainnet wallet, [`0x1F35…c85C`](https://www.pharosscan.xyz/address/0x1F3546a29EeC2102c8d52E21a45114124014c85C): first transaction 39 days earlier, 44,628 sent transactions, nothing flagged → LOW. **Risky:** a wallet **we created and staged** on Atlantic (below) → HIGH. | [`proof/clean-wallet.json`](proof/clean-wallet.json) · [`proof/risky-wallet.json`](proof/risky-wallet.json) |
@@ -141,7 +141,7 @@ audit log: 3 entries, hash chain intact (gate-audit.jsonl)
 ## Limits (honest)
 
 - The flagged list is ours and holds one made-up entry; real use needs real entries.
-- Token history only: native-coin transfers leave no log, and the lookback is a window, not all time.
+- Token history only: native-coin transfers leave no log, only the registry tokens (plus `extraTokens`) are scanned (5 on Atlantic, 4 on mainnet; a transfer of any other token is not seen), and the lookback is a window, not all time.
 - Age of a wallet is the time of its first *sent* transaction; a wallet that only ever received funds has no measurable age (signal 3 flags it instead).
 - A contract's source cannot be checked through the Chain MCP, so "verified code" is not one of the six signals; the report says to read the source.
 - "Unknown spender" means "not in `trustedSpenders` or the token registry", not "malicious".
