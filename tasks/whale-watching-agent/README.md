@@ -29,15 +29,15 @@ file, not code: edit it and re-run. The addresses are not a list from anyone els
 `--notify discord` posts the significant moves that are the largest multiple of their token's threshold (`--discord-max`, default 5; ranked by that multiple because the raw amounts of a 6- and an 18-decimal token are not comparable) to a Discord channel through the same webhook notifier
 as the [On-Chain Alert Bot](../on-chain-alert-bot/README.md) (`~/.config/discord/webhook-alerts`, read at run time, never committed). A
 sent-set (`--sent`) makes a re-run send nothing twice. Live: 3 messages, ids in the proof
-(`notify.delivered`: `1561287457109180488`, `1561287458828849172`, `1561287460376547469`), and the re-run
-[`proof/rerun-no-repeat.json`](proof/rerun-no-repeat.json) sent 0 and reports `3 already sent earlier`.
+(`notify.delivered`: `1561302866998591588`, `1561302870266216519`, `1561302872497590365`), and the re-run
+[`proof/rerun-no-repeat.json`](proof/rerun-no-repeat.json) sent 0 (`notify.alreadySent: 3`; the CLI prints `0 sent, 3 already sent earlier`).
 
 ## Proof (Pharos mainnet, chain 1672, blocks 20506432–20546432, pinned)
 
 | Run | Result | File |
 |---|---|---|
-| 7 watched addresses, USDC ≥ 25,000 and WPROS ≥ 2,000 | 4,650 transfers touch a watched address, 16 are significant (10 USDC, 6 WPROS), 3 sent to Discord | [`proof/usdc-wpros-40k-blocks.json`](proof/usdc-wpros-40k-blocks.json) |
-| Same range again with the same sent-set | 0 sent, 3 already sent earlier | [`proof/rerun-no-repeat.json`](proof/rerun-no-repeat.json) |
+| 7 watched addresses, USDC ≥ 25,000 and WPROS ≥ 2,000 | 4,650 transfers touch a watched address, 16 are significant (10 USDC, 6 WPROS), 3 sent to Discord (the 3 furthest above their thresholds) | [`proof/usdc-wpros-40k-blocks.json`](proof/usdc-wpros-40k-blocks.json) |
+| Same range again with the same sent-set | 0 sent, 3 already sent earlier (`notify.alreadySent`) | [`proof/rerun-no-repeat.json`](proof/rerun-no-repeat.json) |
 | Same range with `--compact` (the run recorded for the demo video; a different sent-set, so 3 more Discord messages) | the same 16 significant moves | [`proof/video-run.json`](proof/video-run.json) |
 
 The range is pinned (`--to-block 20546432`), so the same report comes back on any day; the explorer links open the real transactions.
@@ -47,7 +47,7 @@ All three proofs were produced by committed code (`dirty: false`).
 $ npm run whale-watching-agent -- --from-block 20506432 --to-block 20546432 --notify discord --discord-max 3 --sent /tmp/p102/whale-sent.json --proof usdc-wpros-40k-blocks
 whale watch on pharos (chain 1672) via https://mcp.pharos.xyz/mcp
 blocks 20506432–20546432 (40001 blocks, pinned) · 7 addresses · USDC ≥ 25000, WPROS ≥ 2000
-watchlist source: npx tsx scripts/find-whales.ts --blocks 40000 at head 20546432: the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (getLogsRange over Transfer logs). Our own list; edit it freely.
+watchlist source: scripts/find-whales.ts at head 20546432 ranked the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (output in find-whales-output.txt). watch-1 to watch-6 are the six top USDC movers; watch-7 is the third WPROS mover (the first two are already in the list). Our own list; edit it freely.
   watching 0xB9012614F6151D5569E48E21bABf5fF3F14F0459  watch-1 · wallet
   watching 0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f  watch-2 · contract
   watching 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647  watch-3 · contract
@@ -101,7 +101,7 @@ watch-7 0x1F35…c85C  USDC         660            0             0            0 
 watch-7 0x1F35…c85C  WPROS        660            0             0            0            0
 
 totals: USDC: 10 significant, 936,384.34 USDC moved · WPROS: 6 significant, 19,209.281 WPROS moved
-notify discord: 3 sent (message ids 1561287457109180488, 1561287458828849172, 1561287460376547469), 0 already sent earlier
+notify discord: 3 sent (message ids 1561302866998591588, 1561302870266216519, 1561302872497590365), 0 already sent earlier
 ```
 
 (`[…]` marks reports left out of this excerpt; the proof file has all 16.)
