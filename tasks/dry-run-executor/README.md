@@ -56,5 +56,5 @@ prediction vs receipt: gas 21000 → 21000 used (0.00%) · fee 0.000021 → 0.00
 
 - The "after" state is a prediction from the call itself: value moves and a decoded ERC-20 `transfer`. Other state a contract changes is not predicted.
 - Simulation sees the chain at one block; another transaction can change the outcome before yours lands.
-- The fee estimate uses base fee + priority fee at simulation time; Atlantic's fee is nearly flat, so the live run shows no error.
+- The fee estimate is `estimate_gas` × the gas price at simulation time. Atlantic's gas price is nearly flat, so the price adds no error; the **gas** does. A plain PHRS send is exact (21000 → 21000), but `estimate_gas` runs high on contract calls: −24.14% on a WPHRS `deposit()` and −21.39% on an ERC-20 `transfer` to a fresh address, repeated on three more fresh recipients ([`alone-cold-wphrs-1/2/3.json`](proof/alone-cold-wphrs-1.json): 66758 estimated, 52476 used each time). Read the predicted fee for a contract call as an upper bound.
 - Atlantic testnet only. 11 tests in `test/dryrun.test.ts`.
