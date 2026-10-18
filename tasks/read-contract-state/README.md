@@ -16,7 +16,7 @@ Pick another with `--contract 0x…` (any ERC-20) and label addresses with `--ho
 
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | Reads at least 3 different values from one contract via Chain MCP | 5 values from the one contract through `eth_call`: `name()`, `symbol()`, `decimals()`, `totalSupply()`, `balanceOf(holder)` (two holders), plus `owner()` and `paused()`; by default one holder is a real one, found with `get_logs` | [`proof/0xc879…1815.json`](proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) · [`index.ts`](index.ts) `readState` |
+| 1 | Reads at least 3 different values from one contract via Chain MCP | 5 values from the one contract through `eth_call`: `name()`, `symbol()`, `decimals()`, `totalSupply()`, `balanceOf(holder)` (two holders), plus `owner()` and `paused()`; by default one holder is a recipient of a large recent transfer that still holds a balance at the read block, found with `get_logs` (zero-balance pass-through recipients are skipped) | [`proof/0xc879…1815.json`](proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) · [`index.ts`](index.ts) `readState` |
 | 2 | Shows the contract address and the block number the data was read at | Printed in the first two lines; every read is pinned to that block, so the numbers describe one moment | [sample output below](#sample-output) · `proof` field `state.block` |
 | 3 | Formats raw values for humans: token decimals applied, addresses labelled | `totalSupply` 41020917997023 → `41,020,917.997023 USDC` using the contract's own `decimals()` (the raw value stays beside it); every address gets a label: a token from the registry, the contract itself, its role ("owner of this contract", "recipient of the largest USDC transfer in blocks …"), your `=label`, or `wallet (no code)` / `contract (has code)` from `get_code` | [`index.ts`](index.ts) `labelsFor`, `formatState` · `test/read-contract-state.test.ts` |
 | 4 | Includes a short README: which contract, how to run it, sample output | This file | — |
@@ -85,6 +85,6 @@ the command). Each proof was produced from a clean, committed tree: `meta.git.co
 
 ## Tests
 
-`npm test` runs 9 tests for this task (`test/read-contract-state.test.ts`) against a fake Chain MCP: values decoded with decimals applied,
+`npm test` runs 10 tests for this task (`test/read-contract-state.test.ts`) against a fake Chain MCP: values decoded with decimals applied,
 all reads pinned to one block, labelling rules, a contract without `owner()`/`paused()`, a transport error not mistaken for "no owner",
-a non-token address (also through the CLI, so the friendly error is what you see), the default-holder search over `get_logs`, and the report text.
+a non-token address (also through the CLI, so the friendly error is what you see), the default-holder search over `get_logs` (including skipping zero-balance recipients), and the report text.

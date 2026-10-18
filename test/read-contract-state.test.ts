@@ -84,11 +84,13 @@ describe("read-contract-state", () => {
     const seen: any[] = [];
     const call = (async (tool: string, args: any) => {
       seen.push({ tool, args });
+      if (tool === "eth_call") return { result: encodeFunctionResult({ abi: erc20Abi, functionName: "balanceOf", result: 1n }) };
       return [log(WPROS, 5n, 0), log(OWNER, 900n, 1), log(WPROS, 7n, 2)];
     }) as unknown as Call;
     const r = await largestTransferRecipient(call, getAddress(USDC), 5000n, "USDC");
     expect(r).toEqual({ address: getAddress(OWNER), label: "recipient of the largest USDC transfer in blocks 4001–5000" });
-    expect(seen).toEqual([{ tool: "get_logs", args: { address: getAddress(USDC), topics: [T], fromBlock: "4001", toBlock: "5000" } }]);
+    expect(seen.map((x) => x.tool)).toEqual(["get_logs", "eth_call"]);
+    expect(seen[0]).toEqual({ tool: "get_logs", args: { address: getAddress(USDC), topics: [T], fromBlock: "4001", toBlock: "5000" } });
     expect(await largestTransferRecipient((async () => []) as unknown as Call, getAddress(USDC), 10n, "USDC")).toBeNull();
   });
   it("CLI on a non-token address: the friendly error, not a raw decode error", async () => {
@@ -107,7 +109,27 @@ describe("read-contract-state", () => {
       { topics: [T, pad(OWNER), pad(USDC)], data: amt(9_000n), blockNumber: "0x10", logIndex: "0x1" },
       { topics: [T, pad(OWNER), pad(WPROS)], data: amt(5n), blockNumber: "0x10", logIndex: "0x2" },
     ];
-    const r = await largestTransferRecipient((async () => logs) as unknown as Call, getAddress(USDC), 5000n, "USDC");
+    const one = encodeFunctionResult({ abi: erc20Abi, functionName: "balanceOf", result: 1n });
+    const r = await largestTransferRecipient((async (tool: string) => (tool === "eth_call" ? { result: one } : logs)) as unknown as Call, getAddress(USDC), 5000n, "USDC");
     expect(r?.address).toBe(getAddress(WPROS));
+  });
+  it("skips pass-through recipients with a zero balance and says which rank it picked (F2)", async () => {
+    const T = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+    const pad = (a: string) => `0x${a.slice(2).toLowerCase().padStart(64, "0")}`;
+    const amt = (n: bigint) => `0x${n.toString(16).padStart(64, "0")}`;
+    const logs = [
+      { topics: [T, pad(WPROS), pad(OWNER)], data: amt(900n), blockNumber: "0x10", logIndex: "0x0" },
+      { topics: [T, pad(OWNER), pad(WPROS)], data: amt(100n), blockNumber: "0x10", logIndex: "0x1" },
+    ];
+    const bal = (addr: string) => (addr.toLowerCase() === OWNER.toLowerCase() ? 0n : 5n);
+    const call = (async (tool: string, args: any) =>
+      tool === "eth_call"
+        ? { result: encodeFunctionResult({ abi: erc20Abi, functionName: "balanceOf", result: bal(`0x${args.transaction.data.slice(-40)}`) }) }
+        : logs) as unknown as Call;
+    const r = await largestTransferRecipient(call, getAddress(USDC), 5000n, "USDC");
+    expect(r?.address).toBe(getAddress(WPROS));
+    expect(r?.label).toMatch(/the #2 largest/);
+    const none = (async (tool: string) => (tool === "eth_call" ? { result: encodeFunctionResult({ abi: erc20Abi, functionName: "balanceOf", result: 0n }) } : logs)) as unknown as Call;
+    expect(await largestTransferRecipient(none, getAddress(USDC), 5000n, "USDC")).toBeNull();
   });
 });

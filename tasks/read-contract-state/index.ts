@@ -105,26 +105,40 @@ export async function readState(call: Call, contract: Hex, block: bigint, holder
 const TRANSFER = toEventSelector("Transfer(address,address,uint256)");
 const ZERO = "0x0000000000000000000000000000000000000000";
 
+/** How many of the largest recipients are tried before giving up on finding one that still holds a balance. */
+const MAX_HOLDER_TRIES = 4;
+
 /**
- * A holder worth showing by default: the recipient of the single largest Transfer in the last 1000 blocks up to `block`,
- * skipping burns (to 0x0) and transfers to the token contract itself, which hold nothing worth showing.
- * (one Chain MCP get_logs call). Null when the window has no transfers.
+ * A holder worth showing by default: the recipient of the largest Transfer in the last 1000 blocks up to `block`
+ * (one get_logs call), skipping burns (to 0x0) and transfers to the token contract itself, which hold nothing worth
+ * showing. Recipients are taken in descending order of their largest transfer and the first with `balanceOf > 0`
+ * at `block` wins (at most MAX_HOLDER_TRIES eth_calls): a pass-through address that already moved its tokens on is
+ * not a holder. The label says which rank was picked. Null when no candidate holds anything.
  */
 export async function largestTransferRecipient(call: Call, contract: Hex, block: bigint, symbol: string): Promise<{ address: Hex; label: string } | null> {
   const from = block >= BigInt(MAX_LOG_WINDOW - 1) ? block - BigInt(MAX_LOG_WINDOW - 1) : 0n;
   const logs = await getLogsRange(call, { address: contract, topics: [TRANSFER], fromBlock: from, toBlock: block });
-  let best: { to: Hex; value: bigint } | null = null;
+  const largest = new Map<string, { to: Hex; value: bigint }>();
   for (const log of logs) {
     try {
       const { args } = decodeEventLog({ abi: erc20Abi, eventName: "Transfer", topics: log.topics as [Hex, ...Hex[]], data: log.data as Hex });
       const to = args.to.toLowerCase();
       if (to === ZERO || to === contract.toLowerCase()) continue;
-      if (!best || args.value > best.value) best = { to: args.to, value: args.value };
+      const seen = largest.get(to);
+      if (!seen || args.value > seen.value) largest.set(to, { to: args.to, value: args.value });
     } catch {
       // not a standard Transfer (e.g. a non-indexed variant): skip it
     }
   }
-  return best ? { address: getAddress(best.to), label: `recipient of the largest ${symbol} transfer in blocks ${from}–${block}` } : null;
+  const ranked = [...largest.values()].sort((x, y) => (x.value === y.value ? 0 : x.value > y.value ? -1 : 1)).slice(0, MAX_HOLDER_TRIES);
+  for (const [i, c] of ranked.entries()) {
+    const data = encodeFunctionData({ abi: erc20Abi, functionName: "balanceOf", args: [c.to] });
+    const { result } = await call("eth_call", { transaction: { to: contract, data }, block: block.toString() });
+    if (typeof result !== "string" || result === "0x" || decodeFunctionResult({ abi: erc20Abi, functionName: "balanceOf", data: result as Hex }) === 0n) continue;
+    const which = i === 0 ? "the largest" : `the #${i + 1} largest (the larger ones hold nothing at the read block)`;
+    return { address: getAddress(c.to), label: `recipient of ${which} ${symbol} transfer in blocks ${from}–${block}` };
+  }
+  return null;
 }
 
 /** The token's symbol at `block`, with the same "not a token" error as `readState` when the call returns nothing. */

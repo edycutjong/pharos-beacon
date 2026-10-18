@@ -63,8 +63,9 @@ automatically) or exported in the session. Never type a key into a command or pu
 - Never pass `--execute` without the user confirming that exact policy, recipient and amount.
 - Sending is Atlantic testnet only; the policy's `network` must be `"atlantic"`.
 - `--at <ISO time>` evaluates against a simulated clock and never sends: use it to show how a policy behaves at another hour.
-- If the Chain MCP cannot be reached while executing, the run ends with `error: …` and exit 1. The spend is already counted in
-  the window (it errs on the side of having spent); check the explorer link in the message before retrying.
+- If the run fails while executing, it ends with `error: …` and exit 1. A failure to reach the Chain MCP before signing records no
+  spend and prints no link. A failure after signing has already counted the spend in the window (it errs on the side of having
+  spent): then check the explorer link in the message before retrying.
 
 ## Example
 
