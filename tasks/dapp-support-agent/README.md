@@ -41,7 +41,7 @@ it says the contract gave no reason. No language model is involved: the same has
 
 The failed transactions were sent by `npm run make-failed-txs -- --execute --proof` ([`scripts/make-failed-txs.ts`](../../scripts/make-failed-txs.ts)):
 each is signed with an explicit gas limit and mined with status 0x0. Their receipts are in [`proof/failed-txs.json`](proof/failed-txs.json).
-(Earlier attempts of the same script left four more failed or successful test transactions on the chain; they are not used here.)
+(Two earlier attempts of the same script, before the out-of-gas limit was lowered to fit, left six other test transactions on the chain: four failed and two that succeeded. They are not used here.)
 
 | # | Type | Transaction | What the agent found | Files |
 |---|---|---|---|---|

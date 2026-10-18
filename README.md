@@ -18,13 +18,14 @@ ship as agent skills also have a folder under `skills/`.
 | [Policy Gatekeeper](tasks/policy-gatekeeper/) | Medium | Checks a request against a spend limit (per tx and per window), a recipient allowlist and a UTC time window, names the rule that decided, never sends a denied request, and keeps a hash-chained audit log. Also a [SkillEngine-format skill](skills/policy-gatekeeper/SKILL.md) | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0x801160985556a2888c927db0109469d17f3a80b9b395baa5c30e49a060e969cd) · [proof/](tasks/policy-gatekeeper/proof/) · [audit log](tasks/policy-gatekeeper/audit/audit.jsonl) |
 | [Read Contract State](tasks/read-contract-state/) | Easy | Reads name, symbol, decimals, totalSupply, balances, owner and paused from Pharos mainnet USDC through the Chain MCP, pinned to one block, decimals applied, addresses labelled | [proof JSON](tasks/read-contract-state/proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) (read-only, no tx) |
 | [Doc-Search CLI](tasks/doc-search-cli/) | Easy | `pharos-docs "<question>"`: a concise answer with source links from the Developer Docs MCP; says "not found" with the closest pages instead of inventing an answer | [proof/](tasks/doc-search-cli/proof/) (read-only, no tx) |
+| [dApp Support Agent](tasks/dapp-support-agent/) | Easy | `npm run dapp-support-agent -- 0x<txHash>`: replays a failed transaction one block earlier and explains the cause (balance, allowance, out of gas, revert reason) in plain words with a fix | [proof/](tasks/dapp-support-agent/proof/) (4 real failed Atlantic txs) |
 | [Docs MCP Onboarding](tasks/docs-mcp-onboarding/) | Easy | An honest step-by-step log of onboarding with only the Docs MCP: 9 steps, 5 gaps with exact queries and suggested fixes, raw transcript | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0x01cd6b78d83947c46e45d2e6c283ed68ea9dc6a9493b422c30163d42f704fe88) · [transcript](tasks/docs-mcp-onboarding/proof/transcript.md) |
 
 ## Quick start
 
 ```bash
 npm ci
-npm test            # 346 tests: guardian, gatekeeper, read-contract-state, watcher, doc-search CLI, onboarding log, Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 367 tests: guardian, gatekeeper, read-contract-state, watcher, doc-search CLI, onboarding log, dApp support agent, Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
