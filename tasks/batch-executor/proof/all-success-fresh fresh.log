@@ -1,0 +1,2 @@
+$ npm run batch-executor -- --plan all-success-fresh fresh --approve --execute --proof all-success-fresh fresh
+all-success-fresh fresh: ENOENT: no such file or directory, open 'all-success-fresh fresh'
