@@ -16,7 +16,7 @@ import { testnetSigner } from "../src/lib/signer.js";
 import { proofMeta, writeProof } from "../src/lib/proof.js";
 
 const WPHRS = TOKENS.atlantic.WPHRS.address as Hex;
-// Both are made-up addresses nobody controls. The first is on tasks/wallet-risk-checker/risk-config.json's flagged list; the second is not.
+// Both are made-up addresses with no known owner. The first is on tasks/wallet-risk-checker/risk-config.json's flagged list; the second is not.
 export const FLAGGED = getAddress("0xf1a9000000000000000000000000000000000001");
 export const UNKNOWN_SPENDER = getAddress("0x5be1100000000000000000000000000000000aa0");
 const KEY_FILE = join(homedir(), ".config/pharos/risk-demo.env");

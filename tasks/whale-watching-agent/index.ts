@@ -112,12 +112,13 @@ export async function main(
   console.log(values.compact ? `\n${totals.map((t) => `totals ${t}`).join("\n")}` : `\ntotals: ${totals.join(" · ")}`);
 
   const delivered: { key: string; messageId?: string; at: string }[] = [];
+  let skipped = 0;
   if (kind) {
     const notifier = (makeNotifier ?? ((k) => (k === "console" ? consoleNotifier() : discordNotifier(loadWebhook()))))(kind);
     const sentFile = values.sent ?? join(tmpdir(), "beacon-whale-watching-agent", "sent.json");
     const sent = readState<Sent>(sentFile, {}, checkSent);
-    const top = [...reports].sort((a, b) => (a.move.amountRaw === b.move.amountRaw ? 0 : a.move.amountRaw < b.move.amountRaw ? 1 : -1)).slice(0, Number(values["discord-max"]));
-    let skipped = 0;
+    // Largest first by multiple of the token's own threshold: raw base units are not comparable across 6- and 18-decimal tokens.
+    const top = [...reports].sort((a, b) => b.multiple - a.multiple || (a.move.amountRaw < b.move.amountRaw ? 1 : -1)).slice(0, Number(values["discord-max"]));
     for (const r of top) {
       const key = `${r.move.tx}:${r.move.logIndex}`;
       if (sent[key]) {
@@ -147,7 +148,7 @@ export async function main(
         balanceBefore: r.beforeRaw.toString(), balanceAfter: r.afterRaw.toString(),
       })),
       summary: rows.map((r) => ({ label: r.label, address: r.address, token: r.token, transfers: r.transfers, significant: r.significant, inRaw: r.inRaw.toString(), outRaw: r.outRaw.toString(), largestRaw: r.largestRaw.toString() })),
-      ...(kind ? { notify: { kind, delivered } } : {}),
+      ...(kind ? { notify: { kind, delivered, alreadySent: skipped } } : {}),
     };
     console.log(`proof: ${writeProof(new URL(`proof/${values.proof}.json`, import.meta.url), body, proofMeta(TASK, mcp))}`);
   }

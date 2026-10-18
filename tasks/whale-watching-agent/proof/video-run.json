@@ -10,16 +10,16 @@
     },
     "command": "tasks/whale-watching-agent/index.ts --from-block 20506432 --to-block 20546432 --compact --notify discord --discord-max 3 --sent /tmp/p102/whale-sent-video.json --proof video-run",
     "git": {
-      "commit": "7d3068e7a084",
+      "commit": "88f4de067a71",
       "dirty": false
     },
-    "createdAt": "2026-10-18T08:13:19.174Z"
+    "createdAt": "2026-10-18T09:04:46.631Z"
   },
-  "watchlistSource": "npx tsx scripts/find-whales.ts --blocks 40000 at head 20546432: the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (getLogsRange over Transfer logs). Our own list; edit it freely.",
+  "watchlistSource": "scripts/find-whales.ts at head 20546432 ranked the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (output in find-whales-output.txt). watch-1 to watch-6 are the six top USDC movers; watch-7 is the third WPROS mover (the first two are already in the list). Our own list; edit it freely.",
   "range": {
     "from": "20506432",
     "to": "20546432",
-    "head": "20550438"
+    "head": "20553899"
   },
   "watched": [
     {
@@ -538,20 +538,21 @@
     "kind": "discord",
     "delivered": [
       {
+        "key": "0x9383d54494558d4019beea5c39d0044d570dd2e2659d9b1b5b710899967b0ab8:0",
+        "messageId": "1561304017395654737",
+        "at": "2026-10-18T09:04:45.373000+00:00"
+      },
+      {
+        "key": "0x5779ac323897b98eb911e31042164de26382f0c02f019e1bdc97f91527cb126e:1",
+        "messageId": "1561304019538812929",
+        "at": "2026-10-18T09:04:45.884000+00:00"
+      },
+      {
         "key": "0xd323d8e7efa5648e82731b0740b11584bfe856ae0eb079de4179310cb3598abd:3",
-        "messageId": "1561291067091976334",
-        "at": "2026-10-18T08:13:17.780000+00:00"
-      },
-      {
-        "key": "0xd7cc5fd303f0fdeaeb6ec37df742137a8ddd6815133d50efcab791599c84bdcb:0",
-        "messageId": "1561291068769574942",
-        "at": "2026-10-18T08:13:18.180000+00:00"
-      },
-      {
-        "key": "0xf241b4524dd571d037736a2aac7d61519af65f7a14c8b6c4bbdea031c288aecc:4",
-        "messageId": "1561291070795415552",
-        "at": "2026-10-18T08:13:18.663000+00:00"
+        "messageId": "1561304021816578109",
+        "at": "2026-10-18T09:04:46.427000+00:00"
       }
-    ]
+    ],
+    "alreadySent": 0
   }
 }

@@ -3,8 +3,9 @@
 **Task:** [Wallet Risk Checker](https://pharos-agent-arena.vercel.app/tasks/wallet-risk-checker) (Compliance / Security · Medium · 100 pts):
 flags a wallet/contract's suspicious history before you transact with it.
 **Run:** `npm run wallet-risk-checker -- check 0x… [--network pharos|atlantic] [--block N] [--lookback 30000] [--config f] [--proof label]`
-(keyless; `pharos` is mainnet, `atlantic` is the testnet read through the hosted Chain MCP). `-- gate --to 0x… --amount 0.0001 [--execute]` puts the
-check in front of a Policy Gatekeeper send (needs the one-time `npm run setup:mcp` and the testnet key only for `--execute`).
+(`pharos` is mainnet, read through the hosted Chain MCP: keyless. `atlantic` is the testnet, read through the sponsor's Chain MCP server run locally: it needs the
+one-time `npm run setup:mcp`, no key). `-- gate --to 0x… --amount 0.0001 [--execute]` puts the check in front of a Policy Gatekeeper send (Atlantic, so also
+`setup:mcp`; the testnet key is needed only for `--execute`).
 **Uses:** Chain MCP ✅ (`get_block_number`, `get_code`, `get_transaction_count`, `get_balance`, `get_block`, `get_logs`; `send_raw_transaction` only for a gated send) ·
 SkillEngine: only the token registry (`src/lib/networks.ts`) · Docs MCP: not used.
 
@@ -16,7 +17,7 @@ SkillEngine: only the token registry (`src/lib/networks.ts`) · Docs MCP: not us
 | age | first block with code (contract) or with a sent transaction (wallet), found by a binary search of archive reads (`get_code` / `get_transaction_count` at a block) and `get_block` timestamps | medium if younger than `youngDays` (7), or if the address has no history at all |
 | nonce and balance | `get_transaction_count`, `get_balance` | medium if it holds funds but has never sent anything (freshly funded) |
 | flagged addresses | Transfer logs of the registry tokens (+ `extraTokens`) with the address as sender or recipient, compared with [`risk-config.json`](risk-config.json) `flagged` | **high** |
-| approvals | Approval logs by the address; the latest allowance per token and spender | medium for an open approval to a spender not in `trustedSpenders` (stated as "unlimited" at 2^255 or more); **high** if the spender is flagged |
+| approvals | Approval logs by the address; the latest allowance per token and spender | medium for an open approval to a spender that is not in `trustedSpenders` or the token registry (stated as "unlimited" at 2^255 or more); **high** if the spender is flagged |
 | activity | the same logs, counted | info |
 
 **Verdict:** HIGH if any signal is high or three are medium, MEDIUM if one or two are medium, otherwise LOW. Every medium and high signal is printed again
@@ -31,8 +32,8 @@ the last `--lookback` blocks (30,000 by default), not for all time.
 
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | "Checks at least 4 signals" | 6 signals (table above): wallet-or-contract, age, freshly funded, flagged-address interaction, unusual approvals, activity | the six `[…]` lines in each sample below · `signals` in every proof |
-| 2 | "Outputs a risk level (low, medium or high) with the specific reasons." | `RISK: LOW|MEDIUM|HIGH` plus a numbered list of reasons, each with the block, the address and the transaction it comes from | last lines of each sample · `report.verdict` and `report.reasons` in the proofs |
+| 1 | "Checks at least 4 signals" | 6 signals (table above): wallet-or-contract, age, freshly funded, flagged-address interaction, unusual approvals, activity | the six `[…]` lines in each sample below · `signals` in each check and gate proof |
+| 2 | "Outputs a risk level (low, medium or high) with the specific reasons." | `RISK: LOW|MEDIUM|HIGH` plus a numbered list of reasons, each in plain words, naming the block, address or transaction it comes from where there is one | last lines of each sample · `report.verdict` and `report.reasons` in the proofs |
 | 3 | "Explains each flag in plain language." | Each signal has a `detail` sentence ("It gave 0x5Be1…0aa0 an unlimited allowance … lets it take the token's whole balance later"); no codes to look up | the indented lines under each signal |
 | 4 | "Demonstrated on at least 1 clean and 1 risky example." | **Clean:** a mainnet wallet, [`0x1F35…c85C`](https://www.pharosscan.xyz/address/0x1F3546a29EeC2102c8d52E21a45114124014c85C): first transaction 39 days earlier, 44,628 sent transactions, nothing flagged → LOW. **Risky:** a wallet **we created and staged** on Atlantic (below) → HIGH. | [`proof/clean-wallet.json`](proof/clean-wallet.json) · [`proof/risky-wallet.json`](proof/risky-wallet.json) |
 
@@ -45,7 +46,7 @@ the last `--lookback` blocks (30,000 by default), not for all time.
 |---|---|
 | fund the new wallet with 0.01 PHRS | [`0xc3f97bc2…b2bf`](https://atlantic.pharosscan.xyz/tx/0xc3f97bc275eabbd9557a67462fcb7958233db8205b6eaf1e3a7b43360281b2bf) |
 | wrap 0.0005 PHRS → WPHRS | [`0x5ede102a…24fa`](https://atlantic.pharosscan.xyz/tx/0x5ede102a0eadc174a0649e6ea8538e1ac442713f3261ec162d9e7b73276524fa) |
-| send 0.0001 WPHRS to `0xf1a9…0001`, an address nobody controls that **we put on our own flagged list** | [`0x43c4a2e8…b4da`](https://atlantic.pharosscan.xyz/tx/0x43c4a2e8aef5d32272cf8911551da1ac05fcb15a0cee84be72afa74df4f3b4da) |
+| send 0.0001 WPHRS to `0xf1a9…0001`, a made-up address with no known owner that **we put on our own flagged list** | [`0x43c4a2e8…b4da`](https://atlantic.pharosscan.xyz/tx/0x43c4a2e8aef5d32272cf8911551da1ac05fcb15a0cee84be72afa74df4f3b4da) |
 | approve an unlimited WPHRS allowance to `0x5Be1…0aa0`, a made-up address that is not on our trusted list | [`0x935bcbb6…8527`](https://atlantic.pharosscan.xyz/tx/0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527) |
 
 Nothing here is a real attacker: it shows that the signals fire on the pattern. The setup record is [`proof/risky-wallet-setup.json`](proof/risky-wallet-setup.json).
@@ -64,8 +65,9 @@ Live: the staged risky wallet was refused ([`proof/gate-denied.json`](proof/gate
 
 A check reads the chain as of its head, and the token history only reaches back `--lookback` blocks, so the staged wallet's verdict would drift as the
 chain moves on. Pin it: `npm run wallet-risk-checker -- check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --block 31566858` prints the
-same six signals as [`proof/risky-wallet.json`](proof/risky-wallet.json) (we compared every signal sentence), and
-`-- check 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548019` does the same for the clean wallet.
+same six signals as [`proof/risky-wallet.json`](proof/risky-wallet.json) (every signal sentence of the proof appears in the saved re-run
+[`proof/reproduce-risky-wallet.txt`](proof/reproduce-risky-wallet.txt)), and `-- check 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548019` does the same for the
+clean wallet ([`proof/reproduce-clean-wallet.txt`](proof/reproduce-clean-wallet.txt)).
 
 ## Sample output (from the proof runs)
 
@@ -125,6 +127,7 @@ Gate, allowed and sent ([`proof/gate-allowed.json`](proof/gate-allowed.json)):
 
 ```text
 $ npm run wallet-risk-checker -- gate --to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --amount 0.0001 --execute --proof gate-allowed
+[…]
 GATE: recipient risk is LOW, below HIGH: passing the request to the Policy Gatekeeper (risk-gate-demo).
 #1 gate 0x8D34…D91B: 0.0001 PHRS → 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
   PASS time_window: 07:43 UTC is inside 00:00–23:59 UTC

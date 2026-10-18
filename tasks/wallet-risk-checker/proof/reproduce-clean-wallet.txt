@@ -1,0 +1,14 @@
+risk check of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos at block 20548019
+  [info  ] wallet or contract (get_code)
+           It is a plain wallet (no code).
+  [ok    ] wallet age (first block with a sent transaction)
+           It first sent a transaction in block 17159978, 39 days before block 20548019. It has been around a while.
+  [ok    ] nonce and balance (freshly funded?)
+           It has sent 44628 transactions (nonce 44628) and holds 52893234045000000000 wei, so it has been used.
+  [ok    ] interaction with flagged addresses
+           None of its 1 token counterpart in blocks 20518019–20548019 is on our flagged list (1 address). Native-coin transfers leave no log and are not covered.
+  [ok    ] approvals to unknown spenders
+           0 open token approvals in blocks 20518019–20548019, none to a spender we do not recognise.
+  [info  ] token activity in the lookback range
+           1152 token transfers with 1 counterpart in blocks 20518019–20548019 (30000 blocks).
+RISK: LOW — no red flags

@@ -195,6 +195,31 @@ describe("CLI", () => {
     expect(a.out).not.toContain("watching 0x");
     expect(a.out.split("\n").filter((l) => l.length > 55 && !l.startsWith("blocks") && !l.startsWith("whale watch"))).toEqual([]);
   });
+  it("ranks Discord alerts by the multiple of each token's threshold, not by raw base units", async () => {
+    // a 3,000 USDC move (6 decimals) is 3x its 1,000 threshold; a second token with 18 decimals and a 1.1x move has a far larger raw number
+    const WIDE = "0x00000000000000000000000000000000000000d1" as Hex;
+    const base = chain([log(1500, 0, 1, 3000n * U, OUTSIDER, WATCH[0]!)]);
+    const call = ((tool: string, args: any) => {
+      const t = args?.transaction?.data as string | undefined;
+      if (tool === "get_logs" && String(args.address).toLowerCase() === WIDE) {
+        const l = log(1600, 0, 2, 11n * 10n ** 17n, OUTSIDER, WATCH[1]!);
+        return Promise.resolve([{ ...l, address: WIDE }].filter((x) => x.topics.length === 3 && ([] as any[]).concat(args.topics[2] ?? args.topics[1]).length > 0 && (args.topics[2] ? x.topics[2] === args.topics[2][1] || args.topics[2].includes(x.topics[2]) : false)));
+      }
+      if (t && args.transaction.to.toLowerCase() === WIDE) {
+        if (t.startsWith("0x313ce567")) return Promise.resolve({ result: pad(hex(18), { size: 32 }) });
+        if (t.startsWith("0x95d89b41")) return Promise.resolve({ result: encodeAbiParameters([{ type: "string" }], ["WIDE"]) });
+        if (t.startsWith("0x70a08231")) return Promise.resolve({ result: pad(hex(5n * 10n ** 18n), { size: 32 }) });
+      }
+      return (base as any)(tool, args);
+    }) as any;
+    const file2 = join(dir, "wl2.json");
+    writeFileSync(file2, JSON.stringify(wl({ tokens: [{ address: USDC, threshold: "1000" }, { address: WIDE, threshold: "1" }] })));
+    const sent: string[] = [];
+    const notifier = { name: "discord", send: async (t: string) => (sent.push(t), { id: String(sent.length), timestamp: "t", content: t }) };
+    await run(["--watchlist", file2, "--from-block", "1000", "--notify", "discord", "--discord-max", "1", "--sent", join(dir, "sent-rank.json")], call, () => notifier);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).toContain("3,000 USDC"); // 3x beats 1.1x even though 1.1e18 > 3e9
+  });
   it("sends significant moves to the notifier once, largest first, capped, and not again on a rerun", async () => {
     const c = chain([log(1500, 0, 1, 4000n * U, OUTSIDER, WATCH[0]!), log(1600, 0, 2, 9000n * U, OUTSIDER, WATCH[1]!), log(1700, 0, 3, 2000n * U, OUTSIDER, WATCH[2]!)]);
     const sent: string[] = [];
