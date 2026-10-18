@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "task": "gas-fee-optimizer",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/gas-fee-optimizer/index.ts send --to 0x7B145C7C50a201fAe79d877c0ED6EB7498FeD18c --value 0.0001 --deadline 60 --target-gwei 1.5 --interval 3 --execute --proof early",
+    "git": {
+      "commit": "08d3db9c110b",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T06:19:12.068Z"
+  },
+  "request": {
+    "to": "0x7B145C7C50a201fAe79d877c0ED6EB7498FeD18c",
+    "valueWei": "100000000000000",
+    "deadlineSeconds": 60,
+    "target": {
+      "kind": "price",
+      "wei": "1500000000"
+    }
+  },
+  "decision": {
+    "reason": "gas at or below target",
+    "requestPriceWei": "1000000000",
+    "decisionPriceWei": "1000000000",
+    "targetWei": "1500000000",
+    "samplesTaken": 1,
+    "sampleErrors": 0,
+    "heldMs": 106
+  },
+  "history": [
+    {
+      "at": "2026-10-18T06:19:12.163Z",
+      "block": "31564633",
+      "baseFeeWei": "1000000000",
+      "priorityWei": "0",
+      "priceWei": "1000000000"
+    }
+  ],
+  "result": {
+    "sent": true,
+    "tx": "0xae3e7d6675fa84659c1b581d2593a3c39a1d63ef78d2a57e8e632366bf2000cb",
+    "status": "success",
+    "block": "31564634",
+    "gasUsed": "21000",
+    "effectiveGasPriceWei": "1000000000",
+    "paid": {
+      "paidWei": "21000000000000",
+      "atRequestPriceWei": "21000000000000",
+      "savedWei": "0",
+      "savedPct": "0.00"
+    }
+  }
+}
