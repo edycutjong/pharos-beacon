@@ -15,6 +15,8 @@
     "event-log-monitor": "tsx tasks/event-log-monitor/index.ts",
     "on-chain-alert-bot": "tsx tasks/on-chain-alert-bot/index.ts",
     "emit-events": "tsx scripts/emit-events.ts",
+    "make-failed-txs": "tsx scripts/make-failed-txs.ts",
+    "dapp-support-agent": "tsx tasks/dapp-support-agent/index.ts",
     "doc-search-cli": "tsx tasks/doc-search-cli/index.ts",
     "docs-onboarding": "tsx tasks/docs-mcp-onboarding/ask.ts",
     "docs-onboarding:first-read": "tsx tasks/docs-mcp-onboarding/first-read.ts",
