@@ -67,7 +67,6 @@ Mainnet (chain 1672) is read-only here.
 | `src/gas/` | Gas Fee Optimizer: price samples, percentile target, the hold-until-cheap loop, paid-vs-request report |
 | `src/watch/` | the shared log poller (cursor, handled-set, decoding) and the Discord notifier used by the Event/Log Monitor, the Alert Bot, the Whale-Watching Agent and the Trend Watcher |
 | `src/whale/` · `src/risk/` · `src/trend/` · `src/recurring/` · `src/batch/` | the logic of the Whale-Watching Agent, Wallet Risk Checker, Trend Watcher, Recurring Payment Agent and Batch Executor |
-| `src/watch/` | the shared log poller (cursor, handled-set, decoding) and the Discord notifier used by the Event/Log Monitor, the Alert Bot |
 | `skills/<name>/` | agent skills in SkillEngine format (`SKILL.md` + `references/`), installable with `npx skills add` |
 | `tasks/<slug>/` | one Arena task each: entry point + README + proof (start from `tasks/_template/`) |
 | `test/` | vitest tests; a task's own tests can also live in `tasks/<slug>/*.test.ts` |
