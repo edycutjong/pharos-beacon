@@ -226,3 +226,24 @@ describe("history", () => {
     expect(JSON.parse(readFileSync(file, "utf8")).periods).toHaveLength(2);
   });
 });
+
+describe("compact output", () => {
+  it("stays under 62 columns, with and without a failure", async () => {
+    const { compactTable, wrapLine } = await import("../src/recurring/agent.js");
+    const f = fake(), file = tmp(), p = plan();
+    await runDue(opts(p, file, f, "2026-11-01T09:00:00Z"));
+    f.native = 0n;
+    await runDue(opts(p, file, f, "2026-11-08T09:00:00Z"));
+    const t = compactTable(p, loadLedger(file, p), D("2026-11-08T10:00:00Z"));
+    expect(t.split("\n").every((l) => l.length < 62)).toBe(true);
+    expect(t).toMatch(/2 {2}2026-11-08 {2}failed {2}\(no tx sent\)/);
+    expect(t.split("\n").at(-1)).toBe("next: #3 on 2026-11-15 09:00Z");
+    const long = "period 1 (due 2026-11-01): failed — insufficient PHRS balance: has 14.931995, needs 1000000; nothing was sent";
+    expect(wrapLine(long).every((l) => l.length <= 60)).toBe(true);
+    expect(wrapLine(long).join(" ").replace(/\s+/g, " ")).toBe(long);
+  });
+  it("reasons carry at most 6 decimals", async () => {
+    const f = fake(parseEther("0.123456789123")), [ev] = await runDue(opts(plan({ amount: "9" }), tmp(), f, "2026-11-01T09:00:00Z"));
+    expect(ev!.detail).toBe("insufficient PHRS balance: has 0.123456, needs 9; nothing was sent");
+  });
+});

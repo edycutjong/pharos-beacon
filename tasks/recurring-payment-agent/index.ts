@@ -14,7 +14,7 @@ import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { testnetSigner } from "../../src/lib/signer.js";
 import { withLock } from "../../src/lib/state.js";
 import { consoleNotifier, discordNotifier, loadWebhook } from "../../src/watch/discord.js";
-import { historyRows, historyTable, loadLedger, parsePlan, runDue, type Port } from "../../src/recurring/agent.js";
+import { compactTable, historyRows, historyTable, loadLedger, parsePlan, runDue, wrapLine, type Port } from "../../src/recurring/agent.js";
 
 const TASK = "recurring-payment-agent";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
@@ -22,10 +22,10 @@ const HERE = fileURLToPath(new URL(".", import.meta.url));
 export async function main({ onExit }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- status|run --plan plans/<file>.json [--now <ISO time>] [--execute] [--discord] [--state file] [--proof name]`,
+      usage: `npm run ${TASK} -- status|run --plan plans/<file>.json [--now <ISO time>] [--execute] [--discord] [--compact] [--state file] [--proof name]`,
       options: {
         plan: { type: "string" }, now: { type: "string" }, state: { type: "string" },
-        execute: { type: "boolean", default: false }, discord: { type: "boolean", default: false }, proof: { type: "string" },
+        execute: { type: "boolean", default: false }, compact: { type: "boolean", default: false }, discord: { type: "boolean", default: false }, proof: { type: "string" },
       },
       positionals: [1, 1],
     },
@@ -39,10 +39,13 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   let plan;
   try { plan = parsePlan(JSON.parse(readFileSync(values.plan, "utf8"))); } catch (e) { throw new UsageError(`${values.plan}: ${(e as Error).message}`); }
   const file = values.state ?? envOr("RECURRING_STATE", join(HERE, "state", `${plan.id}.json`));
-  if (values.now) console.log(`clock: injected --now ${now.toISOString()} (not the real time)`);
+  // --compact: lines under 62 columns, for a narrow terminal (the demo video). Same facts, shorter table.
+  const table = (l: ReturnType<typeof loadLedger>) => (values.compact ? compactTable(plan, l, now) : historyTable(plan, l, now));
+  const say = (l: string) => (values.compact ? wrapLine(l).forEach((x) => console.log(x)) : console.log(l));
+  if (values.now) say(`clock: injected --now ${now.toISOString()} (not the real time)`);
 
   if (cmd === "status") {
-    console.log(historyTable(plan, loadLedger(file, plan), now));
+    console.log(table(loadLedger(file, plan)));
     return 0;
   }
 
@@ -68,16 +71,16 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
     const { rows } = historyRows(plan, ledger, now);
     const todo = rows.filter((r) => r.status !== "paid");
     console.log(todo.length ? `would process ${todo.length} period(s): ${todo.map((r) => `#${r.period} (${r.status})`).join(", ")} — add --execute to pay` : "nothing to pay: every period due so far is already paid");
-    console.log(historyTable(plan, ledger, now));
+    console.log(table(ledger));
     return 0;
   }
 
   const notifier = values.discord ? discordNotifier(loadWebhook()) : consoleNotifier((s) => console.log(`RECEIPT [console] ${s}`));
-  console.log(`paying wallet ${signer.address} (Atlantic)`);
-  const events = await withLock(file, () => runDue({ plan, file, port, now, notifier, log: (l) => console.log(l) }));
+  say(`paying wallet ${values.compact ? `${signer.address.slice(0, 8)}…${signer.address.slice(-4)}` : signer.address} (Atlantic)`);
+  const events = await withLock(file, () => runDue({ plan, file, port, now, notifier, log: say }));
   const ledger = loadLedger(file, plan);
   console.log(events.length ? "" : "nothing due at this clock");
-  console.log(historyTable(plan, ledger, now));
+  console.log(table(ledger));
   if (values.proof) {
     console.log(`proof: ${writeProof(join(HERE, "proof", `${values.proof}.json`), { plan, clock: { injected: Boolean(values.now), now: now.toISOString() }, events, ledger }, meta!)}`);
   }

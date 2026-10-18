@@ -168,6 +168,8 @@ export interface RunEvent {
 }
 
 export const shown = (p: Period | undefined): ShownStatus => (p?.status === "paid" ? "paid" : p?.status === "failed" ? "failed" : "pending");
+/** At most 6 decimals, so a reason stays short. */
+const trim = (v: string) => v.replace(/(\.\d{6})\d+$/, "$1");
 const amountText = (plan: Plan) => `${plan.amount} ${plan.token.symbol}`;
 
 function save(file: string, ledger: Ledger): void {
@@ -243,7 +245,7 @@ async function pay(o: RunOptions, ledger: Ledger, rec: Period): Promise<RunEvent
   for (let attempt = 1; ; attempt++) {
     const have = plan.token.address ? await port.tokenBalance(plan.token.address) : await port.nativeBalance();
     if (have < units) {
-      return fail(o, ledger, rec, `insufficient ${plan.token.symbol} balance: has ${formatUnits(have, plan.token.decimals)}, needs ${plan.amount}; nothing was sent`);
+      return fail(o, ledger, rec, `insufficient ${plan.token.symbol} balance: has ${trim(formatUnits(have, plan.token.decimals))}, needs ${plan.amount}; nothing was sent`);
     }
     const intent = plan.token.address
       ? { to: plan.token.address, data: encodeFunctionData({ abi: erc20Abi, functionName: "transfer", args: [plan.recipient, units] }), ...(nonce !== undefined ? { nonce } : {}) }
@@ -253,7 +255,7 @@ async function pay(o: RunOptions, ledger: Ledger, rec: Period): Promise<RunEvent
     const native = plan.token.address ? await port.nativeBalance() : have;
     const need = fee + (plan.token.address ? 0n : units);
     if (native < need) {
-      return fail(o, ledger, rec, `insufficient PHRS: has ${formatUnits(native, 18)}, needs ${formatUnits(need, 18)} (${plan.token.address ? "gas" : `${plan.amount} + gas`}); nothing was sent`);
+      return fail(o, ledger, rec, `insufficient PHRS: has ${trim(formatUnits(native, 18))}, needs ${trim(formatUnits(need, 18))} (${plan.token.address ? "gas" : `${plan.amount} + gas`}); nothing was sent`);
     }
     const signed = await port.signer.sign(prepared);
     rec.status = "sent";
@@ -328,6 +330,27 @@ export function historyRows(plan: Plan, ledger: Ledger, now: Date): { rows: Row[
   }
   const nx = nextScheduled(plan, now);
   return { rows, ...(nx ? { next: { period: nx.period, due: nx.due.toISOString() } } : {}) };
+}
+
+const short = (h: string) => `${h.slice(0, 6)}…${h.slice(-4)}`;
+
+/** The same history in under 62 columns (a narrow terminal, a video): no wrapped rows, the reason is in the run's own lines. */
+export function compactTable(plan: Plan, ledger: Ledger, now: Date): string {
+  const { rows, next } = historyRows(plan, ledger, now);
+  const lines = rows.map((r) => `${String(r.period).padEnd(2)} ${r.due}  ${r.status.padEnd(7)} ${r.tx === "-" ? "(no tx sent)" : short(r.tx)}`);
+  const tail = next ? `next: #${next.period} on ${next.due.slice(0, 10)} ${next.due.slice(11, 16)}Z` : "no further payments: plan complete";
+  return [`plan ${plan.id}: ${plan.frequency}, ${amountText(plan)}`, `to ${short(plan.recipient)}`, "#  due         status  tx", ...(lines.length ? lines : ["(nothing due yet)"]), tail].join("\n");
+}
+
+/** Break a line at spaces so no piece is longer than `width`; continuation lines are indented. */
+export function wrapLine(line: string, width = 60, indent = "    "): string[] {
+  const out: string[] = [];
+  let cur = "";
+  for (const w of line.split(" ")) {
+    if (cur && (cur + " " + w).length > width) (out.push(cur), (cur = indent + w));
+    else cur = cur ? `${cur} ${w}` : w;
+  }
+  return [...out, cur];
 }
 
 export function historyTable(plan: Plan, ledger: Ledger, now: Date): string {
