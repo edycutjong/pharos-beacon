@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "task": "dry-run-executor",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/dry-run-executor/index.ts --to 0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B --value 0.0001 --execute --proof executed",
+    "git": {
+      "commit": "19ac27fb3031",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T06:17:08.515Z"
+  },
+  "result": {
+    "simulation": {
+      "request": {
+        "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+        "to": "0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B",
+        "value": "100000000000000"
+      },
+      "block": "31564575",
+      "ok": true,
+      "gasPriceWei": "1000000000",
+      "changes": [
+        {
+          "who": "sender",
+          "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+          "asset": "PHRS",
+          "decimals": 18,
+          "before": "14941825638999979000",
+          "after": "14941704638999979000"
+        },
+        {
+          "who": "recipient",
+          "address": "0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B",
+          "asset": "PHRS",
+          "decimals": 18,
+          "before": "0",
+          "after": "100000000000000"
+        }
+      ],
+      "gas": "21000",
+      "costWei": "21000000000000"
+    },
+    "status": "executed",
+    "sent": {
+      "tx": "0x10e5988d3fd55808cc71c5e136b31918eba9c9659dcc57f76baa4621218c0628",
+      "status": "success",
+      "block": "31564576",
+      "gasUsed": "21000",
+      "effectiveGasPrice": "1000000000"
+    },
+    "accuracy": {
+      "gas": {
+        "predicted": "21000",
+        "actual": "21000",
+        "errorPct": "0.00"
+      },
+      "feeWei": {
+        "predicted": "21000000000000",
+        "actual": "21000000000000"
+      },
+      "changes": [
+        {
+          "who": "sender",
+          "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+          "asset": "PHRS",
+          "decimals": 18,
+          "before": "14941825638999979000",
+          "after": "14941704638999979000",
+          "actual": "14941704638999979000",
+          "delta": "0"
+        },
+        {
+          "who": "recipient",
+          "address": "0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B",
+          "asset": "PHRS",
+          "decimals": 18,
+          "before": "0",
+          "after": "100000000000000",
+          "actual": "100000000000000",
+          "delta": "0"
+        }
+      ]
+    }
+  }
+}
