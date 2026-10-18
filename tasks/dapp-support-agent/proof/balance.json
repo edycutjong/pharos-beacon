@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "task": "dapp-support-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/dapp-support-agent/index.ts 0x9db3e679e2d7a9f8a6a21052800be283a45862722418f94ae7bb11fa79285f11 --proof balance",
+    "git": {
+      "commit": "2cbea20d2072",
+      "dirty": true
+    },
+    "createdAt": "2026-10-18T03:41:21.555Z"
+  },
+  "diagnosis": {
+    "hash": "0x9db3e679e2d7a9f8a6a21052800be283a45862722418f94ae7bb11fa79285f11",
+    "outcome": "failed",
+    "cause": "insufficient-balance",
+    "headline": "Your wallet does not hold enough USDC: it has 0 USDC and the transaction needed 1,000,000,000 USDC.",
+    "why": "The transaction tried to move 1,000,000,000 USDC out of your wallet, but that wallet only held 0 USDC when it ran. The token contract does not allow spending more than a wallet holds, so it stopped the transaction.",
+    "fix": [
+      "Your wallet holds none USDC: add at least 1,000,000,000 USDC before trying to send that much.",
+      "Check the amount's decimals: a value typed in whole tokens must be multiplied by the token's decimals before sending."
+    ],
+    "evidence": [
+      "receipt status 0x0 in block 31560415",
+      "replayed with eth_call at block 31560414 (the state the transaction started from), same sender, value, data and gas limit",
+      "token error ERC20InsufficientBalance(sender=0x317bca01Bb101C0F1E86C21576a4e14D92B02975, balance=0, needed=1000000000000000) at block 31560414"
+    ],
+    "facts": {
+      "from": "0x317bca01bb101c0f1e86c21576a4e14d92b02975",
+      "to": "0xe0be08c77f415f577a1b3a9ad7a1df1479564ec8",
+      "block": "31560415",
+      "gasLimit": "100000",
+      "gasUsed": "25148",
+      "value": "0",
+      "revertData": "0xe450d38c000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b02975000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000038d7ea4c68000"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+Transaction  0x9db3e679e2d7a9f8a6a21052800be283a45862722418f94ae7bb11fa79285f11
+Network      atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c
+Explorer     https://atlantic.pharosscan.xyz/tx/0x9db3e679e2d7a9f8a6a21052800be283a45862722418f94ae7bb11fa79285f11
+
+Result       FAILED
+Cause        insufficient-balance
+
+What happened
+  Your wallet does not hold enough USDC: it has 0 USDC and the transaction needed 1,000,000,000 USDC.
+
+Why
+  The transaction tried to move 1,000,000,000 USDC out of your wallet, but that wallet only held 0 USDC when it ran. The token contract does not allow spending more than a wallet holds, so it stopped the transaction.
+
+What you can do
+  - Your wallet holds none USDC: add at least 1,000,000,000 USDC before trying to send that much.
+  - Check the amount's decimals: a value typed in whole tokens must be multiplied by the token's decimals before sending.
+
+Evidence (for the curious)
+  · receipt status 0x0 in block 31560415
+  · replayed with eth_call at block 31560414 (the state the transaction started from), same sender, value, data and gas limit
+  · token error ERC20InsufficientBalance(sender=0x317bca01Bb101C0F1E86C21576a4e14D92B02975, balance=0, needed=1000000000000000) at block 31560414
+proof: tasks/dapp-support-agent/proof/balance.json
