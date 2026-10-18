@@ -46,7 +46,7 @@ Discord's own clock lines up with the chain's, which is what lets someone who ca
 | Deposit rule | 31555669 | 00:39:26 | 00:39:29.272 (id `1561176862451834920`) | about 3 s |
 | Large-transfer rule | 31555672 | 00:39:29 | 00:39:32.715 (id `1561176876892954723`) | about 3 s |
 
-The Discord times are the `timestamp` fields of the messages as fetched back from Discord ([`proof/discord-fetchback.json`](proof/discord-fetchback.json)); the block times are the blocks' own timestamps (`eth_getBlockByNumber`).
+The Discord times are the `timestamp` fields of the messages as fetched back from Discord ([`proof/discord-fetchback.json`](proof/discord-fetchback.json)); the block times are the blocks' own timestamps, read through the Chain MCP (`get_block`) and saved in [`proof/block-times.json`](proof/block-times.json).
 The message ids are Discord snowflakes, which encode the same creation time.
 The Atlantic runs need the local Atlantic Chain MCP (`npm run setup:mcp` once); the mainnet command above does not.
 
