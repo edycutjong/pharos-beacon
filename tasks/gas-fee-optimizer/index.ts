@@ -68,6 +68,8 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
 
   const mcp = await chainMcp("atlantic", { broadcast: cmd === "send" && values.execute });
   onExit(() => mcp.close());
+  // Taken before the run touches state/gas.json: the proof's `dirty` is about the code, not about this run's own samples.
+  const meta = values.proof ? proofMeta(TASK, mcp) : undefined;
   const sampleOnce = () => takeSample(mcp.call);
 
   if (cmd === "sample") {
@@ -104,7 +106,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
 
   if (values.proof) {
     const samples = loadSamples(stateFile);
-    console.log(`proof: ${writeProof(join(HERE, "proof", `${values.proof}.json`), { request: { to, valueWei: wei.toString(), deadlineSeconds: deadlineS, target }, decision, history: samples.slice(-Math.max(decision.samplesTaken, 1)), result }, proofMeta(TASK, mcp))}`);
+    console.log(`proof: ${writeProof(join(HERE, "proof", `${values.proof}.json`), { request: { to, valueWei: wei.toString(), deadlineSeconds: deadlineS, target }, decision, history: samples.slice(-Math.max(decision.samplesTaken, 1)), result }, meta!)}`);
   }
   return 0;
 }
