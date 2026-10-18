@@ -24,7 +24,7 @@ Try it (nothing is signed without `--execute`):
 1. **Plan** (Docs MCP). The request is mapped to a docs question. `askQuestion` is a language model and can answer from general knowledge, so
    its answer only counts when a page it cites, fetched with `getPage`, contains the method the plan needs. Otherwise the docs are searched with
    `searchDocumentation`, and a page found that way is cited as such. A refusal-shaped answer ("can't find", "don't list", "isn't supported") is
-   "not covered" whatever it cites. No language model of ours is involved: the same docs and chain give the same report.
+   "not covered" whatever it cites. No language model of ours is involved: the same docs answers and chain state give the same report.
 2. **Execute** (Chain MCP). Reads go to the chain pinned to one block. A send is prepared with the Chain MCP (`get_transaction_count`
    pending, `estimate_gas`, base fee × 2 + priority fee), shown, and signed locally only with `--execute`.
 3. **Verify**. A balance and a total supply are re-read at the same block; a receipt must have status 0x1; a send is checked against both
@@ -127,7 +127,7 @@ via Docs MCP https://docs.pharos.xyz/~gitbook/mcp and the Pharos Chain MCP
 - Balance and send are native PHRS on Atlantic only: a request that names a token or mainnet ("my USDC balance") is classed as "other", looked up in the docs and not executed.
 - "Covered" means a cited (or searched) docs page contains the method name; it does not prove the page explains it well. For total supply the
   page that names `totalSupply` in the docs search is the Rust guide.
-- The checks on the read requests (balance, total supply, receipt) are consistency checks: a same-block re-read, which catches a flaky endpoint, not a wrong contract. Only the send is verified against a plan (recipient + amount, sender − (amount + fee)).
+- The checks on the balance and total-supply reads are consistency checks: a same-block re-read, which catches a flaky endpoint, not a wrong contract; a receipt is checked for status 0x1. Only the send is verified against a plan (recipient + amount, sender − (amount + fee)).
 - The docs say Atlantic lists a WPHRS contract but not its wrapping method, so "wrap PHRS" stays uncovered here rather than guessing `deposit()`.
 - 31 tests ([`test/doc-grounded-builder-agent.test.ts`](../../test/doc-grounded-builder-agent.test.ts)) cover the classifier, the refusal patterns, the grounding fallback, prepared vs executed sends,
   a failed balance check, and "not covered ⇒ no chain call".
