@@ -13,11 +13,11 @@ A **plan** ([`plans/rent.json`](plans/rent.json)) names the schedule (`weekly` o
 recipient, the first due date (UTC) and an optional number of periods. A **ledger** ([`state/rent-demo.json`](state/rent-demo.json)) records what happened to each period.
 A run pays every period that is due at the clock and not yet paid, oldest first:
 
-1. **Funds first.** Not enough of the token (or not enough PHRS for amount + gas) → the period is `failed` with the reason, **nothing is prepared or sent**.
+1. **Funds first.** Not enough of the token (or of PHRS for the amount) → the period is `failed` with the reason, **nothing is prepared or sent**. Not enough PHRS for the gas → it is prepared (to estimate the gas) but never signed or sent.
 2. **prepare → sign → record → broadcast.** The signed transaction (hash, nonce, raw bytes) is written to the ledger **before** it goes to the node.
 3. **Confirm** with the receipt; `paid` only on status success. A revert is `failed` (it was mined, it cannot pay, so a later run may try again with a new transaction).
 
-**Never twice for one period:** a period that has a recorded, unconfirmed transaction is never rebuilt. The next run asks the chain for that hash; if the node does not have it, it re-sends
+**Never twice for one period, within a ledger:** a period that has a recorded, unconfirmed transaction is never rebuilt. The next run asks the chain for that hash; if the node does not have it, it re-sends
 the *same bytes* (same hash, so sending twice cannot pay twice). A paid period is skipped. A ledger written for a different plan (amount, token, recipient, schedule) is refused.
 Monthly keeps the start's day of month and clamps in short months (31 Jan → 28 Feb → 31 Mar).
 
@@ -31,7 +31,7 @@ That is a demonstration clock, not real waiting: nothing in the proof claims a w
 | 1 | "Supports a schedule (weekly or monthly) with amount, token and recipient." | Plan file with `frequency` weekly\|monthly, `amount`, `token` (native PHRS or an ERC-20), `recipient`; bad plans are refused with a reason | [`plans/rent.json`](plans/rent.json), [`plans/insufficient.json`](plans/insufficient.json) (monthly) · `parsePlan`/`dueAt` in [`src/recurring/agent.ts`](../../src/recurring/agent.ts) · tests "weekly…", "monthly…" (31 Jan → 28 Feb), "rejects a bad plan" |
 | 2 | "Prepares each payment on time and tracks paid, pending and failed status." | Each period due at the clock is prepared and sent; status per period is `paid`, `pending` (not processed yet, or signed and awaiting confirmation) or `failed` with the reason | Period 1: tx [`0xb48157…4b59`](https://atlantic.pharosscan.xyz/tx/0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59) block 31571296 · period 2: tx [`0x400359…ff2a`](https://atlantic.pharosscan.xyz/tx/0x400359aea589a88d6176e1e0c52db412eb33452cdb0c65abe06123817fa2ff2a) block 31571315 · [`proof/period-1-paid.json`](proof/period-1-paid.json), [`proof/period-2-paid.json`](proof/period-2-paid.json) |
 | 3 | "Handles insufficient balance or a failed transaction without double-paying." | Insufficient balance: failed, no transaction. Node refusal: one retry on the same nonce, then failed. Crash or unclear send: the recorded hash is looked up and re-sent as the same bytes. Re-run: already-paid | Live: [`proof/insufficient-balance.json`](proof/insufficient-balance.json) (1,000,000 PHRS needed, 14.93 held, nothing sent) and [`proof/rerun-pays-nothing.json`](proof/rerun-pays-nothing.json) (both periods `already-paid`, no new tx). Tests for the crash, refusal, revert and retry paths are unit tests (below) |
-| 4 | "Shows a payment history and the next scheduled payment." | `status` and the end of every `run` print the table of every period due so far and the line `next payment: …` | the output block below |
+| 4 | "Shows a payment history and the next scheduled payment." | `status` and the end of a normal `run` print the table of every period due so far and a `next payment: …` line (`next: …` with `--compact`; "plan is complete" once finished) | the output block below |
 
 ## The live run (Atlantic, injected clock, said plainly)
 
@@ -69,22 +69,22 @@ next payment: period 2 on 2026-12-01 (09:00Z), 1000000 PHRS to 0x8D347c72431ed6E
 
 ### The video's own runs
 
-The video shows three more real Atlantic runs recorded with asciinema while their proofs were written, in the narrow `--compact` layout (a terminal too narrow for the full table):
+The video shows three more real Atlantic runs, recorded while their proofs were written, in the narrow `--compact` layout (a terminal too narrow for the full table):
 period 3 paid at clock 2026-11-15 (tx [`0x813b85…b55c`](https://atlantic.pharosscan.xyz/tx/0x813b85abbbdb66cff2e24966ed13b30ed96cbeb21b35482d30ad36881d85b55c), block 31571475,
 [`video-period-3-paid`](proof/video-period-3-paid.json)), the same clock again with nothing paid ([`video-rerun`](proof/video-rerun.json)), and the unaffordable plan failing again ([`video-insufficient`](proof/video-insufficient.json)).
 Their terminal text is in [`proof/video-casts.log`](proof/video-casts.log) (the first four blocks are the runs in the table above, the last three the video's).
 
 ## Beyond the requirements: a Discord receipt and one retry
 
-- **Receipt per payment:** with `--discord` every payment (and every failure) posts one message with the period, amount, recipient and explorer link to the alert webhook (`~/.config/discord/webhook-alerts`).
+- **Receipt per payment:** with `--discord` every confirmed payment (and a mined revert) posts one message with the period, amount, recipient and explorer link; a failure where nothing was sent (insufficient funds, node refusal) posts none, it is in the ledger and the run output, to the alert webhook (`~/.config/discord/webhook-alerts`).
   The message id is stored in the ledger, so a re-run sends no second receipt; if Discord is down the payment still stands and the ledger records the error.
 - **One retry with backoff:** if the node refuses the send (and does not have the transaction), the agent waits and retries once on the **same nonce**, so at most one transaction can ever land.
   A second refusal marks the period `failed`. The retry is covered by unit tests only; the live run did not hit a refusal.
 
 ## Limits
 
-- The ERC-20 path (token balance check, `transfer(recipient, amount)` call data) is covered by unit tests; **the live payments are native PHRS**, because no ERC-20 of ours is deployed on Atlantic yet.
-- The schedule is evaluated when you run it; running it on a timer (cron, a loop) is yours. A missed run pays all overdue periods in order at the next run.
+- The ERC-20 path (token balance check, `transfer(recipient, amount)` call data) is covered by unit tests; **the live payments are native PHRS**, because the demo uses no ERC-20.
+- The schedule is evaluated when you run it; running it on a timer (cron, a loop) is yours. A missed run pays the overdue periods in order at the next run (up to 120 per run).
 - The crash-recovery and node-refusal paths are proven by tests with an injected fake node, not by killing a live run.
 - Atlantic testnet only; the signer refuses any other chain. A recipient equal to the paying wallet is refused (no silent self-transfers).
 
