@@ -29,7 +29,7 @@ That is a demonstration clock, not real waiting: nothing in the proof claims a w
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
 | 1 | "Supports a schedule (weekly or monthly) with amount, token and recipient." | Plan file with `frequency` weekly\|monthly, `amount`, `token` (native PHRS or an ERC-20), `recipient`; bad plans are refused with a reason | [`plans/rent.json`](plans/rent.json), [`plans/insufficient.json`](plans/insufficient.json) (monthly) · `parsePlan`/`dueAt` in [`src/recurring/agent.ts`](../../src/recurring/agent.ts) · tests "weekly…", "monthly…" (31 Jan → 28 Feb), "rejects a bad plan" |
-| 2 | "Prepares each payment on time and tracks paid, pending and failed status." | Each period due at the clock is prepared and sent; status per period is `paid`, `pending` (not processed yet, or signed and awaiting confirmation) or `failed` with the reason | Period 1: tx [`0xb48157…4b59`](https://atlantic.pharosscan.xyz/tx/0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59) block 31571296 · period 2: tx [`0x400359…ff2a`](https://atlantic.pharosscan.xyz/tx/0x400359aea589a88d6176e1e0c52db412eb33452cdb0c65abe06123817fa2ff2a) block 31571315 · [`proof/period-1-paid.json`](proof/period-1-paid.json), [`proof/period-2-paid.json`](proof/period-2-paid.json) |
+| 2 | "Prepares each payment on time and tracks paid, pending and failed status." | Each period due at the clock is prepared and sent; status per period is `paid`, `pending` (not processed yet, or signed and awaiting confirmation) or `failed` with the reason. A due period that is not paid is listed on an `unpaid and due: …; the next run tries it again` line, so a failed or pending period never looks finished | Period 1: tx [`0xb48157…4b59`](https://atlantic.pharosscan.xyz/tx/0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59) block 31571296 · period 2: tx [`0x400359…ff2a`](https://atlantic.pharosscan.xyz/tx/0x400359aea589a88d6176e1e0c52db412eb33452cdb0c65abe06123817fa2ff2a) block 31571315 · [`proof/period-1-paid.json`](proof/period-1-paid.json), [`proof/period-2-paid.json`](proof/period-2-paid.json) · **pending, shown:** [`proof/status-pending.log`](proof/status-pending.log) (`status` at 2026-11-22: period 4 is due and unpaid → `pending`, "due, not yet processed") |
 | 3 | "Handles insufficient balance or a failed transaction without double-paying." | Insufficient balance: failed, no transaction. Node refusal: one retry on the same nonce, then failed. Crash or unclear send: the recorded hash is looked up and re-sent as the same bytes. Re-run: already-paid | Live: [`proof/insufficient-balance.json`](proof/insufficient-balance.json) (1,000,000 PHRS needed, 14.93 held, nothing sent) and [`proof/rerun-pays-nothing.json`](proof/rerun-pays-nothing.json) (both periods `already-paid`, no new tx). Tests for the crash, refusal, revert and retry paths are unit tests (below) |
 | 4 | "Shows a payment history and the next scheduled payment." | `status` and the end of a normal `run` print the table of every period due so far and a `next payment: …` line (`next: …` with `--compact`; "plan is complete" once finished) | the output block below |
 
@@ -43,6 +43,7 @@ Payer: wallet 1 `0x317bca01Bb101C0F1E86C21576a4e14D92B02975`; recipient: our wal
 | 2 | 2026-11-08T09:00Z | period 1 already paid, period 2 **paid** | [`period-2-paid`](proof/period-2-paid.json) · Discord receipt 1561321172900122706 |
 | 3 | 2026-11-08T09:00Z again | **nothing paid**: both periods `already-paid` | [`rerun-pays-nothing`](proof/rerun-pays-nothing.json) |
 | 4 | other plan, 1,000,000 PHRS per month | period 1 **failed**: insufficient balance, nothing sent | [`insufficient-balance`](proof/insufficient-balance.json) |
+| 5 | **ERC-20 plan** [`plans/wphrs.json`](plans/wphrs.json), 0.0001 WPHRS weekly, clock 2026-11-01T09:00Z | period 1 **paid** in WPHRS: tx [`0x56c3f1ce…4d37c95`](https://atlantic.pharosscan.xyz/tx/0x56c3f1cec826aa04b105d164ba9b563c13c5fd663d75ac57a59b9b6064d37c95), block 31576890, status success, gas 35376 (a `transfer` log on the WPHRS contract) | [`erc20-period-1-paid`](proof/erc20-period-1-paid.json) · [log](proof/erc20-period-1-paid.log) |
 
 Output of step 2 (pasted from the recorded run, [`proof/video-casts.log`](proof/video-casts.log)):
 
@@ -58,7 +59,7 @@ period  due         status   amount          tx / note
 next payment: period 3 on 2026-11-15 (09:00Z), 0.001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
 ```
 
-Step 4:
+Step 4 (recorded before the `unpaid and due` line was added; the current `status` prints `unpaid and due: period 1 (failed); the next run tries it again` above the next-payment line):
 
 ```text
   period 1 (due 2026-11-01): failed — insufficient PHRS balance: has 14.931994638999979, needs 1000000; nothing was sent
@@ -85,13 +86,13 @@ The loop is shown in [`proof/every-dryrun.log`](proof/every-dryrun.log): two rou
 
 ## Limits
 
-- The ERC-20 path (token balance check, `transfer(recipient, amount)` call data) is covered by unit tests; **the live payments are native PHRS**, because the demo uses no ERC-20.
+- The ERC-20 path (token balance check, `transfer(recipient, amount)` call data) is covered by unit tests and by one live payment (step 5: WPHRS period 1). The other live payments are native PHRS; period 2 of the WPHRS plan was not run.
 - "On time" means: each run pays every period whose due date has passed, once. `run --every <seconds> [--rounds N]` repeats that on the real clock (a loop in one process); without it, a timer (cron) is yours. A missed run pays the overdue periods in order at the next run (up to 120 per run).
 - The crash-recovery and node-refusal paths are proven by tests with an injected fake node, not by killing a live run.
 - Atlantic testnet only; the signer refuses any other chain. A recipient equal to the paying wallet is refused (no silent self-transfers).
 
 ## Tests
 
-`npm test` — 19 tests in [`test/recurring.test.ts`](../../test/recurring.test.ts): schedule maths (weekly, monthly clamp, due/next), bad plans, two consecutive periods and a re-run, nothing due early,
-insufficient balance (amount, and gas) then funded later, crash before and after the node took the transaction, one refusal retried and two refusals failed, a mined revert retried, the ERC-20 call data,
+`npm test` — 20 tests in [`test/recurring.test.ts`](../../test/recurring.test.ts): schedule maths (weekly, monthly clamp, due/next), bad plans, two consecutive periods and a re-run, nothing due early,
+insufficient balance (amount, and gas) then funded later, an unpaid due period is retried and never shown as a finished plan, crash before and after the node took the transaction, one refusal retried and two refusals failed, a mined revert retried, the ERC-20 call data,
 Discord receipts (one per payment, a failing webhook changes nothing), a ledger for another plan and a self payment refused, the history table, and the compact output.
