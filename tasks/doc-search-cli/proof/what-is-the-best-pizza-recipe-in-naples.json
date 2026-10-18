@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "task": "doc-search-cli",
+    "network": "docs",
+    "chainId": null,
+    "mcp": {
+      "endpoint": "https://docs.pharos.xyz/~gitbook/mcp"
+    },
+    "command": "bin/pharos-docs.mjs what is the best pizza recipe in Naples? --proof",
+    "git": {
+      "commit": "c6d9750771ed",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T01:34:54.932Z"
+  },
+  "result": {
+    "question": "what is the best pizza recipe in Naples?",
+    "found": false,
+    "answer": "I cannot find information about pizza recipes in the docs.",
+    "sources": [],
+    "closest": [
+      {
+        "title": "Solidity",
+        "url": "https://docs.pharos.xyz/resources/solidity"
+      },
+      {
+        "title": "Piggy Bank Tutorial",
+        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide"
+      },
+      {
+        "title": "Gas Model",
+        "url": "https://docs.pharos.xyz/getting-started/gas-model"
+      }
+    ]
+  }
+}
