@@ -15,8 +15,8 @@ history file ([`state/history.json`](state/history.json), written atomically und
 `--steps` must be at least 2, so a trend always needs **at least 3 observations**. The action (a console line, or the Discord alert webhook with `--discord`)
 runs on the observation where the streak first reaches N, once per trend.
 
-Because the trigger points are recomputed from the stored history and each trigger is recorded as acted-on by its block, a restart cannot lose an observation
-(the file is the memory), duplicate one (the same block is stored once, an older block is refused) or act twice.
+Because the trigger points are recomputed from the stored history and each trigger is recorded as acted-on by its block, a restart cannot lose or duplicate an observation
+(the file is the memory; the same block is stored once, an older block is refused). The action runs once per trend, except that a crash between the message and its record repeats that one alert (see Limits).
 
 ## Requirements → evidence
 
@@ -71,7 +71,7 @@ TREND MET: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlan
 ## A real metric that does not trend (said plainly)
 
 Mainnet base fee, three observations through the hosted Chain MCP ([`state/mainnet-basefee.json`](state/mainnet-basefee.json), proofs
-`mainnet-basefee-1..3`): 10 gwei each time, so the streak stays 0 and nothing fires. A flat real metric never triggers; that is the point.
+`mainnet-basefee-1..3`): 10 gwei each time. Three observations are fewer than the four a 3-step rule needs, so every proof reads `too-few`: nothing could fire for lack of data, and this proof does not show a flat series being rejected.
 `--metric supply --token <ERC-20>` watches a token's `totalSupply()` the same way.
 
 ## Limits

@@ -19,21 +19,41 @@ import { compactTable, historyRows, historyTable, loadLedger, parsePlan, runDue,
 const TASK = "recurring-payment-agent";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 
-export async function main({ onExit }: RunContext, argv = process.argv.slice(2)): Promise<number> {
+export async function main(ctx: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- status|run --plan plans/<file>.json [--now <ISO time>] [--execute] [--discord] [--compact] [--state file] [--proof name]`,
+      usage: `npm run ${TASK} -- status|run --plan plans/<file>.json [--now <ISO time>] [--execute] [--discord] [--compact] [--state file] [--proof name] [--every <seconds> [--rounds N]]`,
       options: {
         plan: { type: "string" }, now: { type: "string" }, state: { type: "string" },
         execute: { type: "boolean", default: false }, compact: { type: "boolean", default: false }, discord: { type: "boolean", default: false }, proof: { type: "string" },
+        every: { type: "string" }, rounds: { type: "string" },
       },
       positionals: [1, 1],
     },
     argv,
   );
+  const { onExit } = ctx;
   const cmd = positionals[0];
   if (cmd !== "status" && cmd !== "run") throw new UsageError(`unknown command ${cmd}: use status or run`);
   if (!values.plan) throw new UsageError("--plan <file.json> is required");
+  if (values.every !== undefined) {
+    // Scheduler: run again every N seconds on the real clock (Ctrl-C stops it; --rounds N stops after N runs).
+    const every = Number(values.every), rounds = values.rounds === undefined ? Infinity : Number(values.rounds);
+    if (cmd !== "run" || !(every > 0) || !(rounds >= 1)) throw new UsageError("--every <seconds> (> 0) works with run; --rounds must be >= 1");
+    if (values.now) throw new UsageError("--every uses the real clock: drop --now");
+    const rest: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+      if (argv[i] === "--every" || argv[i] === "--rounds") i++;
+      else if (!argv[i].startsWith("--every=") && !argv[i].startsWith("--rounds=")) rest.push(argv[i]);
+    }
+    let worst = 0;
+    for (let n = 1; n <= rounds; n++) {
+      console.log(`--- round ${n}${Number.isFinite(rounds) ? `/${rounds}` : ""} at ${new Date().toISOString()} ---`);
+      worst = Math.max(worst, await main(ctx, rest));
+      if (n < rounds) await new Promise((r) => setTimeout(r, every * 1000));
+    }
+    return worst;
+  }
   const now = values.now ? new Date(values.now) : new Date();
   if (Number.isNaN(now.getTime())) throw new UsageError("--now must be a date, e.g. 2026-11-08T09:00:00Z");
   let plan;

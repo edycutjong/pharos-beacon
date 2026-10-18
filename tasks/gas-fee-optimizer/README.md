@@ -4,13 +4,13 @@
 monitors network gas price and times transaction submission for lowest cost.
 **Run:** `npm run gas-fee-optimizer -- sample [--count 6] [--interval 5]` · `-- history [--last 10]` ·
 `-- send --to 0x… --value 0.0001 --deadline 60 (--target-gwei 1.5 | --target-percentile 25 [--window 20]) [--interval 5] [--execute] [--proof name]`
-(Atlantic needs the one-time `npm run setup:mcp`.) Without `--execute` it holds and decides but never sends.
+(Atlantic needs the one-time `npm run setup:mcp`.) `sample` and `send` append to the committed `state/gas.json`; to try it without touching the tree, prefix the command with `GAS_STATE=/tmp/gas.json` (or pass `--state`). Without `--execute` it holds and decides but never sends.
 **Uses:** Chain MCP ✅ (`get_block`, `get_gas_price`, and for `--execute` nonce, estimate, broadcast, receipt) · SkillEngine ✅
 [`skills/gas-fee-optimizer/`](../../skills/gas-fee-optimizer/SKILL.md) · Docs MCP: not used
 
 **Install as a skill:** `npx skills add https://github.com/edycutjong/pharos-beacon --skill gas-fee-optimizer`.
 
-> **Atlantic gas is flat.** Every sample in [`state/gas.json`](state/gas.json) reads 1 gwei (base fee 1, priority 0). So the live
+> **Atlantic gas was flat in all 14 samples we took (2026-10-18, 06:18–06:20Z).** Every sample in [`state/gas.json`](state/gas.json) reads 1 gwei (base fee 1, priority 0). So the live
 > runs below show the *mechanics* (sent early, held to the deadline) but no real saving: the report says `saved 0 PHRS, 0.00%`.
 > The logic that would save money on a moving price is covered by tests with an injected clock.
 

@@ -1,0 +1,15 @@
+$ RECURRING_STATE=/tmp/rec.json npm run recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/rent.json --every 3 --rounds 2 --compact  (real clock, dry run, 2026-10-18)
+--- round 1/2 at 2026-10-18T11:17:53.906Z ---
+nothing to pay: every period due so far is already paid
+plan rent-demo: weekly, 0.001 PHRS
+to 0x8D34…D91B
+#  due         status  tx
+(nothing due yet)
+next: #1 on 2026-11-01 09:00Z
+--- round 2/2 at 2026-10-18T11:17:57.819Z ---
+nothing to pay: every period due so far is already paid
+plan rent-demo: weekly, 0.001 PHRS
+to 0x8D34…D91B
+#  due         status  tx
+(nothing due yet)
+next: #1 on 2026-11-01 09:00Z
