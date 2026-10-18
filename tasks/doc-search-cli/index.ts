@@ -11,13 +11,14 @@ const TASK = "doc-search-cli";
 export const EXIT_NOT_FOUND = 3;
 
 // askQuestion answers "I cannot find information about this in the docs." when the docs hold nothing relevant.
-// An answer whose FIRST sentence says the docs/pages do not list/provide/document the thing ("The Pharos docs do **not** list a supported bridge lane").
-// The sentence must name the docs as the subject: "The faucet does not support mainnet; use Atlantic." is an answer about the faucet, not a refusal.
+// A refusal OPENS the reply with the docs as its subject: "The Pharos docs do **not** list a supported bridge lane", "The docs don't currently document ...".
+// It is a refusal only when the negation follows the docs subject directly: "The setup guide says to request PHRS from the faucet, but it doesn't provide a URL" opens with an answer,
+// and "The faucet does not support mainnet; use Atlantic." is an answer about the faucet.
 const REFUSAL_VERBS = "list|provide|document|describe|include|support|specify|mention|give|cover|contain|state";
-const LEADING_REFUSAL = new RegExp(String.raw`^[^.!?\n]*\b(?:docs?|documentation|pages?|guides?)\b[^.!?\n]*\b(?:do|does)(?: not|n't)\s+(?:${REFUSAL_VERBS})\b`, "i");
-// A refusal that is followed by an explicit contrast is a half-answer and is kept: "The docs don't give the URL. They do say to use the Atlantic wallet."
+const LEADING_REFUSAL = new RegExp(String.raw`^\W*(?:[\w'-]+\s+){0,4}?(?:docs?|documentation|pages?|guides?)\s+(?:\w+ly\s+)?(?:do|does)(?: not|n't)(?:\s+(?:currently|explicitly|directly|specifically|yet))*\s+(?:${REFUSAL_VERBS})\b`, "i");
+// A refusal followed by an explicit contrast is a half-answer and is kept: "The docs don't give the URL. They say to use the Atlantic wallet."
 // Deliberately narrow: a later "but their pages don't specify a Solana route" is more refusal, not a contrast.
-const CONTRAST = /(?:^|[.!?]\s+|\n)\s*(?:however\b|that said\b|they do\b|it does\b|the (?:pharos )?(?:docs|documentation) do (?!not\b))|,\s*but (?:they|it|the docs) do (?!not\b)/i;
+const CONTRAST = /(?:^|[.!?]\s+|\n)\s*(?:however\b|that said\b|they (?:do )?(?:say|state|mention|list|give|describe|note|recommend|show)\b|they do\b|it does\b|the (?:pharos )?(?:docs|documentation) (?:do |does )?(?:say|state|mention|list|give|describe|note|recommend|show)\b|the (?:pharos )?(?:docs|documentation) do (?!not\b))|,\s*but (?:they|it|the docs) (?:do )?(?!not\b|n't)\w+/i;
 const NO_ANSWER = /\b(?:cannot|can't|could not|couldn't|unable to|did not|didn't|do not|don't)\s+(?:find|locate)\b|\bno (?:relevant |matching )?(?:information|results?|mention)\b|\bnot (?:covered|documented|mentioned)\b/i;
 
 export interface Result {

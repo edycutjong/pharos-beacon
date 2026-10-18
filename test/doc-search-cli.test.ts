@@ -63,6 +63,17 @@ describe("isGoodAnswer: refusal subject and half-answers (a2a r05)", () => {
     expect(isGoodAnswer(`The docs don't ${verb} the faucet URL. However, the Atlantic page lists the RPC and chain ID.`, [{}])).toBe(true);
     expect(isGoodAnswer(`The docs don't ${verb} the faucet URL, but they do give the chain ID 688689.`, [{}])).toBe(true);
   });
+  it("replies seen live for the faucet question (2026-10-18, four runs) get a stated verdict, not a lucky one", () => {
+    const run1 = "The docs don’t include the faucet URL or claim steps. They say to get testnet PHRS from the **Pharos faucet** or directly from the team.";
+    const run3 = "The setup guide says to request testnet **PHRS** from the Pharos faucet or directly from the team, but it doesn’t provide a faucet URL or claim steps. Add the network first.";
+    const run4 = "The docs mention getting testnet PHRS from the faucet or directly from the team, but don’t provide the faucet URL or claim steps.";
+    const run2 = "I cannot find faucet instructions or a faucet link in the docs. For Pharos testing, use **Atlantic Testnet**.";
+    expect([run1, run3, run4].map((r) => isGoodAnswer(r, [{}]))).toEqual([true, true, true]);
+    expect(isGoodAnswer(run2, [{}])).toBe(false); // a plain "cannot find" stays a no-answer
+  });
+  it("an adverb between the negation and the verb does not hide a refusal (live Solana reply, 2026-10-18 re-run)", () => {
+    expect(isGoodAnswer("The Pharos docs don’t currently document a direct Pharos-to-Solana bridge route.\n\n* Pharos’s listed Chainlink CCIP lanes are Ethereum, Jovay, Polygon, and Base — not Solana.", [{}])).toBe(false);
+  });
   it("the live Solana reply has no contrast sentence, so it stays a refusal (Example 5, exit 3)", () => {
     const solana =
       "The Pharos docs don’t list a supported **Pharos ↔ Solana** bridge route. The documented [Chainlink CCIP](/tooling-and-infrastructure/cross-chain/chainlink-ccip) are Ethereum, Jovay, Polygon, and Base.\n\nPharos also documents [LayerZero](/tooling-and-infrastructure/cross-chain/layerzero) and [Circle CCTP](/tooling-and-infrastructure/cross-chain/circle-cctp), but their Pharos pages don’t specify a Solana route or user transfer steps. I can’t confirm a way to bridge from Pharos to Solana from the available docs.";
