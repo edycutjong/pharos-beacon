@@ -10,10 +10,10 @@
     },
     "command": "tasks/dapp-support-agent/index.ts 0x9db3e679e2d7a9f8a6a21052800be283a45862722418f94ae7bb11fa79285f11 --proof balance",
     "git": {
-      "commit": "1900db97be2e",
+      "commit": "f9af3e94e6f7",
       "dirty": false
     },
-    "createdAt": "2026-10-18T03:41:42.967Z"
+    "createdAt": "2026-10-18T03:43:48.318Z"
   },
   "diagnosis": {
     "hash": "0x9db3e679e2d7a9f8a6a21052800be283a45862722418f94ae7bb11fa79285f11",
@@ -22,7 +22,7 @@
     "headline": "Your wallet does not hold enough USDC: it has 0 USDC and the transaction needed 1,000,000,000 USDC.",
     "why": "The transaction tried to move 1,000,000,000 USDC out of your wallet, but that wallet only held 0 USDC when it ran. The token contract does not allow spending more than a wallet holds, so it stopped the transaction.",
     "fix": [
-      "Your wallet holds none USDC: add at least 1,000,000,000 USDC before trying to send that much.",
+      "Your wallet holds no USDC: add at least 1,000,000,000 USDC before trying to send that much.",
       "Check the amount's decimals: a value typed in whole tokens must be multiplied by the token's decimals before sending."
     ],
     "evidence": [

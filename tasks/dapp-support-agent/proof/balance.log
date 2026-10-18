@@ -12,7 +12,7 @@ Why
   The transaction tried to move 1,000,000,000 USDC out of your wallet, but that wallet only held 0 USDC when it ran. The token contract does not allow spending more than a wallet holds, so it stopped the transaction.
 
 What you can do
-  - Your wallet holds none USDC: add at least 1,000,000,000 USDC before trying to send that much.
+  - Your wallet holds no USDC: add at least 1,000,000,000 USDC before trying to send that much.
   - Check the amount's decimals: a value typed in whole tokens must be multiplied by the token's decimals before sending.
 
 Evidence (for the curious)
