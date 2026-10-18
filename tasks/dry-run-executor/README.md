@@ -36,7 +36,7 @@ In both the estimate was above what was used and the report says by how much; th
 | Passing simulation, then the real send to a fresh address `0x0Ef32f97…aD4B` | [tx `0x10e59880…0628`](https://atlantic.pharosscan.xyz/tx/0x10e5988d3fd55808cc71c5e136b31918eba9c9659dcc57f76baa4621218c0628), block 31564576, `success`, 21000 gas = the estimate | [`proof/executed.json`](proof/executed.json) · [log](proof/executed.log) |
 
 Two more real sends: a WPHRS `deposit()` contract call ([tx `0x4bee1461…136d`](https://atlantic.pharosscan.xyz/tx/0x4bee146102793652f8a09dbd74679ab1beb6d0d5c370802270a479395097136d), block 31576105, [`contract-call.json`](proof/contract-call.json)) and a WPHRS `transfer` of 0.00001 to the same fresh address ([tx `0x3c6456f1…4041`](https://atlantic.pharosscan.xyz/tx/0x3c6456f1d19e6d572f3e5ba86bf9ccf058d69ec47f8ceddb05bf6666d7f74041), block 31576115, [`token-transfer.json`](proof/token-transfer.json)).
-A simulation-only run (no `--execute`, the same fresh address, which by then held 0.0001 PHRS), is kept as a log: [`proof/simulate.log`](proof/simulate.log) (`not sent: pass --execute to send it`).
+A simulation-only run (no `--execute`, the same fresh address, which by then held 0.0001 PHRS) is kept as a log: [`proof/simulate.log`](proof/simulate.log) (`not sent: pass --execute to send it`).
 Every proof JSON file was produced by the commit it records, with `dirty: false`.
 
 ```text
