@@ -1,7 +1,7 @@
 // Docs MCP + Chain MCP Agent (Medium · 100 pts): explain a contract function from the Pharos docs, then call that same
 // function on chain and read the result in the light of the explanation.
 //   npm run docs-chain-mcp-agent -- [--contract 0x…] [--function name|symbol|decimals|totalSupply|balanceOf] [--arg 0x…] [--block N] [--json] [--proof]
-// With no flags it runs the four-function demo on Pharos mainnet (USDC and WPROS from the docs token registry).
+// With no flags it runs the five-function demo on Pharos mainnet (USDC and WPROS from the docs token registry).
 // Docs MCP: askQuestion (the explanation and its sources) + getPage (is the address listed on the cited page).
 // Chain MCP: the hosted, keyless mainnet server, eth_call pinned to one block. No language model: same inputs, same report.
 // When the docs do not describe a function the agent says so, still reads the value, and gives it raw: no explanation
@@ -169,7 +169,7 @@ export function interpret(t: Target, e: Explanation, r: Reading): string {
       return `${cite} The chain returned ${r.raw} base units; with decimals() ${r.decimals} that is ${withCommas(formatUnits(BigInt(r.raw), r.decimals))} ${r.symbol}.`;
     }
     case "getChainId":
-      return `${cite} The chain returned ${r.raw}; the docs name the chain this contract is called on, and Pacific Mainnet's chain id is 1672.`;
+      return `${cite} The chain returned ${r.raw}; the docs name the chain this contract is called on.`;
     default:
       return `${cite} The chain returned ${JSON.stringify(r.raw)}.`;
   }

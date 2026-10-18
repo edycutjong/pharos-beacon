@@ -25,7 +25,7 @@ transaction started from. A revert comes back as JSON-RPC code 3 with the reason
 `symbol()` and `decimals()` are read so amounts have units. An out-of-gas failure gets a suggested gas limit from `estimate_gas`
 (estimated now, with a 25% margin). If the contract reverts without any message, the agent only names a cause when the numbers prove it for
 a `transfer`, `transferFrom` or `withdraw` call (balance or allowance too small) and says in the report that the cause is inferred; otherwise
-it says the contract gave no reason. No language model is involved: the same hash gives the same report.
+it says the contract gave no reason. No language model is involved: the same hash and chain state give the same report (only the suggested gas limit is read live).
 
 ## Chain MCP tools
 
@@ -99,5 +99,5 @@ not-found and pending answers, the replay block, the report layout and the CLI (
 - The replay starts from the block before the failing one, so transactions earlier in the same block are not replayed; if one of them caused the failure the agent says it could not reproduce it.
 - The error list is the common library errors (OpenZeppelin tokens, ownership, pause, access control) plus `Error(string)` and `Panic`. A custom error outside it is reported with its selector, not guessed.
 - An empty revert is only explained for `transfer`, `transferFrom` and `withdraw(uint256)` calls, and the report says the cause is inferred.
-- Insufficient native balance cannot be shown on chain: the network refuses to mine such a transaction, so there is no failed transaction to explain.
+- Insufficient native balance cannot be shown on chain (standard EVM behaviour): the network refuses to mine such a transaction, so there is no failed transaction to explain.
 - The suggested gas limit is estimated at the current state, not at the failing block.

@@ -44,7 +44,7 @@ The docs answers vary between runs: the wording of the quoted sentences, which p
 The receipt lookup reads Atlantic tx `0x01cd6b78…4fe88`, the first transaction of the [Docs MCP Onboarding](../docs-mcp-onboarding/) task. The recipient is the burn address
 `0x…dEaD` (a distinct address, never a self-transfer). The test key's address is read from `~/.config/pharos/testnet.env` only to know who "my" is.
 
-Sample output of `npm run doc-grounded-builder-agent -- --execute --proof` (pasted from the run behind `proof/executed.json`):
+Sample output of `npm run doc-grounded-builder-agent -- --execute --proof` (requests 3–5 omitted here; pasted from the run behind `proof/executed.json`):
 
 ```text
 [1/6] request: "check my PHRS balance"  → balance on atlantic
@@ -127,7 +127,7 @@ via Docs MCP https://docs.pharos.xyz/~gitbook/mcp and the Pharos Chain MCP
 - Balance and send are native PHRS on Atlantic only: a request that names a token or mainnet ("my USDC balance") is classed as "other", looked up in the docs and not executed.
 - "Covered" means a cited (or searched) docs page contains the method name; it does not prove the page explains it well. For total supply the
   page that names `totalSupply` in the docs search is the Rust guide.
-- Verification of a read is a same-block re-read, which catches a flaky endpoint, not a wrong contract; a send is verified against both balances.
+- The checks on the read requests (balance, total supply, receipt) are consistency checks: a same-block re-read, which catches a flaky endpoint, not a wrong contract. Only the send is verified against a plan (recipient + amount, sender − (amount + fee)).
 - The docs say Atlantic lists a WPHRS contract but not its wrapping method, so "wrap PHRS" stays uncovered here rather than guessing `deposit()`.
 - 31 tests ([`test/doc-grounded-builder-agent.test.ts`](../../test/doc-grounded-builder-agent.test.ts)) cover the classifier, the refusal patterns, the grounding fallback, prepared vs executed sends,
   a failed balance check, and "not covered ⇒ no chain call".

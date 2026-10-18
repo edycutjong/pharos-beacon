@@ -12,7 +12,7 @@ a small wrapper on the Developer Docs MCP that searches the Pharos docs from a t
 | 1 | Accepts a natural-language question as input, e.g. `pharos-docs "how do I deploy a contract?"` | the bin is called `pharos-docs`; the question is the argument (unquoted words are joined) | [`bin/pharos-docs.mjs`](../../bin/pharos-docs.mjs) · [Example 1](#example-1) |
 | 2 | Returns a concise answer plus links or references to the source doc sections | the answer from `askQuestion`, then its cited pages as absolute links (de-duplicated, 5 shown, `--sources N` for more) | [`index.ts`](index.ts) `format` · Examples 1–3 |
 | 3 | Handles "no good answer found" gracefully instead of inventing one | no cited source, or a reply that says it found nothing → "Not found in the Pharos docs", the model's text is dropped, the 3 closest pages from `searchDocumentation` are listed, exit code 3 | [Example 4](#example-4-a-question-the-docs-cannot-answer) · `test/doc-search-cli.test.ts` |
-| 4 | README with install and usage instructions and 3 example queries with outputs | this file | Examples 1–3 below (pasted from the proof runs) |
+| 4 | README with install and usage instructions and 3 example queries with outputs | this file | Examples 1–3 below (rendered by the CLI from the `proof/*.json` runs) |
 
 ## Install
 
@@ -45,7 +45,7 @@ It connects to the Developer Docs MCP (`https://docs.pharos.xyz/~gitbook/mcp`, k
 written answer ending in a `# Sources` list. The answer is good only if it cites at least one page and does not say it found
 nothing. Otherwise the CLI prints a clear "not found" line, calls `searchDocumentation` for the closest pages and lists them as
 "may not answer it". If `askQuestion` itself fails, it says so and still lists the closest pages. It prints only what
-`askQuestion` returned and adds nothing of its own.
+`askQuestion` returned and adds only absolute links and the source list.
 
 ## Docs MCP tools
 

@@ -48,12 +48,25 @@ stopped after 19 polls: 2 new Transfer events; next block to scan 31555651
 
 ## Restart: nothing is printed twice
 
-Same state file, started again after those events (a restart resumes at the saved cursor): [`proof/restart-run.json`](proof/restart-run.json).
+Same state file, started again later (a restart resumes at the saved cursor, so the two events caught above are not printed again): [`proof/restart-run-head.json`](proof/restart-run-head.json). Between the runs our own test sends from the same two wallets (the Alert Bot task's setup) added two more WPHRS transfers (blocks 31555672 and 31555676); those are the only two events this run prints. The earlier `restart-run.json` (nothing new in range) is kept for the same cursor logic. That the de-duplication also holds when a range is re-read is covered by the unit tests, not by a live proof.
 
 ```text
 watching Transfer(address,address,uint256) on 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (WPHRS, 18 decimals)
-atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c · head 31555659 · poll 2500 ms · state /tmp/p91/mon.json
-stopped after 4 polls: 0 new Transfer events; next block to scan 31555662
+atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c · head 31562983 · poll 2500 ms · state /tmp/p91/mon-hd.json
+resuming from the saved cursor: next block 31555662 (--from-block is only used when there is no state file)
+Transfer  block 31555672  log #0
+  from    0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  to      0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount  0.01 WPHRS
+  tx      0x9ce6f668093284a0fee10cc9ca5980fe1719416e7e660e2fbc595c2eedca996b
+          https://atlantic.pharosscan.xyz/tx/0x9ce6f668093284a0fee10cc9ca5980fe1719416e7e660e2fbc595c2eedca996b
+Transfer  block 31555676  log #0
+  from    0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  to      0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount  0.0001 WPHRS
+  tx      0xaf94b342a2f0ef6ef94b70949a541148a37781058df77159980f94bb61adae93
+          https://atlantic.pharosscan.xyz/tx/0xaf94b342a2f0ef6ef94b70949a541148a37781058df77159980f94bb61adae93
+stopped after 4 polls: 2 new Transfer events; next block to scan 31562994
 ```
 
 ## Make your own event
