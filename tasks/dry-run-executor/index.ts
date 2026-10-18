@@ -30,7 +30,7 @@ export function formatResult(r: DryRunResult): string {
   const out = [`simulation @ block ${s.block}: ${s.ok ? "WOULD SUCCEED" : `WOULD FAIL — ${s.failure}`}`];
   out.push(`  from ${s.request.from} → to ${s.request.to}${s.request.value ? ` · value ${formatEther(s.request.value)} PHRS` : ""}`);
   if (s.gas !== undefined) out.push(`  gas ${s.gas} × ${s.gasPriceWei} wei = ${formatEther(s.costWei!)} PHRS fee`);
-  const note = s.ok ? "predicted" : "unchanged (nothing would happen)";
+  const note = s.ok ? "predicted" : "blocked: unchanged";
   for (const c of s.changes) out.push(`  ${c.who.padEnd(9)} ${fmt(c)} (${note})`);
   if (r.status === "blocked") out.push("BLOCKED: the simulation failed, so nothing was signed or sent");
   if (r.status === "simulated") out.push("not sent: pass --execute to send it");
