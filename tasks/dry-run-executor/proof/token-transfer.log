@@ -1,0 +1,12 @@
+$ npm run dry-run-executor -- --token WPHRS --to 0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B --amount 0.00001 --execute --proof token-transfer
+simulation @ block 31576113: WOULD SUCCEED
+  from 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 → to 0x838800b758277CC111B2d48Ab01e5E164f8E9471
+  gas 66758 × 1000000000 wei = 0.000066758 PHRS fee
+  sender    14.922383771999979 → 14.922317013999979 PHRS (predicted)
+  sender    0.0037 → 0.00369 WPHRS (predicted)
+  recipient 0 → 0.00001 WPHRS (predicted)
+SENT: https://atlantic.pharosscan.xyz/tx/0x3c6456f1d19e6d572f3e5ba86bf9ccf058d69ec47f8ceddb05bf6666d7f74041 (block 31576115)
+prediction vs receipt: gas 66758 → 52476 used (-21.39%) · fee 0.000066758 → 0.000052476 PHRS
+  sender    PHRS: predicted 14.922317013999979, chain says 14.922331295999979 (off by 0.000014282)
+  sender    WPHRS: predicted 0.00369, chain says 0.00369 (exact)
+  recipient WPHRS: predicted 0.00001, chain says 0.00001 (exact)
