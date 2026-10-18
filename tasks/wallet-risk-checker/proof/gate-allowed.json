@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "task": "wallet-risk-checker",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/wallet-risk-checker/index.ts gate --to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --amount 0.0001 --execute --proof gate-allowed",
+    "git": {
+      "commit": "e61be1e3d544",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T07:41:34.881Z"
+  },
+  "gate": {
+    "blockOn": "high",
+    "denied": false,
+    "outcome": "executed"
+  },
+  "request": {
+    "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "amount": "0.0001",
+    "label": "gate 0x8D34…D91B"
+  },
+  "report": {
+    "address": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "network": "atlantic",
+    "block": "31566989",
+    "lookbackBlocks": "30000",
+    "verdict": "low",
+    "signals": [
+      {
+        "id": "kind",
+        "level": "info",
+        "title": "wallet or contract (get_code)",
+        "detail": "It is a plain wallet (no code)."
+      },
+      {
+        "id": "age",
+        "level": "ok",
+        "title": "wallet age (first block with a sent transaction)",
+        "detail": "It first sent a transaction in block 24047255, 128 days before block 31566989. It has been around a while."
+      },
+      {
+        "id": "funding",
+        "level": "ok",
+        "title": "nonce and balance (freshly funded?)",
+        "detail": "It has sent 13 transactions (nonce 13) and holds 15029121205000000000 wei, so it has been used."
+      },
+      {
+        "id": "flagged",
+        "level": "ok",
+        "title": "interaction with flagged addresses",
+        "detail": "None of its 1 token counterpart in blocks 31536989–31566989 is on our flagged list (1 address). Native-coin transfers leave no log and are not covered."
+      },
+      {
+        "id": "approvals",
+        "level": "ok",
+        "title": "approvals to unknown spenders",
+        "detail": "0 open token approvals in blocks 31536989–31566989, none to a spender we do not recognise."
+      },
+      {
+        "id": "counterparties",
+        "level": "info",
+        "title": "token activity in the lookback range",
+        "detail": "4 token transfers with 1 counterpart in blocks 31536989–31566989 (30000 blocks)."
+      }
+    ],
+    "reasons": []
+  },
+  "outcomes": [
+    {
+      "request": {
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "amount": "0.0001",
+        "label": "gate 0x8D34…D91B"
+      },
+      "decision": {
+        "decision": "allow",
+        "rule": "all_rules_passed",
+        "reason": "07:43 UTC is inside 00:00–23:59 UTC; 0.0001 PHRS ≤ 0.001 PHRS per transaction; 0.0001 PHRS ≤ 0.003 PHRS over 3600 s",
+        "checks": [
+          {
+            "rule": "time_window",
+            "pass": true,
+            "detail": "07:43 UTC is inside 00:00–23:59 UTC"
+          },
+          {
+            "rule": "spend_limit_per_tx",
+            "pass": true,
+            "detail": "0.0001 PHRS ≤ 0.001 PHRS per transaction"
+          },
+          {
+            "rule": "spend_limit_per_window",
+            "pass": true,
+            "detail": "0.0001 PHRS ≤ 0.003 PHRS over 3600 s"
+          }
+        ]
+      },
+      "status": "executed",
+      "audit": 2,
+      "tx": "0x45cc6f3496866707c8d59599cc7ff45fcb6b2f311a14551c505fd8ec4d049f51"
+    }
+  ]
+}
