@@ -1,0 +1,9 @@
+$ npm run trend-watcher -- observe --metric basefee --network pharos --state tasks/trend-watcher/state/mainnet-basefee.json --proof mainnet-basefee-4
+observed base fee on pharos: 10 gwei at block 20571413 — stored
+history: base fee on pharos · 4 observations, showing 4 · rule: 3 consecutive falls
+  #1   block 20557922  10 gwei                    start streak 0
+  #2   block 20557929  10 gwei                    flat  streak 0
+  #3   block 20557936  10 gwei                    flat  streak 0
+  #4   block 20571413  10 gwei                    flat  streak 0
+trend: ▁▁▁▁   (none, current streak 0/3)
+no action: streak 0 of 3
