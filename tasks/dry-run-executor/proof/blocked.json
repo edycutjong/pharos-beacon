@@ -10,10 +10,10 @@
     },
     "command": "tasks/dry-run-executor/index.ts --token USDC --to 0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B --amount 1000000000 --proof blocked",
     "git": {
-      "commit": "3f59caef1294",
+      "commit": "0333e8d69ea2",
       "dirty": false
     },
-    "createdAt": "2026-10-18T06:16:49.107Z"
+    "createdAt": "2026-10-18T06:28:11.020Z"
   },
   "result": {
     "simulation": {
@@ -27,7 +27,7 @@
           "decimals": 6
         }
       },
-      "block": "31564571",
+      "block": "31564900",
       "ok": false,
       "gasPriceWei": "1000000000",
       "changes": [
@@ -36,8 +36,8 @@
           "address": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
           "asset": "PHRS",
           "decimals": 18,
-          "before": "14941825638999979000",
-          "after": "14941825638999979000"
+          "before": "14941220638999979000",
+          "after": "14941220638999979000"
         },
         {
           "who": "sender",
