@@ -42,8 +42,8 @@ Runs 1–3 were recorded with the first output format, which set the sum of the 
 | 1 | `--plan all-success --approve --execute` | 4 of 4 APPLIED in one tx; 4 alone ≈ 221288 gas (estimates) vs 134413 batched (receipt) | [`all-success`](proof/all-success.json) · tx [`0xd49fce…3bda`](https://atlantic.pharosscan.xyz/tx/0xd49fceaf08ce9f5d0fa5f25e10cdf562490b35f3833ed569a92ad0ae54e43bda) |
 | 2 | `--plan one-fails --approve --execute` | action 3 NOT APPLIED, 3 of 4 APPLIED; 3 comparable ≈ 154530 vs 119240 batched | [`one-fails`](proof/one-fails.json) · tx [`0x15dfe6…8ec9`](https://atlantic.pharosscan.xyz/tx/0x15dfe684a92a9188e6ad68f0871f44cf930a35a788c9d0fcbffa9743deaa8ec9) |
 | 3 | `--plan one-fails --approve --drop-failing --execute` (the extra) | the failing action is dropped before sending; 3 of 3 APPLIED; ≈ 112849 vs 69135 | [`drop-failing`](proof/drop-failing.json) · tx [`0x6b03fd…9362`](https://atlantic.pharosscan.xyz/tx/0x6b03fd8aa250cf76e89e9b2cd1a0d7aea358f47ab934da1f54b79ecdb2309362) |
-| 4 | `--plan all-success-mix --approve --execute` (run 1's mix: PHRS to an existing wallet, three WPHRS sends to new addresses; plan recipients are random addresses we hold no keys for) | 4 of 4 APPLIED; estimate vs estimate 221274 vs 175148; batch used 134401 (run 1: 134413) | [`all-success-mix`](proof/all-success-mix.json) · [log](proof/all-success-mix.log) · tx [`0x1b0438…116b`](https://atlantic.pharosscan.xyz/tx/0x1b0438854e5cb385587ddda7d73fd57979462c88b2f0042cf5b7c64e114f116b), block 31580054 |
-| 5 | `--plan all-success-fresh --approve --execute` (the same, but the PHRS recipient is also a new address) | 4 of 4 APPLIED; the batch used 159401, **25,000 more** than run 4: inside a batch the value call to an account that does not exist yet pays the new-account charge, which a plain top-level send does not (21000 either way, [executed.json](../dry-run-executor/proof/executed.json)) | [`all-success-fresh`](proof/all-success-fresh.json) · [log](proof/all-success-fresh.log) · tx [`0x507d0d…ae47`](https://atlantic.pharosscan.xyz/tx/0x507d0dde509c54fb4f962b86f04ffa9ef1e2f140ed082f1069755f1bc736ae47), block 31580066 |
+| 4 | `--plan all-success-mix --approve --execute` (run 1's mix: PHRS to an existing wallet, three WPHRS sends to new addresses; plan recipients are random addresses we hold no keys for) | 4 of 4 APPLIED; estimate vs estimate 221274 vs 175148; batch used 134401 (run 1: 134413) | [`all-success-mix`](proof/all-success-mix.json) · [log](proof/all-success-mix.log) · tx [`0x180e4f…de27`](https://atlantic.pharosscan.xyz/tx/0x180e4f28c0f8354c885b473f655d87072574be594528ec01216d9ee1cef7de27), block 31580362 |
+| 5 | `--plan all-success-fresh --approve --execute` (the same, but the PHRS recipient is also a new address) | 4 of 4 APPLIED; the batch used 159401, **25,000 more** than run 4: inside a batch the value call to an account that does not exist yet pays the new-account charge, which a plain top-level send does not (21000 either way, [executed.json](../dry-run-executor/proof/executed.json)) | [`all-success-fresh`](proof/all-success-fresh.json) · [log](proof/all-success-fresh.log) · tx [`0x16b33e…1d93`](https://atlantic.pharosscan.xyz/tx/0x16b33ee1a92751c3201dcd6ba1d2e0e16eef9018ad87ce253c3e63b9e1841d93), block 31580374 |
 
 Output of the video's partial-failure run ([`proof/video-casts.log`](proof/video-casts.log), `--compact` layout; the default layout prints the full addresses and reasons):
 
@@ -68,23 +68,23 @@ The current format, run 4 (full layout, from [`proof/all-success-mix.log`](proof
 
 ```text
 $ npm run batch-executor -- --plan all-success-mix --approve --execute --proof all-success-mix
-batch @ block 31580050: 4 action(s) → 1 transaction to Multicall3 0xcA11bde05977b3631167028862bE2a173976CA11
+batch @ block 31580358: 4 action(s) → 1 transaction to Multicall3 0xcA11bde05977b3631167028862bE2a173976CA11
   1. send 0.0001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B     would succeed · alone 21000 gas
-  2. send 0.00001 WPHRS to 0x42De2cd397373DadcC23b8E3E7d136D8479cA8C3   would succeed · alone 66758 gas
-  3. send 0.00002 WPHRS to 0x87264f03f7E7d7AAA742153beBf3137187709f49   would succeed · alone 66758 gas
-  4. send 0.00003 WPHRS to 0xEAd694c762E48df699caEFdcb504c3011c90FB6F   would succeed · alone 66758 gas
+  2. send 0.00001 WPHRS to 0xf8d18da5696e48931F67F5c781aAB88312D899FA   would succeed · alone 66758 gas
+  3. send 0.00002 WPHRS to 0xcf324672aF13fE8C36c198Fd2a08379FE3c6D4B9   would succeed · alone 66758 gas
+  4. send 0.00003 WPHRS to 0x608795D4fb4e2a1F78CED363d669bA98DA305d08   would succeed · alone 66758 gas
   batch gas estimate 175148 × 1000000000 wei = 0.000175148 PHRS
-approved Multicall3 to move WPHRS: https://atlantic.pharosscan.xyz/tx/0x9a8a6136c4903140f293e1abbd78bdc38e648f2813deaf4e113f6955f3e423cb
-SENT: https://atlantic.pharosscan.xyz/tx/0x1b0438854e5cb385587ddda7d73fd57979462c88b2f0042cf5b7c64e114f116b (block 31580054, gas used 134401)
+approved Multicall3 to move WPHRS: https://atlantic.pharosscan.xyz/tx/0x6f5217f2f304672fa3ddc74f67eef5265aefd0be3444634846066396c9608369
+SENT: https://atlantic.pharosscan.xyz/tx/0x180e4f28c0f8354c885b473f655d87072574be594528ec01216d9ee1cef7de27 (block 31580362, gas used 134401)
 per action, read back from the chain:
   1. APPLIED  send 0.0001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B — recipient received 0.0001 PHRS
-  2. APPLIED  send 0.00001 WPHRS to 0x42De2cd397373DadcC23b8E3E7d136D8479cA8C3 — recipient received 0.00001 WPHRS
-  3. APPLIED  send 0.00002 WPHRS to 0x87264f03f7E7d7AAA742153beBf3137187709f49 — recipient received 0.00002 WPHRS
-  4. APPLIED  send 0.00003 WPHRS to 0xEAd694c762E48df699caEFdcb504c3011c90FB6F — recipient received 0.00003 WPHRS
+  2. APPLIED  send 0.00001 WPHRS to 0xf8d18da5696e48931F67F5c781aAB88312D899FA — recipient received 0.00001 WPHRS
+  3. APPLIED  send 0.00002 WPHRS to 0xcf324672aF13fE8C36c198Fd2a08379FE3c6D4B9 — recipient received 0.00002 WPHRS
+  4. APPLIED  send 0.00003 WPHRS to 0x608795D4fb4e2a1F78CED363d669bA98DA305d08 — recipient received 0.00003 WPHRS
   all 4 applied
 gas, estimate vs estimate (like for like): 4 action(s) sent one by one ≈ 221274 vs the batch ≈ 175148 → saves 20.84%
-gas used by the batch (receipt): 134401; that is 39.26% less than the one-by-one estimate, which runs high on token transfers: README "Gas, honestly"
-counting this run's approve transaction(s) (46698 gas used): 181099 for the batch against 221274 one by one (estimate) → saves 18.15%
+gas used by the batch (receipt): 134401 (its own estimate was 175148; estimates run high on token transfers, so the one-by-one figures above are probably high too: README "Gas, honestly")
+counting this run's approve transaction(s) (46698 gas used): the batch used 181099 gas in all, for 4 actions that cost ≈ 221274 one by one by estimate
 steps: 4 transactions to sign and send alone → 1 batch transaction (+1 one-time approve transaction this run: the allowance Multicall3 needs; see "Gas, honestly" in the README)
 ```
 
