@@ -10,9 +10,9 @@ a small wrapper on the Developer Docs MCP that searches the Pharos docs from a t
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
 | 1 | Accepts a natural-language question as input, e.g. `pharos-docs "how do I deploy a contract?"` | the bin is called `pharos-docs`; the question is the argument (unquoted words are joined) | [`bin/pharos-docs.mjs`](../../bin/pharos-docs.mjs) · [Example 1](#example-1) |
-| 2 | Returns a concise answer plus links or references to the source doc sections | the answer from `askQuestion`, then its cited pages as absolute links (de-duplicated, 5 shown, `--sources N` for more) | [`index.ts`](index.ts) `format` · Examples 1–3 |
-| 3 | Handles "no good answer found" gracefully instead of inventing one | no cited source, or a reply that says it found nothing → "Not found in the Pharos docs", the model's text is dropped, the 3 closest pages from `searchDocumentation` are listed, exit code 3 | [Example 4](#example-4-a-question-the-docs-cannot-answer) · `test/doc-search-cli.test.ts` |
-| 4 | README with install and usage instructions and 3 example queries with outputs | this file | Examples 1–3 below (rendered by the CLI from the `proof/*.json` runs) |
+| 2 | Returns a concise answer plus links or references to the source doc sections | the answer from `askQuestion`, then its cited pages as absolute links (de-duplicated by URL, the pages the answer itself links first, same-titled pages told apart by their docs section, 5 shown, `--sources N` for more) | [`index.ts`](index.ts) `format` · Examples 1–3 |
+| 3 | Handles "no good answer found" gracefully instead of inventing one | no cited source, or a reply that says it found nothing → "Not found in the Pharos docs", the model's text is dropped, the 3 closest pages from `searchDocumentation` are listed, exit code 3 | [Example 4](#example-4-a-question-the-docs-cannot-answer) · [Example 5](#example-5-a-pharos-question-the-docs-do-not-cover) · `test/doc-search-cli.test.ts` |
+| 4 | README with install and usage instructions and 3 example queries with outputs | this file | Examples 1–5 below (rendered by the CLI from the `proof/*.json` runs) |
 
 ## Install
 
@@ -56,47 +56,43 @@ nothing. Otherwise the CLI prints a clear "not found" line, calls `searchDocumen
 
 ## Example queries (real output)
 
-Each block below is the CLI's output from the proof run named under it (2026-10-18).
+Each block below is the CLI's output from the proof run named under it (2026-10-18), rendered from the proof JSON by the CLI's own formatter.
 
 ### Example 1
 
 ```text
 $ pharos-docs "how do I deploy a contract?"
-For Pharos, you can deploy with **Foundry**:
+On Pharos, compile and test your contract, then deploy it with Foundry or Hardhat. You’ll need a Pharos RPC URL and a funded wallet for deployment gas.
 
-1. Compile and test your contract:
+**Foundry:** Set your private key, then run your deployment script:
 
-   ```sh
-   forge build
-   forge test
-   ```
-2. Create a Foundry script that loads your deployer key, starts broadcasting, and deploys the contract:
+```bash
+export PRIVATE_KEY=<your-private-key>
+forge build
+forge test
+forge script script/DeployToken.s.sol \
+  --rpc-url <PHAROS_RPC_URL> \
+  --broadcast
+```
 
-   ```solidity
-   uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-   vm.startBroadcast(deployerPrivateKey);
+Your script should load `PRIVATE_KEY`, start broadcasting, and create the contract with `new YourContract(...)`. See the [Write Your First Token](https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token) for a complete example.
 
-   Token token = new Token(1_000_000);
+**Hardhat:** Store the key with `npx hardhat vars set PRIVATE_KEY`, then compile and deploy:
 
-   vm.stopBroadcast();
-   ```
+```bash
+npx hardhat compile
+npx hardhat test
+npx hardhat ignition deploy ./ignition/modules/Token.js --network pharos
+```
 
-   Replace `Token` and its constructor arguments with your contract’s details.
-3. Set the key and deploy to your chosen network:
-
-   ```sh
-   export PRIVATE_KEY=<your_private_key>
-   forge script script/DeployToken.s.sol --rpc-url <PHAROS_RPC_URL> --broadcast
-   ```
-
-Your wallet needs enough testnet tokens to cover deployment costs. See the [Write Your First Token](https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token) for the full example, or the [Write Your First Token](https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token) if you use Hardhat.
+See the [Write Your First Token](https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token) for network configuration and an example.
 
 Sources:
-  - Write Your First Uniswap Contract: https://docs.pharos.xyz/developer-guide/foundry/write-your-first-uniswap-contract
-  - Write Your First Uniswap Contract: https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract
+  - Write Your First Token (foundry): https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token
+  - Write Your First Token (hardhat): https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token
+  - Write Your First Uniswap Contract (foundry): https://docs.pharos.xyz/developer-guide/foundry/write-your-first-uniswap-contract
+  - Write Your First Uniswap Contract (hardhat): https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract
   - Validator Node Deployment: https://docs.pharos.xyz/node-and-validator-guide/validator-node-deployment
-  - Write Your First Token: https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token
-  - Write Your First NFT: https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-nft
   (+5 more cited by the docs; use --sources 10 to list them)
 ```
 
@@ -106,7 +102,7 @@ Exit code 0. Proof: [`proof/how-do-i-deploy-a-contract.json`](proof/how-do-i-dep
 
 ```text
 $ pharos-docs "what is the chain ID and RPC URL of the Atlantic testnet?"
-The Atlantic Testnet uses:
+Atlantic Testnet uses:
 
 * **Chain ID:** `688689`
 * **RPC URL:** `https://atlantic.dplabs-internal.com`
@@ -118,7 +114,7 @@ Sources:
   - x402 Atlantic Testnet: https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet
   - Node Management: https://docs.pharos.xyz/node-and-validator-guide/node-management
   - ZAN RPC: https://docs.pharos.xyz/tooling-and-infrastructure/rpc/zan
-  - Write Your First Token: https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token
+  - Write Your First Token (hardhat): https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token
   (+5 more cited by the docs; use --sources 10 to list them)
 ```
 
@@ -128,26 +124,20 @@ Exit code 0. Proof: [`proof/what-is-the-chain-id-and-rpc-url-of-the-atlantic-tes
 
 ```text
 $ pharos-docs "how do I get testnet tokens from the faucet?"
-The docs don’t specify the faucet URL or claim steps. They do say to get testnet PHRS from the Pharos faucet or directly from the team.
+Add the **Pharos Atlantic Testnet** to your wallet, then request testnet PHRS from the Pharos faucet using your wallet address. The network uses RPC `https://atlantic.dplabs-internal.com`, chain ID `688689`, and token symbol `PHRS`.
 
-Before claiming, add **Pharos Atlantic Testnet** to your wallet:
-
-* RPC: `https://atlantic.dplabs-internal.com`
-* Chain ID: `688689`
-* Token symbol: `PHRS`
-
-See [Atlantic Testnet](https://docs.pharos.xyz/getting-started/network/atlantic-testnet).
+The docs don’t provide the faucet URL or claim steps. See [Atlantic Testnet](https://docs.pharos.xyz/getting-started/network/atlantic-testnet) and [Piggy Bank Tutorial](https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide).
 
 Sources:
-  - Token Registry: https://docs.pharos.xyz/getting-started/token-registry
-  - Write Your First Token: https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token
   - Atlantic Testnet: https://docs.pharos.xyz/getting-started/network/atlantic-testnet
-  - Write Your First Token: https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token
-  - Write Your First NFT: https://docs.pharos.xyz/developer-guide/foundry/write-your-first-nft
-  (+11 more cited by the docs; use --sources 16 to list them)
+  - Piggy Bank Tutorial: https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide
+  - Token Registry: https://docs.pharos.xyz/getting-started/token-registry
+  - Write Your First Token (foundry): https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token
+  - Write Your First Token (hardhat): https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token
+  (+7 more cited by the docs; use --sources 12 to list them)
 ```
 
-Exit code 0. Proof: [`proof/how-do-i-get-testnet-tokens-from-the-faucet.json`](proof/how-do-i-get-testnet-tokens-from-the-faucet.json).
+Exit code 0. Proof: [`proof/how-do-i-get-testnet-tokens-from-the-faucet.json`](proof/how-do-i-get-testnet-tokens-from-the-faucet.json). The missing faucet URL is also gap 2 in the [Docs MCP Onboarding](../docs-mcp-onboarding/ONBOARDING.md#gaps-and-suggested-fixes) log.
 
 ### Example 4: a question the docs cannot answer
 
@@ -163,6 +153,20 @@ Closest pages (they may not answer it):
 
 Exit code 3. Proof: [`proof/what-is-the-best-pizza-recipe-in-naples.json`](proof/what-is-the-best-pizza-recipe-in-naples.json).
 
+### Example 5: a Pharos question the docs do not cover
+
+```text
+$ pharos-docs "how do I bridge to Solana from Pharos?"
+Not found in the Pharos docs: no good answer to this question, so none is given.
+
+Closest pages (they may not answer it):
+  - ZAN RPC: https://docs.pharos.xyz/tooling-and-infrastructure/rpc/zan
+  - Pharos Skill Engine: https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide
+  - About Pharos: https://docs.pharos.xyz/introduction/readme
+```
+
+Exit code 3. Proof: [`proof/how-do-i-bridge-to-solana-from-pharos.json`](proof/how-do-i-bridge-to-solana-from-pharos.json).
+
 ## Proof
 
 | Run | Result | File |
@@ -171,6 +175,7 @@ Exit code 3. Proof: [`proof/what-is-the-best-pizza-recipe-in-naples.json`](proof
 | Atlantic chain ID and RPC | answered, sources listed | [`proof/what-is-the-chain-id-and-rpc-url-of-the-atlantic-testnet.json`](proof/what-is-the-chain-id-and-rpc-url-of-the-atlantic-testnet.json) |
 | faucet | answered, with the docs' own admission that the faucet URL is not specified | [`proof/how-do-i-get-testnet-tokens-from-the-faucet.json`](proof/how-do-i-get-testnet-tokens-from-the-faucet.json) |
 | off-topic question | not found, closest pages, exit 3 | [`proof/what-is-the-best-pizza-recipe-in-naples.json`](proof/what-is-the-best-pizza-recipe-in-naples.json) |
+| Pharos question the docs do not cover (bridge to Solana) | not found, closest pages, exit 3 | [`proof/how-do-i-bridge-to-solana-from-pharos.json`](proof/how-do-i-bridge-to-solana-from-pharos.json) |
 
 Each proof was written from a clean, committed tree (`meta.git.dirty` is false). The task is read-only; there is no transaction.
 
@@ -178,11 +183,12 @@ Each proof was written from a clean, committed tree (`meta.git.dirty` is false).
 
 - The answer text is written by the Docs MCP's own `askQuestion`; the CLI does not verify it beyond requiring a cited source.
 - "No good answer" is detected from the reply wording ("cannot find…", "not documented…") plus an empty source list. A reply phrased
-  differently with sources would be shown as an answer.
+  differently with sources would be shown as an answer. The same holds the other way: an answer that opens with "the docs do not list …" (bold or not) is
+  treated as not found even when it goes on to say something useful, so a half-answer phrased that way loses its second half.
 - The listed sources are what the Docs MCP cites; for broad questions some may be loosely related (see Example 1).
 
 ## Tests
 
-`npm test` runs 11 tests for this task (`test/doc-search-cli.test.ts`) against a fake Docs client with replies recorded from the live
-server: answer + de-duplicated sources, the off-topic path (no answer text printed, closest pages from `searchDocumentation`),
+`npm test` runs 14 tests for this task (`test/doc-search-cli.test.ts`) against a fake Docs client with replies recorded from the live
+server: answer + de-duplicated sources (linked pages first, same-titled pages told apart), a bolded refusal counting as not found, the off-topic path (no answer text printed, closest pages from `searchDocumentation`),
 `askQuestion` failing, both calls failing, relative links made absolute, the `--sources` cap, `--json`, exit codes, and usage errors.

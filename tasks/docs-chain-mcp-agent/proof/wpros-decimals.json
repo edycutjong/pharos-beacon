@@ -10,12 +10,12 @@
     },
     "command": "tasks/docs-chain-mcp-agent/index.ts --contract 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0 --function decimals --proof",
     "git": {
-      "commit": "f6129c691d7b",
+      "commit": "f0f7acf19d31",
       "dirty": false
     },
-    "createdAt": "2026-10-18T04:04:43.262Z"
+    "createdAt": "2026-10-18T14:03:21.297Z"
   },
-  "head": "20534852",
+  "head": "20573659",
   "step": {
     "target": {
       "contract": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
@@ -26,9 +26,9 @@
       "question": "What does the decimals() function of a token like WPROS (Wrapped PROS) do on Pharos, and how should its result be read?",
       "documented": true,
       "excerpt": [
-        "decimals() returns the token’s decimal precision — the number of places used to interpret its integer-denominated amounts.",
-        "The Token Registry lists WPROS on Pacific Mainnet at 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0, but doesn’t specify its decimals value.",
-        "The token interaction examples show decimals() returning uint8; see Write Your First Token."
+        "decimals() returns the token’s decimal-precision setting.",
+        "Use it to convert the contract’s integer token amounts into human-readable units: divide the raw amount by 10^decimals.",
+        "The Token Registry lists WPROS at 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0, but doesn’t specify its decimals."
       ],
       "sources": [
         {
@@ -70,34 +70,6 @@
         {
           "title": "Chainlink Push Engine Feeds",
           "url": "https://docs.pharos.xyz/tooling-and-infrastructure/oracles/chainlink-pe"
-        },
-        {
-          "title": "Write Your First Token",
-          "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
-        },
-        {
-          "title": "Rust",
-          "url": "https://docs.pharos.xyz/developer-guide/rust"
-        },
-        {
-          "title": "Write Your First Token",
-          "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
-        },
-        {
-          "title": "Write Your First NFT",
-          "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-nft"
-        },
-        {
-          "title": "Write Your First Uniswap Contract",
-          "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-uniswap-contract"
-        },
-        {
-          "title": "Canonical Contracts",
-          "url": "https://docs.pharos.xyz/getting-started/canonical-contracts"
-        },
-        {
-          "title": "Interoperability",
-          "url": "https://docs.pharos.xyz/developer-guide/interoperability"
         }
       ],
       "listedInDocs": true,
@@ -107,9 +79,9 @@
       ]
     },
     "chain": {
-      "block": "20534852",
+      "block": "20573659",
       "raw": "18"
     },
-    "interpretation": "Docs: \"decimals() returns the token’s decimal precision — the number of places used to interpret its integer-denominated amounts. The Token Registry lists WPROS on Pacific Mainnet at 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0, but doesn’t specify its decimals value. The token interaction examples show decimals() returning uint8; see Write Your First Token.\" The chain returned 18, so 1 whole token is 10^18 base units, and an amount shown with 18 decimal places is the base-unit integer divided by that."
+    "interpretation": "Docs: \"decimals() returns the token’s decimal-precision setting. Use it to convert the contract’s integer token amounts into human-readable units: divide the raw amount by 10^decimals. The Token Registry lists WPROS at 0x52c48d4213107b20bc583832b0d951fb9ca8f0b0, but doesn’t specify its decimals.\" The chain returned 18, so 1 whole token is 10^18 base units, and an amount shown with 18 decimal places is the base-unit integer divided by that."
   }
 }

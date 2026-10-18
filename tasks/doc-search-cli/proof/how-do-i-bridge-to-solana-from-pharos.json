@@ -1,0 +1,36 @@
+{
+  "meta": {
+    "task": "doc-search-cli",
+    "network": "docs",
+    "chainId": null,
+    "mcp": {
+      "endpoint": "https://docs.pharos.xyz/~gitbook/mcp"
+    },
+    "command": "bin/pharos-docs.mjs how do I bridge to Solana from Pharos? --proof",
+    "git": {
+      "commit": "db9d8a94e5c1",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T13:56:25.234Z"
+  },
+  "result": {
+    "question": "how do I bridge to Solana from Pharos?",
+    "found": false,
+    "answer": "The Pharos docs don’t list a supported **Pharos ↔ Solana** bridge route. The documented [Chainlink CCIP](/tooling-and-infrastructure/cross-chain/chainlink-ccip) are Ethereum, Jovay, Polygon, and Base.\n\nPharos also documents [LayerZero](/tooling-and-infrastructure/cross-chain/layerzero) and [Circle CCTP](/tooling-and-infrastructure/cross-chain/circle-cctp), but their Pharos pages don’t specify a Solana route or user transfer steps. I can’t confirm a way to bridge from Pharos to Solana from the available docs.",
+    "sources": [],
+    "closest": [
+      {
+        "title": "ZAN RPC",
+        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/rpc/zan"
+      },
+      {
+        "title": "Pharos Skill Engine",
+        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/pharos-skill-engine-guide"
+      },
+      {
+        "title": "About Pharos",
+        "url": "https://docs.pharos.xyz/introduction/readme"
+      }
+    ]
+  }
+}

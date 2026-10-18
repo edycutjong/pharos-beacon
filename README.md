@@ -1,17 +1,12 @@
 # Beacon
 
-Agent tools for **Pharos**, built task by task for the Pharos Season of AI Agent Arena.
-The tasks share one toolkit in `src/lib/`: a Pharos Chain MCP client that checks which chain it is talking to,
-paces itself under the hosted server's rate limit and retries only safe reads; a testnet signer (`npm run ping`
-exercises it) for which the Chain MCP prepares, broadcasts and confirms each transaction while viem only signs; a proof
-writer, a CLI runner and crash-safe state files; and chain constants copied from SkillEngine's `assets/`. Threshold
-Guardian predates the signer, the proof writer, the CLI runner and the state helpers: it has its own CLI, sends with a
-viem wallet, confirms the receipt through the Chain MCP, and its proof files hold the policy and the outcome. The repo also ships a tested client for the Developer Docs
-MCP (`src/lib/docs-mcp.ts`), which the two Docs MCP tasks use. Each task lives in its own folder under `tasks/`; tasks that
-ship as agent skills also have a folder under `skills/`.
+Agent tools for **Pharos**, one folder per Season of AI Agent Arena task: each `tasks/<slug>/README.md` maps the
+task's requirements to committed evidence (proof files, Atlantic tx links). Where the docs or the chain don't
+support an answer, the tools say "not found", "not covered" or "inferred" instead of guessing.
+Reviewing one task? It's in the table below; shared code is in `src/lib/`.
 
-**How it is built.** Written with AI assistance (Claude Code). The feature choices, the design decisions and the
-review and merge of each task's pull request are by [@edycutjong](https://github.com/edycutjong).
+**How it is built.** Written with AI assistance (Claude Code). The feature choices and the design decisions are by
+[@edycutjong](https://github.com/edycutjong). The first tasks were committed straight to `main`; the later ones arrive as pull requests for the author to review and merge.
 
 ## Tasks
 
@@ -24,15 +19,18 @@ review and merge of each task's pull request are by [@edycutjong](https://github
 | [Whale-Watching Agent](tasks/whale-watching-agent/) | Medium | Watches 7 configurable addresses on Pharos mainnet, reports significant USDC / WPROS moves above a per-token threshold with decimals, labels where known (`unlabelled wallet|contract` otherwise), the balance before and after and why it matters, a summary across all addresses, and Discord alerts for the moves furthest above their thresholds | [proof/](tasks/whale-watching-agent/proof/) |
 | [Read Contract State](tasks/read-contract-state/) | Easy | Reads name, symbol, decimals, totalSupply, balances, owner and paused from Pharos mainnet USDC through the Chain MCP, pinned to one block, decimals applied, addresses labelled | [proof JSON](tasks/read-contract-state/proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) (read-only, no tx) |
 | [Doc-Search CLI](tasks/doc-search-cli/) | Easy | `pharos-docs "<question>"`: a concise answer with source links from the Developer Docs MCP; says "not found" with the closest pages instead of inventing an answer | [proof/](tasks/doc-search-cli/proof/) (read-only, no tx) |
-| [dApp Support Agent](tasks/dapp-support-agent/) | Easy | `npm run dapp-support-agent -- 0x<txHash>`: replays a failed transaction one block earlier and explains the cause (balance, allowance, out of gas, revert reason) in plain words with a fix | [proof/](tasks/dapp-support-agent/proof/) (4 real failed Atlantic txs) |
+| [dApp Support Agent](tasks/dapp-support-agent/) | Easy | `npm run dapp-support-agent -- 0x<txHash>`: replays a failed transaction one block earlier and explains the cause (balance, allowance, out of gas, revert reason) in plain words with a fix | [proof/](tasks/dapp-support-agent/proof/) (4 real failed Atlantic txs, 2 failed mainnet txs from other wallets) |
 | [Docs MCP + Chain MCP Agent](tasks/docs-chain-mcp-agent/) | Medium | `npm run docs-chain-mcp-agent`: explains a contract function from the Docs MCP (cited pages must name it), calls it via the Chain MCP, and reads the result against the explanation; says so when the docs do not describe it | [proof/](tasks/docs-chain-mcp-agent/proof/usdc-balanceof.json) |
+| [Event/Log Monitor](tasks/event-log-monitor/) | Easy | Watches a contract's event (Transfer, Approval, or a full signature) through the Chain MCP, with a cursor so a restart neither misses nor repeats a log | [live run](tasks/event-log-monitor/proof/live-run.json) · [restart](tasks/event-log-monitor/proof/restart-run.json) |
+| [On-Chain Alert Bot](tasks/on-chain-alert-bot/) | Easy | Rules over logs (a large transfer, a threshold) sent to a Discord webhook once each; the same shared poller as the Event/Log Monitor | [live run](tasks/on-chain-alert-bot/proof/live-run.json) · [restart](tasks/on-chain-alert-bot/proof/restart-run.json) |
 | [Docs MCP Onboarding](tasks/docs-mcp-onboarding/) | Easy | An honest step-by-step log of onboarding with only the Docs MCP: 9 steps, 5 gaps with exact queries and suggested fixes, raw transcript | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0x01cd6b78d83947c46e45d2e6c283ed68ea9dc6a9493b422c30163d42f704fe88) · [transcript](tasks/docs-mcp-onboarding/proof/transcript.md) |
+| [Doc-Grounded Builder Agent](tasks/doc-grounded-builder-agent/) | Hard | `npm run doc-grounded-builder-agent -- "how do I …"`: plans from the Docs MCP (page that names the method cited), does it through the Chain MCP (a send is PREPARED until `--execute`, Atlantic only), verifies it on chain, and says "the docs don't cover this" when they don't | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0xfb8a0cb0fcc271767e90940b280d94c42b08ce533071cae0d89b1684fa09facc) · [executed.json](tasks/doc-grounded-builder-agent/proof/executed.json) |
 
 ## Quick start
 
 ```bash
 npm ci
-npm test            # 453 tests: guardian, gatekeeper, dry-run executor, gas optimizer, read-contract-state, watcher, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, whale watcher, Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 460 tests: guardian, gatekeeper, dry-run executor, read-contract-state, watcher, event monitor, alert bot, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, doc-grounded builder agent, gas optimizer, whale watcher, Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
@@ -63,9 +61,21 @@ Mainnet (chain 1672) is read-only here.
 | `src/gatekeeper/` | Policy Gatekeeper: policy schema, pure evaluator, hash-chained audit log, request runner |
 | `src/dryrun/` | Dry-Run Executor: simulation (`eth_call` + `estimate_gas`), balance changes, the simulate-then-send gate |
 | `src/gas/` | Gas Fee Optimizer: price samples, percentile target, the hold-until-cheap loop, paid-vs-request report |
+| `src/watch/` | the shared log poller (cursor, handled-set, decoding) and the Discord notifier used by the Event/Log Monitor, the Alert Bot |
 | `skills/<name>/` | agent skills in SkillEngine format (`SKILL.md` + `references/`), installable with `npx skills add` |
 | `tasks/<slug>/` | one Arena task each: entry point + README + proof (start from `tasks/_template/`) |
 | `test/` | vitest tests; a task's own tests can also live in `tasks/<slug>/*.test.ts` |
+
+## Internals
+
+The tasks share one toolkit in `src/lib/`: a Pharos Chain MCP client that checks which chain it is talking to,
+paces itself under the hosted server's rate limit and retries only safe reads; a testnet signer (`npm run ping`
+exercises it) for which the Chain MCP prepares, broadcasts and confirms each transaction while viem only signs; a proof
+writer, a CLI runner and crash-safe state files; and chain constants copied from SkillEngine's `assets/`. Threshold
+Guardian predates the signer, the proof writer, the CLI runner and the state helpers: it has its own CLI, sends with a
+viem wallet, confirms the receipt through the Chain MCP, and its proof files hold the policy and the outcome. The repo also ships a tested client for the Developer Docs
+MCP (`src/lib/docs-mcp.ts`), which the four Docs MCP tasks (Doc-Search, Onboarding, Docs + Chain, Builder) use. Each task lives in its own folder under `tasks/`; tasks that
+ship as agent skills also have a folder under `skills/`.
 
 ## License
 
