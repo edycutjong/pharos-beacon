@@ -129,12 +129,27 @@ describe("runBatch", () => {
   it("a run that had to approve says so on the steps line, in both layouts", async () => {
     const c = chain();
     const r = await runBatch(c.call, FROM, resolveActions(specs, FROM), { execute: true, dropFailing: false, send: send(c, [0, 1, 2]) });
-    const withApprove = { ...r, approvals: [{ token: "WPHRS", tx: `0x${"cd".repeat(32)}` as Hex }] };
+    const withApprove = { ...r, approvals: [{ token: "WPHRS", tx: `0x${"cd".repeat(32)}` as Hex, gasUsed: 46710n }] };
     expect(formatResult(withApprove)).toContain("→ 1 batch transaction (+1 one-time approve transaction this run");
     expect(formatCompact(withApprove)).toContain("steps: 3 transactions alone → 1 (+1 approve tx this run)");
     expect(formatCompact(withApprove).split("\n").every((l) => l.length < 62)).toBe(true);
     expect(formatResult(r)).not.toContain("approve transaction");
+    // the saving once the approve is counted: 70000 + 46710 used against 121000 estimated alone → still a saving here (3.3%), and a loss when it is not
+    expect(formatResult(withApprove)).toContain("counting this run's approve transaction(s) (46710 gas used): 116710 for the batch against 121000 one by one (estimate) → saves 3.54%");
+    expect(formatCompact(withApprove)).toContain("with approve (+46710): 116710 → saves 3.54%");
+    const dearer = { ...withApprove, approvals: [{ token: "WPHRS", tx: `0x${"cd".repeat(32)}` as Hex, gasUsed: 90000n }] };
+    expect(formatCompact(dearer)).toContain("with approve (+90000): 160000 → costs more by 32.23%");
   });
+
+  it("the gas lines say what is estimated and what is a receipt, estimate against estimate first", async () => {
+    const c = chain();
+    const r = await runBatch(c.call, FROM, resolveActions(specs, FROM), { execute: true, dropFailing: false, send: send(c, [0, 1, 2]) });
+    const text = formatResult(r);
+    expect(text).toContain("gas, estimate vs estimate (like for like): 3 action(s) sent one by one ≈ 121000 vs the batch ≈ 90000 → saves 25.61%");
+    expect(text).toContain("gas used by the batch (receipt): 70000");
+    expect(text).not.toContain("saved");
+    expect(formatCompact(r)).toContain("gas est.: alone 121000 vs batch 90000 → saves 25.61%");
+    expect(formatCompact(r).split("\n").every((l) => l.length < 62)).toBe(true);  });
 
   it("partial failure: the failed action is named, the rest are applied and not undone", async () => {
     const c = chain({ failing: [1] });

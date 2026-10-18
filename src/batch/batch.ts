@@ -198,7 +198,7 @@ export interface BatchResult {
   /** Why a viable-looking batch was not sent (set with status "blocked"). */
   blockReason?: string;
   /** Allowance given to Multicall3 per token, when --approve had to raise it. */
-  approvals?: { token: string; tx: Hex }[];
+  approvals?: { token: string; tx: Hex; /** gas the approve used, from its receipt */ gasUsed?: bigint }[];
 }
 
 export const pct = (num: bigint, den: bigint): string => {

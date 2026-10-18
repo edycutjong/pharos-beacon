@@ -13,10 +13,38 @@ import { chainMcp, type ChainMcp } from "../../src/lib/mcp.js";
 import { explorerTx } from "../../src/lib/networks.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { testnetSigner } from "../../src/lib/signer.js";
-import { MULTICALL3, PlanError, fmtAmount, resolveActions, runBatch, type Action, type BatchResult, type Call } from "../../src/batch/batch.js";
+import { MULTICALL3, PlanError, fmtAmount, pct, resolveActions, runBatch, type Action, type BatchResult, type Call } from "../../src/batch/batch.js";
 
 const TASK = "batch-executor";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
+
+/**
+ * The gas comparison, said as what it is. "Alone" is an `estimate_gas` figure and the batch is a receipt, and the estimates run high on
+ * token transfers (a cold-recipient transfer was estimated at 66758 and used 52476), so the like-for-like line is estimate against
+ * estimate, the batch's receipt follows, and a run that had to approve also says what the saving is once its approve is counted.
+ */
+function gasLines(r: BatchResult, compact: boolean): string[] {
+  const c = r.comparison!;
+  const verb = (saved: bigint, base: bigint) => `${saved >= 0n ? "saves" : "costs more by"} ${pct(saved >= 0n ? saved : -saved, base)}%`;
+  const out: string[] = [];
+  if (c.batchGasEstimated > 0n) {
+    const d = c.individualGas - c.batchGasEstimated;
+    out.push(compact
+      ? `gas est.: alone ${c.individualGas} vs batch ${c.batchGasEstimated} → ${verb(d, c.individualGas)}`
+      : `gas, estimate vs estimate (like for like): ${c.comparable} action(s) sent one by one ≈ ${c.individualGas} vs the batch ≈ ${c.batchGasEstimated} → ${verb(d, c.individualGas)}`);
+  }
+  out.push(compact
+    ? `gas used by the batch (receipt): ${c.batchGasUsed}`
+    : `gas used by the batch (receipt): ${c.batchGasUsed}; against the one-by-one estimate that is ${verb(c.savedGas, c.individualGas)}, but estimates run high on token transfers: README "Gas, honestly"`);
+  const ap = (r.approvals ?? []).reduce((t, a) => t + (a.gasUsed ?? 0n), 0n);
+  if (ap > 0n) {
+    const withAp = c.batchGasUsed + ap;
+    out.push(compact
+      ? `with approve (+${ap}): ${withAp} → ${verb(c.individualGas - withAp, c.individualGas)}`
+      : `counting this run's approve transaction(s) (${ap} gas used): ${withAp} for the batch against ${c.individualGas} one by one (estimate) → ${verb(c.individualGas - withAp, c.individualGas)}`);
+  }
+  return out;
+}
 
 export function formatResult(r: BatchResult): string {
   const { sim } = r;
@@ -42,9 +70,7 @@ export function formatResult(r: BatchResult): string {
   }
   if (r.comparison) {
     const c = r.comparison;
-    const word = c.savedGas >= 0n ? "saved" : "cost MORE by";
-    const abs = c.savedGas >= 0n ? c.savedGas : -c.savedGas;
-    out.push(`gas: ${c.comparable} action(s) sent one by one ≈ ${c.individualGas} (sum of estimates) vs ${c.batchGasUsed} used by the batch → ${word} ${abs} (${c.savedPct.replace("-", "")}%)`);
+    out.push(...gasLines(r, false));
     const ap = r.approvals?.length ?? 0;
     out.push(`steps: ${c.txAlone} transactions to sign and send alone → 1 batch transaction${ap ? ` (+${ap} one-time approve transaction${ap === 1 ? "" : "s"} this run: the allowance Multicall3 needs; see "Gas, honestly" in the README)` : ""}`);
   }
@@ -52,10 +78,10 @@ export function formatResult(r: BatchResult): string {
 }
 
 /** Raise the allowance Multicall3 needs (it moves the tokens on the sender's behalf) to exactly what the batch spends. */
-async function approveNeeded(call: Call, mcp: ChainMcp, sender: Hex, actions: Action[]): Promise<{ token: string; tx: Hex }[]> {
+async function approveNeeded(call: Call, mcp: ChainMcp, sender: Hex, actions: Action[]): Promise<{ token: string; tx: Hex; gasUsed: bigint }[]> {
   const need = new Map<Hex, { asset: string; amount: bigint }>();
   for (const a of actions) if (a.watch.token) need.set(a.watch.token, { asset: a.watch.asset, amount: (need.get(a.watch.token)?.amount ?? 0n) + a.watch.amount });
-  const done: { token: string; tx: Hex }[] = [];
+  const done: { token: string; tx: Hex; gasUsed: bigint }[] = [];
   const signer = testnetSigner(mcp);
   for (const [token, n] of need) {
     const data = encodeFunctionData({ abi: erc20Abi, functionName: "allowance", args: [sender, MULTICALL3] });
@@ -64,7 +90,7 @@ async function approveNeeded(call: Call, mcp: ChainMcp, sender: Hex, actions: Ac
     const signed = await signer.send({ to: token, data: encodeFunctionData({ abi: erc20Abi, functionName: "approve", args: [MULTICALL3, n.amount] }) });
     const rc = await signer.waitForReceipt(signed.hash);
     if (rc.status !== "success") throw new Error(`the approval of ${n.asset} reverted: ${explorerTx("atlantic", signed.hash)}`);
-    done.push({ token: n.asset, tx: signed.hash });
+    done.push({ token: n.asset, tx: signed.hash, gasUsed: rc.gasUsed });
   }
   return done;
 }
@@ -93,7 +119,7 @@ export function formatCompact(r: BatchResult): string {
   }
   if (r.comparison) {
     const c = r.comparison;
-    out.push(`gas: ${c.comparable} sent alone ≈ ${c.individualGas} vs ${c.batchGasUsed} batched → ${c.savedGas >= 0n ? "saved" : "cost more by"} ${c.savedPct.replace("-", "")}%`);
+    out.push(...gasLines(r, true));
     const ap = r.approvals?.length ?? 0;
     out.push(`steps: ${c.txAlone} transactions alone → 1${ap ? ` (+${ap} approve tx this run)` : ""}`);
   }
