@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "task": "dapp-support-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/dapp-support-agent/index.ts 0x4e6cc4339009576aada882d2d843d1ee0e33f0bce2ddeddfdc8d41cc41414ab5 --proof out-of-gas",
+    "git": {
+      "commit": "0c3a0443aa18",
+      "dirty": true
+    },
+    "createdAt": "2026-10-18T03:41:25.835Z"
+  },
+  "diagnosis": {
+    "hash": "0x4e6cc4339009576aada882d2d843d1ee0e33f0bce2ddeddfdc8d41cc41414ab5",
+    "outcome": "failed",
+    "cause": "out-of-gas",
+    "headline": "The transaction ran out of gas: it was given 24,000 units and used all of them before it finished.",
+    "why": "Gas is the fee budget a sender sets for a transaction. This one was given 24,000 units, the work needed more, so the network stopped it half-way and kept the fee for the work already done (24,000 of 24,000 used).",
+    "fix": [
+      "Send it again with a higher gas limit: the call needs about 37,096 units now, so set at least 46,370 (a 25% margin).",
+      "In a wallet, use the automatic gas estimate instead of typing a limit."
+    ],
+    "evidence": [
+      "receipt status 0x0 in block 31560421",
+      "replayed with eth_call at block 31560420 (the state the transaction started from), same sender, value, data and gas limit",
+      "gasUsed 24000 = gas limit 24000",
+      "replaying the call with the same gas limit at the block before fails with an out-of-gas error",
+      "estimate_gas now: 37096"
+    ],
+    "facts": {
+      "from": "0x317bca01bb101c0f1e86c21576a4e14d92b02975",
+      "to": "0x838800b758277cc111b2d48ab01e5e164f8e9471",
+      "block": "31560421",
+      "gasLimit": "24000",
+      "gasUsed": "24000",
+      "value": "1000000000000000"
+    }
+  }
+}
