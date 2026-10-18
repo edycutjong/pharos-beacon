@@ -125,7 +125,7 @@ via Docs MCP https://docs.pharos.xyz/~gitbook/mcp and the Pharos Chain MCP
 - Four request kinds have executors (balance, send, total supply, receipt). A new "how do I…" request the docs describe is planned and cited
   but not executed.
 - "Covered" means a cited (or searched) docs page contains the method name; it does not prove the page explains it well. For total supply the
-  only page that names `totalSupply` today is the Rust guide.
+  page that names `totalSupply` in the docs search is the Rust guide.
 - Verification of a read is a same-block re-read, which catches a flaky endpoint, not a wrong contract; a send is verified against both balances.
 - The docs say Atlantic lists a WPHRS contract but not its wrapping method, so "wrap PHRS" stays uncovered here rather than guessing `deposit()`.
 - 29 tests ([`test/doc-grounded-builder-agent.test.ts`](../../test/doc-grounded-builder-agent.test.ts)) cover the classifier, the refusal patterns, the grounding fallback, prepared vs executed sends,
