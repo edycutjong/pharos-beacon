@@ -70,7 +70,7 @@ stopped after 1 polls: 0 alerts sent, 2 already sent earlier (not repeated); nex
 
 ## Tests
 
-`npm test`: 9 tests in `test/watch.test.ts` (shared poller) and 11 for this task in `test/alert-bot.test.ts` (rules and thresholds, alert text, Discord retries on 429
+`npm test`: 10 tests in `test/watch.test.ts` (shared poller) and 11 for this task in `test/alert-bot.test.ts` (rules and thresholds, alert text, Discord retries on 429
 and the webhook never appearing in an error, one alert per event across restarts, a failed delivery retried, `--until-alerts`). `npm run typecheck` is clean.
 
 ## Limits, stated plainly

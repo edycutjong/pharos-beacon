@@ -63,7 +63,7 @@ stopped after 4 polls: 0 new Transfer events; next block to scan 31555662
 
 ## Tests
 
-`npm test`: 9 tests in `test/watch.test.ts` (cursor, de-duplication, resume, crash window, decoding) and 4 for this task in `test/alert-bot.test.ts`
+`npm test`: 10 tests in `test/watch.test.ts` (cursor, de-duplication, resume, crash window, decoding) and 4 for this task in `test/alert-bot.test.ts`
 (`--from-block` forms, a live event caught once and a restart that prints nothing, the printed fields, flag errors). `npm run typecheck` is clean.
 
 ## Limits, stated plainly
