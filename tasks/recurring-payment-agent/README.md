@@ -59,7 +59,7 @@ period  due         status   amount          tx / note
 next payment: period 3 on 2026-11-15 (09:00Z), 0.001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
 ```
 
-Step 4 (recorded before the `unpaid and due` line was added; the current `status` prints `unpaid and due: period 1 (failed); the next run tries it again` above the next-payment line):
+Step 4 (recorded before the unpaid-period line was added; the current `status` prints `failed: period 1; the next run retries it` above the next-payment line; a due period that was never attempted prints `due, not yet paid: period 4; the next run pays or confirms it` instead, see [`status-pending.log`](proof/status-pending.log)):
 
 ```text
   period 1 (due 2026-11-01): failed — insufficient PHRS balance: has 14.931994638999979, needs 1000000; nothing was sent
