@@ -132,7 +132,7 @@ describe("runBatch", () => {
     expect(r.outcomes!.map((o) => o.applied)).toEqual([true, false, true]);
     const text = formatResult(r);
     expect(text).toMatch(/2\. NOT APPLIED {2}send 0.002 WPHRS to .*\(reverted: insufficient allowance\)/);
-    expect(text).toContain("2 of 3 applied; 1 failed alone, the others were not undone");
+    expect(text).toContain("2 of 3 applied; 1 failed on its own, the others were not undone");
   });
 
   it("--drop-failing removes the actions that would fail before the batch is built", async () => {
