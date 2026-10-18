@@ -1,0 +1,49 @@
+===== p1-first-period
+$ npm run -s recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/rent.json --now 2026-11-01T09:00:00Z --execute --discord --proof period-1-paid
+clock: injected --now 2026-11-01T09:00:00.000Z (not the real time)
+paying wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 (Atlantic)
+  period 1 (due 2026-11-01): paid — block 31571296, gas used 21000
+
+plan rent-demo: 0.001 PHRS weekly to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B, from 2026-11-01, 4 periods
+period  due         status   amount          tx / note
+1       2026-11-01  paid     0.001 PHRS      0xb481579f…c74b59 block 31571296
+next payment: period 2 on 2026-11-08 (09:00Z), 0.001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+proof: tasks/recurring-payment-agent/proof/period-1-paid.json
+$ 
+===== p2-second-period
+$ npm run -s recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/rent.json --now 2026-11-08T09:00:00Z --execute --discord --proof period-2-paid
+clock: injected --now 2026-11-08T09:00:00.000Z (not the real time)
+paying wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 (Atlantic)
+  period 2 (due 2026-11-08): paid — block 31571315, gas used 21000
+
+plan rent-demo: 0.001 PHRS weekly to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B, from 2026-11-01, 4 periods
+period  due         status   amount          tx / note
+1       2026-11-01  paid     0.001 PHRS      0xb481579f…c74b59 block 31571296
+2       2026-11-08  paid     0.001 PHRS      0x400359ae…a2ff2a block 31571315
+next payment: period 3 on 2026-11-15 (09:00Z), 0.001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+proof: tasks/recurring-payment-agent/proof/period-2-paid.json
+$ 
+===== p3-rerun
+$ npm run -s recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/rent.json --now 2026-11-08T09:00:00Z --execute --discord --proof rerun-pays-nothing
+clock: injected --now 2026-11-08T09:00:00.000Z (not the real time)
+paying wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 (Atlantic)
+
+plan rent-demo: 0.001 PHRS weekly to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B, from 2026-11-01, 4 periods
+period  due         status   amount          tx / note
+1       2026-11-01  paid     0.001 PHRS      0xb481579f…c74b59 block 31571296
+2       2026-11-08  paid     0.001 PHRS      0x400359ae…a2ff2a block 31571315
+next payment: period 3 on 2026-11-15 (09:00Z), 0.001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+proof: tasks/recurring-payment-agent/proof/rerun-pays-nothing.json
+$ 
+===== p4-insufficient
+$ npm run -s recurring-payment-agent -- run --plan tasks/recurring-payment-agent/plans/insufficient.json --now 2026-11-01T09:00:00Z --execute --discord --proof insufficient-balance
+clock: injected --now 2026-11-01T09:00:00.000Z (not the real time)
+paying wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 (Atlantic)
+  period 1 (due 2026-11-01): failed — insufficient PHRS balance: has 14.931994638999979, needs 1000000; nothing was sent
+
+plan insufficient-demo: 1000000 PHRS monthly to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B, from 2026-11-01, 3 periods
+period  due         status   amount          tx / note
+1       2026-11-01  failed   1000000 PHRS    insufficient PHRS balance: has 14.931994638999979, needs 1000000; nothing was sent
+next payment: period 2 on 2026-12-01 (09:00Z), 1000000 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+proof: tasks/recurring-payment-agent/proof/insufficient-balance.json
+$ 
