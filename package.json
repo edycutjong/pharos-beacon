@@ -20,6 +20,8 @@
     "doc-search-cli": "tsx tasks/doc-search-cli/index.ts",
     "docs-chain-mcp-agent": "tsx tasks/docs-chain-mcp-agent/index.ts",
     "doc-grounded-builder-agent": "tsx tasks/doc-grounded-builder-agent/index.ts",
+    "dry-run-executor": "tsx tasks/dry-run-executor/index.ts",
+    "gas-fee-optimizer": "tsx tasks/gas-fee-optimizer/index.ts",
     "docs-onboarding": "tsx tasks/docs-mcp-onboarding/ask.ts",
     "docs-onboarding:first-read": "tsx tasks/docs-mcp-onboarding/first-read.ts",
     "docs-onboarding:render": "tsx tasks/docs-mcp-onboarding/render.ts"
