@@ -50,6 +50,26 @@ describe("isGoodAnswer", () => {
   });
 });
 
+describe("isGoodAnswer: refusal subject and half-answers (a2a r05)", () => {
+  it("a negation about something other than the docs is an answer", () => {
+    expect(isGoodAnswer("The faucet does not support mainnet; use Atlantic.", [{}])).toBe(true);
+    expect(isGoodAnswer("Atlantic does not provide a mainnet bridge. Use the Pacific network instead.", [{}])).toBe(true);
+  });
+  it.each(["provide", "specify", "mention", "give", "list", "document"])("a docs refusal with '%s' and no contrast is a refusal", (verb) => {
+    expect(isGoodAnswer(`The docs don't ${verb} the faucet URL.`, [{}])).toBe(false);
+  });
+  it.each(["provide", "specify"])("'%s' and 'provide' give the same verdict on a half-answer: the contrast sentence decides", (verb) => {
+    expect(isGoodAnswer(`The docs don't ${verb} the faucet URL. They do say to request PHRS with your wallet address.`, [{}])).toBe(true);
+    expect(isGoodAnswer(`The docs don't ${verb} the faucet URL. However, the Atlantic page lists the RPC and chain ID.`, [{}])).toBe(true);
+    expect(isGoodAnswer(`The docs don't ${verb} the faucet URL, but they do give the chain ID 688689.`, [{}])).toBe(true);
+  });
+  it("the live Solana reply has no contrast sentence, so it stays a refusal (Example 5, exit 3)", () => {
+    const solana =
+      "The Pharos docs don’t list a supported **Pharos ↔ Solana** bridge route. The documented [Chainlink CCIP](/tooling-and-infrastructure/cross-chain/chainlink-ccip) are Ethereum, Jovay, Polygon, and Base.\n\nPharos also documents [LayerZero](/tooling-and-infrastructure/cross-chain/layerzero) and [Circle CCTP](/tooling-and-infrastructure/cross-chain/circle-cctp), but their Pharos pages don’t specify a Solana route or user transfer steps. I can’t confirm a way to bridge from Pharos to Solana from the available docs.";
+    expect(isGoodAnswer(solana, [{}])).toBe(false);
+  });
+});
+
 describe("arrange", () => {
   const F = "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token";
   const H = "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token";
