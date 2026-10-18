@@ -23,7 +23,7 @@ export const DEMO = [
   "wrap PHRS into WPHRS",
   "how do I bridge to Solana on Pharos?",
 ];
-/** Keyless defaults: a public Atlantic contract as the address to read, a burn address as the recipient, a known Atlantic tx. */
+/** Keyless defaults: a public Atlantic contract as the address to read, a burn address as the recipient (when the second test wallet's key is present it is the recipient instead: no one else's send can touch its balance in the same block), a known Atlantic tx. */
 const DEFAULT_ADDRESS = getAddress(TOKENS.atlantic.WPHRS.address);
 const DEFAULT_TO = "0x000000000000000000000000000000000000dEaD" as Hex;
 const DEFAULT_TX = "0x01cd6b78d83947c46e45d2e6c283ed68ea9dc6a9493b422c30163d42f704fe88" as Hex;
@@ -60,6 +60,7 @@ export async function main(
   const requests = positionals.length ? positionals : DEMO;
 
   const pk = secret("PRIVATE_KEY");
+  const pk2 = secret("PRIVATE_KEY_2");
   const keyAddress = pk ? privateKeyToAccount(pk as Hex).address : undefined; // only to know who "my" is; signing needs --execute
   const clients = new Map<string, Promise<Awaited<ReturnType<Connect>>>>();
   const chain: Connect =
@@ -78,7 +79,7 @@ export async function main(
 
   const params: Params = {
     address: values.address ? getAddress(values.address) : keyAddress ?? (positionals.length ? undefined : DEFAULT_ADDRESS),
-    to: values.to ? getAddress(values.to) : getAddress(DEFAULT_TO),
+    to: values.to ? getAddress(values.to) : pk2 ? privateKeyToAccount(pk2 as Hex).address : getAddress(DEFAULT_TO),
     amount: values.amount,
     token: values.token ? getAddress(values.token) : getAddress(TOKENS.pharos.WPROS.address),
     txHash: (values.tx as Hex | undefined) ?? DEFAULT_TX,
