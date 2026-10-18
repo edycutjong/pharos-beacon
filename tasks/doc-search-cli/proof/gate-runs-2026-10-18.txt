@@ -1,0 +1,30 @@
+Doc-Search gate runs, 2026-10-18 (kitchen-free evidence for the README's variance note)
+
+A. Four runs of: pharos-docs "how do I get testnet tokens from the faucet?" (before the gate was tightened; the model's reply, then the exit code it got)
+
+run 1 (old gate: exit 3):
+The docs don’t include the faucet URL or claim steps. They say to get testnet PHRS from the **Pharos faucet** or directly from the team.
+
+Before claiming, add **Pharos Atlantic Testnet** to your wallet: RPC `https://atlantic.dplabs-internal.com`, chain ID `688689`, symbol `PHRS`. See [Atlantic Testnet](/getting-started/network/atlantic-testnet).
+
+run 2 (old gate: exit 3):
+I cannot find faucet instructions or a faucet link in the docs. For Pharos testing, use **Atlantic Testnet** (chain ID `688689`); its RPC is `https://atlantic.dplabs-internal.com`. See [Atlantic Testnet](/getting-started/network/atlantic-testnet).
+
+run 3 (old gate: exit 3):
+The setup guide says to request testnet **PHRS** from the Pharos faucet or directly from the team, but it doesn’t provide a faucet URL or claim steps. Add **Pharos Atlantic Testnet** to your wallet first:
+
+* **RPC:** `https://atlantic.dplabs-internal.com`
+* **Chain ID:** `688689`
+* **Token symbol:** `PHRS`
+
+See the [Piggy Bank Tutorial](/tooling-and-infrastructure/pharos-skill-engine-guide/piggybank-skill-guide) for the wallet setup details.
+
+run 4 (old gate: exit 0):
+For **Pharos Atlantic Testnet**, add the network to your wallet, then use the Pharos testnet faucet with your wallet address. The network uses RPC `https://atlantic.dplabs-internal.com`, chain ID `688689`, and token symbol `PHRS`; see [Atlantic Testnet](/getting-started/network/atlantic-testnet).
+
+The docs mention getting testnet PHRS from the faucet or directly from the team, but don’t provide the faucet URL or claim steps.
+
+Under the tightened gate (index.ts LEADING_REFUSAL + CONTRAST) replies 1, 3 and 4 are answers (exit 0) and reply 2 ("I cannot find") stays exit 3; see the test 'replies seen live for the faucet question'.
+
+B. After the change, 4 live runs of the faucet question: exit 0, 0, 0, 0. 4 live runs of "how do I bridge to Solana from Pharos?": exit 3, 3, 3, 3.
+An earlier Solana reply this day ("The Pharos docs don’t currently document a direct Pharos-to-Solana bridge route.") exited 0 under the old gate because of the word 'currently'; it is now a refusal (test 'an adverb between the negation and the verb').

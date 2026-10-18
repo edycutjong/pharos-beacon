@@ -139,9 +139,25 @@ describe("dapp-support-agent", () => {
     const withBalance = await diagnose(fake({ input: encodeFunctionData({ abi: erc20Abi, functionName: "transfer", args: [OWNER, 5n] }), balance: 10n }).call, HASH);
     expect(withBalance.cause).toBe("empty-revert"); // enough balance: the inference does not fire
   });
+  it("a short opaque reason string gets a step that says where its meaning is written; a sentence does not", async () => {
+    const short = await diagnose(fake({ replay: revertWith(encodeErrorResult({ abi: [{ type: "error", name: "Error", inputs: [{ type: "string" }] }], errorName: "Error", args: ["BC"] } as never)) }).call, HASH);
+    expect(short.fix.join("\n")).toContain('search it for "BC"');
+    const long = await diagnose(fake({ replay: revertWith(encodeErrorResult({ abi: [{ type: "error", name: "Error", inputs: [{ type: "string" }] }], errorName: "Error", args: ["deadline has passed"] } as never)) }).call, HASH);
+    expect(long.fix.join("\n")).not.toContain("short code");
+  });
   it("a failure the replay cannot reproduce is reported as such", async () => {
     const d = await diagnose(fake({ replay: null, gasUsed: 25_000n }).call, HASH);
     expect(d.cause).toBe("not-reproduced");
+  });
+  it("a node that no longer keeps the block's state says so, and the receipt alone still proves out of gas", async () => {
+    const gone = new ChainToolError("eth_call", "missing trie node abc (path ) state is not available", -32000);
+    const plain = await diagnose(fake({ replay: gone, gasUsed: 25_000n }).call, HASH);
+    expect(plain.cause).toBe("state-unavailable");
+    expect(plain.evidence.join("\n")).toContain("no longer keeps the state of block 99");
+    expect(plain.evidence.join("\n")).not.toContain("replayed with eth_call");
+    const oog = await diagnose(fake({ replay: gone, gasUsed: 100_000n, gas: 100_000n }).call, HASH);
+    expect(oog.cause).toBe("out-of-gas");
+    expect(oog.evidence.join("\n")).toContain("gasUsed 100000 = gas limit 100000");
   });
   it("an unclassified replay error is passed on, not guessed", async () => {
     const d = await diagnose(fake({ replay: new ChainToolError("eth_call", "invalid opcode", -32000) }).call, HASH);

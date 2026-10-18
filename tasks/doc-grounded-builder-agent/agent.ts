@@ -27,12 +27,29 @@ export function classify(request: string): Kind {
 }
 
 /** Per kind: the docs question and the words a cited page must contain for the docs to count as covering the request. */
-const RECIPES: Record<Exclude<Kind, "other">, { question: (r: string) => string; needs: string[]; network: Network }> = {
-  balance: { question: () => "How do I check my PHRS balance on Pharos Atlantic testnet?", needs: ["eth_getBalance"], network: "atlantic" },
-  send: { question: () => "How do I send PHRS on Pharos Atlantic testnet?", needs: ["cast send", "--value"], network: "atlantic" },
-  supply: { question: () => "How do I read the total supply of an ERC-20 token on Pharos?", needs: ["totalSupply"], network: "pharos" },
-  receipt: { question: () => "How do I look up a transaction receipt on Pharos?", needs: ["eth_getTransactionReceipt"], network: "atlantic" },
+const RECIPES: Record<Exclude<Kind, "other">, { question: (r: string) => string; needs: string[]; does: string; network: Network }> = {
+  balance: { question: () => "How do I check my PHRS balance on Pharos Atlantic testnet?", needs: ["eth_getBalance"], does: "Chain MCP get_balance (the docs' eth_getBalance)", network: "atlantic" },
+  send: {
+    question: () => "How do I send PHRS on Pharos Atlantic testnet?",
+    needs: ["cast send", "--value"],
+    does: "a Chain MCP-prepared transaction signed here and sent with send_raw_transaction (the docs' `cast send <to> --value` is the by-hand route)",
+    network: "atlantic",
+  },
+  supply: { question: () => "How do I read the total supply of an ERC-20 token on Pharos?", needs: ["totalSupply"], does: "Chain MCP eth_call of totalSupply()", network: "pharos" },
+  receipt: { question: () => "How do I look up a transaction receipt on Pharos?", needs: ["eth_getTransactionReceipt"], does: "Chain MCP get_transaction_receipt (the docs' eth_getTransactionReceipt)", network: "atlantic" },
 };
+
+/** One readable line of a page that names the method: a line holding every needed word if there is one, cut to a window around the first word (never the line's start, which may not contain it). */
+export function groundingLine(text: string, words: string[]): string | undefined {
+  if (!words.length) return undefined;
+  const lines = text.split("\n").map((l) => l.trim());
+  const line = lines.find((l) => words.every((w) => l.includes(w))) ?? lines.find((l) => l.includes(words[0]!));
+  if (!line || line.length <= 160) return line;
+  const at = line.indexOf(words[0]!);
+  const from = Math.max(0, Math.min(at - 50, line.length - 160));
+  const to = Math.min(line.length, from + 160);
+  return `${from > 0 ? "..." : ""}${line.slice(from, to)}${to < line.length ? "..." : ""}`;
+}
 
 export interface Plan {
   question: string;
@@ -86,10 +103,7 @@ export async function plan(docs: Docs, kind: Kind, request: string, needs?: stri
       const text = await pages.get(url)!;
       return words.every((w) => text.includes(w));
     };
-    const lineOf = async (url: string) => {
-      const line = (await pages.get(url)!).split("\n").map((l) => l.trim()).find((l) => l.includes(words[0]!));
-      return line && line.length > 160 ? `${line.slice(0, 157)}...` : line;
-    };
+    const lineOf = async (url: string) => groundingLine(await pages.get(url)!, words);
     await Promise.all(sources.slice(0, MAX_PAGES).map(async (s) => void ((await named(s.url)) && groundedIn.push(s.url))));
     groundedVia = "cited";
     if (!groundedIn.length) {
@@ -320,7 +334,8 @@ export function format(o: Outcome, i: number, n: number): string {
     out.push("     docs answer (askQuestion), the by-hand route a person would follow:", ...o.plan.excerpt.map((x) => `       "${x}"`));
     if (o.plan.groundedIn.length) {
       out.push(
-        `     the method this agent runs, ${RECIPES[o.kind as Exclude<Kind, "other">].needs.join(" + ")}, is named on ${o.plan.groundedVia === "search" ? "a page found with searchDocumentation" : "a page the docs answer cites"}:`,
+        `     what this agent runs: ${RECIPES[o.kind as Exclude<Kind, "other">].does}`,
+        `     the docs name ${RECIPES[o.kind as Exclude<Kind, "other">].needs.join(" + ")} on ${o.plan.groundedVia === "search" ? "a page found with searchDocumentation" : "a page the docs answer cites"}:`,
         ...(o.plan.groundLine ? [`       "${o.plan.groundLine}"`] : []),
         `       ${o.plan.groundedIn[0]}`,
       );
