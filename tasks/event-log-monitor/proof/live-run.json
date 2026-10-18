@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "task": "event-log-monitor",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/event-log-monitor/index.ts --contract 0x838800b758277CC111B2d48Ab01e5E164f8E9471 --event Transfer --state /tmp/p91/mon.json --log /tmp/p91/monitor-run1.log --poll-ms 2500 --until-events 2 --max-polls 80 --proof live-run",
+    "git": {
+      "commit": "d7778f61f3a8",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T00:38:37.318Z"
+  },
+  "contract": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+  "event": "Transfer(address,address,uint256)",
+  "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+  "startHead": "31555620",
+  "polls": 19,
+  "newEvents": 2,
+  "nextBlock": "31555651",
+  "caught": [
+    {
+      "block": "31555629",
+      "logIndex": 0,
+      "tx": "0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b",
+      "event": "Transfer",
+      "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+      "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "amountRaw": "10000000000000000",
+      "amount": "0.01 WPHRS"
+    },
+    {
+      "block": "31555647",
+      "logIndex": 0,
+      "tx": "0x9bd36d74638d4ad84bbcfc1fae60af2c7666562e76f8e62f3447d905b83b33b2",
+      "event": "Transfer",
+      "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+      "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "amountRaw": "100000000000000",
+      "amount": "0.0001 WPHRS"
+    }
+  ]
+}

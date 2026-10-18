@@ -1,0 +1,15 @@
+watching Transfer(address,address,uint256) on 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (WPHRS, 18 decimals)
+atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c · head 31555620 · poll 2500 ms · state /tmp/p91/mon.json
+Transfer  block 31555629  log #0
+  from    0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  to      0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount  0.01 WPHRS
+  tx      0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b
+          https://atlantic.pharosscan.xyz/tx/0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b
+Transfer  block 31555647  log #0
+  from    0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  to      0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount  0.0001 WPHRS
+  tx      0x9bd36d74638d4ad84bbcfc1fae60af2c7666562e76f8e62f3447d905b83b33b2
+          https://atlantic.pharosscan.xyz/tx/0x9bd36d74638d4ad84bbcfc1fae60af2c7666562e76f8e62f3447d905b83b33b2
+stopped after 19 polls: 2 new Transfer events; next block to scan 31555651
