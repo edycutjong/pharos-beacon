@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "task": "trend-watcher",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/trend-watcher/index.ts observe --metric balance --network atlantic --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --state tasks/trend-watcher/state/big-spike.json --proof big-spike-1",
+    "git": {
+      "commit": "1c3410c56263",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T13:29:16.793Z"
+  },
+  "metric": {
+    "kind": "balance",
+    "network": "atlantic",
+    "address": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+  },
+  "rule": {
+    "direction": "fall",
+    "steps": 3
+  },
+  "observation": {
+    "block": "31576747",
+    "value": "15030116205000000000",
+    "at": "2026-10-18T13:29:16.861Z"
+  },
+  "added": "added",
+  "evaluation": {
+    "streak": 0,
+    "triggers": [],
+    "state": "too-few"
+  },
+  "acted": [],
+  "history": [
+    {
+      "block": "31576747",
+      "value": "15030116205000000000",
+      "at": "2026-10-18T13:29:16.861Z"
+    }
+  ]
+}
