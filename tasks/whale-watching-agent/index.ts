@@ -13,7 +13,7 @@ import { explorerTx } from "../../src/lib/networks.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { readState, writeState } from "../../src/lib/state.js";
 import { consoleNotifier, discordNotifier, loadWebhook, type Notifier } from "../../src/watch/discord.js";
-import { discordText, explain, isSignificant, kindResolver, loadTokens, makeNamer, parseWatchlist, reportText, scanMoves, summarise, summaryTable, fmtAmount, type Move, type Report } from "../../src/whale/scan.js";
+import { compactSummary, compactText, discordText, explain, isSignificant, kindResolver, loadTokens, makeNamer, parseWatchlist, reportText, scanMoves, summarise, summaryTable, fmtAmount, type Move, type Report } from "../../src/whale/scan.js";
 
 const TASK = "whale-watching-agent";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
@@ -42,11 +42,11 @@ export async function main(
 ): Promise<number> {
   const { values } = parseCli(
     {
-      usage: `npm run ${TASK} -- [--watchlist f] [--from-block N|head-N] [--to-block N|head] [--state f] [--notify discord|console] [--discord-max 5] [--sent f] [--proof label]`,
+      usage: `npm run ${TASK} -- [--watchlist f] [--from-block N|head-N] [--to-block N|head] [--state f] [--notify discord|console] [--discord-max 5] [--sent f] [--compact] [--proof label]`,
       options: {
         watchlist: { type: "string", default: join(HERE, "watchlist.json") },
         "from-block": { type: "string", default: "head-5000" }, "to-block": { type: "string", default: "head" },
-        state: { type: "string" }, notify: { type: "string" }, "discord-max": { type: "string", default: "5" }, sent: { type: "string" }, proof: { type: "string" },
+        compact: { type: "boolean", default: false }, state: { type: "string" }, notify: { type: "string" }, "discord-max": { type: "string", default: "5" }, sent: { type: "string" }, proof: { type: "string" },
       },
     },
     argv,
@@ -77,36 +77,39 @@ export async function main(
   const namer = makeNamer(wl, wl.network, tokens, kindOf);
   console.log(`whale watch on ${wl.network} (chain ${mcp.chainId}) via ${mcp.endpoint}`);
   console.log(`blocks ${from}–${to} (${to - from + 1n} blocks, pinned) · ${wl.addresses.length} addresses · ${tokens.map((t) => `${t.symbol} ≥ ${t.threshold}`).join(", ")}${saved !== undefined ? ` · resumed from ${values.state}` : ""}`);
-  if (wl.source) console.log(`watchlist source: ${wl.source}`);
-  for (const w of wl.addresses) console.log(`  watching ${w.address}  ${w.label} · ${await kindOf(w.address)}`);
+  if (!values.compact) {
+    if (wl.source) console.log(`watchlist source: ${wl.source}`);
+    for (const w of wl.addresses) console.log(`  watching ${w.address}  ${w.label} · ${await kindOf(w.address)}`);
+  }
 
   const all: Move[] = [];
   for (const t of tokens) {
     const moves = await scanMoves(mcp.call, t, wl.addresses.map((a) => a.address), from, to);
     all.push(...moves);
-    console.log(`scanned ${t.symbol}: ${moves.length} transfers touch a watched address, ${moves.filter(isSignificant).length} at or above ${t.threshold}`);
+    const big = moves.filter(isSignificant).length;
+    console.log(values.compact ? `scanned ${t.symbol}: ${moves.length} transfers, ${big} significant` : `scanned ${t.symbol}: ${moves.length} transfers touch a watched address, ${big} at or above ${t.threshold}`);
   }
   const significant = all.filter(isSignificant);
   const largest = new Map<string, bigint>();
   for (const m of significant) if ((largest.get(m.token.address) ?? 0n) < m.amountRaw) largest.set(m.token.address, m.amountRaw);
-  console.log(`\n${all.length} transfers touch a watched address · ${significant.length} at or above their token's threshold\n`);
+  console.log(values.compact ? `\n${all.length} transfers · ${significant.length} significant\n` : `\n${all.length} transfers touch a watched address · ${significant.length} at or above their token's threshold\n`);
 
   const reports: Report[] = [];
   for (const m of significant) {
     const r = await explain(mcp.call, m, wl, namer, kindOf, { largest: largest.get(m.token.address)! });
     reports.push(r);
-    console.log(`${reportText(r, (tx) => explorerTx(wl.network, tx), reports.length)}\n`); // printed as each is explained, not all at the end
+    console.log(values.compact ? compactText(r, reports.length) : `${reportText(r, (tx) => explorerTx(wl.network, tx), reports.length)}\n`); // printed as each is explained, not all at the end
   }
   if (reports.length === 0) console.log("no significant moves in this window\n");
 
   const rows = summarise(wl, tokens, all);
-  console.log("summary across all watched addresses (significant moves only in/out/largest)");
-  console.log(summaryTable(rows));
+  console.log(values.compact ? "summary across all watched addresses" : "summary across all watched addresses (significant moves only in/out/largest)");
+  console.log(values.compact ? compactSummary(rows) : summaryTable(rows));
   const totals = tokens.map((t) => {
     const mine = significant.filter((m) => m.token.address === t.address);
     return `${t.symbol}: ${mine.length} significant, ${fmtAmount(mine.reduce((s, m) => s + m.amountRaw, 0n), t.decimals, t.symbol)} moved`;
   });
-  console.log(`\ntotals: ${totals.join(" · ")}`);
+  console.log(values.compact ? `\n${totals.map((t) => `totals ${t}`).join("\n")}` : `\ntotals: ${totals.join(" · ")}`);
 
   const delivered: { key: string; messageId?: string; at: string }[] = [];
   if (kind) {
