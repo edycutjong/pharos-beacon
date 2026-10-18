@@ -20,28 +20,26 @@ const HERE = fileURLToPath(new URL(".", import.meta.url));
 
 /**
  * The gas comparison, said as what it is. "Alone" is an `estimate_gas` figure and the batch is a receipt, and the estimates run high on
- * token transfers (a cold-recipient transfer was estimated at 66758 and used 52476), so the like-for-like line is estimate against
- * estimate, the batch's receipt follows, and a run that had to approve also says what the saving is once its approve is counted.
+ * token transfers (a cold-recipient transfer was estimated at 66758 and used 52476). So the only percentage printed is estimate against
+ * estimate; the receipt is printed as a number, and the approve is added to it without a percentage against an estimate.
  */
 function gasLines(r: BatchResult, compact: boolean): string[] {
   const c = r.comparison!;
   const verb = (saved: bigint, base: bigint) => `${saved >= 0n ? "saves" : "costs more by"} ${pct(saved >= 0n ? saved : -saved, base)}%`;
   const out: string[] = [];
   if (c.batchGasEstimated > 0n) {
-    const d = c.individualGas - c.batchGasEstimated;
     out.push(compact
-      ? `gas est.: alone ${c.individualGas} vs batch ${c.batchGasEstimated} → ${verb(d, c.individualGas)}`
-      : `gas, estimate vs estimate (like for like): ${c.comparable} action(s) sent one by one ≈ ${c.individualGas} vs the batch ≈ ${c.batchGasEstimated} → ${verb(d, c.individualGas)}`);
+      ? `gas est.: alone ${c.individualGas} vs batch ${c.batchGasEstimated} → ${verb(c.individualGas - c.batchGasEstimated, c.individualGas)}`
+      : `gas, estimate vs estimate (like for like): ${c.comparable} action(s) sent one by one ≈ ${c.individualGas} vs the batch ≈ ${c.batchGasEstimated} → ${verb(c.individualGas - c.batchGasEstimated, c.individualGas)}`);
   }
   out.push(compact
     ? `gas used by the batch (receipt): ${c.batchGasUsed}`
-    : `gas used by the batch (receipt): ${c.batchGasUsed}; that is ${pct(c.savedGas >= 0n ? c.savedGas : -c.savedGas, c.individualGas)}% ${c.savedGas >= 0n ? "less" : "more"} than the one-by-one estimate, which runs high on token transfers: README "Gas, honestly"`);
+    : `gas used by the batch (receipt): ${c.batchGasUsed} (its own estimate was ${c.batchGasEstimated}; estimates run high on token transfers, so the one-by-one figures above are probably high too: README "Gas, honestly")`);
   const ap = (r.approvals ?? []).reduce((t, a) => t + (a.gasUsed ?? 0n), 0n);
   if (ap > 0n) {
-    const withAp = c.batchGasUsed + ap;
     out.push(compact
-      ? `with approve (+${ap}): ${withAp} → ${verb(c.individualGas - withAp, c.individualGas)}`
-      : `counting this run's approve transaction(s) (${ap} gas used): ${withAp} for the batch against ${c.individualGas} one by one (estimate) → ${verb(c.individualGas - withAp, c.individualGas)}`);
+      ? `with approve (+${ap}): ${c.batchGasUsed + ap} used`
+      : `counting this run's approve transaction(s) (${ap} gas used): the batch used ${c.batchGasUsed + ap} gas in all, for ${c.comparable} actions that cost ≈ ${c.individualGas} one by one by estimate`);
   }
   return out;
 }
