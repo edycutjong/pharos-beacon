@@ -10,16 +10,16 @@
     },
     "command": "tasks/whale-watching-agent/index.ts --from-block 20506432 --to-block 20546432 --notify discord --discord-max 3 --sent /tmp/p102/whale-sent.json --proof rerun-no-repeat",
     "git": {
-      "commit": "37d468ca7cf4",
+      "commit": "1d7de0b65fc2",
       "dirty": false
     },
-    "createdAt": "2026-10-18T07:28:07.681Z"
+    "createdAt": "2026-10-18T08:01:13.573Z"
   },
   "watchlistSource": "npx tsx scripts/find-whales.ts --blocks 40000 at head 20546432: the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (getLogsRange over Transfer logs). Our own list; edit it freely.",
   "range": {
     "from": "20506432",
     "to": "20546432",
-    "head": "20547332"
+    "head": "20549584"
   },
   "watched": [
     {
@@ -83,7 +83,7 @@
         "it adds <0.1% to its USDC balance"
       ],
       "balanceBefore": "32426746793453",
-      "balanceAfter": "32457746793453"
+      "balanceAfter": "13705999657969"
     },
     {
       "tx": "0x04cc4f4285787afdd367e8a34a48feb6a4e75b9c2e2d35409ccd31221a03d36f",
@@ -203,12 +203,12 @@
       "toName": "watch-1",
       "why": [
         "11.99× the 25,000 USDC threshold",
-        "pass-through: the address held 0 USDC before and after block 20528623, so it received and passed this on within the block",
+        "NEW POSITION: the address held 0 USDC before this",
         "the largest USDC move touching the watchlist in this range",
         "a mint into the watched address"
       ],
       "balanceBefore": "0",
-      "balanceAfter": "0"
+      "balanceAfter": "299999500000"
     },
     {
       "tx": "0x9383d54494558d4019beea5c39d0044d570dd2e2659d9b1b5b710899967b0ab8",
@@ -289,7 +289,7 @@
         "the largest WPROS move touching the watchlist in this range",
         "received from a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)"
       ],
-      "balanceBefore": "467984602561556586647844",
+      "balanceBefore": "449987469392776845092615",
       "balanceAfter": "457584092719828686904058"
     },
     {

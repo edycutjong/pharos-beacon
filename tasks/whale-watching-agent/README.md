@@ -29,7 +29,7 @@ file, and its `source` field says so. They are named `watch-1` … `watch-7` bec
 `--notify discord` posts the largest significant moves (`--discord-max`, default 5) to a Discord channel through the same webhook notifier
 as the [On-Chain Alert Bot](../on-chain-alert-bot/README.md) (`~/.config/discord/webhook-alerts`, read at run time, never committed). A
 sent-set (`--sent`) makes a re-run send nothing twice. Live: 3 messages, ids in the proof
-(`notify.delivered`: `1561279099010293900`, `1561279100788670464`, `1561279102126784626`), and the re-run
+(`notify.delivered`: `1561287457109180488`, `1561287458828849172`, `1561287460376547469`), and the re-run
 [`proof/rerun-no-repeat.json`](proof/rerun-no-repeat.json) sent 0 and reports `3 already sent earlier`.
 
 ## Proof (Pharos mainnet, chain 1672, blocks 20506432–20546432, pinned)
@@ -54,6 +54,8 @@ watchlist source: npx tsx scripts/find-whales.ts --blocks 40000 at head 20546432
   watching 0x936564245B69f5a293b42cbd752E0eE3bb68b470  watch-5 · contract
   watching 0xFf70F4A1d11995621854F3692acF286d8aCd04b2  watch-6 · contract
   watching 0x1F3546a29EeC2102c8d52E21a45114124014c85C  watch-7 · wallet
+scanned USDC: 2379 transfers touch a watched address, 10 at or above 25000
+scanned WPROS: 2271 transfers touch a watched address, 6 at or above 2000
 
 4650 transfers touch a watched address · 16 at or above their token's threshold
 
@@ -98,7 +100,7 @@ watch-7 0x1F35…c85C  USDC         660            0             0            0 
 watch-7 0x1F35…c85C  WPROS        660            0             0            0            0
 
 totals: USDC: 10 significant, 936,384.34 USDC moved · WPROS: 6 significant, 19,209.281 WPROS moved
-notify discord: 3 sent (message ids 1561279099010293900, 1561279100788670464, 1561279102126784626), 0 already sent earlier
+notify discord: 3 sent (message ids 1561287457109180488, 1561287458828849172, 1561287460376547469), 0 already sent earlier
 ```
 
 (`[…]` marks reports left out of this excerpt; the proof file has all 16.)
