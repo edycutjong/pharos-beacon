@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "task": "doc-search-cli",
+    "network": "docs",
+    "chainId": null,
+    "mcp": {
+      "endpoint": "https://docs.pharos.xyz/~gitbook/mcp"
+    },
+    "command": "bin/pharos-docs.mjs what is the chain ID and RPC URL of the Atlantic testnet? --proof",
+    "git": {
+      "commit": "d2312d9ada16",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T01:34:29.349Z"
+  },
+  "result": {
+    "question": "what is the chain ID and RPC URL of the Atlantic testnet?",
+    "found": true,
+    "answer": "The Atlantic Testnet uses:\n\n* **Chain ID:** `688689`\n* **RPC URL:** `https://atlantic.dplabs-internal.com`\n\nSee [Atlantic Testnet](/getting-started/network/atlantic-testnet).",
+    "sources": [
+      {
+        "title": "Atlantic Testnet",
+        "url": "https://docs.pharos.xyz/getting-started/network/atlantic-testnet"
+      },
+      {
+        "title": "x402 Atlantic Testnet",
+        "url": "https://docs.pharos.xyz/developer-guide/x402/x402-atlantic-testnet"
+      },
+      {
+        "title": "Node Management",
+        "url": "https://docs.pharos.xyz/node-and-validator-guide/node-management"
+      },
+      {
+        "title": "ZAN RPC",
+        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/rpc/zan"
+      },
+      {
+        "title": "Write Your First Token",
+        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-token"
+      },
+      {
+        "title": "Write Your First NFT",
+        "url": "https://docs.pharos.xyz/developer-guide/hardhat/write-your-first-nft"
+      },
+      {
+        "title": "Cross Chain Infrastructure",
+        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/cross-chain"
+      },
+      {
+        "title": "RPC Infrastructure",
+        "url": "https://docs.pharos.xyz/tooling-and-infrastructure/rpc"
+      },
+      {
+        "title": "Write Your First Token",
+        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-token"
+      },
+      {
+        "title": "Write Your First NFT",
+        "url": "https://docs.pharos.xyz/developer-guide/foundry/write-your-first-nft"
+      }
+    ],
+    "closest": []
+  }
+}
