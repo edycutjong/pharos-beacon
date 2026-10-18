@@ -137,5 +137,5 @@ with #4 and #5 the series has enough observations and the rule is **evaluated an
 
 ## Tests
 
-`npm test` — 18 tests in [`test/trend.test.ts`](../../test/trend.test.ts): the rule (minimum steps, flat resets, single spike up or down, re-trigger after a reset, rise), de-dupe and stale
+`npm test` — 19 tests in [`test/trend.test.ts`](../../test/trend.test.ts): the rule (minimum steps, flat resets, single spike up or down, re-trigger after a reset, rise), de-dupe and stale
 blocks, persistence across runs, a failed action retried and never repeated, wrong-metric / corrupt / out-of-order files refused, a `kill -9` mid-write loop, the three metrics, sparkline, slope and the history marker.
