@@ -36,7 +36,8 @@ The bot was started, then `npm run emit-events -- --execute --wrap 0.0102 --tran
 a wrap ([`0x9490…f046`](https://atlantic.pharosscan.xyz/tx/0x9490dbf1e6f8e1e15e48dc667505114c4e607810d4cce72fa4eaeddfd430f046), fires the Deposit rule),
 a 0.01 WPHRS transfer ([`0x9ce6…996b`](https://atlantic.pharosscan.xyz/tx/0x9ce6f668093284a0fee10cc9ca5980fe1719416e7e660e2fbc595c2eedca996b), fires the large-transfer rule)
 and a 0.0001 WPHRS transfer ([`0xaf94…ae93`](https://atlantic.pharosscan.xyz/tx/0xaf94b342a2f0ef6ef94b70949a541148a37781058df77159980f94bb61adae93), below 0.005: no alert, as configured).
-Proof: [`proof/live-run.json`](proof/live-run.json) (`dirty: false`), output [`proof/live-run.log`](proof/live-run.log).
+Proof: [`proof/live-run.json`](proof/live-run.json) (`dirty: false`), output [`proof/live-run.log`](proof/live-run.log), the three transactions in [`proof/emit-events.log`](proof/emit-events.log).
+The Atlantic runs need the local Atlantic Chain MCP (`npm run setup:mcp` once); the mainnet command above does not.
 
 ```text
 alert bot on atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c · head 31555664 · notify discord · 2 rules

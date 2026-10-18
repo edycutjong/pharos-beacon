@@ -1,0 +1,9 @@
+wrap 0.01 PHRS → WPHRS (Deposit): success in block 31555625
+  https://atlantic.pharosscan.xyz/tx/0x121f210fb6c1a57f8b1fb2f8218d46bdb24cb95b5ade3c471483a1d02503eabe
+transfer 0.01 WPHRS → 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (Transfer): success in block 31555629
+  https://atlantic.pharosscan.xyz/tx/0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b
+error: estimate_gas: execution reverted: (code 3)
+wrap 0.0002 PHRS → WPHRS (Deposit): success in block 31555644
+  https://atlantic.pharosscan.xyz/tx/0x2420e07be2af2132117d715c7e05a9b12d2a938ffe5d33e4f19eaa0a7acbd3c7
+transfer 0.0001 WPHRS → 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (Transfer): success in block 31555647
+  https://atlantic.pharosscan.xyz/tx/0x9bd36d74638d4ad84bbcfc1fae60af2c7666562e76f8e62f3447d905b83b33b2

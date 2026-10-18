@@ -23,7 +23,9 @@ Flags: `--contract` (required), `--event` (`Transfer`, `Approval`, `Deposit`, `W
 ## Live run (Atlantic testnet)
 
 The monitor was started first (head 31555620); then `npm run emit-events -- --execute …` wrapped PHRS into WPHRS (a `Deposit`
-event, which this monitor ignores because it asked for `Transfer`) and sent WPHRS to the second test wallet. Proof:
+event, which this monitor ignores because it asked for `Transfer`) and sent WPHRS to the second test wallet. The senders' output is in
+[`proof/emit-events.log`](proof/emit-events.log): in the first run the third step (the 0.0001 transfer) failed at gas estimation because the wallet held no WPHRS
+after the 0.01 transfer and nothing was broadcast, so a second run wrapped 0.0002 PHRS and sent that transfer. Proof:
 [`proof/live-run.json`](proof/live-run.json) (`dirty: false`), full output [`proof/live-run.log`](proof/live-run.log).
 
 ```text
@@ -56,7 +58,7 @@ stopped after 4 polls: 0 new Transfer events; next block to scan 31555662
 
 ## Make your own event
 
-`npm run emit-events -- --execute` (needs `PRIVATE_KEY` and `PRIVATE_KEY_2` in `~/.config/pharos/testnet.env`; Atlantic testnet only) wraps 0.01 PHRS and sends
+`npm run emit-events -- --execute` (run `npm run setup:mcp` once for the local Atlantic Chain MCP; needs `PRIVATE_KEY` and `PRIVATE_KEY_2` in `~/.config/pharos/testnet.env`; Atlantic testnet only) wraps 0.01 PHRS and sends
 0.01 WPHRS to the second wallet; a dry run without `--execute` sends nothing. Run it in a second terminal while the monitor waits.
 
 ## Tests
