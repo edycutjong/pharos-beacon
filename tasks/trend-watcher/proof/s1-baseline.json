@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "task": "trend-watcher",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/trend-watcher/index.ts observe --metric balance --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --network atlantic --steps 3 --direction fall --proof s1-baseline",
+    "git": {
+      "commit": "f6575a69e624",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T09:31:40.757Z"
+  },
+  "metric": {
+    "kind": "balance",
+    "network": "atlantic",
+    "address": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+  },
+  "rule": {
+    "direction": "fall",
+    "steps": 3
+  },
+  "observation": {
+    "block": "31570137",
+    "value": "15029200205000000000",
+    "at": "2026-10-18T09:31:40.823Z"
+  },
+  "added": "added",
+  "evaluation": {
+    "streak": 0,
+    "triggers": [],
+    "state": "too-few"
+  },
+  "acted": [],
+  "history": [
+    {
+      "block": "31570137",
+      "value": "15029200205000000000",
+      "at": "2026-10-18T09:31:40.823Z"
+    }
+  ]
+}

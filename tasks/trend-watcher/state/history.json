@@ -1,0 +1,15 @@
+{
+  "metric": {
+    "kind": "balance",
+    "network": "atlantic",
+    "address": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+  },
+  "observations": [
+    {
+      "block": "31570137",
+      "value": "15029200205000000000",
+      "at": "2026-10-18T09:31:40.823Z"
+    }
+  ],
+  "acted": []
+}
