@@ -87,6 +87,44 @@
         "notifier": "discord",
         "id": "1561321172900122706"
       }
+    },
+    {
+      "period": 3,
+      "due": "2026-11-15T09:00:00.000Z",
+      "status": "paid",
+      "attempts": [
+        {
+          "at": "2026-11-15T09:00:00.000Z",
+          "outcome": "signed (attempt 1), recorded before broadcast",
+          "hash": "0x813b85abbbdb66cff2e24966ed13b30ed96cbeb21b35482d30ad36881d85b55c"
+        },
+        {
+          "at": "2026-11-15T09:00:00.000Z",
+          "outcome": "confirmed",
+          "hash": "0x813b85abbbdb66cff2e24966ed13b30ed96cbeb21b35482d30ad36881d85b55c"
+        }
+      ],
+      "tx": {
+        "hash": "0x813b85abbbdb66cff2e24966ed13b30ed96cbeb21b35482d30ad36881d85b55c",
+        "nonce": 54,
+        "raw": "0x02f870830a823136808477359400825208948d347c72431ed6e033d5f43e56c0987e97f5d91b87038d7ea4c6800080c001a05b6db1e9a2e54d48cebcf72fdd82d61575d91c9a1e8604bccba1e7304fd7d9a8a054f282a83bbebc228696509462f776ccb6082fbc23c14e4b38fc12a680071a3c",
+        "prepared": {
+          "chainId": "688689",
+          "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+          "value": "1000000000000000",
+          "nonce": "54",
+          "gas": "21000",
+          "maxFeePerGas": "2000000000",
+          "maxPriorityFeePerGas": "0"
+        }
+      },
+      "block": "31571475",
+      "gasUsed": "21000",
+      "paidAtRun": "2026-11-15T09:00:00.000Z",
+      "receipt": {
+        "notifier": "discord",
+        "id": "1561322724679483473"
+      }
     }
   ],
   "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
