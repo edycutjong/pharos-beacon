@@ -5,3 +5,4 @@ d7778f61f3a8201e3c8395d8cc4f68822676efff:tasks/on-chain-alert-bot/rules.atlantic
 d7778f61f3a8201e3c8395d8cc4f68822676efff:test/helpers/fake-logs.ts:generic-api-key:3
 2cbea20d2072e9e840478cdfb147fc83ca973c20:test/dapp-support-agent.test.ts:generic-api-key:10
 6351cdd26a9fc1d5be2364bd0eb6bdc6aabe03bc:test/doc-grounded-builder-agent.test.ts:generic-api-key:10
+3f59caef1294d52bffdc64a8984d04c87ea08903:test/dryrun.test.ts:generic-api-key:10
