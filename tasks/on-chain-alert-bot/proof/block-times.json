@@ -1,0 +1,18 @@
+{
+  "note": "Atlantic block timestamps read through the Chain MCP (get_block) on 2026-10-18, to set against the Discord message creation times in discord-fetchback.json",
+  "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+  "blocks": [
+    {
+      "block": 31555669,
+      "hash": "0x3730b87612a53b9fb274b821a21fa2238a3630baa1a21d0dcbc52f42d2c83b83",
+      "timestampUnix": 1792283966,
+      "timestampUtc": "2026-10-18T00:39:26.000Z"
+    },
+    {
+      "block": 31555672,
+      "hash": "0xc4ba1929d1f01c08f9959eb82a59767c51f0253de52d0deeab0a8585cb1723ac",
+      "timestampUnix": 1792283969,
+      "timestampUtc": "2026-10-18T00:39:29.000Z"
+    }
+  ]
+}
