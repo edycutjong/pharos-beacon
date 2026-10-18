@@ -38,7 +38,7 @@ export function formatResult(r: BatchResult): string {
       out.push(`  ${i + 1}. ${o.applied ? "APPLIED" : "NOT APPLIED"}  ${o.action.label} — recipient received ${fmtAmount(o.action.watch, o.received)}${o.failure ? ` (${o.failure})` : ""}`);
     });
     const ok = r.outcomes.filter((o) => o.applied).length;
-    out.push(`  ${ok} of ${r.outcomes.length} applied; ${r.outcomes.length - ok} failed on its own, the others were not undone`);
+    out.push(ok === r.outcomes.length ? `  all ${ok} applied` : `  ${ok} of ${r.outcomes.length} applied; ${r.outcomes.length - ok} failed on its own, the others were not undone`);
   }
   if (r.comparison) {
     const c = r.comparison;
