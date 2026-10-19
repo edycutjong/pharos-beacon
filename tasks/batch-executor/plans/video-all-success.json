@@ -1,0 +1,28 @@
+{
+  "name": "video-all-success",
+  "actions": [
+    {
+      "type": "native",
+      "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "value": "0.0001"
+    },
+    {
+      "type": "erc20",
+      "token": "WPHRS",
+      "to": "0x6ba45e6e39ffe4a5faa764b7d95ff87215b08419",
+      "amount": "0.00001"
+    },
+    {
+      "type": "erc20",
+      "token": "WPHRS",
+      "to": "0x77319df523f5197d0994254ef94b83908e194457",
+      "amount": "0.00002"
+    },
+    {
+      "type": "erc20",
+      "token": "WPHRS",
+      "to": "0xbd634b70d2a7cccf08e45b5f7a78e7b273a324ed",
+      "amount": "0.00003"
+    }
+  ]
+}

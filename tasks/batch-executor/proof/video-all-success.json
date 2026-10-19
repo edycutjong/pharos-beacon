@@ -1,0 +1,241 @@
+{
+  "meta": {
+    "task": "batch-executor",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/batch-executor/index.ts --plan video-all-success --approve --execute --compact --proof video-all-success",
+    "git": {
+      "commit": "4ea828420e04",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T15:38:50.947Z"
+  },
+  "sender": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+  "plan": "video-all-success",
+  "result": {
+    "status": "executed",
+    "sim": {
+      "block": "31580396",
+      "actions": [
+        {
+          "action": {
+            "index": 0,
+            "label": "send 0.0001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+            "target": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+            "value": "100000000000000",
+            "data": "0x",
+            "alone": {
+              "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+              "value": "100000000000000"
+            },
+            "watch": {
+              "holder": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+              "asset": "PHRS",
+              "decimals": 18,
+              "amount": "100000000000000"
+            }
+          },
+          "ok": true,
+          "aloneGas": "21000"
+        },
+        {
+          "action": {
+            "index": 1,
+            "label": "send 0.00001 WPHRS to 0x6Ba45e6e39FFe4a5fAa764B7D95ff87215B08419",
+            "target": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "value": "0",
+            "data": "0x23b872dd000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b029750000000000000000000000006ba45e6e39ffe4a5faa764b7d95ff87215b08419000000000000000000000000000000000000000000000000000009184e72a000",
+            "alone": {
+              "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+              "value": "0",
+              "data": "0xa9059cbb0000000000000000000000006ba45e6e39ffe4a5faa764b7d95ff87215b08419000000000000000000000000000000000000000000000000000009184e72a000"
+            },
+            "watch": {
+              "holder": "0x6Ba45e6e39FFe4a5fAa764B7D95ff87215B08419",
+              "asset": "WPHRS",
+              "token": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+              "decimals": 18,
+              "amount": "10000000000000"
+            }
+          },
+          "ok": true,
+          "aloneGas": "66758"
+        },
+        {
+          "action": {
+            "index": 2,
+            "label": "send 0.00002 WPHRS to 0x77319dF523f5197D0994254ef94B83908e194457",
+            "target": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "value": "0",
+            "data": "0x23b872dd000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b0297500000000000000000000000077319df523f5197d0994254ef94b83908e194457000000000000000000000000000000000000000000000000000012309ce54000",
+            "alone": {
+              "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+              "value": "0",
+              "data": "0xa9059cbb00000000000000000000000077319df523f5197d0994254ef94b83908e194457000000000000000000000000000000000000000000000000000012309ce54000"
+            },
+            "watch": {
+              "holder": "0x77319dF523f5197D0994254ef94B83908e194457",
+              "asset": "WPHRS",
+              "token": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+              "decimals": 18,
+              "amount": "20000000000000"
+            }
+          },
+          "ok": true,
+          "aloneGas": "66758"
+        },
+        {
+          "action": {
+            "index": 3,
+            "label": "send 0.00003 WPHRS to 0xbD634b70D2A7cccF08E45B5F7A78e7B273a324eD",
+            "target": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "value": "0",
+            "data": "0x23b872dd000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b02975000000000000000000000000bd634b70d2a7cccf08e45b5f7a78e7b273a324ed00000000000000000000000000000000000000000000000000001b48eb57e000",
+            "alone": {
+              "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+              "value": "0",
+              "data": "0xa9059cbb000000000000000000000000bd634b70d2a7cccf08e45b5f7a78e7b273a324ed00000000000000000000000000000000000000000000000000001b48eb57e000"
+            },
+            "watch": {
+              "holder": "0xbD634b70D2A7cccF08E45B5F7A78e7B273a324eD",
+              "asset": "WPHRS",
+              "token": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+              "decimals": 18,
+              "amount": "30000000000000"
+            }
+          },
+          "ok": true,
+          "aloneGas": "66758"
+        }
+      ],
+      "gasPriceWei": "1000000000",
+      "batchGas": "175148"
+    },
+    "dropped": [],
+    "sent": {
+      "tx": "0x2ff703bec4a23bbf8976a19848e398a7b889a9d662bef6a958c62ab58dc14680",
+      "status": "success",
+      "block": "31580401",
+      "gasUsed": "134401",
+      "effectiveGasPrice": "1000000000"
+    },
+    "outcomes": [
+      {
+        "action": {
+          "index": 0,
+          "label": "send 0.0001 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+          "target": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+          "value": "100000000000000",
+          "data": "0x",
+          "alone": {
+            "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+            "value": "100000000000000"
+          },
+          "watch": {
+            "holder": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+            "asset": "PHRS",
+            "decimals": 18,
+            "amount": "100000000000000"
+          }
+        },
+        "predictedOk": true,
+        "applied": true,
+        "received": "100000000000000"
+      },
+      {
+        "action": {
+          "index": 1,
+          "label": "send 0.00001 WPHRS to 0x6Ba45e6e39FFe4a5fAa764B7D95ff87215B08419",
+          "target": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+          "value": "0",
+          "data": "0x23b872dd000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b029750000000000000000000000006ba45e6e39ffe4a5faa764b7d95ff87215b08419000000000000000000000000000000000000000000000000000009184e72a000",
+          "alone": {
+            "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "value": "0",
+            "data": "0xa9059cbb0000000000000000000000006ba45e6e39ffe4a5faa764b7d95ff87215b08419000000000000000000000000000000000000000000000000000009184e72a000"
+          },
+          "watch": {
+            "holder": "0x6Ba45e6e39FFe4a5fAa764B7D95ff87215B08419",
+            "asset": "WPHRS",
+            "token": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "decimals": 18,
+            "amount": "10000000000000"
+          }
+        },
+        "predictedOk": true,
+        "applied": true,
+        "received": "10000000000000"
+      },
+      {
+        "action": {
+          "index": 2,
+          "label": "send 0.00002 WPHRS to 0x77319dF523f5197D0994254ef94B83908e194457",
+          "target": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+          "value": "0",
+          "data": "0x23b872dd000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b0297500000000000000000000000077319df523f5197d0994254ef94b83908e194457000000000000000000000000000000000000000000000000000012309ce54000",
+          "alone": {
+            "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "value": "0",
+            "data": "0xa9059cbb00000000000000000000000077319df523f5197d0994254ef94b83908e194457000000000000000000000000000000000000000000000000000012309ce54000"
+          },
+          "watch": {
+            "holder": "0x77319dF523f5197D0994254ef94B83908e194457",
+            "asset": "WPHRS",
+            "token": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "decimals": 18,
+            "amount": "20000000000000"
+          }
+        },
+        "predictedOk": true,
+        "applied": true,
+        "received": "20000000000000"
+      },
+      {
+        "action": {
+          "index": 3,
+          "label": "send 0.00003 WPHRS to 0xbD634b70D2A7cccF08E45B5F7A78e7B273a324eD",
+          "target": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+          "value": "0",
+          "data": "0x23b872dd000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b02975000000000000000000000000bd634b70d2a7cccf08e45b5f7a78e7b273a324ed00000000000000000000000000000000000000000000000000001b48eb57e000",
+          "alone": {
+            "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "value": "0",
+            "data": "0xa9059cbb000000000000000000000000bd634b70d2a7cccf08e45b5f7a78e7b273a324ed00000000000000000000000000000000000000000000000000001b48eb57e000"
+          },
+          "watch": {
+            "holder": "0xbD634b70D2A7cccF08E45B5F7A78e7B273a324eD",
+            "asset": "WPHRS",
+            "token": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+            "decimals": 18,
+            "amount": "30000000000000"
+          }
+        },
+        "predictedOk": true,
+        "applied": true,
+        "received": "30000000000000"
+      }
+    ],
+    "comparison": {
+      "comparable": 4,
+      "individualGas": "221274",
+      "batchGasEstimated": "175148",
+      "batchGasUsed": "134401",
+      "savedGas": "86873",
+      "savedPct": "39.26",
+      "txAlone": 4,
+      "txBatch": 1
+    },
+    "approvals": [
+      {
+        "token": "WPHRS",
+        "tx": "0x271e14d37ce182a686352c1da9dd994674ffcc8873216bd1e06a8d5d96125b83",
+        "gasUsed": "46698"
+      }
+    ]
+  }
+}

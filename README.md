@@ -20,6 +20,7 @@ Reviewing one task? It's in the table below; shared code is in `src/lib/`.
 | [Wallet Risk Checker](tasks/wallet-risk-checker/) | Medium | Reads an address's history through the Chain MCP (wallet or contract, age, freshly funded, flagged-address interaction, unusual approvals) and answers low / medium / high with a plain-language reason per flag. The flagged list is our own file. The risky example is a wallet we staged on Atlantic; a risk gate refuses a high-risk recipient before the Policy Gatekeeper is asked | [proof/](tasks/wallet-risk-checker/proof/) |
 | [Trend Watcher](tasks/trend-watcher/) | Hard | A skill with memory: each run stores one observation of a metric (a wallet balance, an ERC-20 supply or the base fee, read through the Chain MCP) in a history file, de-duplicated by block, and acts only when the history shows N consecutive falls (or rises). A single spike does not trigger it. Prints a sparkline and the slope when the trend is met | [proof/](tasks/trend-watcher/proof/) |
 | [Recurring Payment Agent](tasks/recurring-payment-agent/) | Medium | A weekly or monthly payment (native PHRS or an ERC-20) paid from a ledger that makes each period payable once: the signed transaction is recorded before it is broadcast, a re-run pays nothing, insufficient balance fails without sending. History, next payment, a Discord receipt per payment | [proof/](tasks/recurring-payment-agent/proof/) |
+| [Batch Executor](tasks/batch-executor/) | Medium | Bundles at least 3 independent PHRS or ERC-20 sends into one Multicall3 transaction: simulates every action first, reports the gas against sending them one by one and the steps saved, names the action that fails and reads back what happened to the rest from the chain. `--drop-failing` removes the actions that would fail before the batch is signed | [proof/](tasks/batch-executor/proof/) |
 | [Read Contract State](tasks/read-contract-state/) | Easy | Reads name, symbol, decimals, totalSupply, balances, owner and paused from Pharos mainnet USDC through the Chain MCP, pinned to one block, decimals applied, addresses labelled | [proof JSON](tasks/read-contract-state/proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) (read-only, no tx) |
 | [Doc-Search CLI](tasks/doc-search-cli/) | Easy | `pharos-docs "<question>"`: a concise answer with source links from the Developer Docs MCP; says "not found" with the closest pages instead of inventing an answer | [proof/](tasks/doc-search-cli/proof/) (read-only, no tx) |
 | [dApp Support Agent](tasks/dapp-support-agent/) | Easy | `npm run dapp-support-agent -- 0x<txHash>`: replays a failed transaction one block earlier and explains the cause (balance, allowance, out of gas, revert reason) in plain words with a fix | [proof/](tasks/dapp-support-agent/proof/) (4 real failed Atlantic txs, 2 failed mainnet txs from other wallets) |
@@ -33,7 +34,7 @@ Reviewing one task? It's in the table below; shared code is in `src/lib/`.
 
 ```bash
 npm ci
-npm test            # 545 tests: guardian, gatekeeper, dry-run executor, read-contract-state, watcher, event monitor, alert bot, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, doc-grounded builder agent, gas optimizer, whale watcher, wallet risk checker, trend watcher, recurring payment agent, Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 568 tests: guardian, gatekeeper, dry-run executor, read-contract-state, watcher, event monitor, alert bot, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, doc-grounded builder agent, gas optimizer, whale watcher, wallet risk checker, trend watcher, recurring payment agent, batch executor, Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
@@ -64,7 +65,8 @@ Mainnet (chain 1672) is read-only here.
 | `src/gatekeeper/` | Policy Gatekeeper: policy schema, pure evaluator, hash-chained audit log, request runner |
 | `src/dryrun/` | Dry-Run Executor: simulation (`eth_call` + `estimate_gas`), balance changes, the simulate-then-send gate |
 | `src/gas/` | Gas Fee Optimizer: price samples, percentile target, the hold-until-cheap loop, paid-vs-request report |
-| `src/watch/` | the shared log poller (cursor, handled-set, decoding) and the Discord notifier used by the Event/Log Monitor, the Alert Bot |
+| `src/watch/` | the shared log poller (cursor, handled-set, decoding) and the Discord notifier used by the Event/Log Monitor, the Alert Bot, the Whale-Watching Agent and the Trend Watcher |
+| `src/whale/` · `src/risk/` · `src/trend/` · `src/recurring/` · `src/batch/` | the logic of the Whale-Watching Agent, Wallet Risk Checker, Trend Watcher, Recurring Payment Agent and Batch Executor |
 | `skills/<name>/` | agent skills in SkillEngine format (`SKILL.md` + `references/`), installable with `npx skills add` |
 | `tasks/<slug>/` | one Arena task each: entry point + README + proof (start from `tasks/_template/`) |
 | `test/` | vitest tests; a task's own tests can also live in `tasks/<slug>/*.test.ts` |

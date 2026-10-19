@@ -31,7 +31,8 @@
     "find-whales": "tsx scripts/find-whales.ts",
     "docs-onboarding": "tsx tasks/docs-mcp-onboarding/ask.ts",
     "docs-onboarding:first-read": "tsx tasks/docs-mcp-onboarding/first-read.ts",
-    "docs-onboarding:render": "tsx tasks/docs-mcp-onboarding/render.ts"
+    "docs-onboarding:render": "tsx tasks/docs-mcp-onboarding/render.ts",
+    "batch-executor": "tsx tasks/batch-executor/index.ts"
   },
   "keywords": [],
   "author": "",

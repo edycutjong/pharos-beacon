@@ -1,0 +1,53 @@
+$ npm run batch-executor -- --plan video-all-success --approve --execute --compact --proof video-all-success
+batch @ 31580396: 4 actions → 1 transaction via Multicall3
+  1 0.0001 PHRS → 0x8D34…D91B      ok · alone 21000 gas
+  2 0.00001 WPHRS → 0x6Ba4…8419    ok · alone 66758 gas
+  3 0.00002 WPHRS → 0x7731…4457    ok · alone 66758 gas
+  4 0.00003 WPHRS → 0xbD63…24eD    ok · alone 66758 gas
+approved WPHRS for Multicall3: 0x271e…5b83
+SENT 0x2ff7…4680 · block 31580401 · gas used 134401
+  1 APPLIED  0.0001 PHRS → 0x8D34…D91B
+  2 APPLIED  0.00001 WPHRS → 0x6Ba4…8419
+  3 APPLIED  0.00002 WPHRS → 0x7731…4457
+  4 APPLIED  0.00003 WPHRS → 0xbD63…24eD
+all 4 applied
+gas est.: alone 221274 vs batch 175148 → saves 20.84%
+gas used by the batch (receipt): 134401
+with approve (+46698): 181099 used
+steps: 4 transactions alone → 1 (+1 approve tx this run)
+
+$ npm run batch-executor -- --plan one-fails --approve --execute --compact --proof video-one-fails
+batch @ 31580419: 4 actions → 1 transaction via Multicall3
+  1 0.0001 PHRS → 0x8D34…D91B      ok · alone 21000 gas
+  2 0.0001 WPHRS → 0x4444…4444     ok · alone 45917 gas
+  3 1 USDC → 0x5555…5555           WOULD FAIL: ERC20InsufficientBalance
+  4 0.0003 WPHRS → 0x6666…6666     ok · alone 45932 gas
+approved WPHRS for Multicall3: 0x7965…2cc1
+approved USDC for Multicall3: 0x92c5…510d
+SENT 0x68e1…6d98 · block 31580423 · gas used 85040
+  1 APPLIED  0.0001 PHRS → 0x8D34…D91B
+  2 APPLIED  0.0001 WPHRS → 0x4444…4444
+  3 NOT APPLIED  1 USDC → 0x5555…5555 (ERC20InsufficientBalance)
+  4 APPLIED  0.0003 WPHRS → 0x6666…6666
+3 of 4 applied; the failure did not undo the rest
+gas est.: alone 112849 vs batch 114050 → costs more by 1.06%
+gas used by the batch (receipt): 85040
+with approve (+93635): 178675 used
+steps: 3 transactions alone → 1 (+2 approve tx this run)
+
+$ npm run batch-executor -- --plan one-fails --approve --drop-failing --execute --compact --proof video-drop-failing
+batch @ 31580439: 3 actions → 1 transaction via Multicall3
+  1 0.0001 PHRS → 0x8D34…D91B      ok · alone 21000 gas
+  2 0.0001 WPHRS → 0x4444…4444     ok · alone 45917 gas
+  3 0.0003 WPHRS → 0x6666…6666     ok · alone 45932 gas
+  dropped before sending: ERC20InsufficientBalance (send 1 USDC → 0x5555…5555)
+approved WPHRS for Multicall3: 0x5c19…b4f0
+SENT 0xf473…363a · block 31580442 · gas used 69135
+  1 APPLIED  0.0001 PHRS → 0x8D34…D91B
+  2 APPLIED  0.0001 WPHRS → 0x4444…4444
+  3 APPLIED  0.0003 WPHRS → 0x6666…6666
+all 3 applied
+gas est.: alone 112849 vs batch 94363 → saves 16.38%
+gas used by the batch (receipt): 69135
+with approve (+46698): 115833 used
+steps: 3 transactions alone → 1 (+1 approve tx this run)
