@@ -1,0 +1,33 @@
+{
+  "plan": {
+    "id": "insufficient-demo",
+    "frequency": "monthly",
+    "start": "2026-11-01T09:00:00.000Z",
+    "amount": "1000000",
+    "token": {
+      "symbol": "PHRS",
+      "decimals": 18
+    },
+    "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "periods": 3
+  },
+  "periods": [
+    {
+      "period": 1,
+      "due": "2026-11-01T09:00:00.000Z",
+      "status": "failed",
+      "attempts": [
+        {
+          "at": "2026-11-01T09:00:00.000Z",
+          "outcome": "failed: insufficient PHRS balance: has 14.931994638999979, needs 1000000; nothing was sent"
+        },
+        {
+          "at": "2026-11-01T09:00:00.000Z",
+          "outcome": "failed: insufficient PHRS balance: has 14.930973, needs 1000000; nothing was sent"
+        }
+      ],
+      "reason": "insufficient PHRS balance: has 14.930973, needs 1000000; nothing was sent"
+    }
+  ],
+  "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+}

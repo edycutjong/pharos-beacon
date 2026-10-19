@@ -1,0 +1,10 @@
+$ npm run recurring-payment-agent -- status --plan tasks/recurring-payment-agent/plans/rent.json --now 2026-11-22T09:00:00Z
+clock: injected --now 2026-11-22T09:00:00.000Z (not the real time)
+plan rent-demo: 0.001 PHRS weekly to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B, from 2026-11-01, 4 periods
+period  due         status   amount          tx / note
+1       2026-11-01  paid     0.001 PHRS      0xb481579f…c74b59 block 31571296
+2       2026-11-08  paid     0.001 PHRS      0x400359ae…a2ff2a block 31571315
+3       2026-11-15  paid     0.001 PHRS      0x813b85ab…85b55c block 31571475
+4       2026-11-22  pending  0.001 PHRS      due, not yet processed
+due, not yet paid: period 4; the next run pays or confirms it
+no later period is scheduled; the plan is not complete until the unpaid ones are paid

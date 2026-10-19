@@ -1,0 +1,131 @@
+{
+  "plan": {
+    "id": "rent-demo",
+    "frequency": "weekly",
+    "start": "2026-11-01T09:00:00.000Z",
+    "amount": "0.001",
+    "token": {
+      "symbol": "PHRS",
+      "decimals": 18
+    },
+    "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "periods": 4
+  },
+  "periods": [
+    {
+      "period": 1,
+      "due": "2026-11-01T09:00:00.000Z",
+      "status": "paid",
+      "attempts": [
+        {
+          "at": "2026-11-01T09:00:00.000Z",
+          "outcome": "signed (attempt 1), recorded before broadcast",
+          "hash": "0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59"
+        },
+        {
+          "at": "2026-11-01T09:00:00.000Z",
+          "outcome": "confirmed",
+          "hash": "0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59"
+        }
+      ],
+      "tx": {
+        "hash": "0xb481579f3c3a996d99f05a47280e361f06a3ec8e761da3320b46819c85c74b59",
+        "nonce": 52,
+        "raw": "0x02f870830a823134808477359400825208948d347c72431ed6e033d5f43e56c0987e97f5d91b87038d7ea4c6800080c080a041cf2286befc62aa22ea9e80470e2944945a29fa996f8058656a418a5c7ad90da04b517d1c956b47feee280c379ec93dd1a3d478feb0f9910dd4e9e8f24a979755",
+        "prepared": {
+          "chainId": "688689",
+          "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+          "value": "1000000000000000",
+          "nonce": "52",
+          "gas": "21000",
+          "maxFeePerGas": "2000000000",
+          "maxPriorityFeePerGas": "0"
+        }
+      },
+      "block": "31571296",
+      "gasUsed": "21000",
+      "paidAtRun": "2026-11-01T09:00:00.000Z",
+      "receipt": {
+        "notifier": "discord",
+        "id": "1561321078016577698"
+      }
+    },
+    {
+      "period": 2,
+      "due": "2026-11-08T09:00:00.000Z",
+      "status": "paid",
+      "attempts": [
+        {
+          "at": "2026-11-08T09:00:00.000Z",
+          "outcome": "signed (attempt 1), recorded before broadcast",
+          "hash": "0x400359aea589a88d6176e1e0c52db412eb33452cdb0c65abe06123817fa2ff2a"
+        },
+        {
+          "at": "2026-11-08T09:00:00.000Z",
+          "outcome": "confirmed",
+          "hash": "0x400359aea589a88d6176e1e0c52db412eb33452cdb0c65abe06123817fa2ff2a"
+        }
+      ],
+      "tx": {
+        "hash": "0x400359aea589a88d6176e1e0c52db412eb33452cdb0c65abe06123817fa2ff2a",
+        "nonce": 53,
+        "raw": "0x02f870830a823135808477359400825208948d347c72431ed6e033d5f43e56c0987e97f5d91b87038d7ea4c6800080c001a07262450c9749f74c51060d969e276fc06805f2d04f28849ab4c694e703355c09a02d8a677c09036b79c9e421b8b6217393f31e953a018e2e8cdd9bec67285b0497",
+        "prepared": {
+          "chainId": "688689",
+          "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+          "value": "1000000000000000",
+          "nonce": "53",
+          "gas": "21000",
+          "maxFeePerGas": "2000000000",
+          "maxPriorityFeePerGas": "0"
+        }
+      },
+      "block": "31571315",
+      "gasUsed": "21000",
+      "paidAtRun": "2026-11-08T09:00:00.000Z",
+      "receipt": {
+        "notifier": "discord",
+        "id": "1561321172900122706"
+      }
+    },
+    {
+      "period": 3,
+      "due": "2026-11-15T09:00:00.000Z",
+      "status": "paid",
+      "attempts": [
+        {
+          "at": "2026-11-15T09:00:00.000Z",
+          "outcome": "signed (attempt 1), recorded before broadcast",
+          "hash": "0x813b85abbbdb66cff2e24966ed13b30ed96cbeb21b35482d30ad36881d85b55c"
+        },
+        {
+          "at": "2026-11-15T09:00:00.000Z",
+          "outcome": "confirmed",
+          "hash": "0x813b85abbbdb66cff2e24966ed13b30ed96cbeb21b35482d30ad36881d85b55c"
+        }
+      ],
+      "tx": {
+        "hash": "0x813b85abbbdb66cff2e24966ed13b30ed96cbeb21b35482d30ad36881d85b55c",
+        "nonce": 54,
+        "raw": "0x02f870830a823136808477359400825208948d347c72431ed6e033d5f43e56c0987e97f5d91b87038d7ea4c6800080c001a05b6db1e9a2e54d48cebcf72fdd82d61575d91c9a1e8604bccba1e7304fd7d9a8a054f282a83bbebc228696509462f776ccb6082fbc23c14e4b38fc12a680071a3c",
+        "prepared": {
+          "chainId": "688689",
+          "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+          "value": "1000000000000000",
+          "nonce": "54",
+          "gas": "21000",
+          "maxFeePerGas": "2000000000",
+          "maxPriorityFeePerGas": "0"
+        }
+      },
+      "block": "31571475",
+      "gasUsed": "21000",
+      "paidAtRun": "2026-11-15T09:00:00.000Z",
+      "receipt": {
+        "notifier": "discord",
+        "id": "1561322724679483473"
+      }
+    }
+  ],
+  "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+}

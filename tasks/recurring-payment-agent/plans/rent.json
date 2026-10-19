@@ -1,0 +1,9 @@
+{
+  "id": "rent-demo",
+  "frequency": "weekly",
+  "start": "2026-11-01T09:00:00Z",
+  "amount": "0.001",
+  "token": "PHRS",
+  "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+  "periods": 4
+}
