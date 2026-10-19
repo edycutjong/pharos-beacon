@@ -8,11 +8,15 @@
   "rewrites": [
     {
       "source": "/api/x402-paywalled-api/(.*)",
-      "destination": "/api/x402-paywalled-api?path=$1"
+      "destination": "/api/router?slug=x402-paywalled-api&path=$1"
+    },
+    {
+      "source": "/api/:slug((?!router$)[a-z0-9-]+)",
+      "destination": "/api/router?slug=:slug"
     }
   ],
   "functions": {
-    "api/*.ts": {
+    "api/router.ts": {
       "maxDuration": 300
     }
   },
