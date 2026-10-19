@@ -1,0 +1,7 @@
+$ npm run dry-run-executor -- --to 0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B --value 0.0001
+simulation @ block 31565014: WOULD SUCCEED
+  from 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 → to 0x0Ef32f97565aDB7BDf3538b934F65877A848aD4B · value 0.0001 PHRS
+  gas 21000 × 1000000000 wei = 0.000021 PHRS fee
+  sender    14.941220638999979 → 14.941099638999979 PHRS (predicted)
+  recipient 0.0001 → 0.0002 PHRS (predicted)
+not sent: pass --execute to send it
