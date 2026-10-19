@@ -1,0 +1,16 @@
+$ npm run wallet-risk-checker -- check 0xD6936bEcCA1A13c6A426309a694560292e9b579E --network atlantic --block 31578000 --lookback 5000 --proof risky-wallet-aged-out
+risk check of 0xD6936bEcCA1A13c6A426309a694560292e9b579E on atlantic at block 31578000
+  [info  ] wallet or contract (get_code)
+           It is a plain wallet (no code).
+  [MEDIUM] wallet age (first block with a sent transaction)
+           It first sent a transaction in block 31566816, 6.6 hours before block 31578000. That is under 7 days: a new address has no track record.
+  [ok    ] nonce and balance (freshly funded?)
+           It has sent 3 transactions (nonce 3) and holds 9355648000000000 wei, so it has been used.
+  [ok    ] interaction with flagged addresses
+           None of its 0 token counterparts in blocks 31573000–31578000 (about 3.1 hours) is on our flagged list (1 address). Native-coin transfers leave no log and are not covered.
+  [ok    ] approvals to unknown spenders
+           0 open token approvals in blocks 31573000–31578000 (about 3.1 hours), none to a spender we do not recognise.
+  [info  ] token activity in the lookback range
+           0 token transfers with 0 counterparts in blocks 31573000–31578000 (about 3.1 hours).
+RISK: MEDIUM — 1 red flag
+  1. It first sent a transaction in block 31566816, 6.6 hours before block 31578000. That is under 7 days: a new address has no track record.

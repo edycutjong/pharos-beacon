@@ -1,0 +1,70 @@
+{
+  "meta": {
+    "task": "wallet-risk-checker",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/wallet-risk-checker/index.ts check 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548019 --proof clean-wallet",
+    "git": {
+      "commit": "b2ad95836a12",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T13:20:17.702Z"
+  },
+  "config": {
+    "flagged": 1,
+    "trustedSpenders": 0,
+    "youngDays": 7
+  },
+  "report": {
+    "address": "0x1F3546a29EeC2102c8d52E21a45114124014c85C",
+    "network": "pharos",
+    "block": "20548019",
+    "lookbackBlocks": "30000",
+    "lookbackSeconds": 30583,
+    "verdict": "low",
+    "signals": [
+      {
+        "id": "kind",
+        "level": "info",
+        "title": "wallet or contract (get_code)",
+        "detail": "It is a plain wallet (no code)."
+      },
+      {
+        "id": "age",
+        "level": "ok",
+        "title": "wallet age (first block with a sent transaction)",
+        "detail": "It first sent a transaction in block 17159978, 39 days before block 20548019. It has been around a while."
+      },
+      {
+        "id": "funding",
+        "level": "ok",
+        "title": "nonce and balance (freshly funded?)",
+        "detail": "It has sent 44628 transactions (nonce 44628) and holds 52893234045000000000 wei, so it has been used."
+      },
+      {
+        "id": "flagged",
+        "level": "ok",
+        "title": "interaction with flagged addresses",
+        "detail": "None of its 1 token counterpart in blocks 20518019–20548019 (about 8.5 hours) is on our flagged list (1 address). Native-coin transfers leave no log and are not covered."
+      },
+      {
+        "id": "approvals",
+        "level": "ok",
+        "title": "approvals to unknown spenders",
+        "detail": "0 open token approvals in blocks 20518019–20548019 (about 8.5 hours), none to a spender we do not recognise."
+      },
+      {
+        "id": "counterparties",
+        "level": "info",
+        "title": "token activity in the lookback range",
+        "detail": "1152 token transfers with 1 counterpart in blocks 20518019–20548019 (about 8.5 hours)."
+      }
+    ],
+    "reasons": []
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "risk-gate-demo",
+  "network": "atlantic",
+  "spendLimit": {
+    "perTx": "0.001",
+    "perWindow": "0.003",
+    "windowSeconds": 3600
+  },
+  "timeWindow": {
+    "start": "00:00",
+    "end": "23:59"
+  }
+}

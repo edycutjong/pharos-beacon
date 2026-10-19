@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "task": "wallet-risk-checker",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "scripts/make-risky-wallet.ts --execute",
+    "git": {
+      "commit": "980cf5c2bb84",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T07:35:35.627Z"
+  },
+  "note": "A staged example: we created this wallet, funded it and made it touch a flagged address of OUR list.",
+  "wallet": "0xD6936bEcCA1A13c6A426309a694560292e9b579E",
+  "flagged": "0xf1a9000000000000000000000000000000000001",
+  "unknownSpender": "0x5Be1100000000000000000000000000000000aa0",
+  "steps": [
+    {
+      "label": "fund the new wallet with 0.01 PHRS",
+      "tx": "0xc3f97bc275eabbd9557a67462fcb7958233db8205b6eaf1e3a7b43360281b2bf",
+      "status": "success",
+      "block": "31566813"
+    },
+    {
+      "label": "wrap 0.0005 PHRS → WPHRS",
+      "tx": "0x5ede102a0eadc174a0649e6ea8538e1ac442713f3261ec162d9e7b73276524fa",
+      "status": "success",
+      "block": "31566816"
+    },
+    {
+      "label": "send 0.0001 WPHRS to the flagged address 0xf1a9000000000000000000000000000000000001",
+      "tx": "0x43c4a2e8aef5d32272cf8911551da1ac05fcb15a0cee84be72afa74df4f3b4da",
+      "status": "success",
+      "block": "31566820"
+    },
+    {
+      "label": "approve an unlimited WPHRS allowance to 0x5Be1100000000000000000000000000000000aa0",
+      "tx": "0x935bcbb67938fe5b9c983db6c9a2c8d96fc526463d073b65552d9642d7e28527",
+      "status": "success",
+      "block": "31566823"
+    }
+  ]
+}

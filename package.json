@@ -23,6 +23,8 @@
     "dry-run-executor": "tsx tasks/dry-run-executor/index.ts",
     "gas-fee-optimizer": "tsx tasks/gas-fee-optimizer/index.ts",
     "whale-watching-agent": "tsx tasks/whale-watching-agent/index.ts",
+    "wallet-risk-checker": "tsx tasks/wallet-risk-checker/index.ts",
+    "make-risky-wallet": "tsx scripts/make-risky-wallet.ts",
     "find-whales": "tsx scripts/find-whales.ts",
     "docs-onboarding": "tsx tasks/docs-mcp-onboarding/ask.ts",
     "docs-onboarding:first-read": "tsx tasks/docs-mcp-onboarding/first-read.ts",
