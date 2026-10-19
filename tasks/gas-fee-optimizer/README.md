@@ -1,5 +1,7 @@
 # Gas Fee Optimizer — Medium
 
+**Live demo:** [pharos.edycu.dev/gas-fee-optimizer](https://pharos.edycu.dev/gas-fee-optimizer)
+
 **Task:** [Gas Fee Optimizer](https://pharos-agent-arena.vercel.app/tasks/gas-fee-optimizer) (Trading / Monitoring · Medium · 100 pts):
 monitors network gas price and times transaction submission for lowest cost.
 **Run:** `npm run gas-fee-optimizer -- sample [--count 6] [--interval 5]` · `-- history [--last 10]` ·
@@ -10,7 +12,7 @@ monitors network gas price and times transaction submission for lowest cost.
 
 **Install as a skill:** `npx skills add https://github.com/edycutjong/pharos-beacon --skill gas-fee-optimizer`.
 
-> **Atlantic gas was flat in all 29 samples we took (2026-10-18, 06:18–15:10Z, in several sittings).** Every sample in [`state/gas.json`](state/gas.json) reads 1 gwei (base fee 1, priority 0). So the live
+> **Atlantic gas was flat in all 29 samples we took for the runs below (2026-10-18, 06:18–15:10Z, in several sittings; the state file has a few more now, because every `sample` and `send` run appends to it, and they read 1 gwei too).** Every sample in [`state/gas.json`](state/gas.json) reads 1 gwei (base fee 1, priority 0). So the live
 > runs below show the *mechanics* (sent early, held to the deadline) but no real saving: the report says `saved 0 PHRS, 0.00%`.
 > The logic that would save money on a moving price is covered by tests with an injected clock.
 

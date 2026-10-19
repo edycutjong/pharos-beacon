@@ -1,5 +1,7 @@
 # Doc-Grounded Builder Agent — Hard
 
+**Live demo:** [pharos.edycu.dev/doc-grounded-builder-agent](https://pharos.edycu.dev/doc-grounded-builder-agent)
+
 **Task:** [Doc-Grounded Builder Agent](https://pharos-agent-arena.vercel.app/tasks/doc-grounded-builder-agent) (Cross-tool / Advanced · Hard · 200 pts):
 answers "how do I do X on Pharos?" from the Developer Docs MCP, then does X with the Chain MCP and verifies it on chain.
 **Run:** `npm run doc-grounded-builder-agent -- ["request" …] [--address 0x…] [--to 0x…] [--amount PHRS] [--token 0x…] [--tx 0x…] [--execute] [--json] [--proof]`

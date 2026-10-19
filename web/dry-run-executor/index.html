@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Dry-Run Executor</title>
+<meta name="description" content="Dry-Run Executor on Pharos Atlantic: simulate a transaction with eth_call and estimate_gas, predict success or the revert reason, the fee and the balances, and block it when it would fail. Run it live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+<style>
+/* page additions: the custom-transaction form, verdict line, links in tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)} .strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+.verdict{margin:0 0 14px;font-weight:700;font-size:17px}
+.verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)} .verdict.bad{color:var(--bad)}
+details.custom{justify-self:stretch;border:1px solid var(--rule);border-radius:4px;background:var(--sheet);padding:8px 12px}
+details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.form input,.form select{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0}
+.form .wide{grid-column:1/-1}
+.form .btn{justify-self:start}
+@media (max-width:520px){.form{grid-template-columns:1fr}}
+#recorded .log td{white-space:normal;vertical-align:top;overflow-wrap:anywhere}
+#recorded .log td a{white-space:nowrap}
+.panel-body{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Atlantic testnet · eip155:688689 · simulation only</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/dry-run-executor" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">MEDIUM · 100 PTS</span>
+      <h1>Dry-Run Executor</h1>
+      <p class="lede">Simulates a transaction on Pharos Atlantic before it is sent: eth_call and estimate_gas predict success or the revert reason, the fee and the balances before and after. When the simulation fails, the send is blocked.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Scenario">
+        <button class="btn" type="button" data-s="send" aria-pressed="true">Send 0.0001 PHRS</button>
+        <button class="btn" type="button" data-s="revert" aria-pressed="false">Transfer 1,000,000,000 USDC (reverts)</button>
+        <button class="btn" type="button" data-s="broke" aria-pressed="false">Send from an empty wallet</button>
+        <button class="btn" type="button" data-s="deposit" aria-pressed="false">Call WPHRS deposit()</button>
+        <button class="btn" type="button" data-s="token" aria-pressed="false">Transfer 0.00001 WPHRS</button>
+      </div>
+      <details class="custom" id="custom">
+        <summary>Simulate your own transaction</summary>
+        <form class="form" id="form">
+          <label class="wide">From (any Atlantic address; nothing is signed)<input name="from" required pattern="0x[0-9a-fA-F]{40}" placeholder="0x…" autocomplete="off"></label>
+          <label class="wide">To<input name="to" required pattern="0x[0-9a-fA-F]{40}" placeholder="0x…" autocomplete="off"></label>
+          <label>Token (blank = PHRS)<select name="token"><option value="">PHRS (native)</option><option>USDC</option><option>USDT</option><option>WBTC</option><option>WETH</option><option>WPHRS</option></select></label>
+          <label>Amount<input name="amount" required inputmode="decimal" pattern="\d+(\.\d+)?" placeholder="0.0001"></label>
+          <label class="wide">Calldata (optional, native only)<input name="data" pattern="0x([0-9a-fA-F]{2})*" placeholder="0x" autocomplete="off"></label>
+          <button class="btn" type="submit">Simulate this transaction</button>
+        </form>
+      </details>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">Send 0.0001 PHRS</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real read comes back from Atlantic. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live simulates the selected transaction on Atlantic at the latest block. Nothing is signed or sent; it costs nothing.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+  <p class="foot-note">The CLI reads Atlantic through the Pharos Chain MCP, which runs locally over stdio; this page runs on Vercel, so it reads the same data from the public Atlantic RPC (atlantic.dplabs-internal.com) with the CLI's own simulation code.</p>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="recorded">
+    <div class="sec-head"><span class="num">02</span><h2>Recorded live runs</h2><p>Real sends, recorded by the CLI, committed in the repo</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Run</th><th>Simulation</th><th>Gas predicted → used</th><th>Fee predicted → paid</th><th>Balances</th><th>Tx</th></tr></thead><tbody id="rec-body"><tr><td colspan="6" style="color:var(--ink-2)">Loading the proof files from GitHub…</td></tr></tbody></table></div>
+    <p class="foot-note">Each row is a proof JSON file recorded on 2026-10-18 by the CLI, committed in the repo at <a href="https://github.com/edycutjong/pharos-beacon/tree/1004316/tasks/dry-run-executor/proof" rel="noopener">1004316</a>. The page never signs: sends happen only in the CLI with <span class="mono">--execute</span>.</p>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">03</span><h2>Run log</h2><p>Your simulations on this visit (kept in this browser only)</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Transaction</th><th>Block</th><th>Outcome</th><th>Gas</th><th>Total</th></tr></thead><tbody id="log-body"><tr><td colspan="6" style="color:var(--ink-2)">No runs yet. Press Run live; it simulates on Atlantic and sends nothing.</td></tr></tbody></table></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">04</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article id="accuracy"><h3>Prediction checked</h3><p>After a real send the CLI reads the receipt and the balances back and scores its own prediction: gas predicted vs used, fee predicted vs paid, every balance predicted vs on chain. A plain PHRS send was exact; on contract calls estimate_gas ran high (−24.14% on deposit(), −21.39% on a transfer), so the report calls the fee an upper bound. See <a href="#recorded" data-target="recorded">the recorded runs</a>.</p></article>
+      <article><h3>Revert reasons decoded</h3><p>Revert bytes are decoded into Error(string), Panic and the OpenZeppelin token errors, so “1,000,000,000 USDC” fails as <span class="mono">ERC20InsufficientBalance(sender, 0, 10^15)</span>, not as an opaque hex string. A node refusal (no funds for the value) is reported separately.</p></article>
+      <article><h3>Blocked by construction</h3><p>The one call to the sender sits inside the passing branch of the code, and a test hands in a sender that throws to prove a failed simulation never reaches it. The CLI exits 3 on a block.</p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/dry-run-executor</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: no key, nothing signed. Keys for the CLI live in a local env file, never in code.</span></footer>
+</div>
+
+<script>
+const API = "/api/dry-run-executor";
+const RAW = "https://raw.githubusercontent.com/edycutjong/pharos-beacon/1004316/tasks/dry-run-executor/proof/";
+const EXPLORER = "https://atlantic.pharosscan.xyz/";
+const SCEN = { send: "Send 0.0001 PHRS", revert: "Transfer 1,000,000,000 USDC", broke: "Send from an empty wallet", deposit: "Call WPHRS deposit()", token: "Transfer 0.00001 WPHRS", custom: "Your transaction" };
+const STEPS = [["read", "Read state"], ["call", "eth_call"], ["estimate", "estimate_gas"], ["funds", "Funds check"], ["predict", "Predict balances"], ["decide", "Send or block"]];
+const REQS = [
+  ["01", "Uses a call or gas estimation to simulate the transaction without broadcasting it.", "The eth_call and estimate_gas lamps; Evidence lists every read the run made. The page cannot broadcast: its reader has no send tool.", "met", "strip"],
+  ["02", "Reports predicted success or revert, including the revert reason when available, and estimated gas cost.", "Output: WOULD SUCCEED with gas × price = fee, or WOULD FAIL with the decoded reason. Try “Transfer 1,000,000,000 USDC”.", "met", "output"],
+  ["03", "Shows the expected outcome, e.g. balances or state before and after where possible.", "Output: sender and recipient balances before → after (PHRS, and both token balances for an ERC-20 transfer). Recorded runs compare them with the chain.", "met", "output"],
+  ["04", "Blocks execution automatically if the simulation fails.", "The last lamp turns BLOCKED on a revert or an unfunded sender; the recorded run with --execute was blocked and no tx exists.", "met", "recorded"]
+];
+
+let cur = "send", running = false, view = "read", last = null, ctrl = null, runN = 0, customQs = "";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const short = h => h ? String(h).slice(0, 6) + "…" + String(h).slice(-4) : "—";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const fmtUnits = (v, d) => { v = BigInt(v); const neg = v < 0n; if (neg) v = -v; const b = 10n ** BigInt(d); const w = v / b, f = (v % b).toString().padStart(d, "0").replace(/0+$/, ""); return (neg ? "-" : "") + w.toLocaleString("en-US") + (f ? "." + f : ""); };
+
+function drawLamps() { $("lamps").innerHTML = STEPS.map(([id, n]) => `<li class="lamp" id="l-${id}"><span class="bulb"><i></i></span><span class="name">${n}</span><span class="meta" id="m-${id}">&nbsp;</span></li>`).join(""); }
+function drawReqs() { $("reqs").innerHTML = REQS.map(r => `<li><span class="rn">${r[0]}</span><span class="rt">${esc(r[1])}<small>${esc(r[2])}</small></span><span class="st ${r[3]}">${r[3]}</span><a class="showme" href="#${r[4]}" data-target="${r[4]}">show me ↓</a></li>`).join(""); }
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-target]"); if (!a) return;
+  e.preventDefault(); const el = $(a.dataset.target);
+  el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+});
+function pick(s) {
+  cur = s; document.querySelectorAll(".scen .btn").forEach(x => x.setAttribute("aria-pressed", x.dataset.s === s));
+  $("scen-name").textContent = SCEN[s]; resetStrip();
+}
+document.querySelectorAll(".scen .btn").forEach(b => b.addEventListener("click", () => { if (!running) pick(b.dataset.s); }));
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { view = t.dataset.t; document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t)); renderOut(); }));
+function setFoot(text, tone) { const f = $("foot"); f.textContent = text; f.className = "strip-foot" + (tone ? " " + tone : ""); }
+function resetStrip() { drawLamps(); $("total").textContent = "idle · press Run live"; $("strip").classList.remove("lit"); setFoot("Each lamp lights when the real read comes back from Atlantic. Times are measured, not animated."); }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+
+$("form").addEventListener("submit", e => {
+  e.preventDefault(); if (running) return;
+  const f = new FormData(e.target), p = new URLSearchParams({ action: "run", scenario: "custom", from: f.get("from").trim(), to: f.get("to").trim() });
+  if (f.get("token")) { p.set("token", f.get("token")); p.set("amount", f.get("amount").trim()); }
+  else { p.set("value", f.get("amount").trim()); if (f.get("data").trim()) p.set("data", f.get("data").trim()); }
+  customQs = p.toString(); document.querySelectorAll(".scen .btn").forEach(x => x.setAttribute("aria-pressed", false));
+  cur = "custom"; $("scen-name").textContent = SCEN.custom; resetStrip(); go();
+});
+
+let queue = Promise.resolve();
+function lightStep(ev) {
+  queue = queue.then(async () => {
+    const li = $("l-" + ev.id); if (!li) return;
+    $("run-label").textContent = STEPS.find(s => s[0] === ev.id)[1] + "… ";
+    li.className = "lamp reached state-running";
+    await wait(ev.state === "skip" ? 60 : 120);
+    li.className = "lamp reached state-" + ev.state;
+    $("m-" + ev.id).innerHTML = ev.state === "skip" ? esc(ev.label) : `<b>${esc(ev.label)}</b>${ev.ms ? `<br>${Number(ev.ms).toLocaleString()} ms` : ""}`;
+  });
+  return queue;
+}
+
+$("run").addEventListener("click", () => go());
+async function go() {
+  if (running) return; running = true; resetStrip(); $("strip").classList.add("lit");
+  const btns = [$("run"), ...document.querySelectorAll(".scen .btn"), $("form").querySelector("button")]; btns.forEach(b => b.disabled = true);
+  const scen = cur, steps = {}, lines = [], started = performance.now();
+  let done = null, error = null, start = null;
+  ctrl = new AbortController();
+  setFoot("Simulating on Atlantic… (Esc cancels)");
+  $("l-read").className = "lamp reached state-running"; $("run-label").textContent = "Read state… ";
+  try {
+    const qs = scen === "custom" ? customQs : `action=run&scenario=${scen}`;
+    const res = await fetch(`${API}?${qs}`, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok || !res.body) { const b = await res.json().catch(() => ({})); throw new Error(b.error || `HTTP ${res.status}`); }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (value) buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (!line) continue;
+        lines.push(line); const ev = JSON.parse(line);
+        if (ev.type === "start") start = ev;
+        else if (ev.type === "step") { steps[ev.id] = ev; lightStep(ev); }
+        else if (ev.type === "done") done = ev;
+        else if (ev.type === "error") error = ev.message;
+      }
+      if (end) break;
+    }
+  } catch (e) { error = e.name === "AbortError" ? "Cancelled." : e.message; }
+  await queue; ctrl = null;
+  if (done) {
+    runN++; last = { ...done, start, steps, lines, scen, id: "run-" + String(runN).padStart(3, "0"), at: new Date() };
+    $("total").innerHTML = `<b>${done.totalMs.toLocaleString()} ms</b> total`;
+    setFoot(done.summary, done.status === "blocked" ? "warn" : "");
+    renderOut(); renderEv(); addLog();
+  } else {
+    document.querySelectorAll(".lamp.state-running").forEach(l => l.className = "lamp reached state-failed");
+    $("total").textContent = "stopped"; setFoot(error || "The run ended without a result.", "bad");
+  }
+  btns.forEach(b => b.disabled = false); $("run-label").textContent = "Run again "; running = false;
+}
+
+function renderOut() {
+  const b = $("out-body"), r = last;
+  if (!r) return;
+  if (view === "raw") { b.innerHTML = `<pre class="raw">${r.lines.map(esc).join("\n")}</pre>`; return; }
+  const blocked = r.status === "blocked";
+  let h = `<p class="verdict ${blocked ? "warn" : "ok"}">${blocked ? "WOULD FAIL → BLOCKED" : "WOULD SUCCEED"}</p>`;
+  if (blocked) h += `<p class="empty" style="margin:0 0 14px">${esc(r.failure)}. Nothing was signed or sent: the send step is never reached when the simulation fails${r.scen === "revert" || r.scen === "broke" ? " (requirement 04)" : ""}.</p>`;
+  else h += `<table class="data" style="margin-bottom:14px"><tr><th>Estimated cost</th><th style="text-align:right">Value</th></tr><tr><td>Gas (estimate_gas)</td><td class="n">${Number(r.gas).toLocaleString()}</td></tr><tr><td>Price (base fee + priority)</td><td class="n">${fmtUnits(r.gasPriceWei, 9)} gwei</td></tr><tr><td>Fee</td><td class="n">${esc(r.feePHRS)} PHRS</td></tr></table>`;
+  h += `<table class="data"><tr><th>Balance at block ${Number(r.block).toLocaleString()}</th><th style="text-align:right">Before</th><th style="text-align:right">${blocked ? "After (unchanged)" : "After (predicted)"}</th></tr>` +
+    r.changes.map(c => `<tr><td>${esc(c.who)} <a href="${EXPLORER}address/${esc(c.address)}" rel="noopener">${esc(short(c.address))}</a> · ${esc(c.asset)}</td><td class="n">${esc(fmtUnits(c.before, c.decimals))}</td><td class="n">${esc(fmtUnits(c.after, c.decimals))}</td></tr>`).join("") + `</table>`;
+  if (!blocked) h += `<p class="foot-note">Predicted from the call itself: the value, the fee and a decoded ERC-20 transfer. Other state a contract changes is not predicted. Contract-call gas estimates run high, so read the fee as an upper bound (see <a href="#accuracy" data-target="accuracy">Prediction checked</a>).</p>`;
+  b.innerHTML = h;
+}
+function renderEv() {
+  const r = last, q = r.request; $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  const rows = [["Block", Number(r.block).toLocaleString(), `${EXPLORER}block/${r.block}`, false],
+    ["From", esc(short(q.from)), `${EXPLORER}address/${q.from}`, q.from], ["To", esc(short(q.to)), `${EXPLORER}address/${q.to}`, q.to]];
+  if (q.token) rows.push(["Token call", `transfer · ${esc(q.token.symbol)}`]);
+  else rows.push(["Value", esc(q.valuePHRS) + " PHRS"]);
+  if (q.data) rows.push(["Calldata", esc(q.data.length > 74 ? q.data.slice(0, 74) + "…" : q.data), null, q.data]);
+  rows.push(["Result", r.ok ? "eth_call ran; estimate_gas " + Number(r.gas).toLocaleString() : esc(r.failure)]);
+  if (r.revertData) rows.push(["Revert bytes", esc(short(r.revertData)) + ` (selector ${esc(r.revertData.slice(0, 10))})`, null, r.revertData]);
+  rows.push(["Reads made", esc(r.calls.join(" · "))], ["Decision", r.status === "blocked" ? "BLOCKED: nothing signed or sent" : "would send; this page never sends"]);
+  $("ev").innerHTML = rows.map(([k, v, link, copy]) => `<li><span class="caps">${k}</span><span class="v">${v}</span>${link || copy ? `<span class="act">${link ? `<a href="${esc(link)}" rel="noopener">Explorer ↗</a>` : ""}${copy ? `<button class="copy" type="button" data-copy="${esc(copy)}">Copy</button>` : ""}</span>` : ""}</li>`).join("");
+}
+document.addEventListener("click", e => {
+  const c = e.target.closest("[data-copy]"); if (!c) return;
+  (navigator.clipboard?.writeText(c.dataset.copy) || Promise.reject()).then(() => c.textContent = "Copied", () => c.textContent = "Copy blocked");
+  setTimeout(() => c.textContent = "Copy", 1400);
+});
+const runs = [];
+function addLog() {
+  const r = last; runs.unshift(r); runs.length = Math.min(runs.length, 10);
+  $("log-body").innerHTML = runs.map(x => `<tr><td class="m">${x.at.toISOString().slice(11, 19)}</td><td>${esc(SCEN[x.scen])}</td><td class="m">${Number(x.block).toLocaleString()}</td><td>${x.status === "blocked" ? '<span class="st partly">blocked</span>' : '<span class="st met">would succeed</span>'}</td><td class="m">${x.gas ? Number(x.gas).toLocaleString() : "—"}</td><td class="m">${x.totalMs.toLocaleString()} ms</td></tr>`).join("");
+}
+
+const RECORDED = [["executed", "PHRS send to a fresh address"], ["contract-call", "WPHRS deposit() contract call"], ["token-transfer", "WPHRS transfer"], ["blocked-execute", "1,000,000,000 USDC, with --execute"]];
+async function loadRecorded() {
+  const rows = await Promise.all(RECORDED.map(async ([f, label]) => {
+    try {
+      const d = await (await fetch(RAW + f + ".json", { cache: "force-cache" })).json();
+      const r = d.result, s = r.simulation, a = r.accuracy, when = d.meta.createdAt.slice(0, 10);
+      const proof = `<a href="https://github.com/edycutjong/pharos-beacon/blob/1004316/tasks/dry-run-executor/proof/${f}.json" rel="noopener">${f}.json</a>`;
+      if (r.status === "blocked") return `<tr><td>${esc(label)}<br>${proof}</td><td><span class="st partly">BLOCKED</span><br><span class="mono" style="white-space:normal">${esc(s.failure)}</span></td><td class="m">—</td><td class="m">—</td><td>unchanged</td><td>no tx exists · ${esc(when)}</td></tr>`;
+      const bal = a.changes.map(c => `${esc(c.who)} ${esc(c.asset)}: ${c.delta === "0" ? "exact" : "off by " + esc(fmtUnits(c.delta, c.decimals))}`).join("<br>");
+      return `<tr><td>${esc(label)}<br>${proof}</td><td><span class="st met">would succeed</span> → sent</td><td class="m">${Number(a.gas.predicted).toLocaleString()} → ${Number(a.gas.actual).toLocaleString()} (${esc(a.gas.errorPct)}%)</td><td class="m">${esc(fmtUnits(a.feeWei.predicted, 18))} → ${esc(fmtUnits(a.feeWei.actual, 18))} PHRS</td><td class="m">${bal}</td><td class="m"><a href="${EXPLORER}tx/${esc(r.sent.tx)}" rel="noopener">${esc(short(r.sent.tx))} ↗</a><br>block ${Number(r.sent.block).toLocaleString()} · ${esc(when)}</td></tr>`;
+    } catch (e) { return `<tr><td colspan="6" style="color:var(--warn)">Could not load ${esc(f)}.json from GitHub (${esc(e.message)}).</td></tr>`; }
+  }));
+  $("rec-body").innerHTML = rows.join("");
+}
+async function loadDeploy() {
+  try {
+    const d = await (await fetch(`${API}?action=info`, { cache: "no-store" })).json(); const c = d.deploy?.commit;
+    $("deployed").innerHTML = c ? `deployed from <a href="https://github.com/edycutjong/pharos-beacon/commit/${esc(c)}" rel="noopener">${esc(c)}</a> · ${esc(d.deploy.env)}` : `deployed from the working tree (no commit) · ${esc(d.deploy?.env || "")}`;
+  } catch { $("deployed").textContent = "deploy info unavailable"; }
+}
+drawLamps(); drawReqs(); loadRecorded(); loadDeploy();
+</script>
+</body>
+</html>

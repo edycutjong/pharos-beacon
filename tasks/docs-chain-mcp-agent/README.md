@@ -1,5 +1,7 @@
 # Docs MCP + Chain MCP Agent — Medium
 
+**Live demo:** [pharos.edycu.dev/docs-chain-mcp-agent](https://pharos.edycu.dev/docs-chain-mcp-agent)
+
 **Task:** [Docs MCP + Chain MCP Agent](https://pharos-agent-arena.vercel.app/tasks/docs-chain-mcp-agent) (Composition · Medium · 100 pts):
 explains a contract function from the Developer Docs MCP, then calls it via Chain MCP and interprets the result.
 **Run:** `npm run docs-chain-mcp-agent` (the five-function demo on Pharos mainnet) or
@@ -47,7 +49,7 @@ Each proof is a separate run committed on its own, so every file records `"dirty
 | 4 | WPROS `0x52c4…f0b0` | `totalSupply()` | no: no cited page names it | `23287628294322235119052474` (raw, no unit applied) | [proof](proof/wpros-totalsupply.json) |
 | 5 | Multicall3 `0xcA11…CA11` | `getChainId()` | no: no cited page names it | `1672` (raw) | [proof](proof/multicall3-getchainid.json) |
 
-An explained function (proof 2, abridged only by the 4-source cap in the printout):
+An explained function (proof 2, abridged only by the 4-source cap in the printout). The printout lists the page that names the function first; the proof JSON keeps the sources in the order the Docs MCP returned them:
 
 ```text
 $ npm run docs-chain-mcp-agent -- --contract 0xc879c018db60520f4355c26ed1a6d572cdac1815 --function balanceOf --arg 0x94807fE4300D15909C1a4fd39f76c61D68aee11E

@@ -1,5 +1,7 @@
 # Dry-Run Executor — Medium
 
+**Live demo:** [pharos.edycu.dev/dry-run-executor](https://pharos.edycu.dev/dry-run-executor)
+
 **Task:** [Dry-Run Executor](https://pharos-agent-arena.vercel.app/tasks/dry-run-executor) (SkillEngine · Medium · 100 pts):
 simulates a transaction's outcome/cost before submitting for real.
 **Run:** `npm run dry-run-executor -- (--to 0x… --value 0.0001 | --token USDC --to 0x… --amount 1.5 | --to 0x… --data 0x…) [--execute] [--proof name]`

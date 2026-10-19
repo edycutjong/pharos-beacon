@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Gas Fee Optimizer</title>
+<meta name="description" content="Gas Fee Optimizer on Pharos Atlantic: tracks the gas price over time, holds a transaction until gas is at or below your target or the deadline arrives, and reports what was paid against the price at request time. Run the hold live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+<style>
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)} .strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+.verdict{margin:0 0 14px;font-weight:700;font-size:17px}
+.verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)}
+details.custom{justify-self:stretch;border:1px solid var(--rule);border-radius:4px;background:var(--sheet);padding:8px 12px}
+details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
+.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px;align-items:end}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.form input,.form select{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0}
+.form .btn{grid-column:1/-1;justify-self:start}
+@media (max-width:520px){.form{grid-template-columns:1fr}}
+.chart{display:block;width:100%;max-width:680px;height:auto;margin:4px 0 12px}
+.chart .axis{stroke:var(--rule);stroke-width:1}
+.chart .line{fill:none;stroke:var(--sea);stroke-width:2}
+.chart .tgt{stroke:var(--warn);stroke-width:1.5;stroke-dasharray:5 4}
+.chart .dot{fill:var(--sea)}
+.chart text{fill:var(--ink-2);font:11px var(--f-mono)}
+.lamps{grid-auto-columns:minmax(104px,1fr)}
+#recorded .log td{white-space:normal;vertical-align:top;overflow-wrap:anywhere}
+#recorded .log td a{white-space:nowrap}
+.panel-body{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Atlantic testnet · eip155:688689 · read-only here</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/gas-fee-optimizer" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">MEDIUM · 100 PTS</span>
+      <h1>Gas Fee Optimizer</h1>
+      <p class="lede">Tracks the Atlantic gas price, holds a transaction until gas is at or below your target or the deadline arrives, and reports what was paid against the price when you asked. At the deadline it sends whatever the price.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Scenario">
+        <button class="btn" type="button" data-s="floor" aria-pressed="true">Hold for 0.5 gwei · 30 s deadline</button>
+        <button class="btn" type="button" data-s="early" aria-pressed="false">Target 1.5 gwei · sends at once</button>
+        <button class="btn" type="button" data-s="pct" aria-pressed="false">Cheapest quarter (p25)</button>
+        <button class="btn" type="button" data-s="sample" aria-pressed="false">Sample gas ×6</button>
+      </div>
+      <details class="custom">
+        <summary>Set your own target and deadline</summary>
+        <form class="form" id="form">
+          <label>Target<select name="kind"><option value="gwei">price, gwei</option><option value="p">percentile</option></select></label>
+          <label>Value<input name="v" required inputmode="decimal" pattern="\d{1,4}(\.\d{1,9})?" value="0.8"></label>
+          <label>Deadline, s (10–45)<input name="deadline" required type="number" min="10" max="45" value="20"></label>
+          <button class="btn" type="submit">Hold with these settings</button>
+        </form>
+      </details>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">Hold for 0.5 gwei · 30 s deadline</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">One lamp per real gas reading, every 3 s. The hold ends at the target or at the send-by time (deadline − 8 s lead).</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live reads Atlantic gas every 3 s and holds a 0.0001 PHRS send until gas reaches 0.5 gwei or the send-by time arrives. The page decides but never sends; the real sends are below.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+  <p class="foot-note">The CLI reads Atlantic through the Pharos Chain MCP, which runs locally over stdio; this page runs on Vercel, so it reads the same price (latest block's base fee + the node's priority fee) from the public Atlantic RPC, with the CLI's own sampler and hold loop.</p>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="history">
+    <div class="sec-head"><span class="num">02</span><h2>Gas history</h2><p>Every sample the CLI committed in state/gas.json</p></div>
+    <div class="panel"><div class="panel-body" id="hist-body"><p class="empty">Loading state/gas.json from GitHub…</p></div></div>
+  </section>
+
+  <section class="block" id="recorded">
+    <div class="sec-head"><span class="num">03</span><h2>Recorded live runs</h2><p>Real sends, recorded by the CLI, committed in the repo</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Run</th><th>Target · deadline</th><th>Decision</th><th>Against the deadline</th><th>Price at request → paid</th><th>Tx</th></tr></thead><tbody id="rec-body"><tr><td colspan="6" style="color:var(--ink-2)">Loading the proof files from GitHub…</td></tr></tbody></table></div>
+    <p class="foot-note">Each row is a proof JSON file recorded on 2026-10-18 by the CLI, committed in the repo at <a href="https://github.com/edycutjong/pharos-beacon/tree/1004316/tasks/gas-fee-optimizer/proof" rel="noopener">1004316</a>. Atlantic gas was flat at 1 gwei in every sample, so the runs show the mechanics (sent early, held to the deadline) and no real saving: the report says saved 0 PHRS, 0.00%.</p>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">04</span><h2>Run log</h2><p>Your runs on this visit (kept in this browser only)</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Run</th><th>Samples</th><th>Decision</th><th>Price at request → decision</th><th>Total</th></tr></thead><tbody id="log-body"><tr><td colspan="6" style="color:var(--ink-2)">No runs yet. Press Run live; it reads Atlantic gas and sends nothing.</td></tr></tbody></table></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">05</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article><h3>Percentile target</h3><p><span class="mono">--target-percentile 25 --window 20</span> means “send when gas is in the cheapest quarter of the last 20 samples”, so nobody has to guess a price. It waits for 5 samples first (one sample is always its own p25). Press “Cheapest quarter (p25)” to watch it warm up.</p></article>
+      <article><h3>A lead before the deadline</h3><p>Nonce, estimate, broadcast and the block take seconds, so the hold ends 8 s before the deadline (half of a short one). The run without a lead landed 1 s late; with the lead it was mined 7 s early. Both are in the recorded runs.</p></article>
+      <article><h3>A clock that cannot slip</h3><p>The loop checks the clock before and after every read, cuts a read that hangs at the deadline, and counts failed reads without stopping the clock. Tests with an injected clock cover a price that never drops and a read that never answers.</p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/gas-fee-optimizer</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: no key, nothing signed. Keys for the CLI live in a local env file, never in code.</span></footer>
+</div>
+
+<script>
+const API = "/api/gas-fee-optimizer";
+const RAW = "https://raw.githubusercontent.com/edycutjong/pharos-beacon/1004316/tasks/gas-fee-optimizer/";
+const BLOB = "https://github.com/edycutjong/pharos-beacon/blob/1004316/tasks/gas-fee-optimizer/";
+const EXPLORER = "https://atlantic.pharosscan.xyz/";
+const SCEN = {
+  floor: { name: "Hold for 0.5 gwei · 30 s deadline", qs: "action=hold&target=gwei:0.5&deadline=30" },
+  early: { name: "Target 1.5 gwei · sends at once", qs: "action=hold&target=gwei:1.5&deadline=30" },
+  pct: { name: "Cheapest quarter (p25) · 30 s deadline", qs: "action=hold&target=p:25&window=20&deadline=30" },
+  sample: { name: "Sample gas ×6, 3 s apart", qs: "action=sample&count=6" },
+  custom: { name: "Your settings", qs: "" }
+};
+const REQS = [
+  ["01", "Tracks gas price over time and shows recent history.", "Each reading is a lamp and a point on the chart; Gas history plots every sample the CLI committed.", "met", "history"],
+  ["02", "Accepts a transaction with a deadline and holds it until gas is favorable or the deadline is reached.", "Run “Hold for 0.5 gwei”: it holds and reads until the send-by time; “Target 1.5 gwei” sends on the first read. The page decides; the CLI sends.", "met", "strip"],
+  ["03", "Reports the actual gas paid compared with the price at request time.", "Recorded live runs: price at request → price paid from the receipt, gas paid vs at the request price. Live runs show the price at request vs at the decision.", "met", "recorded"],
+  ["04", "Never misses the deadline. It submits at the deadline even if gas is high.", "Recorded: held to the deadline with an 8 s lead, broadcast 7.7 s and mined 7 s before it. Live: the hold ends at the send-by time whatever the price.", "met", "recorded"]
+];
+
+let cur = "floor", running = false, view = "read", last = null, ctrl = null, runN = 0, nSamples = 0;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const short = h => h ? String(h).slice(0, 6) + "…" + String(h).slice(-4) : "—";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const gwei = w => { const v = BigInt(w), b = 10n ** 9n, f = (v % b).toString().padStart(9, "0").replace(/0+$/, ""); return (v / b).toString() + (f ? "." + f : ""); };
+const phrs = w => { const v = BigInt(w), b = 10n ** 18n, f = (v % b).toString().padStart(18, "0").replace(/0+$/, ""); return (v / b).toString() + (f ? "." + f : ""); };
+
+function lampHtml(id, name) { return `<li class="lamp" id="l-${id}"><span class="bulb"><i></i></span><span class="name">${esc(name)}</span><span class="meta" id="m-${id}">&nbsp;</span></li>`; }
+function drawLamps() {
+  nSamples = 0;
+  $("lamps").innerHTML = cur === "sample" ? lampHtml("s0", "Reading 1") : lampHtml("req", "Request") + lampHtml("s0", "Reading 1") + lampHtml("decide", "Decide") + lampHtml("send", "Send");
+}
+function addSampleLamp(i) {
+  if ($("l-s" + i)) return;
+  const html = lampHtml("s" + i, "Reading " + (i + 1));
+  const anchor = $("l-decide");
+  if (anchor) anchor.insertAdjacentHTML("beforebegin", html); else $("lamps").insertAdjacentHTML("beforeend", html);
+}
+function drawReqs() { $("reqs").innerHTML = REQS.map(r => `<li><span class="rn">${r[0]}</span><span class="rt">${esc(r[1])}<small>${esc(r[2])}</small></span><span class="st ${r[3]}">${r[3]}</span><a class="showme" href="#${r[4]}" data-target="${r[4]}">show me ↓</a></li>`).join(""); }
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-target]"); if (!a) return;
+  e.preventDefault(); const el = $(a.dataset.target);
+  el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+});
+document.querySelectorAll(".scen .btn").forEach(b => b.addEventListener("click", () => {
+  if (running) return; cur = b.dataset.s;
+  document.querySelectorAll(".scen .btn").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("scen-name").textContent = SCEN[cur].name; resetStrip();
+}));
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { view = t.dataset.t; document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t)); renderOut(); }));
+function setFoot(text, tone) { const f = $("foot"); f.textContent = text; f.className = "strip-foot" + (tone ? " " + tone : ""); }
+function resetStrip() { drawLamps(); $("total").textContent = "idle · press Run live"; $("strip").classList.remove("lit"); setFoot("One lamp per real gas reading, every 3 s. The hold ends at the target or at the send-by time (deadline − 8 s lead)."); }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+$("form").addEventListener("submit", e => {
+  e.preventDefault(); if (running) return;
+  const f = new FormData(e.target);
+  SCEN.custom.qs = new URLSearchParams({ action: "hold", target: `${f.get("kind")}:${f.get("v").trim()}`, deadline: f.get("deadline") }).toString();
+  SCEN.custom.name = `Hold for ${f.get("kind") === "p" ? "p" + f.get("v").trim() : f.get("v").trim() + " gwei"} · ${f.get("deadline")} s deadline`;
+  cur = "custom"; document.querySelectorAll(".scen .btn").forEach(x => x.setAttribute("aria-pressed", false));
+  $("scen-name").textContent = SCEN.custom.name; resetStrip(); go();
+});
+
+let queue = Promise.resolve();
+function light(id, state, label, ms) {
+  queue = queue.then(async () => {
+    const li = $("l-" + id); if (!li) return;
+    li.className = "lamp reached state-running";
+    await wait(state === "skip" ? 60 : 120);
+    li.className = "lamp reached state-" + state;
+    $("m-" + id).innerHTML = state === "skip" ? esc(label) : `<b>${esc(label)}</b>${ms !== undefined ? `<br>${Number(ms).toLocaleString()} ms` : ""}`;
+  });
+  return queue;
+}
+
+$("run").addEventListener("click", () => go());
+async function go() {
+  if (running) return; running = true; resetStrip(); $("strip").classList.add("lit");
+  const btns = [$("run"), ...document.querySelectorAll(".scen .btn"), $("form").querySelector("button")]; btns.forEach(b => b.disabled = true);
+  const scen = cur, lines = [], samples = [], started = performance.now();
+  let done = null, error = null, start = null, tick = null;
+  ctrl = new AbortController();
+  setFoot("Reading Atlantic gas… (Esc cancels)");
+  $("l-s0").className = "lamp reached state-running"; $("run-label").textContent = "Reading… ";
+  try {
+    const res = await fetch(`${API}?${SCEN[scen].qs}`, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok || !res.body) { const b = await res.json().catch(() => ({})); throw new Error(b.error || `HTTP ${res.status}`); }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (value) buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (!line) continue;
+        lines.push(line); const ev = JSON.parse(line);
+        if (ev.type === "start") {
+          start = ev;
+          if (ev.mode === "hold") {
+            light("req", "ok", `target ${ev.target} · ${ev.deadlineS} s`);
+            const dl = new Date(ev.deadline).getTime();
+            tick = setInterval(() => { $("total").innerHTML = `<b>${Math.max(0, Math.round((dl - Date.now()) / 1000))} s</b> to the deadline`; }, 250);
+          }
+        } else if (ev.type === "sample") {
+          samples.push(ev); addSampleLamp(ev.i);
+          light("s" + ev.i, "ok", `${ev.priceGwei} gwei`, ev.ms);
+          addSampleLamp(ev.i + 1); $("l-s" + (ev.i + 1)).className = "lamp state-running";
+          $("run-label").textContent = `Reading ${ev.i + 2}… `;
+          if (start?.mode === "sample") $("total").innerHTML = `<b>${samples.length}</b> of ${start.count} readings`;
+        } else if (ev.type === "done") done = ev;
+        else if (ev.type === "error") error = ev.message;
+      }
+      if (end) break;
+    }
+  } catch (e) { error = e.name === "AbortError" ? "Cancelled." : e.message; }
+  clearInterval(tick);
+  await queue; ctrl = null;
+  const pending = $("l-s" + samples.length); if (pending) pending.remove();
+  if (done) {
+    if (done.mode === "hold") {
+      light("decide", done.reason === "deadline reached" ? "refused" : "ok", done.reason === "deadline reached" ? "send-by time: send now" : "at target: send now", done.heldMs);
+      light("send", "skip", "not sent here (CLI --execute)");
+      await queue;
+    }
+    runN++; last = { ...done, start, samples, lines, scen, id: "run-" + String(runN).padStart(3, "0"), at: new Date() };
+    $("total").innerHTML = `<b>${done.totalMs.toLocaleString()} ms</b> total`;
+    setFoot(done.summary, done.reason === "deadline reached" ? "warn" : "");
+    renderOut(); renderEv(); addLog();
+  } else {
+    document.querySelectorAll(".lamp.state-running").forEach(l => l.className = "lamp reached state-failed");
+    $("total").textContent = "stopped"; setFoot(error || "The run ended without a result.", "bad");
+  }
+  btns.forEach(b => b.disabled = false); $("run-label").textContent = "Run again "; running = false;
+}
+
+function chart(points, targetGwei, label) {
+  if (!points.length) return "";
+  const W = 560, H = 150, L = 44, R = 10, T = 12, B = 24;
+  const ys = points.map(p => p.y), tg = targetGwei == null ? null : Number(targetGwei);
+  let lo = Math.min(...ys, tg ?? Infinity), hi = Math.max(...ys, tg ?? -Infinity);
+  if (hi - lo < 0.2) { lo = Math.max(0, lo - 0.5); hi = hi + 0.5; }
+  const x = i => L + (points.length === 1 ? (W - L - R) / 2 : i * (W - L - R) / (points.length - 1));
+  const y = v => T + (hi - v) * (H - T - B) / (hi - lo);
+  const path = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.y).toFixed(1)}`).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}">
+    <line class="axis" x1="${L}" y1="${H - B}" x2="${W - R}" y2="${H - B}"/><line class="axis" x1="${L}" y1="${T}" x2="${L}" y2="${H - B}"/>
+    <text x="${L - 6}" y="${y(hi) + 4}" text-anchor="end">${+hi.toFixed(2)}</text><text x="${L - 6}" y="${y(lo) + 4}" text-anchor="end">${+lo.toFixed(2)}</text>
+    ${tg != null ? `<line class="tgt" x1="${L}" x2="${W - R}" y1="${y(tg)}" y2="${y(tg)}"/><text x="${W - R}" y="${y(tg) - 5}" text-anchor="end">target ${tg} gwei</text>` : ""}
+    <path class="line" d="${path}"/>${points.map((p, i) => `<circle class="dot" cx="${x(i).toFixed(1)}" cy="${y(p.y).toFixed(1)}" r="3"><title>${esc(p.t)} · ${p.y} gwei</title></circle>`).join("")}
+    <text x="${L}" y="${H - 6}">${esc(points[0].t)}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${esc(points[points.length - 1].t)}</text>
+  </svg>`;
+}
+function sampleTable(rows) {
+  return `<table class="data"><tr><th>Time (UTC)</th><th style="text-align:right">Block</th><th style="text-align:right">Base fee</th><th style="text-align:right">Priority</th><th style="text-align:right">Price, gwei</th></tr>` +
+    rows.map(s => `<tr><td class="mono">${esc(s.at.slice(11, 19))}</td><td class="n"><a href="${EXPLORER}block/${esc(s.block)}" rel="noopener">${Number(s.block).toLocaleString()}</a></td><td class="n">${esc(gwei(s.baseFeeWei))}</td><td class="n">${esc(gwei(s.priorityWei))}</td><td class="n">${esc(gwei(s.priceWei))}</td></tr>`).join("") + `</table>`;
+}
+function renderOut() {
+  const b = $("out-body"), r = last; if (!r) return;
+  if (view === "raw") { b.innerHTML = `<pre class="raw">${r.lines.map(esc).join("\n")}</pre>`; return; }
+  const pts = r.samples.map(s => ({ y: Number(s.priceGwei), t: s.at.slice(11, 19) }));
+  let h = "";
+  if (r.mode === "hold") {
+    const late = r.reason === "deadline reached";
+    h += `<p class="verdict ${late ? "warn" : "ok"}">${late ? "Send-by time reached → send now, whatever the price" : "Gas at or below target → send now"}</p>`;
+    h += `<table class="data" style="margin-bottom:12px"><tr><th>Decision</th><th style="text-align:right">Value</th></tr>
+      <tr><td>Held</td><td class="n">${(r.heldMs / 1000).toFixed(1)} s · ${r.samplesTaken} reading${r.samplesTaken === 1 ? "" : "s"}${r.sampleErrors ? ` · ${r.sampleErrors} failed` : ""}</td></tr>
+      <tr><td>Target</td><td class="n">${esc(r.start.target)}${r.targetGwei != null ? ` = ${esc(r.targetGwei)} gwei` : " (still warming up)"}</td></tr>
+      <tr><td>Price at request → at decision</td><td class="n">${esc(r.requestGwei)} → ${esc(r.decisionGwei)} gwei</td></tr>
+      <tr><td>Decided before the deadline</td><td class="n">${esc(r.secondsBeforeDeadline)} s (lead ${esc(r.start.leadS)} s)</td></tr>
+      <tr><td>A 21,000-gas transfer at the decision price</td><td class="n">${esc(r.wouldPayPHRS)} PHRS vs ${esc(r.atRequestPHRS)} at request (${esc(r.savedPct)}%)</td></tr></table>`;
+  } else h += `<p class="verdict ok">${esc(r.summary)}</p>`;
+  h += chart(pts, r.mode === "hold" ? r.targetGwei : null, "This run's gas readings") + sampleTable(r.samples);
+  if (r.mode === "hold") h += `<p class="foot-note">The page stops at the decision. The CLI then signs and broadcasts (with --execute), reads the receipt and reports the price paid; those runs are under <a href="#recorded" data-target="recorded">Recorded live runs</a>.</p>`;
+  b.innerHTML = h;
+}
+function renderEv() {
+  const r = last; $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  const s0 = r.samples[0], sN = r.samples[r.samples.length - 1];
+  const rows = [["Source", "latest block's base fee + eth_maxPriorityFeePerGas"]];
+  if (s0) rows.push(["First reading", `block ${Number(s0.block).toLocaleString()} · ${esc(s0.at.slice(11, 19))}Z`, `${EXPLORER}block/${s0.block}`]);
+  if (sN && sN !== s0) rows.push(["Last reading", `block ${Number(sN.block).toLocaleString()} · ${esc(sN.at.slice(11, 19))}Z`, `${EXPLORER}block/${sN.block}`]);
+  if (r.mode === "hold") rows.push(["Deadline", esc(r.start.deadline.slice(11, 19)) + "Z"], ["Send-by", esc(r.start.decideBy.slice(11, 19)) + `Z (lead ${esc(r.start.leadS)} s)`], ["Reason", esc(r.reason)], ["Sent", "no: this page never signs"]);
+  rows.push(["Min · max", `${esc(Math.min(...r.samples.map(s => Number(s.priceGwei))))} · ${esc(Math.max(...r.samples.map(s => Number(s.priceGwei))))} gwei`]);
+  $("ev").innerHTML = rows.map(([k, v, link]) => `<li><span class="caps">${k}</span><span class="v">${v}</span>${link ? `<span class="act"><a href="${esc(link)}" rel="noopener">Explorer ↗</a></span>` : ""}</li>`).join("");
+}
+const runs = [];
+function addLog() {
+  runs.unshift(last); runs.length = Math.min(runs.length, 10);
+  $("log-body").innerHTML = runs.map(x => `<tr><td class="m">${x.at.toISOString().slice(11, 19)}</td><td>${esc(SCEN[x.scen].name)}</td><td class="m">${x.samples.length}</td><td>${x.mode === "sample" ? "—" : x.reason === "deadline reached" ? '<span class="st partly">send-by time</span>' : '<span class="st met">at target</span>'}</td><td class="m">${x.mode === "hold" ? `${esc(x.requestGwei)} → ${esc(x.decisionGwei)} gwei` : "—"}</td><td class="m">${x.totalMs.toLocaleString()} ms</td></tr>`).join("");
+}
+
+async function loadHistory() {
+  try {
+    const d = await (await fetch(RAW + "state/gas.json", { cache: "force-cache" })).json();
+    const s = d.samples, prices = s.map(x => Number(gwei(x.priceWei)));
+    $("hist-body").innerHTML = chart(s.map(x => ({ y: Number(gwei(x.priceWei)), t: x.at.slice(5, 16).replace("T", " ") })), null, "Committed gas samples") +
+      `<p class="foot-note" style="margin:0 0 12px">${s.length} samples from ${esc(s[0].at.slice(0, 16).replace("T", " "))} to ${esc(s[s.length - 1].at.slice(0, 16).replace("T", " "))} UTC · min ${Math.min(...prices)} · max ${Math.max(...prices)} gwei · <a href="${BLOB}state/gas.json" rel="noopener">state/gas.json</a> (the CLI keeps the last 500). The last 8:</p>` + sampleTable(s.slice(-8));
+  } catch (e) { $("hist-body").innerHTML = `<p class="empty" style="color:var(--warn)">Could not load state/gas.json from GitHub (${esc(e.message)}).</p>`; }
+}
+const RECORDED = [["early", "Sent early"], ["deadline", "Held to the deadline, no lead"], ["deadline-lead", "Held to the deadline, 8 s lead"], ["percentile", "Percentile target p25"]];
+async function loadRecorded() {
+  const rows = await Promise.all(RECORDED.map(async ([f, label]) => {
+    try {
+      const d = await (await fetch(RAW + "proof/" + f + ".json", { cache: "force-cache" })).json();
+      const q = d.request, dec = d.decision, r = d.result, when = d.meta.createdAt;
+      const tgt = q.target.kind === "price" ? gwei(q.target.wei) + " gwei" : `p${q.target.p} of ${q.target.window}`;
+      let vs = "—";
+      if (r.broadcastMsBeforeDeadline !== undefined) vs = `broadcast ${(r.broadcastMsBeforeDeadline / 1000).toFixed(1)} s before · mined ${esc(r.minedAt.slice(11, 19))}Z`;
+      else if (dec.reason === "deadline reached") vs = "decided at the deadline; block stamped 1 s after it (see the README)";
+      else vs = `sent after ${(dec.heldMs / 1000).toFixed(1)} s`;
+      return `<tr><td>${esc(label)}<br><a href="${BLOB}proof/${f}.json" rel="noopener">${f}.json</a></td><td class="m">${esc(tgt)} · ${q.deadlineSeconds} s${q.leadSeconds ? ` · lead ${q.leadSeconds} s` : ""}</td><td>${dec.reason === "deadline reached" ? '<span class="st partly">deadline</span>' : '<span class="st met">at target</span>'}<br><span class="mono">${dec.samplesTaken} reading${dec.samplesTaken === 1 ? "" : "s"} · ${(dec.heldMs / 1000).toFixed(1)} s</span></td><td style="white-space:normal">${vs}</td><td class="m">${esc(gwei(dec.requestPriceWei))} → ${esc(gwei(r.effectiveGasPriceWei))} gwei<br>${esc(phrs(r.paid.paidWei))} vs ${esc(phrs(r.paid.atRequestPriceWei))} PHRS (saved ${esc(r.paid.savedPct)}%)</td><td class="m"><a href="${EXPLORER}tx/${esc(r.tx)}" rel="noopener">${esc(short(r.tx))} ↗</a><br>block ${Number(r.block).toLocaleString()} · ${esc(when.slice(0, 10))}</td></tr>`;
+    } catch (e) { return `<tr><td colspan="6" style="color:var(--warn)">Could not load ${esc(f)}.json from GitHub (${esc(e.message)}).</td></tr>`; }
+  }));
+  $("rec-body").innerHTML = rows.join("");
+}
+async function loadDeploy() {
+  try {
+    const d = await (await fetch(`${API}?action=info`, { cache: "no-store" })).json(); const c = d.deploy?.commit;
+    $("deployed").innerHTML = c ? `deployed from <a href="https://github.com/edycutjong/pharos-beacon/commit/${esc(c)}" rel="noopener">${esc(c)}</a> · ${esc(d.deploy.env)}` : `deployed from the working tree (no commit) · ${esc(d.deploy?.env || "")}`;
+  } catch { $("deployed").textContent = "deploy info unavailable"; }
+}
+drawLamps(); drawReqs(); loadHistory(); loadRecorded(); loadDeploy();
+</script>
+</body>
+</html>
