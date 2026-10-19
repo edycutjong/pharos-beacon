@@ -1,2 +1,0 @@
-$ npm run batch-executor -- --plan all-success-mix 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --approve --execute --proof all-success-mix 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
-all-success-mix 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B: ENOENT: no such file or directory, open 'all-success-mix 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B'
