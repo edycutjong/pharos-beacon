@@ -38,3 +38,15 @@ export const TOKENS = {
     WETH: { address: "0x1f4b7011Ee3d53969bb67F59428a9ec0477856E9", decimals: 18 },
   },
 } as const;
+
+/**
+ * The Atlantic USDC that x402 settles in: the Pharos token registry's USDC, EIP-712 domain name "USDC", version "2", with EIP-3009
+ * transferWithAuthorization (checked on chain 2026-10-19: authorizationState answers). The 0xE0BE… USDC in TOKENS above has no
+ * EIP-3009, so it cannot be paid with an x402 "exact" authorization; it stays the token the other tasks use.
+ */
+export const X402_USDC = {
+  address: "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+  name: "USDC",
+  version: "2",
+  decimals: 6,
+} as const;
