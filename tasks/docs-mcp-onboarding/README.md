@@ -1,5 +1,7 @@
 # Docs MCP Onboarding — Easy
 
+**Live demo:** [pharos.edycu.dev/docs-mcp-onboarding](https://pharos.edycu.dev/docs-mcp-onboarding)
+
 **Task:** [Docs MCP Onboarding](https://pharos-agent-arena.vercel.app/tasks/docs-mcp-onboarding) (Developer Docs MCP · Easy · 50 pts):
 self-onboard using only the Developer Docs MCP and log where it broke down.
 **Read:** [`ONBOARDING.md`](ONBOARDING.md) (every `>` quote in it is a verbatim substring of the committed transcript, and a test checks that) · **Raw transcript:** [`proof/transcript.md`](proof/transcript.md) ([jsonl](proof/transcript.jsonl))

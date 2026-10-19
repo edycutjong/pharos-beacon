@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Event Monitor</title>
+<meta name="description" content="Event/Log Monitor on Pharos: watches a contract for one event through the Chain MCP's get_logs, decodes each new occurrence once, and survives a restart without repeating itself. Run it live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+</head>
+<body>
+<style>
+/* page additions: the custom-contract form, notes, links in tables */
+.panel-body{overflow-x:auto}
+.log td .rl,.log td.rl{white-space:normal;min-width:240px;display:inline-block}
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)} .strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono{font-family:var(--f-mono);font-size:12px;word-break:break-all}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+.note{color:var(--ink-2);font-size:13.5px;margin:12px 0 0;max-width:80ch}
+.form{display:none;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:end}
+.form.on{display:flex}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.form input,.form select{font:400 13px var(--f-mono);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:8px 9px;min-width:0}
+.form input:focus,.form select:focus{border-color:var(--sea);outline:none}
+.form .addr{width:min(100%,330px)} .form .num{width:84px}
+.data .poll{font:500 11px var(--f-mono);color:var(--ink-2)}
+.rec h3{font:800 20px/1.1 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin:28px 0 8px}
+.rec p{margin:0 0 10px;color:var(--ink-2);font-size:14px;max-width:80ch}
+@media (max-width:820px){.form{justify-content:flex-start}}
+@media (max-width:820px){.title{grid-template-columns:minmax(0,1fr)}.controls{min-width:0}}
+.scen .btn{white-space:normal;text-align:left;line-height:1.25}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span><span id="net-label">Pacific mainnet · 1672 · read-only</span></span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/event-log-monitor" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">EASY · 50 PTS</span>
+      <h1>Event/Log Monitor</h1>
+      <p class="lede">Watches one contract for one event through the Chain MCP's <span class="mono">get_logs</span>, decodes every new occurrence into from, to, amount, tx and block, and keeps a cursor so a restart never prints an event twice.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Scenario">
+        <button class="btn" type="button" data-s="mainnet-usdc" aria-pressed="true">USDC transfers · mainnet</button>
+        <button class="btn" type="button" data-s="atlantic-proof" aria-pressed="false">Replay the recorded Atlantic catch</button>
+        <button class="btn" type="button" data-s="custom" aria-pressed="false">Watch a contract you choose</button>
+      </div>
+      <form class="form" id="form" onsubmit="return false">
+        <label>Network<select id="f-net"><option value="pharos">Pacific mainnet</option><option value="atlantic">Atlantic testnet</option></select></label>
+        <label>Contract<input id="f-contract" class="addr" spellcheck="false" autocomplete="off" value="0xc879c018db60520f4355c26ed1a6d572cdac1815"></label>
+        <label>Event<select id="f-event"><option>Transfer</option><option>Approval</option><option>Deposit</option><option>Withdrawal</option></select></label>
+        <label>Blocks back<input id="f-blocks" class="num" inputmode="numeric" value="300"></label>
+      </form>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">USDC Transfer on Pacific mainnet, last 300 blocks</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real poll returns. Times are measured, not animated.</p>
+  </div>
+  <p class="note">Mainnet reads go through the hosted Pharos Chain MCP. The Atlantic Chain MCP runs over stdio, which a web function cannot start, so Atlantic reads on this page send the same calls straight to the Atlantic RPC (the CLI's recorded runs below used the Chain MCP).</p>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw calls</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live reads the last 300 blocks of USDC transfers on Pacific mainnet, polls again 3 s later, then restarts from the saved cursor. Nothing is signed or sent.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">02</span><h2>Run log</h2><p>This page's runs, then the CLI's recorded live runs</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Source</th><th>Network</th><th>Blocks</th><th>Events</th><th>Printed twice</th></tr></thead><tbody id="log-body"></tbody></table></div>
+    <p class="foot-note">Page runs are kept in this browser tab only. No database.</p>
+    <div class="rec" id="recorded">
+      <h3>Recorded live runs (Atlantic, Chain MCP)</h3>
+      <p>The monitor was started first; then two real WPHRS transfers were sent from a second terminal. It caught both, once each. Started again later from the same cursor file, it printed only the two newer transfers.</p>
+      <div class="log-wrap"><table class="log"><thead><tr><th>Run</th><th>Polls</th><th>Caught</th><th>Transactions</th><th>Proof</th></tr></thead><tbody id="rec-body"><tr><td colspan="5" style="color:var(--ink-2)">Reading the committed proofs from GitHub…</td></tr></tbody></table></div>
+    </div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article><h3>Crash-safe cursor</h3><p>Not just a block cursor: every handled event is saved by <span class="mono">txHash:logIndex</span> before the cursor moves, so a crash between printing and saving, or two overlapping polls, still cannot print an event twice. Unit-tested for both cases.</p></article>
+      <article><h3>Any event, readable</h3><p>Name an event (<span class="mono">Transfer</span>, <span class="mono">Deposit</span>…) or give a full signature such as a Uniswap V2 <span class="mono">Swap</span>. WETH-style <span class="mono">src/dst/wad</span> fields are read as from/to/amount, and amounts get the token's own decimals and symbol from <span class="mono">eth_call</span>.</p></article>
+      <article><h3>One watcher, two tasks</h3><p>The same poller (<span class="mono">src/watch</span>) runs the On-Chain Alert Bot, so the no-duplicate guarantee is shared and tested once. <a href="/on-chain-alert-bot">See the Alert Bot ↗</a></p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/event-log-monitor</span><span class="mono" id="deployed">deployed from …</span><span>Read-only: this page never signs or sends a transaction.</span></footer>
+</div>
+
+<script src="/_shared/demo-kit.js"></script>
+<script>
+const { $, esc, short, num, txLink } = Kit;
+const API = "/api/event-log-monitor";
+const SLUG = "event-log-monitor";
+const STEPS = [
+  { id: "connect", name: "Connect" },
+  { id: "token", name: "Head + token" },
+  { id: "poll1", name: "Poll 1 · backfill" },
+  { id: "poll2", name: "Poll 2 · new only" },
+  { id: "restart", name: "Restart from cursor" },
+];
+const SCEN = {
+  "mainnet-usdc": { name: "USDC Transfer on Pacific mainnet, last 300 blocks", net: "pharos" },
+  "atlantic-proof": { name: "WPHRS Transfer on Atlantic, blocks 31555620–31555680 (the recorded window)", net: "atlantic" },
+  custom: { name: "A contract you choose", net: null },
+};
+const NETS = { pharos: "Pacific mainnet · 1672 · read-only", atlantic: "Atlantic testnet · eip155:688689 · read-only" };
+const REQS = [
+  ["01", "Uses Chain MCP log queries filtered by contract address and event signature.", "Every poll is a <span class=\"mono\">get_logs</span> call with <span class=\"mono\">address</span> = the contract and <span class=\"mono\">topics[0]</span> = the event's hash. Evidence shows the filter; Raw calls shows each call. Mainnet runs go through the hosted Chain MCP.", "met", "evidence"],
+  ["02", "Runs continuously (polling or block-by-block) and reports only new events, with no duplicates.", "The CLI polls until Ctrl-C; this page runs three of its polls. Poll 2 starts at the saved cursor; Restart opens the same cursor file as a new process would and counts events printed twice.", "met", "strip"],
+  ["03", "Decodes each event into readable fields (from, to, amount, tx hash, block).", "The Output table: from, to, amount with the token's decimals, tx with its explorer link, block and log index.", "met", "output"],
+  ["04", "Demonstrated catching at least one live or test event.", "Recorded: two WPHRS transfers sent while the CLI was watching, caught once each. Live: real mainnet USDC traffic on every run.", "met", "recorded"],
+];
+
+let cur = "mainnet-usdc", running = false, view = "read", last = null, ctrl = null, runN = 0;
+const history = [];
+
+function setScen(s) {
+  cur = s;
+  $("form").classList.toggle("on", s === "custom");
+  const net = SCEN[s].net || $("f-net").value;
+  $("net-label").textContent = NETS[net];
+  $("scen-name").textContent = s === "custom" ? customName() : SCEN[s].name;
+  reset();
+}
+const customName = () => `${$("f-event").value} on ${short($("f-contract").value.trim())} · ${$("f-net").value === "pharos" ? "Pacific mainnet" : "Atlantic"}, last ${$("f-blocks").value} blocks`;
+["f-net", "f-contract", "f-event", "f-blocks"].forEach((id) => $(id).addEventListener("input", () => { if (cur === "custom") setScen("custom"); }));
+Kit.scenarios((s) => { if (!running) setScen(s); });
+Kit.tabs((t) => { view = t; renderOut(); });
+function reset() {
+  Kit.drawLamps(STEPS);
+  $("total").textContent = "idle · press Run live";
+  Kit.setFoot("Each lamp lights when the real poll returns. Times are measured, not animated.");
+}
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+
+$("run").addEventListener("click", async () => {
+  if (running) return;
+  running = true; reset(); $("strip").classList.add("lit");
+  const btns = [$("run"), ...document.querySelectorAll(".scen .btn")]; btns.forEach((b) => (b.disabled = true));
+  const r = { scen: cur, events: [], calls: [], steps: {}, start: null, done: null, error: null, at: new Date() };
+  const started = performance.now();
+  ctrl = new AbortController();
+  let q = `action=run&scenario=${encodeURIComponent(cur)}`;
+  if (cur === "custom") q += `&network=${encodeURIComponent($("f-net").value)}&contract=${encodeURIComponent($("f-contract").value.trim())}&event=${encodeURIComponent($("f-event").value)}&blocks=${encodeURIComponent($("f-blocks").value.trim())}`;
+  Kit.setFoot("Polling… (Esc cancels the view)");
+  Kit.pulseNext();
+  try {
+    await Kit.stream(`${API}?${q}`, (ev) => {
+      if (ev.type === "start") r.start = ev;
+      else if (ev.type === "call") r.calls.push(ev);
+      else if (ev.type === "event") { r.events.push(ev); }
+      else if (ev.type === "step") {
+        r.steps[ev.id] = ev; Kit.light(ev, $("run-label")).then(Kit.pulseNext);
+        $("total").innerHTML = `<b>${num(Math.round(performance.now() - started))} ms</b> so far`;
+      } else if (ev.type === "done") r.done = ev;
+      else if (ev.type === "error") r.error = ev.message;
+    }, ctrl.signal);
+  } catch (e) {
+    r.error = e.name === "AbortError" ? "Cancelled." : e.message;
+  }
+  await Kit.settled();
+  document.querySelectorAll("#lamps .state-running").forEach((l) => (l.className = "lamp"));
+  ctrl = null;
+  r.ms = Math.round(performance.now() - started);
+  if (r.done) {
+    runN++; r.id = "run-" + String(runN).padStart(3, "0"); last = r;
+    $("total").innerHTML = `<b>${num(r.ms)} ms</b> total`;
+    const d = r.done;
+    Kit.setFoot(`${d.events} ${d.event.split("(")[0]} event${d.events === 1 ? "" : "s"} in blocks ${num(d.range.from)}–${num(d.range.to)}, over 3 polls; printed twice: ${d.repeated}.`, d.repeated ? "bad" : "");
+    history.unshift(r); renderOut(); renderEv(); renderLog();
+  } else {
+    $("total").textContent = "stopped";
+    Kit.setFoot(r.error || "The run ended without a result.", "bad");
+  }
+  btns.forEach((b) => (b.disabled = false)); $("run-label").textContent = "Run again "; running = false;
+});
+
+function renderOut() {
+  const b = $("out-body"), r = last;
+  if (!r) return;
+  if (view === "raw") {
+    b.innerHTML = `<pre class="raw">${r.calls.map((c) => `<span class="${c.ok ? "s2" : "s4"}">${esc(c.tool)}</span> ${esc(JSON.stringify(c.args))}\n  → ${c.ok ? "ok" : "error " + esc(c.error && c.error.reason)} · ${c.ms} ms`).join("\n")}</pre><p class="foot-note">${r.calls.length} Chain MCP tool calls, in order, as the server made them (${esc(r.done.via)}).</p>`;
+    return;
+  }
+  if (!r.events.length) {
+    b.innerHTML = `<p class="empty">No ${esc(r.done.event)} events in blocks ${num(r.done.range.from)}–${num(r.done.range.to)}. The filter and the cursor are in Evidence; try more blocks back, or the recorded Atlantic window.</p>`;
+    return;
+  }
+  const net = r.done.network;
+  const rows = r.events.map((e) => `<tr><td><span class="poll">P${e.poll}</span></td><td class="n">${num(e.block)}<br><span class="poll">log #${e.logIndex}</span></td><td class="mono">${esc(short(e.from))} → ${esc(short(e.to))}</td><td class="n">${esc(e.amount)}</td><td class="n">${txLink(net, e.tx)}</td></tr>`).join("");
+  b.innerHTML = `<table class="data"><tr><th>Poll</th><th style="text-align:right">Block</th><th>From → to</th><th style="text-align:right">Amount</th><th style="text-align:right">Tx</th></tr>${rows}</table><p class="foot-note">P1 = backfill, P2 = the next poll, P3 = after the restart. Each row was printed once; full addresses are in Raw calls.</p>`;
+}
+function renderEv() {
+  const r = last, d = r.done;
+  $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  const logs = r.calls.filter((c) => c.tool === "get_logs").length;
+  const st = d.state || {};
+  Kit.evidence([
+    ["Network", `${d.network === "pharos" ? "Pacific mainnet" : "Atlantic testnet"} · chain ${d.chainId}`],
+    ["Read via", `${esc(d.via)} · ${esc(d.endpoint)}`],
+    ["Contract", `${esc(short(d.contract))}${d.token ? " · " + esc(d.token.symbol) + " · " + d.token.decimals + " decimals" : ""}`, d.contract],
+    ["Filter", `address = contract · topics[0] = ${esc(short(d.topic0))} = keccak(<span style="font-family:var(--f-mono)">${esc(d.event)}</span>)`, d.topic0],
+    ["Blocks", `${num(d.range.from)} → ${num(d.range.to)}${d.pinned ? ` (head pinned to the recorded run: ${d.pinned.map(num).join(" → ")})` : ""}`],
+    ["get_logs", `${logs} calls over 3 polls · ${r.calls.length} tool calls in all`],
+    ["Cursor file", `next block ${num(st.next || "0")} · ${Object.keys(st.seen || {}).length} handled keys kept`],
+    ["Printed twice", d.repeated === 0 ? "0 of " + d.events : String(d.repeated)],
+  ]);
+}
+function renderLog() {
+  const page = history.map((r) => `<tr><td class="m">${r.at.toISOString().slice(0, 19).replace("T", " ")}</td><td>this page · ${esc(r.id)}</td><td>${r.done.network === "pharos" ? "mainnet" : "Atlantic"}</td><td class="m">${num(r.done.range.from)}–${num(r.done.range.to)}</td><td class="m">${r.done.events}</td><td class="m">${r.done.repeated}</td></tr>`);
+  $("log-body").innerHTML = page.length ? page.slice(0, 10).join("") : `<tr><td colspan="6" style="color:var(--ink-2)">No runs yet. Press Run live; it reads mainnet USDC transfers and signs nothing.</td></tr>`;
+}
+async function loadRecorded() {
+  const files = [["live-run", "Monitor started, two transfers sent"], ["restart-run", "Restarted from the cursor"], ["restart-run-head", "Restarted later, at the head"]];
+  try {
+    const proofs = await Promise.all(files.map(([f]) => Kit.proof(SLUG, `proof/${f}.json`)));
+    $("rec-body").innerHTML = proofs.map((p, i) => `<tr><td>${esc(files[i][1])}<br><span class="poll">start head ${num(p.startHead)} · resumes to ${num(p.nextBlock)}</span></td><td class="m">${p.polls}</td><td class="m">${p.newEvents} new</td><td class="m">${p.caught.length ? p.caught.map((c) => `${txLink("atlantic", c.tx)} ${esc(c.amount)} · block ${num(c.block)}`).join("<br>") : "none: nothing new, nothing repeated"}</td><td>${Kit.recordedLine(p.meta, SLUG, `proof/${files[i][0]}.json`)}</td></tr>`).join("");
+  } catch (e) {
+    $("rec-body").innerHTML = `<tr><td colspan="5" style="color:var(--warn)">Could not read the proofs from GitHub (${esc(e.message)}). They are in the repo under tasks/event-log-monitor/proof.</td></tr>`;
+  }
+}
+
+Kit.drawReqs(REQS); setScen("mainnet-usdc"); renderLog(); loadRecorded(); Kit.deploy(API);
+</script>
+</body>
+</html>

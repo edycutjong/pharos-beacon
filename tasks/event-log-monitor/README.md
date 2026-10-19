@@ -1,5 +1,7 @@
 # Event/Log Monitor — Easy
 
+**Live demo:** [pharos.edycu.dev/event-log-monitor](https://pharos.edycu.dev/event-log-monitor)
+
 **Task:** [Event/Log Monitor](https://pharos-agent-arena.vercel.app/tasks/event-log-monitor) (Chain MCP · Easy · 50 pts):
 build a small monitor that watches for a specific on-chain event/log via Chain MCP.
 **Run (keyless, mainnet, replays the last 300 blocks):** `npm run event-log-monitor -- --network pharos --contract 0xc879c018db60520f4355c26ed1a6d572cdac1815 --event Transfer --from-block head-300 --max-polls 2 --state "$(mktemp -u)"`

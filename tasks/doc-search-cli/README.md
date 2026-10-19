@@ -1,5 +1,7 @@
 # Doc-Search CLI — Easy
 
+**Live demo:** [pharos.edycu.dev/doc-search-cli](https://pharos.edycu.dev/doc-search-cli)
+
 **Task:** [Doc-Search CLI](https://pharos-agent-arena.vercel.app/tasks/doc-search-cli) (Developer Docs MCP · Easy · 50 pts):
 a small wrapper on the Developer Docs MCP that searches the Pharos docs from a terminal.
 **Run:** `pharos-docs "<question>"` (after `npm ci`: `npm run doc-search-cli -- "<question>"`)
@@ -137,7 +139,7 @@ Sources:
   (+7 more cited by the docs; use --sources 12 to list them)
 ```
 
-Exit code 0. Proof: [`proof/how-do-i-get-testnet-tokens-from-the-faucet.json`](proof/how-do-i-get-testnet-tokens-from-the-faucet.json). The missing faucet URL is also gap 2 in the [Docs MCP Onboarding](../docs-mcp-onboarding/ONBOARDING.md#gaps-and-suggested-fixes) log.
+Exit code 0: this is a **half-answer**. The docs explain the steps but not the faucet URL, and the reply says so instead of inventing one. Proof: [`proof/how-do-i-get-testnet-tokens-from-the-faucet.json`](proof/how-do-i-get-testnet-tokens-from-the-faucet.json). The missing faucet URL is also gap 2 in the [Docs MCP Onboarding](../docs-mcp-onboarding/ONBOARDING.md#gaps-and-suggested-fixes) log.
 
 ### Example 4: a question the docs cannot answer
 

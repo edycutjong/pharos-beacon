@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon dApp Support</title>
+<meta name="description" content="dApp Support Agent on Pharos: paste a failed transaction hash, get why it failed and what to do, in plain words. It replays the call one block earlier through the Chain MCP. Run it live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+</head>
+<body>
+<style>
+/* page additions: the hash box, the plain-language report, the proof table */
+.panel-body{overflow-x:auto}
+.log td .rl,.log td.rl{white-space:normal;min-width:240px;display:inline-block}
+.title{grid-template-columns:minmax(0,1fr) minmax(0,580px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)} .strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+.note{color:var(--ink-2);font-size:13.5px;margin:12px 0 0;max-width:80ch}
+.controls{width:100%}
+.ask{display:flex;gap:8px;width:100%;flex-wrap:wrap}
+.ask input,.ask select{font:400 13px var(--f-mono);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:12px 10px;min-width:0}
+.ask input{flex:1 1 300px}
+.ask input:focus,.ask select:focus{border-color:var(--sea);outline:none}
+.report h3{font:700 12px var(--f-body);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin:16px 0 4px}
+.report h3:first-of-type{margin-top:12px}
+.report p{margin:0;font-size:15px;max-width:62ch}
+.report ul{margin:4px 0 0;padding-left:18px;font-size:14.5px}
+.report ul.evl{list-style:none;padding:0;font:400 12px/1.6 var(--f-mono);color:var(--ink-2)}
+.res{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.vd{font:500 12px var(--f-mono);border-radius:999px;padding:3px 10px}
+.vd.failed{background:var(--warn-bg);color:var(--warn)} .vd.ok{background:var(--ok-bg);color:var(--ok)} .vd.other{border:1px solid var(--rule);color:var(--ink-2)}
+pre.term{margin:0 0 12px;white-space:pre-wrap;word-break:break-word;background:var(--code);border-radius:4px;padding:14px;font:12px/1.65 var(--f-mono);max-height:460px;overflow:auto}
+.same{color:var(--ok)} .diff{color:var(--warn)}
+.log .rowbtn{font:700 12.5px var(--f-body);border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:4px;padding:5px 9px;cursor:pointer}
+.log .rowbtn:hover:not(:disabled){border-color:var(--sea)}
+.log .rowbtn:disabled{opacity:.5;cursor:not-allowed}
+.log{min-width:820px}
+@media (max-width:820px){.title{grid-template-columns:minmax(0,1fr)}.controls{min-width:0}}
+.scen .btn{white-space:normal;text-align:left;line-height:1.25}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span><span id="net-label">Atlantic testnet · eip155:688689 · read-only</span></span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/dapp-support-agent" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">EASY · 50 PTS</span>
+      <h1>dApp Support Agent</h1>
+      <p class="lede">Give it a failed transaction hash. It reads the transaction and its receipt, replays the same call one block earlier, and says in plain words why it failed and what to do. No language model: the cause comes from the chain.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <form class="ask" id="ask-form" onsubmit="return false">
+        <label for="hash" style="position:absolute;left:-9999px">Transaction hash</label>
+        <input id="hash" maxlength="66" autocomplete="off" spellcheck="false" value="0x4e6cc4339009576aada882d2d843d1ee0e33f0bce2ddeddfdc8d41cc41414ab5">
+        <label for="network" style="position:absolute;left:-9999px">Network</label>
+        <select id="network"><option value="atlantic">Atlantic</option><option value="pharos">Pacific mainnet</option></select>
+        <button class="btn run" id="run" type="submit"><span id="run-label">Diagnose live </span><span aria-hidden="true">→</span></button>
+      </form>
+      <div class="scen" role="group" aria-label="Example transactions" id="examples"></div>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">diagnose 0x4e6c…4ab5 on Atlantic</span></span><span class="total" id="total">idle · press Diagnose live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when its Chain MCP call returns. A replay that reverts is the expected answer for a failed transaction.</p>
+  </div>
+  <p class="note">Mainnet hashes go through the hosted Pharos Chain MCP. The Atlantic Chain MCP runs over stdio, which a web function cannot start, so Atlantic hashes are read with the same tool calls sent straight to the Atlantic RPC (the CLI's recorded runs used the Chain MCP).</p>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Report</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">CLI + JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No diagnosis yet. Diagnose live explains the out-of-gas transaction above, or paste any Atlantic or mainnet hash. Nothing is signed or sent.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first diagnosis.</span></li></ul>
+    </div>
+  </div>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">02</span><h2>Run log</h2><p>The recorded failures, re-diagnosed live on demand</p></div>
+    <p class="foot-note" style="margin:0 0 12px">Rows 1–4 were made on purpose on Atlantic, one per failure type; rows 5–6 are mainnet failures from wallets and contracts we do not control; row 7 is a success. Each recorded cause was written by the CLI and committed in the repo. <button class="rowbtn" type="button" id="all" style="font:700 12.5px var(--f-body);border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:4px;padding:5px 9px;cursor:pointer">Re-diagnose all 7 live</button></p>
+    <div class="log-wrap" id="proofs"><table class="log"><thead><tr><th>#</th><th>Type</th><th>Transaction</th><th>Recorded cause</th><th>Live cause</th><th></th></tr></thead><tbody id="rec-body"></tbody></table></div>
+    <p class="foot-note" id="rec-note">Recorded on 2026-10-18 by the CLI, committed in the repo. Mainnet replays need the node to keep old state; it does, far beyond the review window (<a href="https://github.com/edycutjong/pharos-beacon/blob/1004316/tasks/dapp-support-agent/proof/state-age.txt" rel="noopener">state-age.txt ↗</a>).</p>
+    <div class="log-wrap" style="margin-top:18px"><table class="log"><thead><tr><th>Time (UTC)</th><th>Transaction</th><th>Network</th><th>Cause</th><th>Tool calls</th><th>ms</th></tr></thead><tbody id="log-body"></tbody></table></div>
+    <p class="foot-note">This page's diagnoses, kept in this browser tab only. No database.</p>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article><h3>Replay, don't guess</h3><p>The failed call is replayed with <span class="mono">eth_call</span> at the block before, with the same sender, value, data and gas limit: the state it started from. The revert bytes are decoded (Error, Panic, OpenZeppelin token, ownership and pause errors) and token amounts get their symbol and decimals.</p></article>
+      <article><h3>Honest about limits</h3><p>An empty revert is explained only when the numbers prove it (a balance or allowance too small), and the report says the cause is inferred. A failure the replay cannot reproduce is reported as exactly that, not dressed up with a cause.</p></article>
+      <article><h3>Proven on strangers' failures</h3><p>Two failed mainnet transactions from wallets and contracts we do not control, found by scanning receipts for status 0: one with a reason string, one that cannot be reproduced. Both are in the table above; re-run them.</p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/dapp-support-agent</span><span class="mono" id="deployed">deployed from …</span><span>Read-only: this page never signs or sends a transaction.</span></footer>
+</div>
+
+<script src="/_shared/demo-kit.js"></script>
+<script>
+const { $, esc, short, num, txLink } = Kit;
+const API = "/api/dapp-support-agent";
+const SLUG = "dapp-support-agent";
+const STEPS = [
+  { id: "connect", name: "Connect" },
+  { id: "tx", name: "get_transaction" },
+  { id: "receipt", name: "get_transaction_receipt" },
+  { id: "replay", name: "Replay at block − 1" },
+  { id: "reads", name: "Token + gas reads" },
+  { id: "explain", name: "Explain" },
+];
+const EX = [
+  { id: "balance", label: "Insufficient token balance", short: "Balance too low", network: "atlantic", hash: "0x9db3e679e2d7a9f8a6a21052800be283a45862722418f94ae7bb11fa79285f11", recorded: "insufficient-balance" },
+  { id: "allowance", label: "Insufficient allowance", short: "Allowance too low", network: "atlantic", hash: "0x8b9b9353b9df376bf05067d5cc3fc921730ddc7a78cbbdac0c071e5d2970bf93", recorded: "insufficient-allowance" },
+  { id: "out-of-gas", label: "Out of gas", short: "Out of gas", network: "atlantic", hash: "0x4e6cc4339009576aada882d2d843d1ee0e33f0bce2ddeddfdc8d41cc41414ab5", recorded: "out-of-gas" },
+  { id: "empty-revert", label: "Revert with no message (cause inferred)", short: "Silent revert", network: "atlantic", hash: "0xf05ce6e6b1394e833196fc88b27bbea37a96300cc0683c7a26fbd7aa15db2515", recorded: "insufficient-balance" },
+  { id: "mainnet-third-party-revert", label: "Mainnet, not ours: a reason string", short: "Mainnet · reason string", network: "pharos", hash: "0x360551d640f569c208de26a7380230fac002cdc7fc7378501decc6a6bc64227c", recorded: "revert-reason" },
+  { id: "mainnet-third-party-not-reproduced", label: "Mainnet, not ours: not reproducible", short: "Mainnet · not reproducible", network: "pharos", hash: "0xa449024e34e2249da119183eb5b877f4b2294d70daf8d5b1c0929fe99b136951", recorded: "not-reproduced" },
+  { id: "success", label: "A transaction that did not fail (control)", short: "A success", network: "atlantic", hash: "0xee5ef39c357f34e39a4c8902dd59b51bcc0a116d6a686bbffa9501c0dd525e0b", recorded: "succeeded" },
+];
+const NETS = { pharos: "Pacific mainnet · 1672 · read-only", atlantic: "Atlantic testnet · eip155:688689 · read-only" };
+const REQS = [
+  ["01", "Accepts a tx hash and fetches the transaction and receipt via Chain MCP.", "The hash box; the get_transaction and get_transaction_receipt lamps. Mainnet hashes go through the hosted Chain MCP; the recorded Atlantic runs used the Atlantic Chain MCP.", "met", "strip"],
+  ["02", "Identifies the failure cause: revert reason, out of gas, insufficient balance or allowance, etc.", "The replay lamp, then the cause in the report. Re-diagnose all 7 to see each type found again live.", "met", "output"],
+  ["03", "Explains it without jargon and suggests a fix.", "Every report: What happened, Why, What you can do, in plain words; the raw evidence comes last.", "met", "output"],
+  ["04", "Demonstrated on at least 3 different failure types.", "Balance, allowance, out of gas, a silent revert, a mainnet reason string and a mainnet failure that cannot be reproduced, plus a success as control.", "met", "proofs"],
+];
+
+let running = false, view = "read", last = null, ctrl = null, runN = 0;
+const history = [];
+const live = {};
+$("examples").innerHTML = EX.map((x, i) => `<button class="btn" type="button" data-s="${i}" aria-pressed="${x.id === "out-of-gas"}">${esc(x.short)}</button>`).join("");
+function pick(i) {
+  const x = EX[i];
+  $("hash").value = x.hash; $("network").value = x.network; sync(); reset();
+}
+function sync() {
+  $("net-label").textContent = NETS[$("network").value];
+  $("scen-name").textContent = `diagnose ${short($("hash").value.trim())} on ${$("network").value === "pharos" ? "Pacific mainnet" : "Atlantic"}`;
+  document.querySelectorAll(".scen .btn").forEach((b) => b.setAttribute("aria-pressed", String(EX[b.dataset.s].hash === $("hash").value.trim().toLowerCase())));
+}
+["hash", "network"].forEach((id) => $(id).addEventListener("input", sync));
+Kit.scenarios((s) => { if (!running) pick(Number(s)); });
+Kit.tabs((t) => { view = t; renderOut(); });
+function reset() {
+  Kit.drawLamps(STEPS);
+  $("total").textContent = "idle · press Diagnose live";
+  Kit.setFoot("Each lamp lights when its Chain MCP call returns. A replay that reverts is the expected answer for a failed transaction.");
+}
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+
+async function diagnose(hash, network) {
+  running = true; reset(); $("strip").classList.add("lit");
+  const btns = [$("run"), $("all"), ...document.querySelectorAll(".scen .btn, .rowbtn")]; btns.forEach((b) => (b.disabled = true));
+  const r = { hash, network, calls: [], done: null, error: null, at: new Date() };
+  const started = performance.now();
+  ctrl = new AbortController();
+  Kit.setFoot("Reading the transaction… (Esc cancels the view)");
+  Kit.pulseNext();
+  try {
+    await Kit.stream(`${API}?action=diagnose&hash=${encodeURIComponent(hash)}&network=${encodeURIComponent(network)}`, (ev) => {
+      if (ev.type === "call") r.calls.push(ev);
+      else if (ev.type === "step") {
+        Kit.light(ev, $("run-label")).then(Kit.pulseNext);
+        $("total").innerHTML = `<b>${num(Math.round(performance.now() - started))} ms</b> so far`;
+      } else if (ev.type === "done") r.done = ev;
+      else if (ev.type === "error") r.error = ev.message;
+    }, ctrl.signal);
+  } catch (e) {
+    r.error = e.name === "AbortError" ? "Cancelled." : e.message;
+  }
+  await Kit.settled();
+  document.querySelectorAll("#lamps .state-running").forEach((l) => (l.className = "lamp"));
+  ctrl = null;
+  r.ms = Math.round(performance.now() - started);
+  if (r.done) {
+    runN++; r.id = "dx-" + String(runN).padStart(3, "0"); last = r;
+    const d = r.done.diagnosis;
+    $("total").innerHTML = `<b>${num(r.ms)} ms</b> total`;
+    Kit.setFoot(`${d.headline}${r.done.recorded ? (r.done.recorded.matches ? " Same cause as the recorded run." : ` The recorded run said ${r.done.recorded.cause}.`) : ""}`, d.outcome === "failed" ? "" : d.outcome === "succeeded" ? "" : "warn");
+    const ex = EX.find((x) => x.hash === hash.toLowerCase() && x.network === network);
+    if (ex) { live[ex.id] = d.cause; renderRec(); }
+    history.unshift(r); renderOut(); renderEv(); renderLog();
+  } else {
+    $("total").textContent = "stopped";
+    Kit.setFoot(r.error || "The run ended without a result.", "bad");
+  }
+  btns.forEach((b) => (b.disabled = false)); $("run-label").textContent = "Diagnose again "; running = false;
+  return r;
+}
+$("ask-form").addEventListener("submit", () => { if (!running) diagnose($("hash").value.trim(), $("network").value); });
+
+function renderOut() {
+  const b = $("out-body"), r = last;
+  if (!r) return;
+  const d = r.done.diagnosis;
+  if (view === "raw") { b.innerHTML = `<pre class="term">$ npm run dapp-support-agent -- ${esc(d.hash)} --network ${esc(r.network)}\n${esc(r.done.text)}</pre><pre class="raw">${esc(JSON.stringify(d, null, 2))}</pre>`; return; }
+  const tag = { failed: ["FAILED", "failed"], succeeded: ["DID NOT FAIL", "ok"], pending: ["NOT MINED YET", "other"], "not-found": ["NOT FOUND", "other"] }[d.outcome];
+  b.innerHTML = `<div class="report"><div class="res"><span class="vd ${tag[1]}">${tag[0]}</span><span class="mono">cause: ${esc(d.cause)}</span></div>
+    <h3>What happened</h3><p>${esc(d.headline)}</p>
+    <h3>Why</h3><p>${esc(d.why)}</p>
+    <h3>What you can do</h3><ul>${d.fix.map((f) => `<li>${esc(f)}</li>`).join("")}</ul>
+    <h3>Evidence (for the curious)</h3><ul class="evl">${d.evidence.map((e) => `<li>· ${esc(e)}</li>`).join("")}</ul></div>`;
+}
+function renderEv() {
+  const r = last, x = r.done, d = x.diagnosis, f = d.facts || {};
+  $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  const rows = [
+    ["Transaction", esc(short(d.hash)), d.hash, x.explorer],
+    ["Network", `${x.network === "pharos" ? "Pacific mainnet" : "Atlantic testnet"} · chain ${x.chainId}`],
+    ["Read via", `${esc(x.via)} · ${esc(x.endpoint)}`],
+  ];
+  if (f.block) rows.push(["Block", `${num(f.block)} · replayed at ${num(Number(f.block) - 1)}`]);
+  if (f.gasLimit) rows.push(["Gas", `${num(f.gasUsed)} used of ${num(f.gasLimit)}`]);
+  if (f.from) rows.push(["From → to", `${esc(short(f.from))} → ${esc(short(f.to))}`]);
+  if (f.revertData !== undefined) rows.push(["Revert data", esc(String(f.revertData).length > 74 ? String(f.revertData).slice(0, 74) + "…" : f.revertData), String(f.revertData)]);
+  rows.push(["Tool calls", r.calls.map((c) => `${esc(c.tool)}${c.ok ? "" : c.error && c.error.code === 3 ? " (revert)" : " (error)"}`).join(" · ")]);
+  if (x.recorded) rows.push(["Recorded", `${esc(x.recorded.cause)} ${x.recorded.matches ? '<span class="same">= live</span>' : '<span class="diff">≠ live</span>'} · <a href="${Kit.BLOB(SLUG, `proof/${x.recorded.id}.json`)}" rel="noopener">${esc(x.recorded.id)}.json ↗</a>`]);
+  Kit.evidence(rows);
+}
+function renderLog() {
+  $("log-body").innerHTML = history.length
+    ? history.slice(0, 10).map((r) => `<tr><td class="m">${r.at.toISOString().slice(0, 19).replace("T", " ")}</td><td class="m">${txLink(r.network, r.hash)}</td><td>${r.network === "pharos" ? "mainnet" : "Atlantic"}</td><td class="m">${esc(r.done.diagnosis.cause)}</td><td class="m">${r.calls.length}</td><td class="m">${num(r.ms)}</td></tr>`).join("")
+    : `<tr><td colspan="6" style="color:var(--ink-2)">No diagnoses from this page yet.</td></tr>`;
+}
+function renderRec() {
+  $("rec-body").innerHTML = EX.map((x, i) => {
+    const l = live[x.id];
+    return `<tr><td class="m">${i + 1}</td><td>${esc(x.label)}</td><td class="m">${txLink(x.network, x.hash)}<br>${x.network === "pharos" ? "mainnet" : "Atlantic"}</td><td class="m">${esc(x.recorded)}<br><a href="${Kit.BLOB(SLUG, `proof/${x.id}.json`)}" rel="noopener">${esc(x.id)}.json ↗</a></td><td class="m">${l ? `${esc(l)} ${l === x.recorded ? '<span class="same">= recorded</span>' : '<span class="diff">differs</span>'}` : "—"}</td><td><button class="rowbtn" type="button" data-row="${i}">Run live</button></td></tr>`;
+  }).join("");
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-row]");
+  if (!b || running) return;
+  const x = EX[Number(b.dataset.row)];
+  $("hash").value = x.hash; $("network").value = x.network; sync();
+  $("strip").scrollIntoView({ behavior: Kit.reduce ? "auto" : "smooth", block: "center" });
+  diagnose(x.hash, x.network);
+});
+$("all").addEventListener("click", async () => {
+  if (running) return;
+  for (const x of EX) { $("hash").value = x.hash; $("network").value = x.network; sync(); await diagnose(x.hash, x.network); }
+  $("proofs").scrollIntoView({ behavior: Kit.reduce ? "auto" : "smooth", block: "center" });
+});
+// The recorded causes come from the committed proofs themselves (the table starts from the page's copy and is checked).
+async function checkRecorded() {
+  try {
+    const proofs = await Promise.all(EX.map((x) => Kit.proof(SLUG, `proof/${x.id}.json`)));
+    proofs.forEach((p, i) => { EX[i].recorded = p.diagnosis.cause; EX[i].at = p.meta.createdAt; });
+    renderRec();
+    $("rec-note").innerHTML = `${Kit.recordedLine(proofs[0].meta, SLUG, "proof/failed-txs.json")} · the recorded causes above are read from the proof files. Mainnet replays need the node to keep old state; it does, far beyond the review window (<a href="${Kit.BLOB(SLUG, "proof/state-age.txt")}" rel="noopener">state-age.txt ↗</a>).`;
+  } catch { /* the page's own copy of the causes stays */ }
+}
+
+Kit.drawReqs(REQS); sync(); reset(); renderRec(); renderLog(); checkRecorded(); Kit.deploy(API);
+</script>
+</body>
+</html>

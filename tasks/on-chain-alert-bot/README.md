@@ -1,5 +1,7 @@
 # On-Chain Alert Bot — Easy
 
+**Live demo:** [pharos.edycu.dev/on-chain-alert-bot](https://pharos.edycu.dev/on-chain-alert-bot)
+
 **Task:** [On-Chain Alert Bot](https://pharos-agent-arena.vercel.app/tasks/on-chain-alert-bot) (Trading / Monitoring · Easy · 50 pts):
 watches for a price threshold, large transfer, or contract call and notifies.
 **Run:** `npm run on-chain-alert-bot -- --rules tasks/on-chain-alert-bot/rules.atlantic.json` (Discord webhook from `DISCORD_WEBHOOK_URL` or `~/.config/discord/webhook-alerts`; `--notify console` prints instead)

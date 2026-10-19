@@ -1,5 +1,7 @@
 # dApp Support Agent — Easy
 
+**Live demo:** [pharos.edycu.dev/dapp-support-agent](https://pharos.edycu.dev/dapp-support-agent)
+
 **Task:** [dApp Support Agent](https://pharos-agent-arena.vercel.app/tasks/dapp-support-agent) (Support / Reporting · Easy · 50 pts):
 explains why a transaction failed, on request.
 **Run:** `npm run dapp-support-agent -- 0x<txHash> [--network atlantic|pharos] [--json] [--proof label]` (Atlantic needs the one-time `npm run setup:mcp`, keyless; `--network pharos` uses the hosted Chain MCP)
