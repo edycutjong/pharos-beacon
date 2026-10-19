@@ -5,6 +5,8 @@ task's requirements to committed evidence (proof files, Atlantic tx links). Wher
 support an answer, the tools say "not found", "not covered" or "inferred" instead of guessing.
 Reviewing one task? It's in the table below; shared code is in `src/lib/`.
 
+**Live demos:** [pharos.edycu.dev](https://pharos.edycu.dev) — 15 of the tasks run from the browser (real reads and simulations on Pacific mainnet and Atlantic testnet, real x402 payments in test USDC); no wallet needed.
+
 **How it is built.** Written with AI assistance (Claude Code). The feature choices and the design decisions are by
 [@edycutjong](https://github.com/edycutjong). The first tasks were committed straight to `main`; the later ones arrive as pull requests for the author to review and merge.
 
