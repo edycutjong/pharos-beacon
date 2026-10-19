@@ -1,0 +1,558 @@
+{
+  "meta": {
+    "task": "whale-watching-agent",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/whale-watching-agent/index.ts --from-block 20506432 --to-block 20546432 --notify discord --discord-max 3 --sent /tmp/p102/whale-sent.json --proof usdc-wpros-40k-blocks",
+    "git": {
+      "commit": "3f8d41e5998f",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T09:00:12.732Z"
+  },
+  "watchlistSource": "scripts/find-whales.ts at head 20546432 ranked the addresses that moved the most USDC and WPROS in blocks 20506432-20546432 (output in find-whales-output.txt). watch-1 to watch-6 are the six top USDC movers; watch-7 is the third WPROS mover (the first two are already in the list). Our own list; edit it freely.",
+  "range": {
+    "from": "20506432",
+    "to": "20546432",
+    "head": "20553576"
+  },
+  "watched": [
+    {
+      "address": "0xB9012614F6151D5569E48E21bABf5fF3F14F0459",
+      "label": "watch-1"
+    },
+    {
+      "address": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "label": "watch-2"
+    },
+    {
+      "address": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "label": "watch-3"
+    },
+    {
+      "address": "0xfd78EE919681417d192449715b2594ab58f5D002",
+      "label": "watch-4"
+    },
+    {
+      "address": "0x936564245B69f5a293b42cbd752E0eE3bb68b470",
+      "label": "watch-5"
+    },
+    {
+      "address": "0xFf70F4A1d11995621854F3692acF286d8aCd04b2",
+      "label": "watch-6"
+    },
+    {
+      "address": "0x1F3546a29EeC2102c8d52E21a45114124014c85C",
+      "label": "watch-7"
+    }
+  ],
+  "thresholds": [
+    {
+      "token": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "symbol": "USDC",
+      "threshold": "25000"
+    },
+    {
+      "token": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
+      "symbol": "WPROS",
+      "threshold": "2000"
+    }
+  ],
+  "transfersTouchingWatched": 4650,
+  "significant": [
+    {
+      "tx": "0x7d98cdfd3a325c99371c63284f5877a4866bc4f661ae0371f96870440fccd1c4",
+      "logIndex": 0,
+      "block": "20508896",
+      "timestamp": "2026-10-17T20:26:04.000Z",
+      "token": "USDC",
+      "direction": "IN",
+      "amountRaw": "31000000000",
+      "amount": "31,000 USDC",
+      "from": "0xbd7Ad6Af20D3886A290c1140E2f245D1F8fd05A7",
+      "fromName": "unlabelled wallet",
+      "to": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "toName": "watch-2",
+      "why": [
+        "1.24× the 25,000 USDC threshold",
+        "it adds <0.1% to its USDC balance"
+      ],
+      "balanceBefore": "32426746793453",
+      "balanceAfter": "32457746793453"
+    },
+    {
+      "tx": "0x04cc4f4285787afdd367e8a34a48feb6a4e75b9c2e2d35409ccd31221a03d36f",
+      "logIndex": 0,
+      "block": "20520505",
+      "timestamp": "2026-10-17T23:50:52.000Z",
+      "token": "USDC",
+      "direction": "IN",
+      "amountRaw": "37274790686",
+      "amount": "37,274.7906 USDC",
+      "from": "0xbdCD8831416eCcb9263A80b5cdDFE67da883F423",
+      "fromName": "unlabelled wallet",
+      "to": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "toName": "watch-2",
+      "why": [
+        "1.49× the 25,000 USDC threshold",
+        "it adds 0.1% to its USDC balance"
+      ],
+      "balanceBefore": "32477724793453",
+      "balanceAfter": "32514999584139"
+    },
+    {
+      "tx": "0x4c6cc8106d8bda409221beae3fa171a6572f1822c8595dca013ca2b87141eace",
+      "logIndex": 5,
+      "block": "20522547",
+      "timestamp": "2026-10-18T00:27:10.000Z",
+      "token": "USDC",
+      "direction": "IN",
+      "amountRaw": "50133075296",
+      "amount": "50,133.0752 USDC",
+      "from": "0xb300000b72DEAEb607a12d5f54773D1C19c7028d",
+      "fromName": "unlabelled contract",
+      "to": "0xFf70F4A1d11995621854F3692acF286d8aCd04b2",
+      "toName": "watch-6",
+      "why": [
+        "2× the 25,000 USDC threshold",
+        "pass-through: the address held 0 USDC before and after block 20522547, so it received and passed this on within the block",
+        "received from a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)"
+      ],
+      "balanceBefore": "0",
+      "balanceAfter": "0"
+    },
+    {
+      "tx": "0x4c6cc8106d8bda409221beae3fa171a6572f1822c8595dca013ca2b87141eace",
+      "logIndex": 6,
+      "block": "20522547",
+      "timestamp": "2026-10-18T00:27:10.000Z",
+      "token": "USDC",
+      "direction": "OUT",
+      "amountRaw": "50133075296",
+      "amount": "50,133.0752 USDC",
+      "from": "0xFf70F4A1d11995621854F3692acF286d8aCd04b2",
+      "fromName": "watch-6",
+      "to": "0x00fC00edbe7C003b006f870068c548940000223e",
+      "toName": "unlabelled contract",
+      "why": [
+        "2× the 25,000 USDC threshold",
+        "pass-through: the address held 0 USDC before and after block 20522547, so it received and passed this on within the block",
+        "sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)"
+      ],
+      "balanceBefore": "0",
+      "balanceAfter": "0"
+    },
+    {
+      "tx": "0xe47ea8be7877136bde1c11add8754757f35dd6601ee99eb9e82144a3aeadfa5d",
+      "logIndex": 0,
+      "block": "20522685",
+      "timestamp": "2026-10-18T00:29:27.000Z",
+      "token": "USDC",
+      "direction": "IN",
+      "amountRaw": "49000000000",
+      "amount": "49,000 USDC",
+      "from": "0xA54dc4425190570Cb5C841aDf445BbeCf3b249f5",
+      "fromName": "unlabelled wallet",
+      "to": "0xfd78EE919681417d192449715b2594ab58f5D002",
+      "toName": "watch-4",
+      "why": [
+        "1.96× the 25,000 USDC threshold",
+        "pass-through: the address held 0 USDC before and after block 20522685, so it received and passed this on within the block"
+      ],
+      "balanceBefore": "0",
+      "balanceAfter": "0"
+    },
+    {
+      "tx": "0xe47ea8be7877136bde1c11add8754757f35dd6601ee99eb9e82144a3aeadfa5d",
+      "logIndex": 2,
+      "block": "20522685",
+      "timestamp": "2026-10-18T00:29:27.000Z",
+      "token": "USDC",
+      "direction": "OUT",
+      "amountRaw": "49000000000",
+      "amount": "49,000 USDC",
+      "from": "0xfd78EE919681417d192449715b2594ab58f5D002",
+      "fromName": "watch-4",
+      "to": "0x0000000000000000000000000000000000000000",
+      "toName": "null address (mint or burn)",
+      "why": [
+        "1.96× the 25,000 USDC threshold",
+        "pass-through: the address held 0 USDC before and after block 20522685, so it received and passed this on within the block",
+        "a burn from the watched address"
+      ],
+      "balanceBefore": "0",
+      "balanceAfter": "0"
+    },
+    {
+      "tx": "0x5779ac323897b98eb911e31042164de26382f0c02f019e1bdc97f91527cb126e",
+      "logIndex": 1,
+      "block": "20528623",
+      "timestamp": "2026-10-18T02:18:34.000Z",
+      "token": "USDC",
+      "direction": "IN",
+      "amountRaw": "299999500000",
+      "amount": "299,999.5 USDC",
+      "from": "0x0000000000000000000000000000000000000000",
+      "fromName": "null address (mint or burn)",
+      "to": "0xB9012614F6151D5569E48E21bABf5fF3F14F0459",
+      "toName": "watch-1",
+      "why": [
+        "11.99× the 25,000 USDC threshold",
+        "NEW POSITION: the address held 0 USDC before this",
+        "the largest USDC move touching the watchlist in this range",
+        "a mint into the watched address"
+      ],
+      "balanceBefore": "0",
+      "balanceAfter": "299999500000"
+    },
+    {
+      "tx": "0x9383d54494558d4019beea5c39d0044d570dd2e2659d9b1b5b710899967b0ab8",
+      "logIndex": 0,
+      "block": "20531788",
+      "timestamp": "2026-10-18T03:12:07.000Z",
+      "token": "USDC",
+      "direction": "BETWEEN",
+      "amountRaw": "299999500000",
+      "amount": "299,999.5 USDC",
+      "from": "0xB9012614F6151D5569E48E21bABf5fF3F14F0459",
+      "fromName": "watch-1",
+      "to": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "toName": "watch-2",
+      "why": [
+        "11.99× the 25,000 USDC threshold",
+        "the largest USDC move touching the watchlist in this range"
+      ],
+      "balanceBefore": "299999500000",
+      "balanceAfter": "0"
+    },
+    {
+      "tx": "0x8ef1ff201a8ed782933f03832a7f2ed3aec01a1ba1bd9f828850c1435a674402",
+      "logIndex": 0,
+      "block": "20539774",
+      "timestamp": "2026-10-18T05:28:42.000Z",
+      "token": "USDC",
+      "direction": "IN",
+      "amountRaw": "30000400000",
+      "amount": "30,000.4 USDC",
+      "from": "0x6565bED2a6a4193a216127A35A994100dc46f01e",
+      "fromName": "unlabelled wallet",
+      "to": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "toName": "watch-2",
+      "why": [
+        "1.2× the 25,000 USDC threshold",
+        "it adds <0.1% to its USDC balance"
+      ],
+      "balanceBefore": "32843958090916",
+      "balanceAfter": "32873958490916"
+    },
+    {
+      "tx": "0x6e65b6c3f0310218fd99e8c00590852d3ced4c1dc1a17c010a23e7ede541a484",
+      "logIndex": 0,
+      "block": "20540626",
+      "timestamp": "2026-10-18T05:42:19.000Z",
+      "token": "USDC",
+      "direction": "IN",
+      "amountRaw": "39843998810",
+      "amount": "39,843.9988 USDC",
+      "from": "0xC20f13A525578dd0A4304aeFc2200A714Ecc9EbF",
+      "fromName": "unlabelled wallet",
+      "to": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "toName": "watch-2",
+      "why": [
+        "1.59× the 25,000 USDC threshold",
+        "it adds 0.1% to its USDC balance"
+      ],
+      "balanceBefore": "32893958490916",
+      "balanceAfter": "32933802489726"
+    },
+    {
+      "tx": "0xd323d8e7efa5648e82731b0740b11584bfe856ae0eb079de4179310cb3598abd",
+      "logIndex": 3,
+      "block": "20542276",
+      "timestamp": "2026-10-18T06:09:26.000Z",
+      "token": "WPROS",
+      "direction": "IN",
+      "amountRaw": "7596623327051841811443",
+      "amount": "7,596.6233 WPROS",
+      "from": "0x4fD44181839D24e7C8f4D1B9288379109Ec25FAE",
+      "fromName": "unlabelled contract",
+      "to": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "toName": "watch-3",
+      "why": [
+        "3.79× the 2,000 WPROS threshold",
+        "it adds 1.6% to its WPROS balance",
+        "the largest WPROS move touching the watchlist in this range",
+        "received from a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)"
+      ],
+      "balanceBefore": "449987469392776845092615",
+      "balanceAfter": "457584092719828686904058"
+    },
+    {
+      "tx": "0xd7cc5fd303f0fdeaeb6ec37df742137a8ddd6815133d50efcab791599c84bdcb",
+      "logIndex": 0,
+      "block": "20542279",
+      "timestamp": "2026-10-18T06:09:28.000Z",
+      "token": "WPROS",
+      "direction": "OUT",
+      "amountRaw": "3336567390212042467735",
+      "amount": "3,336.5673 WPROS",
+      "from": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "fromName": "watch-3",
+      "to": "0xf38d34c8382b9079b0f85309578b43b8479Cd875",
+      "toName": "unlabelled contract",
+      "why": [
+        "1.66× the 2,000 WPROS threshold",
+        "0.7% of its WPROS balance before the move",
+        "sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)"
+      ],
+      "balanceBefore": "456178438245636135548639",
+      "balanceAfter": "451324583270095140331269"
+    },
+    {
+      "tx": "0xf241b4524dd571d037736a2aac7d61519af65f7a14c8b6c4bbdea031c288aecc",
+      "logIndex": 4,
+      "block": "20542279",
+      "timestamp": "2026-10-18T06:09:28.000Z",
+      "token": "WPROS",
+      "direction": "OUT",
+      "amountRaw": "2157276928089078738082",
+      "amount": "2,157.2769 WPROS",
+      "from": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "fromName": "watch-3",
+      "to": "0xf38d34c8382b9079b0f85309578b43b8479Cd875",
+      "toName": "unlabelled contract",
+      "why": [
+        "1.07× the 2,000 WPROS threshold",
+        "0.4% of its WPROS balance before the move",
+        "sent to a contract, which usually means a deposit, swap or bridge (a heuristic, not a fact)"
+      ],
+      "balanceBefore": "456178438245636135548639",
+      "balanceAfter": "451324583270095140331269"
+    },
+    {
+      "tx": "0x24ca2a125a9b165317931d5fede65400dd0a8f6082b9b6e257c0298b56d2952b",
+      "logIndex": 3,
+      "block": "20543422",
+      "timestamp": "2026-10-18T06:27:19.000Z",
+      "token": "WPROS",
+      "direction": "BETWEEN",
+      "amountRaw": "2050189016412865698848",
+      "amount": "2,050.189 WPROS",
+      "from": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "fromName": "watch-3",
+      "to": "0x936564245B69f5a293b42cbd752E0eE3bb68b470",
+      "toName": "watch-5",
+      "why": [
+        "1.02× the 2,000 WPROS threshold"
+      ],
+      "balanceBefore": "444147447710144626021327",
+      "balanceAfter": "441997258693731760322479"
+    },
+    {
+      "tx": "0xd7835a34e9b43d26d816a538ac5ab94839bccc71526e217748f0d8ee5543f01a",
+      "logIndex": 0,
+      "block": "20543742",
+      "timestamp": "2026-10-18T06:31:57.000Z",
+      "token": "WPROS",
+      "direction": "BETWEEN",
+      "amountRaw": "2037542111139328870885",
+      "amount": "2,037.5421 WPROS",
+      "from": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "fromName": "watch-3",
+      "to": "0x936564245B69f5a293b42cbd752E0eE3bb68b470",
+      "toName": "watch-5",
+      "why": [
+        "1.01× the 2,000 WPROS threshold"
+      ],
+      "balanceBefore": "439921796135333902338101",
+      "balanceAfter": "437884254024194573467216"
+    },
+    {
+      "tx": "0x27589082b1593f3ffb0ba9c36c295ce192f460aa091d687abc39a72334383f28",
+      "logIndex": 0,
+      "block": "20545539",
+      "timestamp": "2026-10-18T06:59:23.000Z",
+      "token": "WPROS",
+      "direction": "BETWEEN",
+      "amountRaw": "2031082325137765384332",
+      "amount": "2,031.0823 WPROS",
+      "from": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "fromName": "watch-3",
+      "to": "0x936564245B69f5a293b42cbd752E0eE3bb68b470",
+      "toName": "watch-5",
+      "why": [
+        "1.01× the 2,000 WPROS threshold"
+      ],
+      "balanceBefore": "436826140982567485556700",
+      "balanceAfter": "434795058657429720172368"
+    }
+  ],
+  "summary": [
+    {
+      "label": "watch-1",
+      "address": "0xB9012614F6151D5569E48E21bABf5fF3F14F0459",
+      "token": "USDC",
+      "transfers": 2,
+      "significant": 2,
+      "inRaw": "299999500000",
+      "outRaw": "299999500000",
+      "largestRaw": "299999500000"
+    },
+    {
+      "label": "watch-1",
+      "address": "0xB9012614F6151D5569E48E21bABf5fF3F14F0459",
+      "token": "WPROS",
+      "transfers": 0,
+      "significant": 0,
+      "inRaw": "0",
+      "outRaw": "0",
+      "largestRaw": "0"
+    },
+    {
+      "label": "watch-2",
+      "address": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "token": "USDC",
+      "transfers": 23,
+      "significant": 5,
+      "inRaw": "438118689496",
+      "outRaw": "0",
+      "largestRaw": "299999500000"
+    },
+    {
+      "label": "watch-2",
+      "address": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+      "token": "WPROS",
+      "transfers": 0,
+      "significant": 0,
+      "inRaw": "0",
+      "outRaw": "0",
+      "largestRaw": "0"
+    },
+    {
+      "label": "watch-3",
+      "address": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "token": "USDC",
+      "transfers": 2139,
+      "significant": 0,
+      "inRaw": "0",
+      "outRaw": "0",
+      "largestRaw": "0"
+    },
+    {
+      "label": "watch-3",
+      "address": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "token": "WPROS",
+      "transfers": 2139,
+      "significant": 6,
+      "inRaw": "7596623327051841811443",
+      "outRaw": "11612657770991081159882",
+      "largestRaw": "7596623327051841811443"
+    },
+    {
+      "label": "watch-4",
+      "address": "0xfd78EE919681417d192449715b2594ab58f5D002",
+      "token": "USDC",
+      "transfers": 50,
+      "significant": 2,
+      "inRaw": "49000000000",
+      "outRaw": "49000000000",
+      "largestRaw": "49000000000"
+    },
+    {
+      "label": "watch-4",
+      "address": "0xfd78EE919681417d192449715b2594ab58f5D002",
+      "token": "WPROS",
+      "transfers": 0,
+      "significant": 0,
+      "inRaw": "0",
+      "outRaw": "0",
+      "largestRaw": "0"
+    },
+    {
+      "label": "watch-5",
+      "address": "0x936564245B69f5a293b42cbd752E0eE3bb68b470",
+      "token": "USDC",
+      "transfers": 1346,
+      "significant": 0,
+      "inRaw": "0",
+      "outRaw": "0",
+      "largestRaw": "0"
+    },
+    {
+      "label": "watch-5",
+      "address": "0x936564245B69f5a293b42cbd752E0eE3bb68b470",
+      "token": "WPROS",
+      "transfers": 1346,
+      "significant": 3,
+      "inRaw": "6118813452689959954065",
+      "outRaw": "0",
+      "largestRaw": "2050189016412865698848"
+    },
+    {
+      "label": "watch-6",
+      "address": "0xFf70F4A1d11995621854F3692acF286d8aCd04b2",
+      "token": "USDC",
+      "transfers": 49,
+      "significant": 2,
+      "inRaw": "50133075296",
+      "outRaw": "50133075296",
+      "largestRaw": "50133075296"
+    },
+    {
+      "label": "watch-6",
+      "address": "0xFf70F4A1d11995621854F3692acF286d8aCd04b2",
+      "token": "WPROS",
+      "transfers": 2,
+      "significant": 0,
+      "inRaw": "0",
+      "outRaw": "0",
+      "largestRaw": "0"
+    },
+    {
+      "label": "watch-7",
+      "address": "0x1F3546a29EeC2102c8d52E21a45114124014c85C",
+      "token": "USDC",
+      "transfers": 660,
+      "significant": 0,
+      "inRaw": "0",
+      "outRaw": "0",
+      "largestRaw": "0"
+    },
+    {
+      "label": "watch-7",
+      "address": "0x1F3546a29EeC2102c8d52E21a45114124014c85C",
+      "token": "WPROS",
+      "transfers": 660,
+      "significant": 0,
+      "inRaw": "0",
+      "outRaw": "0",
+      "largestRaw": "0"
+    }
+  ],
+  "notify": {
+    "kind": "discord",
+    "delivered": [
+      {
+        "key": "0x9383d54494558d4019beea5c39d0044d570dd2e2659d9b1b5b710899967b0ab8:0",
+        "messageId": "1561302866998591588",
+        "at": "2026-10-18T09:00:11.097000+00:00"
+      },
+      {
+        "key": "0x5779ac323897b98eb911e31042164de26382f0c02f019e1bdc97f91527cb126e:1",
+        "messageId": "1561302870266216519",
+        "at": "2026-10-18T09:00:11.876000+00:00"
+      },
+      {
+        "key": "0xd323d8e7efa5648e82731b0740b11584bfe856ae0eb079de4179310cb3598abd:3",
+        "messageId": "1561302872497590365",
+        "at": "2026-10-18T09:00:12.408000+00:00"
+      }
+    ],
+    "alreadySent": 0
+  }
+}
