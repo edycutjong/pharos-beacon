@@ -1,11 +1,15 @@
 # Recurring Payment Agent — Medium
 
+**Live demo:** [pharos.edycu.dev/recurring-payment-agent](https://pharos.edycu.dev/recurring-payment-agent)
+
 **Task:** [Recurring Payment Agent](https://pharos-agent-arena.vercel.app/tasks/recurring-payment-agent) (Payments · Medium · 100 pts): an agent that manages a repeating
 on-chain payment on a schedule.
 **Run** (Atlantic testnet only; one-time `npm run setup:mcp`, keys in `~/.config/pharos/testnet.env`):
 `npm run recurring-payment-agent -- status --plan tasks/recurring-payment-agent/plans/rent.json --now 2026-11-08T09:00:00Z` (keyless: reads the ledger, prints history and the next payment) ·
 `npm run recurring-payment-agent -- run --plan <plan.json> --now <ISO time> [--execute] [--discord]` (without `--execute` it only says what it would pay and writes nothing).
 **Uses:** Chain MCP ✅ (`get_balance`, `eth_call` `balanceOf`, `get_transaction_count`, `estimate_gas`, `get_gas_price`, `send_raw_transaction`, `get_transaction_receipt`); viem signs locally.
+
+**Read this first:** the two weekly periods in the proofs were paid minutes apart on the real Atlantic chain, with `--now` telling the agent which day it is. The payments, receipts and ledger are real; the week in between is not. Without `--now` the agent uses the real clock (cron or `--every`).
 
 ## How it works
 

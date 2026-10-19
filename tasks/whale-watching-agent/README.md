@@ -1,5 +1,7 @@
 # Whale-Watching Agent — Medium
 
+**Live demo:** [pharos.edycu.dev/whale-watching-agent](https://pharos.edycu.dev/whale-watching-agent)
+
 **Task:** [Whale-Watching Agent](https://pharos-agent-arena.vercel.app/tasks/whale-watching-agent) (Trading / Monitoring · Medium · 100 pts):
 tracks a set of addresses and reports significant moves.
 **Run:** `npm run whale-watching-agent` (keyless, Pharos mainnet, read-only; it scans the last 5,000 blocks by default). Pin a range with

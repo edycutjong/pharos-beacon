@@ -1,5 +1,7 @@
 # Wallet Risk Checker — Medium
 
+**Live demo:** [pharos.edycu.dev/wallet-risk-checker](https://pharos.edycu.dev/wallet-risk-checker)
+
 **Task:** [Wallet Risk Checker](https://pharos-agent-arena.vercel.app/tasks/wallet-risk-checker) (Compliance / Security · Medium · 100 pts):
 flags a wallet/contract's suspicious history before you transact with it.
 **Run:** `npm run wallet-risk-checker -- check 0x… [--network pharos|atlantic] [--block N] [--lookback 30000] [--config f] [--proof label]`
@@ -41,7 +43,7 @@ the last `--lookback` blocks (30,000 by default: about 8.5 hours on Pharos mainn
 ## The risky example is staged, and we say so
 
 `npm run make-risky-wallet -- --execute` ([`scripts/make-risky-wallet.ts`](../../scripts/make-risky-wallet.ts)) generated a **new Atlantic wallet**
-`0xD6936bEcCA1A13c6A426309a694560292e9b579E` (its key stays in `~/.config/pharos/`, outside the repo), funded it with 0.01 PHRS and had it do three things:
+`0xD6936bEcCA1A13c6A426309a694560292e9b579E` (its key stays in `~/.config/pharos/`, outside the repo), funded it with 0.01 PHRS (first row), then had it do three things (the other rows):
 
 | Step | Transaction (all `status 1`) |
 |---|---|

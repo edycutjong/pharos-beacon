@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Whale Watch</title>
+<meta name="description" content="Whale-Watching Agent on Pharos mainnet: seven watched addresses, a threshold per token, every significant move explained, and a summary. Run it live, read-only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+</head>
+<body>
+<style>
+/* additions to the template for the read-only demos: inputs, report cards, notes, links inside tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)}
+.strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono,.mono-cell{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0;max-width:78ch}
+.fields{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:end}
+.field{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.field span{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.field input,.field select,.field textarea{font:400 13px var(--f-mono);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;min-width:0}
+.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{border-color:var(--sea)}
+.field.wide{flex:1 1 100%}.field.wide input,.field.wide textarea{width:100%}
+.field textarea{min-height:150px;resize:vertical;line-height:1.5}
+.card{border-bottom:1px solid var(--rule);padding:12px 0}
+.card:first-child{padding-top:0}.card:last-child{border-bottom:0}
+.card h4{margin:0 0 4px;font-size:15px}
+.card p{margin:2px 0;font-size:14px;color:var(--ink-2)}
+.card ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.tag{display:inline-block;font:500 11px var(--f-mono);border-radius:999px;padding:2px 8px;margin-right:6px;background:var(--code);color:var(--ink)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.warn{background:var(--warn-bg);color:var(--warn)}.tag.bad{background:var(--warn-bg);color:var(--bad)}
+.verdict{font:800 40px/1 var(--f-display);letter-spacing:.02em;text-transform:uppercase;margin:0 0 6px}
+.verdict.low{color:var(--ok)}.verdict.medium{color:var(--warn)}.verdict.high{color:var(--bad)}
+.netline{color:var(--ink-2);font-size:13px;margin:0;text-align:right;max-width:560px}
+.rec{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:18px;margin-bottom:16px}
+.rec h3{font:800 20px/1.1 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin:0 0 6px}
+.rec .src{color:var(--ink-2);font-size:13px;margin:0 0 12px}
+.scroll-x{overflow-x:auto}
+pre.cli{margin:0;white-space:pre;overflow-x:auto;background:var(--code);border-radius:4px;padding:14px;font:12px/1.65 var(--f-mono)}
+@media (max-width:820px){.fields{justify-content:flex-start}.netline{text-align:left}}
+.panel .data td{overflow-wrap:anywhere}
+@media (max-width:820px){.title{grid-template-columns:1fr}.fields .field:not(.wide){flex:1 1 9em}.fields .field:not(.wide) input,.fields .field:not(.wide) select{width:100%}}
+.dir{font:500 11px var(--f-mono);border-radius:999px;padding:2px 8px;margin-right:6px;border:1px solid var(--ink);color:var(--ink)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Pacific mainnet · 1672 · read-only</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/whale-watching-agent" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">MEDIUM · 100 PTS</span>
+      <h1>Whale-Watching Agent</h1>
+      <p class="lede">Watches seven addresses on Pharos mainnet and reports every USDC or WPROS move at or above a threshold: what moved, how much, from whom to whom and why it matters. Then one summary across all of them.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Which blocks">
+        <button class="btn" type="button" data-s="pinned" aria-pressed="true">Pinned: the 299,999.5 USDC mint</button>
+        <button class="btn" type="button" data-s="recent-2000" aria-pressed="false">Latest 2,000 blocks</button>
+        <button class="btn" type="button" data-s="recent-4000" aria-pressed="false">Latest 4,000 blocks</button>
+      </div>
+      <div class="fields" id="thresholds">
+        <label class="field"><span>USDC ≥</span><input id="t-usdc" inputmode="decimal" value="25000" size="9" aria-label="USDC threshold"></label>
+        <label class="field"><span>WPROS ≥</span><input id="t-wpros" inputmode="decimal" value="2000" size="9" aria-label="WPROS threshold"></label>
+      </div>
+      <p class="netline">Reads only, through the hosted Pharos Chain MCP (keyless). Nothing is signed or sent. Thresholds start at the committed watchlist's values; change them and run again.</p>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">pinned blocks 20,528,600–20,531,800 (the recorded mint and its move between two watched addresses)</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real response arrives. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist" data-tabs="out"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live re-reads 3,201 pinned mainnet blocks that hold a 299,999.5 USDC mint into watch-1 and its move to watch-2, explains them and summarises every address. The other buttons scan the latest blocks, where a quiet hour can honestly return no significant move. About 10–15 s.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Watchlist</span><span class="v" style="font-family:var(--f-body)">Loading the committed watchlist…</span></li></ul>
+    </div>
+  </div>
+
+  <div class="rec" id="live-summary" style="margin-top:20px" hidden></div>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="recorded">
+    <div class="sec-head"><span class="num">02</span><h2>Recorded live run</h2><p>40,001 blocks, read from the committed proof</p></div>
+    <div class="rec" id="rec"><p class="empty">Loading the proof from GitHub…</p></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article><h3>Discord alerts, never twice</h3><p>With <code>--notify discord</code> the CLI posts the moves furthest above their thresholds (ranked by multiple of the threshold, because 6- and 18-decimal amounts are not comparable). A sent-set makes a re-run send nothing twice: the recorded run delivered 3 messages, the re-run 0 (listed in section 02).</p></article>
+      <article><h3>Balances you can trust</h3><p>Every before/after balance is an archive <code>eth_call</code> read twice (a third time if they differ); two of three must agree or the report fails instead of printing a number. When a balance moved by more than this one transfer in the block, the report says so.</p></article>
+      <article><h3>Our own watchlist</h3><p>The seven addresses are not someone else's list: <code>scripts/find-whales.ts</code> ranked the top USDC and WPROS movers over 40,000 blocks. They are named watch-1 … watch-7 because we do not know who they are, and unknown counterparts print as “unlabelled wallet/contract”, never a guessed name.</p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer><span class="mono">edycutjong/pharos-beacon · tasks/whale-watching-agent</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: it holds no key and signs nothing.</span></footer>
+</div>
+
+<script>
+const SLUG = "whale-watching-agent";
+const API = "/api/whale-watching-agent";
+// ---- shared by the Beacon read-only demo pages: lamps, NDJSON stream, show-me, copy, tabs, footer ----
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const short = h => h ? String(h).slice(0, 6) + "…" + String(h).slice(-4) : "—";
+const num = v => Number(v).toLocaleString("en-US");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const MAINNET_TX = "https://www.pharosscan.xyz/tx/", ATLANTIC_TX = "https://atlantic.pharosscan.xyz/tx/";
+const MAINNET_ADDR = "https://www.pharosscan.xyz/address/", ATLANTIC_ADDR = "https://atlantic.pharosscan.xyz/address/";
+const RAW = `https://raw.githubusercontent.com/edycutjong/pharos-beacon/1004316/tasks/${SLUG}/`;
+const BLOB = `https://github.com/edycutjong/pharos-beacon/blob/1004316/tasks/${SLUG}/`;
+const txLink = (net, h) => `<a href="${net === "pharos" ? MAINNET_TX : ATLANTIC_TX}${esc(h)}" rel="noopener" title="${esc(h)}">${esc(short(h))} ↗</a>`;
+const addrLink = (net, a, text) => `<a href="${net === "pharos" ? MAINNET_ADDR : ATLANTIC_ADDR}${esc(a)}" rel="noopener" title="${esc(a)}">${esc(text ?? short(a))}</a>`;
+const proofLink = (file, text) => `<a href="${BLOB}${esc(file)}" rel="noopener">${esc(text ?? file)}</a>`;
+const copyBtn = v => `<button class="copy" type="button" data-copy="${esc(v)}">Copy</button>`;
+
+let STEPS = [], running = false, ctrl = null, runN = 0;
+const shownAt = {};
+function drawLamps(steps) {
+  STEPS = steps;
+  $("lamps").innerHTML = steps.map(([id, name]) => `<li class="lamp" id="l-${id}"><span class="bulb"><i></i></span><span class="name">${esc(name)}</span><span class="meta" id="m-${id}">&nbsp;</span></li>`).join("");
+  $("lamps").style.minWidth = Math.max(steps.length * 120, 480) + "px";
+}
+// Lamps light as the real events arrive; a lamp stays "running" at least 120 ms so the eye can follow (the label keeps the true ms).
+let queue = Promise.resolve();
+function onStep(ev) {
+  queue = queue.then(async () => {
+    const li = $("l-" + ev.id); if (!li) return;
+    if (ev.state === "running") {
+      li.className = "lamp reached state-running"; shownAt[ev.id] = performance.now();
+      $("run-label").textContent = li.querySelector(".name").textContent + "… ";
+      return;
+    }
+    const since = performance.now() - (shownAt[ev.id] ?? 0);
+    if (since < 120) await wait(120 - since);
+    li.className = "lamp reached state-" + ev.state;
+    $("m-" + ev.id).innerHTML = `<b>${esc(ev.label ?? ev.state)}</b>${ev.ms !== undefined ? `<br>${num(ev.ms)} ms` : ""}`;
+  });
+  return queue;
+}
+function resetStrip(text) {
+  drawLamps(STEPS); $("total").textContent = "idle · press Run live"; $("strip").classList.remove("lit");
+  setFoot(text ?? "Each lamp lights when the real response arrives. Times are measured, not animated.");
+}
+function setFoot(text, tone) { const f = $("foot"); f.textContent = text; f.className = "strip-foot" + (tone ? " " + tone : ""); }
+
+/** Stream an NDJSON run into onEvent; returns {done, error}. Esc cancels the view. */
+async function runLive(url, onEvent, busyText) {
+  if (running) return null;
+  running = true; resetStrip(); $("strip").classList.add("lit");
+  const btns = [...document.querySelectorAll("#controls button, #controls input, #controls select, #controls textarea")];
+  btns.forEach(b => b.disabled = true);
+  const t0 = performance.now(); let done = null, error = null;
+  const tick = setInterval(() => { if (running) $("total").innerHTML = `<b>${num(Math.round(performance.now() - t0))} ms</b> so far`; }, 250);
+  ctrl = new AbortController(); setFoot(busyText);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok || !res.body) { const b = await res.json().catch(() => ({})); throw new Error(b.error || `HTTP ${res.status}`); }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (value) buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (!line) continue;
+        const ev = JSON.parse(line);
+        if (ev.type === "step") onStep(ev);
+        else if (ev.type === "done") done = ev;
+        else if (ev.type === "error") error = ev.message;
+        onEvent(ev);
+      }
+      if (end) break;
+    }
+  } catch (e) { error = e.name === "AbortError" ? "Cancelled. Nothing was sent anywhere: this page only reads." : e.message; }
+  clearInterval(tick);
+  await queue;
+  // any lamp still running when the run stopped: mark it failed with the error
+  if (!done) document.querySelectorAll(".lamp.state-running").forEach(li => { li.className = "lamp reached state-failed"; li.querySelector(".meta").innerHTML = `<b>${esc((error || "stopped").slice(0, 90))}</b>`; });
+  ctrl = null; running = false;
+  btns.forEach(b => b.disabled = false); $("run-label").textContent = "Run again ";
+  if (done) { runN++; $("total").innerHTML = `<b>${num(done.totalMs)} ms</b> total`; }
+  else { $("total").textContent = "stopped"; setFoot(error || "The run ended without a result.", "bad"); }
+  return { done, error, id: "run-" + String(runN).padStart(3, "0"), at: new Date() };
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-target]");
+  if (a) {
+    e.preventDefault(); const el = $(a.dataset.target); if (!el) return;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); return;
+  }
+  const c = e.target.closest("[data-copy]");
+  if (c) {
+    (navigator.clipboard?.writeText(c.dataset.copy) || Promise.reject()).then(() => c.textContent = "Copied", () => c.textContent = "Copy blocked");
+    setTimeout(() => c.textContent = "Copy", 1400);
+  }
+});
+function drawReqs(reqs) {
+  $("reqs").innerHTML = reqs.map(r => `<li><span class="rn">${r[0]}</span><span class="rt">${esc(r[1])}<small>${r[2]}</small></span><span class="st ${r[3]}">${r[3]}</span><a class="showme" href="#${r[4]}" data-target="${r[4]}">show me ↓</a></li>`).join("");
+}
+function tabs(group, onChange) {
+  document.querySelectorAll(`[data-tabs="${group}"] .tab`).forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(`[data-tabs="${group}"] .tab`).forEach(x => x.setAttribute("aria-selected", x === t)); onChange(t.dataset.t);
+  }));
+}
+function scenarios(onPick) {
+  document.querySelectorAll(".scen [data-s]").forEach(b => b.addEventListener("click", () => {
+    if (running) return;
+    document.querySelectorAll(".scen [data-s]").forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(b.dataset.s);
+  }));
+}
+function evRows(rows) {
+  return rows.map(([k, v, copy, link]) => `<li><span class="caps">${esc(k)}</span><span class="v"${copy ? ` title="${esc(copy)}"` : ""}>${v}</span>${copy || link ? `<span class="act">${link || ""}${copy ? copyBtn(copy) : ""}</span>` : ""}</li>`).join("");
+}
+async function rawJson(file) {
+  const r = await fetch(RAW + file, { cache: "force-cache" });
+  if (!r.ok) throw new Error(`HTTP ${r.status} for ${file}`);
+  return r.json();
+}
+const recordedLabel = (meta, file) => `recorded on ${esc((meta?.createdAt || "").slice(0, 10))} by the CLI, committed in the repo · ${proofLink("proof/" + file, file)}`;
+async function loadDeploy() {
+  try {
+    const d = await (await fetch(`${API}?action=info`, { cache: "no-store" })).json();
+    const c = d.deploy?.commit;
+    $("deployed").innerHTML = c ? `deployed from <a href="https://github.com/edycutjong/pharos-beacon/commit/${esc(c)}" rel="noopener">${esc(c)}</a> · ${esc(d.deploy.env)}` : `deployed from the working tree (no commit) · ${esc(d.deploy?.env || "")}`;
+    return d;
+  } catch { $("deployed").textContent = "deploy info unavailable"; return null; }
+}
+// ---- end of shared part ----
+
+const LAMPS = [["connect", "Connect · chain 1672"], ["watchlist", "Watchlist"], ["scan-usdc", "Scan USDC"], ["scan-wpros", "Scan WPROS"], ["explain", "Explain moves"], ["summary", "Summary"]];
+const SCEN = {
+  "recent-2000": { q: "window=recent&blocks=2000", name: "latest 2,000 blocks" },
+  "recent-4000": { q: "window=recent&blocks=4000", name: "latest 4,000 blocks" },
+  pinned: { q: "window=pinned", name: "pinned blocks 20,528,600–20,531,800 (the recorded mint and its move between two watched addresses)" }
+};
+const REQS = [
+  ["01", "Tracks at least 5 configurable addresses.", "7 addresses from the committed <code>watchlist.json</code>, each checked with <code>get_code</code> as wallet or contract; the parser refuses fewer than 5, a repeat or a missing label.", "met", "evidence"],
+  ["02", "A configurable \"significant\" threshold per token or in value terms.", "One threshold per token in token units (USDC ≥ 25,000 and WPROS ≥ 2,000 in the watchlist). Change them above and run again.", "met", "thresholds"],
+  ["03", "Each report explains the move: what moved, how much, and where to (labelled where known).", "Each report: direction, amount, from → to with our labels, “why it matters”, balance before → after and the explorer link. Unknown counterparts say “unlabelled”.", "met", "output"],
+  ["04", "Produces a summary view of recent activity across all watched addresses.", "The table at the end of every run (one row per address and token) and the recorded 40,001-block summary.", "met", "summary-target"]
+];
+let cur = "pinned", view = "read", last = null, info = null;
+
+const dirTag = d => `<span class="dir">${esc(d)}</span>`;
+function reportCard(r, i) {
+  return `<div class="card"><h4>${dirTag(r.direction)}${esc(r.amount)} · block ${num(r.block)}</h4>
+    <p>${addrLink("pharos", r.from, short(r.from))} (${esc(r.fromName)}) → ${addrLink("pharos", r.to, short(r.to))} (${esc(r.toName)})${r.timestamp ? ` · ${esc(r.timestamp.slice(0, 19).replace("T", " "))} UTC` : ""}</p>
+    <ul>${r.why.map(w => `<li>${esc(w)}</li>`).join("")}</ul>
+    <p class="mono-cell">balance of ${esc(short(r.subject))}: ${esc(r.balanceBefore)} → ${esc(r.balanceAfter)}${r.receiver ? `<br>balance of ${esc(short(r.receiver.address))}: ${esc(r.receiver.before)} → ${esc(r.receiver.after)}` : ""}</p>
+    <p>${txLink("pharos", r.tx)} ${copyBtn(r.tx)}</p></div>`;
+}
+function summaryTable(rows, fmt) {
+  return `<div class="scroll-x"><table class="data"><tr><th>Watched address</th><th>Token</th><th style="text-align:right">Transfers</th><th style="text-align:right">Significant</th><th style="text-align:right">In (sig.)</th><th style="text-align:right">Out (sig.)</th><th style="text-align:right">Largest</th></tr>${rows.map(r => `<tr><td>${esc(r.label)} ${addrLink("pharos", r.address)}</td><td>${esc(r.token)}</td><td class="n">${num(r.transfers)}</td><td class="n">${num(r.significant)}</td><td class="n">${esc(fmt(r, "in"))}</td><td class="n">${esc(fmt(r, "out"))}</td><td class="n">${esc(fmt(r, "largest"))}</td></tr>`).join("")}</table></div>`;
+}
+function renderOut() {
+  const b = $("out-body"), r = last;
+  if (!r) return;
+  if (view === "raw") { b.innerHTML = `<pre class="raw">${esc(JSON.stringify({ start: r.start, done: r.done }, null, 2))}</pre>`; return; }
+  const d = r.done;
+  const head = `<p style="margin:0 0 12px"><b>${num(d.transfers)}</b> transfers touch a watched address · <b>${num(d.significant)}</b> at or above their token's threshold${d.reports.length < d.significant ? ` · the ${d.reports.length} largest (by multiple of the threshold) are explained below` : ""}.</p>`;
+  const reports = d.reports.length ? d.reports.map(reportCard).join("") : `<p class="empty">No move at or above the thresholds in these blocks. That is a real answer: lower a threshold above, or try the pinned window.</p>`;
+  const rest = d.unexplained.length ? `<p class="foot-note">Also significant, not explained in this run (each explanation costs 6–10 archive reads; the CLI explains all): ${d.unexplained.map(u => `${esc(u.amount)} ${txLink("pharos", u.tx)}`).join(" · ")}</p>` : "";
+  const totals = `<p class="foot-note">totals: ${d.totals.map(t => `${esc(t.token)}: ${t.significant} significant, ${esc(t.moved)} moved`).join(" · ")}</p>`;
+  b.innerHTML = head + reports + rest + totals;
+  const ls = $("live-summary"); ls.hidden = false;
+  ls.innerHTML = `<h3>Summary across all watched addresses · this run</h3><p class="src">Blocks ${num(r.start.range.from)}–${num(r.start.range.to)}; the in / out / largest columns count significant moves only.</p>` + summaryTable(d.rows, (row, k) => row[k]);
+}
+function renderEv() {
+  const r = last, s = r.start, d = r.done;
+  $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  const rows = [
+    ["Blocks", `${num(s.range.from)}–${num(s.range.to)} (${num(s.range.blocks)}) · head ${num(s.head)}`],
+    ["Read via", esc(s.endpoint)],
+    ["Thresholds", s.thresholds.map(t => `${esc(t.symbol)} ≥ ${esc(Number(t.threshold).toLocaleString("en-US"))}`).join(" · ")],
+    ...s.watched.map(w => [w.label, `${addrLink("pharos", w.address, short(w.address))} · ${esc(w.kind)}`, w.address]),
+    ["Found", `${num(d.transfers)} transfers · ${num(d.significant)} significant`]
+  ];
+  $("ev").innerHTML = evRows(rows);
+}
+function renderWatchlist(wl) {
+  $("ev").innerHTML = evRows([
+    ["Source", esc(wl.source.split(". ")[0]) + "."],
+    ...wl.addresses.map(w => [w.label, addrLink("pharos", w.address, short(w.address)), w.address]),
+    ["Thresholds", wl.tokens.map(t => `${esc(short(t.address))} ≥ ${esc(Number(t.threshold).toLocaleString("en-US"))}`).join(" · ") + " (USDC, WPROS)"]
+  ]);
+}
+
+scenarios(s => { cur = s; $("scen-name").textContent = SCEN[s].name; resetStrip(); });
+tabs("out", t => { view = t; renderOut(); });
+$("run").addEventListener("click", async () => {
+  const u = $("t-usdc").value.trim(), w = $("t-wpros").value.trim();
+  for (const [v, n] of [[u, "USDC"], [w, "WPROS"]]) if (!/^\d{1,12}(\.\d{1,6})?$/.test(v) || Number(v) <= 0) { setFoot(`The ${n} threshold must be a positive number of tokens, e.g. 25000.`, "warn"); return; }
+  let start = null;
+  const r = await runLive(`${API}?action=run&${SCEN[cur].q}&usdc=${encodeURIComponent(u)}&wpros=${encodeURIComponent(w)}`, ev => { if (ev.type === "start") start = ev; }, "Reading Pacific mainnet through the hosted Chain MCP… (Esc cancels)");
+  if (!r || !r.done) return;
+  last = { ...r, start };
+  setFoot(`${num(r.done.significant)} significant move${r.done.significant === 1 ? "" : "s"} in ${num(start.range.blocks)} blocks; ${r.done.reports.length} explained. Every number below is a live mainnet read.`);
+  renderOut(); renderEv();
+});
+
+// The recorded 40,001-block run (between-labelled: the re-read after the BETWEEN fix) and the Discord deliveries of the first run.
+const DEC = { USDC: 6, WPROS: 18 };
+function fmtRaw(raw, sym) {
+  const d = DEC[sym] ?? 18, v = BigInt(raw), base = 10n ** BigInt(d);
+  const int = (v / base).toLocaleString("en-US"), frac = (v % base).toString().padStart(d, "0").slice(0, 4).replace(/0+$/, "");
+  return int + (frac ? "." + frac : "");
+}
+async function loadRecorded() {
+  const el = $("rec");
+  try {
+    const [p, first, rerun] = await Promise.all([rawJson("proof/between-labelled.json"), rawJson("proof/usdc-wpros-40k-blocks.json"), rawJson("proof/rerun-no-repeat.json")]);
+    const sig = p.significant;
+    const rows = sig.map((m, i) => `<tr><td class="m">${i + 1}</td><td>${esc(m.direction)}</td><td class="n">${esc(m.amount)}</td><td>${esc(m.fromName)} → ${esc(m.toName)}</td><td class="n">${num(m.block)}</td><td>${txLink("pharos", m.tx)}</td></tr>`).join("");
+    const delivered = first.notify?.delivered || [];
+    el.innerHTML = `<h3>${num(p.transfersTouchingWatched)} transfers · ${sig.length} significant</h3>
+      <p class="src">Pacific mainnet blocks ${num(p.range.from)}–${num(p.range.to)}, pinned, so anyone can re-read the same range. ${recordedLabel(p.meta, "between-labelled.json")} (commit ${esc(p.meta.git.commit.slice(0, 7))}, clean tree).</p>
+      <div class="scroll-x"><table class="data log"><tr><th>#</th><th>Dir.</th><th style="text-align:right">Amount</th><th>From → to</th><th style="text-align:right">Block</th><th>Tx</th></tr>${rows}</table></div>
+      <h3 class="caps" id="summary-anchor" style="margin:22px 0 8px">Summary across all watched addresses</h3>
+      ${summaryTable(p.summary, (r, k) => fmtRaw(r[k + "Raw"], r.token))}
+      <p class="foot-note">Discord: the first run of this range delivered ${delivered.length} messages (ids ${delivered.map(d => `<span class="mono">${esc(d.messageId)}</span>`).join(", ")}) · ${recordedLabel(first.meta, "usdc-wpros-40k-blocks.json")}. The re-run with the same sent-set sent ${rerun.notify?.delivered?.length ?? 0} and skipped ${rerun.notify?.alreadySent ?? "?"} as already sent · ${proofLink("proof/rerun-no-repeat.json", "rerun-no-repeat.json")}.</p>`;
+  } catch (e) {
+    el.innerHTML = `<p class="empty">Could not load the proof from GitHub just now (${esc(e.message)}). It is at ${proofLink("proof/between-labelled.json")}.</p>`;
+  }
+}
+
+drawLamps(LAMPS); drawReqs(REQS);
+loadDeploy().then(d => { info = d; if (d?.watchlist && !last) renderWatchlist(d.watchlist); else if (!last) $("ev").innerHTML = evRows([["Watchlist", proofLink("watchlist.json")]]); });
+loadRecorded();
+// requirement 04 points at this run's summary once there is one, else at the recorded one
+document.addEventListener("click", e => { const a = e.target.closest('.showme[href="#summary-target"]'); if (a) a.dataset.target = $("live-summary").hidden ? "summary-anchor" : "live-summary"; }, true);
+</script>
+</body>
+</html>

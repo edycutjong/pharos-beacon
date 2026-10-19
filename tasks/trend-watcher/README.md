@@ -1,5 +1,7 @@
 # Trend Watcher — Hard
 
+**Live demo:** [pharos.edycu.dev/trend-watcher](https://pharos.edycu.dev/trend-watcher)
+
 **Task:** [Trend Watcher](https://pharos-agent-arena.vercel.app/tasks/trend-watcher) (SkillEngine · Hard · 200 pts): a skill with memory that persists
 observations across runs and acts only once a multi-observation trend is confirmed.
 **Run** (the committed history in `state/history.json` belongs to the Atlantic balance below; for another metric add `--state <file>`): `npm run trend-watcher -- observe --metric balance|supply|basefee [--network atlantic|pharos] [--address 0x…] [--token 0x…] [--steps 3] [--direction fall|rise] [--block N] [--discord] [--proof name]`

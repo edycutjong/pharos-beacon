@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Batch Executor</title>
+<meta name="description" content="Batch Executor on Pharos Atlantic: three or more independent sends bundled into one Multicall3 transaction, simulated per action, with the gas against sending them one by one. Simulate it live, read-only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+</head>
+<body>
+<style>
+/* additions to the template for the read-only demos: inputs, report cards, notes, links inside tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)}
+.strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono,.mono-cell{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0;max-width:78ch}
+.fields{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:end}
+.field{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.field span{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.field input,.field select,.field textarea{font:400 13px var(--f-mono);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;min-width:0}
+.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{border-color:var(--sea)}
+.field.wide{flex:1 1 100%}.field.wide input,.field.wide textarea{width:100%}
+.field textarea{min-height:150px;resize:vertical;line-height:1.5}
+.card{border-bottom:1px solid var(--rule);padding:12px 0}
+.card:first-child{padding-top:0}.card:last-child{border-bottom:0}
+.card h4{margin:0 0 4px;font-size:15px}
+.card p{margin:2px 0;font-size:14px;color:var(--ink-2)}
+.card ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.tag{display:inline-block;font:500 11px var(--f-mono);border-radius:999px;padding:2px 8px;margin-right:6px;background:var(--code);color:var(--ink)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.warn{background:var(--warn-bg);color:var(--warn)}.tag.bad{background:var(--warn-bg);color:var(--bad)}
+.verdict{font:800 40px/1 var(--f-display);letter-spacing:.02em;text-transform:uppercase;margin:0 0 6px}
+.verdict.low{color:var(--ok)}.verdict.medium{color:var(--warn)}.verdict.high{color:var(--bad)}
+.netline{color:var(--ink-2);font-size:13px;margin:0;text-align:right;max-width:560px}
+.rec{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:18px;margin-bottom:16px}
+.rec h3{font:800 20px/1.1 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin:0 0 6px}
+.rec .src{color:var(--ink-2);font-size:13px;margin:0 0 12px}
+.scroll-x{overflow-x:auto}
+pre.cli{margin:0;white-space:pre;overflow-x:auto;background:var(--code);border-radius:4px;padding:14px;font:12px/1.65 var(--f-mono)}
+@media (max-width:820px){.fields{justify-content:flex-start}.netline{text-align:left}}
+.panel .data td{overflow-wrap:anywhere}
+@media (max-width:820px){.title{grid-template-columns:1fr}.fields .field:not(.wide){flex:1 1 9em}.fields .field:not(.wide) input,.fields .field:not(.wide) select{width:100%}}
+.check{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--ink)}
+.check input{width:16px;height:16px;accent-color:var(--signal)}
+.gasline{margin:14px 0 0;padding:12px 14px;border-left:3px solid var(--signal);background:var(--code);border-radius:4px;font-size:14px}
+#f-actions{font-size:12px}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Atlantic testnet · eip155:688689 · read-only</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/batch-executor" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">MEDIUM · 100 PTS</span>
+      <h1>Batch Executor</h1>
+      <p class="lede">Takes three or more independent sends and bundles them into one Multicall3 transaction, with each call allowed to fail on its own. It simulates every action first, names the one that would fail and why, and compares the gas with sending them one by one.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Plan">
+        <button class="btn" type="button" data-s="one-fails" aria-pressed="true">plans/one-fails.json</button>
+        <button class="btn" type="button" data-s="drop" aria-pressed="false">Same, drop the failing actions</button>
+        <button class="btn" type="button" data-s="all-success-mix" aria-pressed="false">plans/all-success-mix.json</button>
+        <button class="btn" type="button" data-s="native" aria-pressed="false">3 PHRS sends (typed here)</button>
+      </div>
+      <div class="fields">
+        <label class="field wide"><span>Actions (JSON, 3 to 8; edit freely)</span><textarea id="f-actions" spellcheck="false"></textarea></label>
+        <label class="field" style="flex:1 1 22em"><span>Simulate as sender</span><input id="f-from" spellcheck="false" value="0x317bca01Bb101C0F1E86C21576a4e14D92B02975"></label>
+        <label class="check"><input type="checkbox" id="f-drop"> drop the actions that would fail</label>
+      </div>
+      <p class="netline">Simulation only: one <span class="mono">eth_call</span> of Multicall3's aggregate3Value plus <span class="mono">estimate_gas</span> for the batch and for each action alone. Nothing is signed. Atlantic is read through its public RPC (the Atlantic Chain MCP runs locally, not here).</p>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">…</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real response arrives. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist" data-tabs="out"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No simulation yet. Run live simulates plans/one-fails.json as the wallet the recorded runs used: four actions, one of which cannot succeed. About 2–6 s.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first simulation.</span></li></ul>
+    </div>
+  </div>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="recorded">
+    <div class="sec-head"><span class="num">02</span><h2>Recorded live runs</h2><p>Sent by the CLI; read from the committed proofs</p></div>
+    <div class="rec" id="rec-mix"><p class="empty">Loading the proofs from GitHub…</p></div>
+    <div class="rec" id="rec-fail"><p class="empty">Loading…</p></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article><h3>Drop what would fail</h3><p><code>--drop-failing</code> reads the simulation first, removes every action that would fail, rebuilds the batch from the rest and simulates it again before anything is signed. Tick “drop the actions that would fail” to watch it re-simulate live.</p></article>
+      <article><h3>Gas, said honestly</h3><p>The saving is shown estimate against estimate, never an estimate against a receipt. Counting the one-time approve, the first token batch costs a little more than sending alone; the README's “Gas, honestly” section has the measured numbers.</p></article>
+      <article><h3>No stuck PHRS</h3><p>aggregate3Value keeps the PHRS of a call that failed inside Multicall3, so a batch with a failing PHRS action is BLOCKED rather than sent. Multicall3's own README warns against approving it; the page says why the token path needs that, and how far.</p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer><span class="mono">edycutjong/pharos-beacon · tasks/batch-executor</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: it holds no key and signs nothing.</span></footer>
+</div>
+
+<script>
+const SLUG = "batch-executor";
+const API = "/api/batch-executor";
+// ---- shared by the Beacon read-only demo pages: lamps, NDJSON stream, show-me, copy, tabs, footer ----
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const short = h => h ? String(h).slice(0, 6) + "…" + String(h).slice(-4) : "—";
+const num = v => Number(v).toLocaleString("en-US");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const MAINNET_TX = "https://www.pharosscan.xyz/tx/", ATLANTIC_TX = "https://atlantic.pharosscan.xyz/tx/";
+const MAINNET_ADDR = "https://www.pharosscan.xyz/address/", ATLANTIC_ADDR = "https://atlantic.pharosscan.xyz/address/";
+const RAW = `https://raw.githubusercontent.com/edycutjong/pharos-beacon/1004316/tasks/${SLUG}/`;
+const BLOB = `https://github.com/edycutjong/pharos-beacon/blob/1004316/tasks/${SLUG}/`;
+const txLink = (net, h) => `<a href="${net === "pharos" ? MAINNET_TX : ATLANTIC_TX}${esc(h)}" rel="noopener" title="${esc(h)}">${esc(short(h))} ↗</a>`;
+const addrLink = (net, a, text) => `<a href="${net === "pharos" ? MAINNET_ADDR : ATLANTIC_ADDR}${esc(a)}" rel="noopener" title="${esc(a)}">${esc(text ?? short(a))}</a>`;
+const proofLink = (file, text) => `<a href="${BLOB}${esc(file)}" rel="noopener">${esc(text ?? file)}</a>`;
+const copyBtn = v => `<button class="copy" type="button" data-copy="${esc(v)}">Copy</button>`;
+
+let STEPS = [], running = false, ctrl = null, runN = 0;
+const shownAt = {};
+function drawLamps(steps) {
+  STEPS = steps;
+  $("lamps").innerHTML = steps.map(([id, name]) => `<li class="lamp" id="l-${id}"><span class="bulb"><i></i></span><span class="name">${esc(name)}</span><span class="meta" id="m-${id}">&nbsp;</span></li>`).join("");
+  $("lamps").style.minWidth = Math.max(steps.length * 120, 480) + "px";
+}
+// Lamps light as the real events arrive; a lamp stays "running" at least 120 ms so the eye can follow (the label keeps the true ms).
+let queue = Promise.resolve();
+function onStep(ev) {
+  queue = queue.then(async () => {
+    const li = $("l-" + ev.id); if (!li) return;
+    if (ev.state === "running") {
+      li.className = "lamp reached state-running"; shownAt[ev.id] = performance.now();
+      $("run-label").textContent = li.querySelector(".name").textContent + "… ";
+      return;
+    }
+    const since = performance.now() - (shownAt[ev.id] ?? 0);
+    if (since < 120) await wait(120 - since);
+    li.className = "lamp reached state-" + ev.state;
+    $("m-" + ev.id).innerHTML = `<b>${esc(ev.label ?? ev.state)}</b>${ev.ms !== undefined ? `<br>${num(ev.ms)} ms` : ""}`;
+  });
+  return queue;
+}
+function resetStrip(text) {
+  drawLamps(STEPS); $("total").textContent = "idle · press Run live"; $("strip").classList.remove("lit");
+  setFoot(text ?? "Each lamp lights when the real response arrives. Times are measured, not animated.");
+}
+function setFoot(text, tone) { const f = $("foot"); f.textContent = text; f.className = "strip-foot" + (tone ? " " + tone : ""); }
+
+/** Stream an NDJSON run into onEvent; returns {done, error}. Esc cancels the view. */
+async function runLive(url, onEvent, busyText) {
+  if (running) return null;
+  running = true; resetStrip(); $("strip").classList.add("lit");
+  const btns = [...document.querySelectorAll("#controls button, #controls input, #controls select, #controls textarea")];
+  btns.forEach(b => b.disabled = true);
+  const t0 = performance.now(); let done = null, error = null;
+  const tick = setInterval(() => { if (running) $("total").innerHTML = `<b>${num(Math.round(performance.now() - t0))} ms</b> so far`; }, 250);
+  ctrl = new AbortController(); setFoot(busyText);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok || !res.body) { const b = await res.json().catch(() => ({})); throw new Error(b.error || `HTTP ${res.status}`); }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (value) buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (!line) continue;
+        const ev = JSON.parse(line);
+        if (ev.type === "step") onStep(ev);
+        else if (ev.type === "done") done = ev;
+        else if (ev.type === "error") error = ev.message;
+        onEvent(ev);
+      }
+      if (end) break;
+    }
+  } catch (e) { error = e.name === "AbortError" ? "Cancelled. Nothing was sent anywhere: this page only reads." : e.message; }
+  clearInterval(tick);
+  await queue;
+  // any lamp still running when the run stopped: mark it failed with the error
+  if (!done) document.querySelectorAll(".lamp.state-running").forEach(li => { li.className = "lamp reached state-failed"; li.querySelector(".meta").innerHTML = `<b>${esc((error || "stopped").slice(0, 90))}</b>`; });
+  ctrl = null; running = false;
+  btns.forEach(b => b.disabled = false); $("run-label").textContent = "Run again ";
+  if (done) { runN++; $("total").innerHTML = `<b>${num(done.totalMs)} ms</b> total`; }
+  else { $("total").textContent = "stopped"; setFoot(error || "The run ended without a result.", "bad"); }
+  return { done, error, id: "run-" + String(runN).padStart(3, "0"), at: new Date() };
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-target]");
+  if (a) {
+    e.preventDefault(); const el = $(a.dataset.target); if (!el) return;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); return;
+  }
+  const c = e.target.closest("[data-copy]");
+  if (c) {
+    (navigator.clipboard?.writeText(c.dataset.copy) || Promise.reject()).then(() => c.textContent = "Copied", () => c.textContent = "Copy blocked");
+    setTimeout(() => c.textContent = "Copy", 1400);
+  }
+});
+function drawReqs(reqs) {
+  $("reqs").innerHTML = reqs.map(r => `<li><span class="rn">${r[0]}</span><span class="rt">${esc(r[1])}<small>${r[2]}</small></span><span class="st ${r[3]}">${r[3]}</span><a class="showme" href="#${r[4]}" data-target="${r[4]}">show me ↓</a></li>`).join("");
+}
+function tabs(group, onChange) {
+  document.querySelectorAll(`[data-tabs="${group}"] .tab`).forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(`[data-tabs="${group}"] .tab`).forEach(x => x.setAttribute("aria-selected", x === t)); onChange(t.dataset.t);
+  }));
+}
+function scenarios(onPick) {
+  document.querySelectorAll(".scen [data-s]").forEach(b => b.addEventListener("click", () => {
+    if (running) return;
+    document.querySelectorAll(".scen [data-s]").forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(b.dataset.s);
+  }));
+}
+function evRows(rows) {
+  return rows.map(([k, v, copy, link]) => `<li><span class="caps">${esc(k)}</span><span class="v"${copy ? ` title="${esc(copy)}"` : ""}>${v}</span>${copy || link ? `<span class="act">${link || ""}${copy ? copyBtn(copy) : ""}</span>` : ""}</li>`).join("");
+}
+async function rawJson(file) {
+  const r = await fetch(RAW + file, { cache: "force-cache" });
+  if (!r.ok) throw new Error(`HTTP ${r.status} for ${file}`);
+  return r.json();
+}
+const recordedLabel = (meta, file) => `recorded on ${esc((meta?.createdAt || "").slice(0, 10))} by the CLI, committed in the repo · ${proofLink("proof/" + file, file)}`;
+async function loadDeploy() {
+  try {
+    const d = await (await fetch(`${API}?action=info`, { cache: "no-store" })).json();
+    const c = d.deploy?.commit;
+    $("deployed").innerHTML = c ? `deployed from <a href="https://github.com/edycutjong/pharos-beacon/commit/${esc(c)}" rel="noopener">${esc(c)}</a> · ${esc(d.deploy.env)}` : `deployed from the working tree (no commit) · ${esc(d.deploy?.env || "")}`;
+    return d;
+  } catch { $("deployed").textContent = "deploy info unavailable"; return null; }
+}
+// ---- end of shared part ----
+
+const LAMPS = [["plan", "Plan"], ["allowance", "Allowances"], ["prep", "Block + fees"], ["batch-call", "Batch eth_call"], ["alone", "Each alone"], ["batch-gas", "Batch gas"], ["verdict", "Verdict"]];
+const NATIVE = [
+  { type: "native", to: "0x1111111111111111111111111111111111111111", value: "0.0001" },
+  { type: "native", to: "0x2222222222222222222222222222222222222222", value: "0.0001" },
+  { type: "native", to: "0x3333333333333333333333333333333333333333", value: "0.0001" }
+];
+const REQS = [
+  ["01", "Accepts a list of at least 3 independent actions.", "The actions list above (3 to 8 here). Fewer than 3, a repeated asset-and-recipient pair or a bad action is refused with its number: delete one and run.", "met", "controls"],
+  ["02", "Executes them as a batch: multicall, a single prepared transaction, or an equivalent.", "One Multicall3 aggregate3Value call: simulated live here, sent by the CLI in the recorded runs (one tx for four actions).", "met", "recorded"],
+  ["03", "Reports the gas saving or step reduction compared with running them individually.", "Live: the batch's estimate against each action's own estimate, and N transactions → 1. Recorded: the batch's receipt and the approve it needed.", "met", "output"],
+  ["04", "Handles partial failure clearly: which action failed and what happened to the rest.", "Live: the action that would fail, with its decoded revert. Recorded: the sent batch where action 3 was NOT APPLIED and 1, 2 and 4 were.", "met", "rec-fail"]
+];
+let cur = "one-fails", view = "read", last = null, loaded = {};
+
+async function pick(s) {
+  cur = s;
+  $("f-drop").checked = s === "drop";
+  const name = s === "drop" ? "one-fails" : s;
+  if (s === "native") { $("f-actions").value = JSON.stringify(NATIVE, null, 1); $("scen-name").textContent = "3 PHRS sends typed on this page"; }
+  else {
+    $("scen-name").textContent = `plans/${name}.json${s === "drop" ? " with the failing actions dropped" : ""}`;
+    try { loaded[name] ??= (await rawJson(`plans/${name}.json`)).actions; $("f-actions").value = JSON.stringify(loaded[name], null, 1); }
+    catch (e) { $("f-actions").value = ""; setFoot(`Could not load plans/${name}.json from GitHub (${e.message}); the endpoint reads it itself.`, "warn"); }
+  }
+  $("f-actions").dataset.plan = s === "native" ? "custom" : name; $("f-actions").dataset.orig = $("f-actions").value;
+  resetStrip();
+}
+$("f-actions").addEventListener("input", () => { document.querySelectorAll(".scen [data-s]").forEach(x => x.setAttribute("aria-pressed", "false")); $("scen-name").textContent = "your edited plan"; });
+
+function renderOut() {
+  const b = $("out-body"), r = last; if (!r) return;
+  const d = r.done;
+  if (view === "raw") { b.innerHTML = `<pre class="raw">${esc(JSON.stringify({ start: r.start, done: d }, null, 2))}</pre>`; return; }
+  const rows = d.sim.map(a => `<tr><td class="m">${a.n}</td><td>${esc(a.amount)} ${esc(a.asset)} → ${addrLink("atlantic", a.to, short(a.to))}</td><td>${a.ok ? `<span class="tag ok">would succeed</span>` : `<span class="tag bad">WOULD FAIL</span> ${esc(a.failure)}`}</td><td class="n">${a.aloneGas ? num(a.aloneGas) : `<span style="color:var(--warn)">${esc(a.aloneFailure)}</span>`}</td></tr>`).join("");
+  const c = d.comparison, failing = d.sim.filter(a => !a.ok).length;
+  const gas = c ? `<b>gas, estimate vs estimate:</b> ${c.comparable} action${c.comparable === 1 ? "" : "s"} sent one by one ≈ ${num(c.aloneGas)} vs the batch ≈ ${num(c.batchGas)} → ${Number(c.saved) >= 0 ? `<b style="color:var(--ok)">saves ${esc(c.pct)}%</b>` : `<b style="color:var(--warn)">costs more by ${esc(c.pct.replace("-", ""))}%</b>`}<br><b>steps:</b> ${c.steps.alone} transactions to sign and send alone → 1 batch transaction.${Number(c.saved) < 0 ? " A batch of plain PHRS sends pays Multicall3's overhead on top of 21,000 gas each, so it saves steps, not gas; token sends are where it saves gas (section 02)." : ""}`
+    : failing ? `<b>No gas comparison:</b> ${failing} action${failing === 1 ? "" : "s"} would fail inside the batch, so the batch's estimate is not the cost of doing ${failing === 1 ? "it" : "them"}. Tick “drop the actions that would fail” for a like-for-like figure.` : "<b>No gas comparison</b>: the batch could not be estimated.";
+  const allow = d.allowances.filter(a => !a.enough);
+  b.innerHTML = `<p style="margin:0 0 12px"><b>${d.status === "blocked" ? `<span style="color:var(--bad)">BLOCKED</span>: ${esc(d.blockReason)}` : `1 transaction to Multicall3 · ${d.sim.length - failing} of ${d.sim.length} actions would apply`}</b> · simulated at block ${num(d.block)}</p>
+    <div class="scroll-x"><table class="data"><tr><th>#</th><th>Action</th><th>Inside the batch</th><th style="text-align:right">Gas alone</th></tr>${rows}</table></div>
+    ${d.dropped.length ? `<p class="foot-note">dropped before sending: ${d.dropped.map(x => `${esc(x.label)} (${esc(x.failure)})`).join(" · ")}</p>` : ""}
+    ${allow.length ? `<p class="foot-note">Why token actions fail here: Multicall3 moves tokens with transferFrom, which needs an allowance from the sender. Right now ${allow.map(a => `${esc(a.asset)} ${esc(a.allowance)} (needs ${esc(a.needed)})`).join(", ")}: each recorded run spent its allowance, and this page never signs an approve. The CLI's <code>--approve</code> gives exactly the plan's total first.</p>` : ""}
+    <p class="gasline">${gas}</p>`;
+}
+function renderEv() {
+  const r = last, s = r.start, d = r.done;
+  $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  $("ev").innerHTML = evRows([
+    ["Sender", addrLink("atlantic", s.from, short(s.from)) + " (simulated; no key)", s.from],
+    ["Batch to", addrLink("atlantic", s.multicall3, short(s.multicall3)) + " Multicall3", s.multicall3],
+    ["Plan", s.plan === "custom" ? "typed on this page" : proofLink(`plans/${s.plan}.json`, `plans/${s.plan}.json`)],
+    ["Block", num(d.block)],
+    ["Gas price", `${num(Number(d.gasPriceWei) / 1e9)} gwei (base fee + tip)`],
+    ["Batch gas", d.batchGas ? num(d.batchGas) + " (estimate)" : "—"],
+    ...d.allowances.map(a => [`${a.asset} allowance`, `${esc(a.allowance)} of ${esc(a.needed)} needed`]),
+    ["Reads", `${num(d.reads)} batch tool calls`]
+  ]);
+}
+
+scenarios(pick);
+tabs("out", t => { view = t; renderOut(); });
+$("run").addEventListener("click", async () => {
+  const from = $("f-from").value.trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(from)) { setFoot("The sender must be a 0x address.", "warn"); return; }
+  const text = $("f-actions").value.trim(), edited = text !== $("f-actions").dataset.orig;
+  const plan = edited ? "custom" : $("f-actions").dataset.plan;
+  const q = new URLSearchParams({ action: "simulate", plan, from });
+  if ($("f-drop").checked) q.set("drop", "1");
+  if (plan === "custom") {
+    try { const v = JSON.parse(text); if (!Array.isArray(v)) throw 0; q.set("actions", JSON.stringify(v)); }
+    catch { setFoot("The actions must be a JSON list, like the examples.", "warn"); return; }
+  }
+  let start = null;
+  const r = await runLive(`${API}?${q}`, ev => { if (ev.type === "start") start = ev; }, "Simulating on Atlantic through its public RPC… nothing is signed (Esc cancels)");
+  if (!r || !r.done) return;
+  last = { ...r, start };
+  const d = r.done, f = d.sim.filter(a => !a.ok);
+  setFoot(d.status === "blocked" ? `BLOCKED: ${d.blockReason}` : f.length ? `Action ${f.map(a => a.n).join(", ")} would fail inside the batch (${f[0].failure}); allowFailure keeps the others.` : `All ${d.sim.length} actions would apply in one transaction.`, d.status === "blocked" ? "bad" : f.length ? "warn" : "");
+  renderOut(); renderEv();
+});
+
+async function loadRecorded() {
+  try {
+    const p = await rawJson("proof/all-success-mix.json"), r = p.result, c = r.comparison;
+    const est = Number(c.individualGas), bat = Number(c.batchGasEstimated), ap = (r.approvals || []).reduce((t, a) => t + Number(a.gasUsed || 0), 0);
+    $("rec-mix").innerHTML = `<h3>Four actions, one transaction</h3>
+      <p class="src">${esc(p.result.outcomes.length)} sends from ${addrLink("atlantic", p.sender, short(p.sender))} in ${txLink("atlantic", r.sent.tx)}, block ${num(r.sent.block)} · ${recordedLabel(p.meta, "all-success-mix.json")}.</p>
+      <div class="scroll-x"><table class="data"><tr><th>#</th><th>Action</th><th>Read back from the chain</th></tr>${r.outcomes.map((o, i) => `<tr><td class="m">${i + 1}</td><td>${esc(o.action.label.replace(/0x[0-9a-fA-F]{40}/, m => short(m)))}</td><td>${o.applied ? `<span class="tag ok">APPLIED</span>` : `<span class="tag bad">NOT APPLIED</span>`}</td></tr>`).join("")}</table></div>
+      <p class="gasline"><b>estimate vs estimate:</b> ${num(est)} one by one vs ${num(bat)} batched → saves ${((est - bat) / est * 100).toFixed(2)}% · <b>the batch's receipt:</b> ${num(r.sent.gasUsed)} gas · <b>its one-time approve:</b> ${num(ap)} gas (${(r.approvals || []).map(a => txLink("atlantic", a.tx)).join(", ")}) · <b>steps:</b> ${c.txAlone} → 1.<br>Measured one by one (real sends, not estimates) these four cost 178,428 gas, so the batch saved 24.67%, and 1.50% more with the approve counted: <a href="https://github.com/edycutjong/pharos-beacon/tree/1004316/tasks/batch-executor#gas-honestly" rel="noopener">README, “Gas, honestly”</a>.</p>`;
+  } catch (e) { $("rec-mix").innerHTML = `<p class="empty">Could not load the proof from GitHub just now (${esc(e.message)}).</p>`; }
+  try {
+    const [p, dp] = await Promise.all([rawJson("proof/one-fails.json"), rawJson("proof/drop-failing.json")]), r = p.result;
+    const ok = r.outcomes.filter(o => o.applied).length;
+    $("rec-fail").innerHTML = `<h3>One action fails, the rest stand</h3>
+      <p class="src">plans/one-fails.json sent with the allowance given: ${txLink("atlantic", r.sent.tx)}, block ${num(r.sent.block)}, gas used ${num(r.sent.gasUsed)} · ${recordedLabel(p.meta, "one-fails.json")}.</p>
+      <div class="scroll-x"><table class="data"><tr><th>#</th><th>Action</th><th>Predicted</th><th>Read back from the chain</th></tr>${r.outcomes.map((o, i) => `<tr><td class="m">${i + 1}</td><td>${esc(o.action.label.replace(/0x[0-9a-fA-F]{40}/, m => short(m)))}</td><td>${o.predictedOk ? "would succeed" : "would fail"}</td><td>${o.applied ? `<span class="tag ok">APPLIED</span>` : `<span class="tag bad">NOT APPLIED</span> ${esc(o.failure)}`}</td></tr>`).join("")}</table></div>
+      <p class="foot-note">${ok} of ${r.outcomes.length} applied; the failure did not undo the rest. With <code>--drop-failing</code> the same plan went out as ${dp.result.outcomes.length} actions, all applied, the USDC one dropped before signing: ${txLink("atlantic", dp.result.sent.tx)} · ${recordedLabel(dp.meta, "drop-failing.json")}.</p>`;
+  } catch (e) { $("rec-fail").innerHTML = `<p class="empty">Could not load the proofs from GitHub just now (${esc(e.message)}).</p>`; }
+}
+
+drawLamps(LAMPS); drawReqs(REQS); pick("one-fails");
+loadDeploy(); loadRecorded();
+</script>
+</body>
+</html>

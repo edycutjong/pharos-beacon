@@ -1,11 +1,15 @@
 # Batch Executor — Medium
 
+**Live demo:** [pharos.edycu.dev/batch-executor](https://pharos.edycu.dev/batch-executor)
+
 **Task:** [Batch Executor](https://pharos-agent-arena.vercel.app/tasks/batch-executor) (SkillEngine · Medium · 100 pts): a Skill that takes several independent actions and bundles them into one optimized execution.
 **Run** (Atlantic testnet only; one-time `npm run setup:mcp`, keys in `~/.config/pharos/testnet.env`):
 `npm run batch-executor -- --plan one-fails --from 0x317bca01Bb101C0F1E86C21576a4e14D92B02975` (keyless: simulates the batch as that sender, sends nothing; with `PRIVATE_KEY` set the sender is your own address) ·
 `npm run batch-executor -- --plan <name|file.json> [--approve] [--drop-failing] [--execute] [--compact] [--proof name]`.
 Without an allowance to Multicall3 the WPHRS actions simulate as WOULD FAIL (that is what a keyless run shows: the allowance is spent by each run), so the keyless `--plan one-fails` line above prints actions 2, 3 and 4 as WOULD FAIL (action 3 for the missing allowance, not for the missing USDC); `--approve --execute` gives it, and that is the run behind the partial-failure proof.
 **Skill:** [`skills/batch-executor/SKILL.md`](../../skills/batch-executor/SKILL.md) · **Uses:** Chain MCP ✅ (`get_block_number`, `get_block`, `get_gas_price`, `eth_call`, `estimate_gas`, `get_balance`, `get_transaction_count`, `send_raw_transaction`, `get_transaction_receipt`); viem signs locally.
+
+**In short:** four actions go out as **1 transaction instead of 4**, and the measured batch used **24.67% less gas** than sending the same four one by one. A token batch also needs a one-time `approve`; counted in, the first batch costs 1.50% more than sending alone (15.51% more when a PHRS recipient is a new account), and later batches skip it ([Gas, honestly](#gas-honestly)).
 
 **Install as a skill:** `npx skills add https://github.com/edycutjong/pharos-beacon --skill batch-executor`.
 

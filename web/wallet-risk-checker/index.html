@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Wallet Risk</title>
+<meta name="description" content="Wallet Risk Checker on Pharos: six on-chain signals, a low / medium / high verdict and a plain-language reason for each red flag. Check any address live, read-only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+</head>
+<body>
+<style>
+/* additions to the template for the read-only demos: inputs, report cards, notes, links inside tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)}
+.strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono,.mono-cell{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0;max-width:78ch}
+.fields{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:end}
+.field{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.field span{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.field input,.field select,.field textarea{font:400 13px var(--f-mono);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;min-width:0}
+.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{border-color:var(--sea)}
+.field.wide{flex:1 1 100%}.field.wide input,.field.wide textarea{width:100%}
+.field textarea{min-height:150px;resize:vertical;line-height:1.5}
+.card{border-bottom:1px solid var(--rule);padding:12px 0}
+.card:first-child{padding-top:0}.card:last-child{border-bottom:0}
+.card h4{margin:0 0 4px;font-size:15px}
+.card p{margin:2px 0;font-size:14px;color:var(--ink-2)}
+.card ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.tag{display:inline-block;font:500 11px var(--f-mono);border-radius:999px;padding:2px 8px;margin-right:6px;background:var(--code);color:var(--ink)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.warn{background:var(--warn-bg);color:var(--warn)}.tag.bad{background:var(--warn-bg);color:var(--bad)}
+.verdict{font:800 40px/1 var(--f-display);letter-spacing:.02em;text-transform:uppercase;margin:0 0 6px}
+.verdict.low{color:var(--ok)}.verdict.medium{color:var(--warn)}.verdict.high{color:var(--bad)}
+.netline{color:var(--ink-2);font-size:13px;margin:0;text-align:right;max-width:560px}
+.rec{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:18px;margin-bottom:16px}
+.rec h3{font:800 20px/1.1 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin:0 0 6px}
+.rec .src{color:var(--ink-2);font-size:13px;margin:0 0 12px}
+.scroll-x{overflow-x:auto}
+pre.cli{margin:0;white-space:pre;overflow-x:auto;background:var(--code);border-radius:4px;padding:14px;font:12px/1.65 var(--f-mono)}
+@media (max-width:820px){.fields{justify-content:flex-start}.netline{text-align:left}}
+.panel .data td{overflow-wrap:anywhere}
+@media (max-width:820px){.title{grid-template-columns:1fr}.fields .field:not(.wide){flex:1 1 9em}.fields .field:not(.wide) input,.fields .field:not(.wide) select{width:100%}}
+.sig{display:grid;grid-template-columns:88px minmax(0,1fr);gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.sig:last-child{border-bottom:0}
+.sig b{font-size:14px}.sig p{grid-column:2;margin:0;color:var(--ink-2);font-size:14px;overflow-wrap:anywhere}
+.lvl{font:500 11px var(--f-mono);border-radius:999px;padding:2px 8px;justify-self:start;align-self:start;text-transform:uppercase;background:var(--code);color:var(--ink-2)}
+.lvl.ok{background:var(--ok-bg);color:var(--ok)}.lvl.medium{background:var(--warn-bg);color:var(--warn)}.lvl.high{background:var(--warn-bg);color:var(--bad)}
+ol.reasons{margin:10px 0 0;padding-left:20px;font-size:14px}ol.reasons li{margin:4px 0;overflow-wrap:anywhere}
+#f-addr{min-width:min(100%,25em)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span><span id="net-text">Pacific mainnet · 1672 · read-only</span></span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/wallet-risk-checker" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">MEDIUM · 100 PTS</span>
+      <h1>Wallet Risk Checker</h1>
+      <p class="lede">A check to run before you send to an address. It reads the address's history on Pharos, scores six signals and answers low, medium or high, with every red flag explained in plain words.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Example">
+        <button class="btn" type="button" data-s="clean" aria-pressed="true">Clean wallet · mainnet</button>
+        <button class="btn" type="button" data-s="risky" aria-pressed="false">Staged risky wallet · Atlantic</button>
+        <button class="btn" type="button" data-s="nolist" aria-pressed="false">Risky wallet, flagged list emptied</button>
+      </div>
+      <div class="fields">
+        <label class="field wide"><span>Address (any 0x address)</span><input id="f-addr" spellcheck="false" autocomplete="off"></label>
+        <label class="field"><span>Network</span><select id="f-net"><option value="pharos">Pacific mainnet</option><option value="atlantic">Atlantic testnet</option></select></label>
+        <label class="field"><span>At block</span><input id="f-block" inputmode="numeric" size="10" placeholder="latest"></label>
+        <label class="field"><span>Lookback</span><select id="f-look"><option value="5000">5,000 blocks</option><option value="1000">1,000 blocks</option></select></label>
+        <label class="field"><span>Flagged list</span><select id="f-list"><option value="ours">ours (1 entry)</option><option value="empty">empty</option></select></label>
+      </div>
+      <p class="netline">Reads only. Mainnet through the hosted Chain MCP; Atlantic through its public RPC, because the Atlantic Chain MCP runs locally and cannot run here. The CLI reads 30,000 blocks of token history; this page reads 5,000 at most.</p>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">check</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real response arrives. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist" data-tabs="out"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No check yet. Run live checks the selected address now: about 50 chain reads, 5–15 s.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first check.</span></li></ul>
+    </div>
+  </div>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="recorded">
+    <div class="sec-head"><span class="num">02</span><h2>Recorded live runs</h2><p>Read from the committed proofs</p></div>
+    <div class="rec" id="rec-setup"><p class="empty">Loading…</p></div>
+    <div class="rec" id="rec-gate"><p class="empty">Loading…</p></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article><h3>A gate in front of the send</h3><p><code>gate --to … --amount …</code> checks the recipient first. At HIGH it refuses, writes the refusal to the Policy Gatekeeper's hash-chained audit log as rule <code>wallet_risk</code> and never asks the policy or sends. Otherwise the Policy Gatekeeper decides as usual. Both outcomes are recorded in section 02.</p></article>
+      <article><h3>High without any list</h3><p>An unlimited allowance to an address with no code is the approval-phishing pattern, so it is HIGH on its own. Press “Risky wallet, flagged list emptied”: the staged wallet stays HIGH with our list empty.</p></article>
+      <article><h3>Honest about its list</h3><p>The flagged list is our own file with one made-up entry, and the page says so. The risky wallet was created and staged by us on Atlantic; its four setup transactions are linked below.</p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer><span class="mono">edycutjong/pharos-beacon · tasks/wallet-risk-checker</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: it holds no key and signs nothing.</span></footer>
+</div>
+
+<script>
+const SLUG = "wallet-risk-checker";
+const API = "/api/wallet-risk-checker";
+// ---- shared by the Beacon read-only demo pages: lamps, NDJSON stream, show-me, copy, tabs, footer ----
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const short = h => h ? String(h).slice(0, 6) + "…" + String(h).slice(-4) : "—";
+const num = v => Number(v).toLocaleString("en-US");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const MAINNET_TX = "https://www.pharosscan.xyz/tx/", ATLANTIC_TX = "https://atlantic.pharosscan.xyz/tx/";
+const MAINNET_ADDR = "https://www.pharosscan.xyz/address/", ATLANTIC_ADDR = "https://atlantic.pharosscan.xyz/address/";
+const RAW = `https://raw.githubusercontent.com/edycutjong/pharos-beacon/1004316/tasks/${SLUG}/`;
+const BLOB = `https://github.com/edycutjong/pharos-beacon/blob/1004316/tasks/${SLUG}/`;
+const txLink = (net, h) => `<a href="${net === "pharos" ? MAINNET_TX : ATLANTIC_TX}${esc(h)}" rel="noopener" title="${esc(h)}">${esc(short(h))} ↗</a>`;
+const addrLink = (net, a, text) => `<a href="${net === "pharos" ? MAINNET_ADDR : ATLANTIC_ADDR}${esc(a)}" rel="noopener" title="${esc(a)}">${esc(text ?? short(a))}</a>`;
+const proofLink = (file, text) => `<a href="${BLOB}${esc(file)}" rel="noopener">${esc(text ?? file)}</a>`;
+const copyBtn = v => `<button class="copy" type="button" data-copy="${esc(v)}">Copy</button>`;
+
+let STEPS = [], running = false, ctrl = null, runN = 0;
+const shownAt = {};
+function drawLamps(steps) {
+  STEPS = steps;
+  $("lamps").innerHTML = steps.map(([id, name]) => `<li class="lamp" id="l-${id}"><span class="bulb"><i></i></span><span class="name">${esc(name)}</span><span class="meta" id="m-${id}">&nbsp;</span></li>`).join("");
+  $("lamps").style.minWidth = Math.max(steps.length * 120, 480) + "px";
+}
+// Lamps light as the real events arrive; a lamp stays "running" at least 120 ms so the eye can follow (the label keeps the true ms).
+let queue = Promise.resolve();
+function onStep(ev) {
+  queue = queue.then(async () => {
+    const li = $("l-" + ev.id); if (!li) return;
+    if (ev.state === "running") {
+      li.className = "lamp reached state-running"; shownAt[ev.id] = performance.now();
+      $("run-label").textContent = li.querySelector(".name").textContent + "… ";
+      return;
+    }
+    const since = performance.now() - (shownAt[ev.id] ?? 0);
+    if (since < 120) await wait(120 - since);
+    li.className = "lamp reached state-" + ev.state;
+    $("m-" + ev.id).innerHTML = `<b>${esc(ev.label ?? ev.state)}</b>${ev.ms !== undefined ? `<br>${num(ev.ms)} ms` : ""}`;
+  });
+  return queue;
+}
+function resetStrip(text) {
+  drawLamps(STEPS); $("total").textContent = "idle · press Run live"; $("strip").classList.remove("lit");
+  setFoot(text ?? "Each lamp lights when the real response arrives. Times are measured, not animated.");
+}
+function setFoot(text, tone) { const f = $("foot"); f.textContent = text; f.className = "strip-foot" + (tone ? " " + tone : ""); }
+
+/** Stream an NDJSON run into onEvent; returns {done, error}. Esc cancels the view. */
+async function runLive(url, onEvent, busyText) {
+  if (running) return null;
+  running = true; resetStrip(); $("strip").classList.add("lit");
+  const btns = [...document.querySelectorAll("#controls button, #controls input, #controls select, #controls textarea")];
+  btns.forEach(b => b.disabled = true);
+  const t0 = performance.now(); let done = null, error = null;
+  const tick = setInterval(() => { if (running) $("total").innerHTML = `<b>${num(Math.round(performance.now() - t0))} ms</b> so far`; }, 250);
+  ctrl = new AbortController(); setFoot(busyText);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok || !res.body) { const b = await res.json().catch(() => ({})); throw new Error(b.error || `HTTP ${res.status}`); }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (value) buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (!line) continue;
+        const ev = JSON.parse(line);
+        if (ev.type === "step") onStep(ev);
+        else if (ev.type === "done") done = ev;
+        else if (ev.type === "error") error = ev.message;
+        onEvent(ev);
+      }
+      if (end) break;
+    }
+  } catch (e) { error = e.name === "AbortError" ? "Cancelled. Nothing was sent anywhere: this page only reads." : e.message; }
+  clearInterval(tick);
+  await queue;
+  // any lamp still running when the run stopped: mark it failed with the error
+  if (!done) document.querySelectorAll(".lamp.state-running").forEach(li => { li.className = "lamp reached state-failed"; li.querySelector(".meta").innerHTML = `<b>${esc((error || "stopped").slice(0, 90))}</b>`; });
+  ctrl = null; running = false;
+  btns.forEach(b => b.disabled = false); $("run-label").textContent = "Run again ";
+  if (done) { runN++; $("total").innerHTML = `<b>${num(done.totalMs)} ms</b> total`; }
+  else { $("total").textContent = "stopped"; setFoot(error || "The run ended without a result.", "bad"); }
+  return { done, error, id: "run-" + String(runN).padStart(3, "0"), at: new Date() };
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-target]");
+  if (a) {
+    e.preventDefault(); const el = $(a.dataset.target); if (!el) return;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); return;
+  }
+  const c = e.target.closest("[data-copy]");
+  if (c) {
+    (navigator.clipboard?.writeText(c.dataset.copy) || Promise.reject()).then(() => c.textContent = "Copied", () => c.textContent = "Copy blocked");
+    setTimeout(() => c.textContent = "Copy", 1400);
+  }
+});
+function drawReqs(reqs) {
+  $("reqs").innerHTML = reqs.map(r => `<li><span class="rn">${r[0]}</span><span class="rt">${esc(r[1])}<small>${r[2]}</small></span><span class="st ${r[3]}">${r[3]}</span><a class="showme" href="#${r[4]}" data-target="${r[4]}">show me ↓</a></li>`).join("");
+}
+function tabs(group, onChange) {
+  document.querySelectorAll(`[data-tabs="${group}"] .tab`).forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(`[data-tabs="${group}"] .tab`).forEach(x => x.setAttribute("aria-selected", x === t)); onChange(t.dataset.t);
+  }));
+}
+function scenarios(onPick) {
+  document.querySelectorAll(".scen [data-s]").forEach(b => b.addEventListener("click", () => {
+    if (running) return;
+    document.querySelectorAll(".scen [data-s]").forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(b.dataset.s);
+  }));
+}
+function evRows(rows) {
+  return rows.map(([k, v, copy, link]) => `<li><span class="caps">${esc(k)}</span><span class="v"${copy ? ` title="${esc(copy)}"` : ""}>${v}</span>${copy || link ? `<span class="act">${link || ""}${copy ? copyBtn(copy) : ""}</span>` : ""}</li>`).join("");
+}
+async function rawJson(file) {
+  const r = await fetch(RAW + file, { cache: "force-cache" });
+  if (!r.ok) throw new Error(`HTTP ${r.status} for ${file}`);
+  return r.json();
+}
+const recordedLabel = (meta, file) => `recorded on ${esc((meta?.createdAt || "").slice(0, 10))} by the CLI, committed in the repo · ${proofLink("proof/" + file, file)}`;
+async function loadDeploy() {
+  try {
+    const d = await (await fetch(`${API}?action=info`, { cache: "no-store" })).json();
+    const c = d.deploy?.commit;
+    $("deployed").innerHTML = c ? `deployed from <a href="https://github.com/edycutjong/pharos-beacon/commit/${esc(c)}" rel="noopener">${esc(c)}</a> · ${esc(d.deploy.env)}` : `deployed from the working tree (no commit) · ${esc(d.deploy?.env || "")}`;
+    return d;
+  } catch { $("deployed").textContent = "deploy info unavailable"; return null; }
+}
+// ---- end of shared part ----
+
+const LAMPS = [["head", "Chain head"], ["reads", "Code · nonce · balance"], ["age", "Age search"], ["logs", "Token history"], ["verdict", "Verdict"]];
+const SCEN = {
+  clean: { address: "0x1F3546a29EeC2102c8d52E21a45114124014c85C", network: "pharos", block: "20548019", list: "ours", name: "clean mainnet wallet at block 20,548,019 (the proof's block)" },
+  risky: { address: "0xD6936bEcCA1A13c6A426309a694560292e9b579E", network: "atlantic", block: "31566858", list: "ours", name: "the wallet we staged on Atlantic, at block 31,566,858 (the proof's block)" },
+  nolist: { address: "0xD6936bEcCA1A13c6A426309a694560292e9b579E", network: "atlantic", block: "31566858", list: "empty", name: "the staged wallet with our flagged list emptied" }
+};
+const REQS = [
+  ["01", "Checks at least 4 signals, e.g. contract age, verified code, interaction with flagged addresses, unusual approval patterns, freshly funded wallet.", "Six: wallet or contract, age, freshly funded (nonce and balance), flagged-address interaction, approvals to unknown spenders, token activity. Verified source is not one of them: the Chain MCP cannot see it, and the report says to read the source.", "met", "output"],
+  ["02", "Outputs a risk level (low, medium or high) with the specific reasons.", "The verdict at the top of the output, then every medium and high signal as a numbered reason.", "met", "output"],
+  ["03", "Explains each flag in plain language.", "Each signal is one sentence naming the block, address or transaction it comes from.", "met", "output"],
+  ["04", "Demonstrated on at least 1 clean and 1 risky example.", "“Clean wallet · mainnet” → LOW, “Staged risky wallet · Atlantic” → HIGH, both live at the proofs' blocks; the recorded runs are in section 02.", "met", "controls"]
+];
+let cur = "clean", view = "read", last = null;
+
+function pick(s) {
+  cur = s; const c = SCEN[s];
+  $("f-addr").value = c.address; $("f-net").value = c.network; $("f-block").value = c.block; $("f-list").value = c.list; $("f-look").value = "5000";
+  $("scen-name").textContent = c.name; syncNet(); resetStrip();
+}
+function syncNet() { $("net-text").textContent = $("f-net").value === "pharos" ? "Pacific mainnet · 1672 · read-only" : "Atlantic testnet · eip155:688689 · read-only"; }
+$("f-net").addEventListener("change", syncNet);
+["f-addr", "f-net", "f-block", "f-list", "f-look"].forEach(id => $(id).addEventListener("input", () => { document.querySelectorAll(".scen [data-s]").forEach(x => x.setAttribute("aria-pressed", "false")); $("scen-name").textContent = "your address"; }));
+
+const hashes = t => [...new Set(String(t).match(/0x[0-9a-fA-F]{64}/g) || [])];
+function renderOut() {
+  const b = $("out-body"), r = last; if (!r) return;
+  if (view === "raw") { b.innerHTML = `<pre class="raw">${esc(JSON.stringify(r.done.report, null, 2))}</pre>`; return; }
+  const rep = r.done.report, flags = rep.signals.filter(s => s.level === "medium" || s.level === "high");
+  const linkify = t => esc(t).replace(/0x[0-9a-fA-F]{64}/g, h => `<a href="${rep.network === "pharos" ? MAINNET_TX : ATLANTIC_TX}${h}" rel="noopener" title="${h}">${short(h)} ↗</a>`);
+  b.innerHTML = `<p class="verdict ${rep.verdict}">Risk: ${esc(rep.verdict)}</p><p class="empty" style="margin-bottom:12px">${flags.length ? `${flags.length} red flag${flags.length === 1 ? "" : "s"}` : "no red flags"} · ${esc(short(rep.address))} on ${rep.network === "pharos" ? "Pacific mainnet" : "Atlantic testnet"} at block ${num(rep.block)}</p>
+    ${rep.signals.map(s => `<div class="sig"><span class="lvl ${s.level}">${esc(s.level)}</span><b>${esc(s.title)}</b><p>${linkify(s.detail)}</p></div>`).join("")}
+    ${flags.length ? `<h3 class="caps" style="margin:18px 0 0">Reasons</h3><ol class="reasons">${rep.reasons.map(x => `<li>${linkify(x)}</li>`).join("")}</ol>` : ""}`;
+}
+function renderEv() {
+  const r = last, s = r.start, rep = r.done.report;
+  $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  const hrs = rep.lookbackSeconds / 3600;
+  const rows = [
+    ["Address", addrLink(rep.network, rep.address, short(rep.address)), rep.address],
+    ["Network", rep.network === "pharos" ? "Pacific mainnet · 1672" : "Atlantic testnet · 688689"],
+    ["At block", num(rep.block) + (s.block === "latest" ? " (head)" : " (pinned)")],
+    ["Token window", `${num(rep.lookbackBlocks)} blocks ≈ ${hrs < 1 ? Math.round(hrs * 60) + " min" : hrs.toFixed(1) + " h"}`],
+    ["Flagged list", s.list === "ours" ? `ours · ${s.flagged} entry · ${proofLink("risk-config.json", "risk-config.json")}` : `empty · ${proofLink("risk-config-no-list.json", "risk-config-no-list.json")}`],
+    ["Read via", esc(s.endpoint)],
+    ["Reads", `${num(r.done.reads)} tool calls`]
+  ];
+  for (const h of hashes(JSON.stringify(rep.signals))) rows.push(["Cited tx", esc(short(h)), h, `<a href="${rep.network === "pharos" ? MAINNET_TX : ATLANTIC_TX}${h}" rel="noopener">Explorer ↗</a>`]);
+  $("ev").innerHTML = evRows(rows);
+}
+
+scenarios(pick);
+tabs("out", t => { view = t; renderOut(); });
+$("run").addEventListener("click", async () => {
+  const a = $("f-addr").value.trim(), blk = $("f-block").value.trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(a)) { setFoot("That is not a 0x address (0x and 40 hex characters).", "warn"); return; }
+  if (blk && !/^\d{1,10}$/.test(blk)) { setFoot("The block must be a number, or empty for the latest block.", "warn"); return; }
+  const q = new URLSearchParams({ action: "check", address: a, network: $("f-net").value, lookback: $("f-look").value, list: $("f-list").value });
+  if (blk) q.set("block", blk);
+  let start = null;
+  const r = await runLive(`${API}?${q}`, ev => { if (ev.type === "start") start = ev; }, `Reading ${$("f-net").value === "pharos" ? "Pacific mainnet through the hosted Chain MCP" : "Atlantic through its public RPC"}… (Esc cancels)`);
+  if (!r || !r.done) return;
+  last = { ...r, start };
+  const v = r.done.report.verdict;
+  setFoot(`RISK: ${v.toUpperCase()} after ${num(r.done.reads)} live reads.${v === "high" ? " A gate run would refuse to send to this address." : ""}`, v === "high" ? "bad" : v === "medium" ? "warn" : "");
+  renderOut(); renderEv();
+});
+
+async function loadRecorded() {
+  try {
+    const [setup, risky, clean] = await Promise.all([rawJson("proof/risky-wallet-setup.json"), rawJson("proof/risky-wallet.json"), rawJson("proof/clean-wallet.json")]);
+    $("rec-setup").innerHTML = `<h3>The staged risky wallet and the two verdicts</h3>
+      <p class="src">${esc(setup.note)} ${recordedLabel(setup.meta, "risky-wallet-setup.json")}.</p>
+      <div class="scroll-x"><table class="data"><tr><th>Step (Atlantic)</th><th>Tx</th><th style="text-align:right">Block</th><th>Status</th></tr>${setup.steps.map(s => `<tr><td>${esc(s.label)}</td><td>${txLink("atlantic", s.tx)}</td><td class="n">${num(s.block)}</td><td>${esc(s.status)}</td></tr>`).join("")}</table></div>
+      <p class="foot-note">With the CLI's default 30,000-block window: ${addrLink("atlantic", risky.report.address, short(risky.report.address))} → <b>${esc(risky.report.verdict.toUpperCase())}</b> (${recordedLabel(risky.meta, "risky-wallet.json")}); ${addrLink("pharos", clean.report.address, short(clean.report.address))} → <b>${esc(clean.report.verdict.toUpperCase())}</b> (${recordedLabel(clean.meta, "clean-wallet.json")}).</p>`;
+  } catch (e) { $("rec-setup").innerHTML = `<p class="empty">Could not load the proofs from GitHub just now (${esc(e.message)}).</p>`; }
+  try {
+    const [allowed, denied, audit] = await Promise.all([rawJson("proof/gate-allowed.json"), rawJson("proof/gate-denied-execute.json"), fetch(RAW + "audit/gate-audit.jsonl", { cache: "force-cache" }).then(r => r.ok ? r.text() : "")]);
+    const o = allowed.outcomes[0];
+    const entries = audit.split("\n").filter(Boolean).map(l => JSON.parse(l));
+    $("rec-gate").innerHTML = `<h3>The gate: one refusal, one send</h3>
+      <p class="src">Refused: <span class="mono">${esc(short(denied.request.to))}</span>, ${esc(denied.request.amount)} PHRS with a send requested → ${esc(denied.gate.outcome)} · ${recordedLabel(denied.meta, "gate-denied-execute.json")}.<br>
+      Allowed: <span class="mono">${esc(short(allowed.request.to))}</span> scored LOW, the Policy Gatekeeper allowed it (${esc(o.decision.rule)}) and ${esc(allowed.request.amount)} PHRS was sent: ${txLink("atlantic", o.tx)} · ${recordedLabel(allowed.meta, "gate-allowed.json")}.</p>
+      ${entries.length ? `<div class="scroll-x"><table class="data"><tr><th>Audit #</th><th>Time (UTC)</th><th>To</th><th>Decision</th><th>Rule</th><th>Prev hash</th></tr>${entries.map(e => `<tr><td class="m">${e.seq}</td><td class="m">${esc(String(e.at).slice(0, 19).replace("T", " "))}</td><td class="m">${esc(short(e.request?.to))}</td><td>${esc(e.decision ?? e.event)}</td><td class="m">${esc(e.rule ?? "")}</td><td class="m">${esc(String(e.prev ?? "").slice(0, 10))}…</td></tr>`).join("")}</table></div><p class="foot-note">The committed hash-chained audit log, ${proofLink("audit/gate-audit.jsonl", "audit/gate-audit.jsonl")}: each entry carries the hash of the one before.</p>` : ""}`;
+  } catch (e) { $("rec-gate").innerHTML = `<p class="empty">Could not load the gate proofs from GitHub just now (${esc(e.message)}).</p>`; }
+}
+
+drawLamps(LAMPS); drawReqs(REQS); pick("clean");
+loadDeploy(); loadRecorded();
+</script>
+</body>
+</html>

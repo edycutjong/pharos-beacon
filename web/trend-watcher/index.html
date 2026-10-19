@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Trend Watcher</title>
+<meta name="description" content="Trend Watcher on Pharos: a skill with memory that acts only after N consecutive moves. Re-read its stored histories on chain, or sample mainnet now, live and read-only.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+</head>
+<body>
+<style>
+/* additions to the template for the read-only demos: inputs, report cards, notes, links inside tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)}
+.strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono,.mono-cell{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0;max-width:78ch}
+.fields{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:end}
+.field{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.field span{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.field input,.field select,.field textarea{font:400 13px var(--f-mono);color:var(--ink);background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;min-width:0}
+.field input:focus-visible,.field select:focus-visible,.field textarea:focus-visible{border-color:var(--sea)}
+.field.wide{flex:1 1 100%}.field.wide input,.field.wide textarea{width:100%}
+.field textarea{min-height:150px;resize:vertical;line-height:1.5}
+.card{border-bottom:1px solid var(--rule);padding:12px 0}
+.card:first-child{padding-top:0}.card:last-child{border-bottom:0}
+.card h4{margin:0 0 4px;font-size:15px}
+.card p{margin:2px 0;font-size:14px;color:var(--ink-2)}
+.card ul{margin:6px 0 0;padding-left:18px;font-size:14px}
+.tag{display:inline-block;font:500 11px var(--f-mono);border-radius:999px;padding:2px 8px;margin-right:6px;background:var(--code);color:var(--ink)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.warn{background:var(--warn-bg);color:var(--warn)}.tag.bad{background:var(--warn-bg);color:var(--bad)}
+.verdict{font:800 40px/1 var(--f-display);letter-spacing:.02em;text-transform:uppercase;margin:0 0 6px}
+.verdict.low{color:var(--ok)}.verdict.medium{color:var(--warn)}.verdict.high{color:var(--bad)}
+.netline{color:var(--ink-2);font-size:13px;margin:0;text-align:right;max-width:560px}
+.rec{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:18px;margin-bottom:16px}
+.rec h3{font:800 20px/1.1 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin:0 0 6px}
+.rec .src{color:var(--ink-2);font-size:13px;margin:0 0 12px}
+.scroll-x{overflow-x:auto}
+pre.cli{margin:0;white-space:pre;overflow-x:auto;background:var(--code);border-radius:4px;padding:14px;font:12px/1.65 var(--f-mono)}
+@media (max-width:820px){.fields{justify-content:flex-start}.netline{text-align:left}}
+.panel .data td{overflow-wrap:anywhere}
+@media (max-width:820px){.title{grid-template-columns:1fr}.fields .field:not(.wide){flex:1 1 9em}.fields .field:not(.wide) input,.fields .field:not(.wide) select{width:100%}}
+.spark{font:500 28px/1 var(--f-mono);letter-spacing:.08em;color:var(--sea);margin:0 0 10px}
+tr.met td{background:var(--ok-bg)}
+tr.met td:last-child{color:var(--ok);font-weight:700}
+.alert{margin:14px 0 0;padding:12px 14px;border-left:3px solid var(--signal);background:var(--code);border-radius:4px;font:12px/1.6 var(--f-mono);overflow-wrap:anywhere}
+#sample-fields[aria-disabled="true"]{opacity:.55}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span><span id="net-text">Pacific mainnet · 1672 · read-only</span></span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/trend-watcher" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">HARD · 200 PTS</span>
+      <h1>Trend Watcher</h1>
+      <p class="lede">A skill with memory. Each run stores one observation of a chain metric and acts only when the stored history shows N moves in a row in one direction, never on a single spike.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="What to read">
+        <button class="btn" type="button" data-s="mainnet" aria-pressed="true">Replay the mainnet trend</button>
+        <button class="btn" type="button" data-s="spike" aria-pressed="false">Replay the 10× spike · Atlantic</button>
+        <button class="btn" type="button" data-s="first" aria-pressed="false">Replay the first Atlantic run</button>
+        <button class="btn" type="button" data-s="sample" aria-pressed="false">Sample mainnet now</button>
+      </div>
+      <div class="fields" id="rule">
+        <label class="field"><span>Rule: moves in a row</span><select id="f-steps"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
+        <label class="field"><span>Direction</span><select id="f-dir"><option value="fall">fall</option><option value="rise">rise</option></select></label>
+      </div>
+      <div class="fields" id="sample-fields" aria-disabled="true">
+        <label class="field"><span>Metric</span><select id="f-metric"><option value="balance">PROS balance</option><option value="basefee">base fee</option></select></label>
+        <label class="field"><span>Of address</span><input id="f-addr" spellcheck="false" size="20" value="0x1F3546a29EeC2102c8d52E21a45114124014c85C"></label>
+        <label class="field"><span>Every</span><select id="f-gap"><option value="10">10 blocks</option><option value="100" selected>100 blocks</option><option value="1000">1,000 blocks</option></select></label>
+      </div>
+      <p class="netline" id="netline">A replay re-reads every stored observation at its own block and checks it against the committed history file. Reads only; mainnet via the hosted Chain MCP, Atlantic via its public RPC.</p>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">…</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real response arrives. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist" data-tabs="out"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="cli" type="button">CLI view</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live re-reads the four stored mainnet observations of 0x1F35…c85C's balance at their blocks and evaluates the rule on them. About 1–3 s.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 5 of 5 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="recorded">
+    <div class="sec-head"><span class="num">02</span><h2>Recorded live runs</h2><p>Seven separate processes, one history file</p></div>
+    <div class="rec" id="rec-runs"><p class="empty">Loading the proofs from GitHub…</p></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article><h3>Sparkline and slope</h3><p>The history draws a sparkline of the stored values, and the alert carries the slope of the streak per observation and per block (the “alert” line under each live result is built by the same function that sent the Discord message).</p></article>
+      <article><h3>A spike ten times deeper</h3><p>A second Atlantic history makes the lone dip 10× larger than each trend step. Replay it: the deep dip reverses and does nothing; three small falls in a row fire.</p></article>
+      <article><h3>Kill -9 safe</h3><p>The history file is written atomically under a lock and de-duplicated by block, so a crash cannot lose or repeat an observation; a test kills a writing process with <code>kill -9</code> in a loop. The alert is marked sent only after it was sent.</p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer><span class="mono">edycutjong/pharos-beacon · tasks/trend-watcher</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: it holds no key and signs nothing.</span></footer>
+</div>
+
+<script>
+const SLUG = "trend-watcher";
+const API = "/api/trend-watcher";
+// ---- shared by the Beacon read-only demo pages: lamps, NDJSON stream, show-me, copy, tabs, footer ----
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const short = h => h ? String(h).slice(0, 6) + "…" + String(h).slice(-4) : "—";
+const num = v => Number(v).toLocaleString("en-US");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const MAINNET_TX = "https://www.pharosscan.xyz/tx/", ATLANTIC_TX = "https://atlantic.pharosscan.xyz/tx/";
+const MAINNET_ADDR = "https://www.pharosscan.xyz/address/", ATLANTIC_ADDR = "https://atlantic.pharosscan.xyz/address/";
+const RAW = `https://raw.githubusercontent.com/edycutjong/pharos-beacon/1004316/tasks/${SLUG}/`;
+const BLOB = `https://github.com/edycutjong/pharos-beacon/blob/1004316/tasks/${SLUG}/`;
+const txLink = (net, h) => `<a href="${net === "pharos" ? MAINNET_TX : ATLANTIC_TX}${esc(h)}" rel="noopener" title="${esc(h)}">${esc(short(h))} ↗</a>`;
+const addrLink = (net, a, text) => `<a href="${net === "pharos" ? MAINNET_ADDR : ATLANTIC_ADDR}${esc(a)}" rel="noopener" title="${esc(a)}">${esc(text ?? short(a))}</a>`;
+const proofLink = (file, text) => `<a href="${BLOB}${esc(file)}" rel="noopener">${esc(text ?? file)}</a>`;
+const copyBtn = v => `<button class="copy" type="button" data-copy="${esc(v)}">Copy</button>`;
+
+let STEPS = [], running = false, ctrl = null, runN = 0;
+const shownAt = {};
+function drawLamps(steps) {
+  STEPS = steps;
+  $("lamps").innerHTML = steps.map(([id, name]) => `<li class="lamp" id="l-${id}"><span class="bulb"><i></i></span><span class="name">${esc(name)}</span><span class="meta" id="m-${id}">&nbsp;</span></li>`).join("");
+  $("lamps").style.minWidth = Math.max(steps.length * 120, 480) + "px";
+}
+// Lamps light as the real events arrive; a lamp stays "running" at least 120 ms so the eye can follow (the label keeps the true ms).
+let queue = Promise.resolve();
+function onStep(ev) {
+  queue = queue.then(async () => {
+    const li = $("l-" + ev.id); if (!li) return;
+    if (ev.state === "running") {
+      li.className = "lamp reached state-running"; shownAt[ev.id] = performance.now();
+      $("run-label").textContent = li.querySelector(".name").textContent + "… ";
+      return;
+    }
+    const since = performance.now() - (shownAt[ev.id] ?? 0);
+    if (since < 120) await wait(120 - since);
+    li.className = "lamp reached state-" + ev.state;
+    $("m-" + ev.id).innerHTML = `<b>${esc(ev.label ?? ev.state)}</b>${ev.ms !== undefined ? `<br>${num(ev.ms)} ms` : ""}`;
+  });
+  return queue;
+}
+function resetStrip(text) {
+  drawLamps(STEPS); $("total").textContent = "idle · press Run live"; $("strip").classList.remove("lit");
+  setFoot(text ?? "Each lamp lights when the real response arrives. Times are measured, not animated.");
+}
+function setFoot(text, tone) { const f = $("foot"); f.textContent = text; f.className = "strip-foot" + (tone ? " " + tone : ""); }
+
+/** Stream an NDJSON run into onEvent; returns {done, error}. Esc cancels the view. */
+async function runLive(url, onEvent, busyText) {
+  if (running) return null;
+  running = true; resetStrip(); $("strip").classList.add("lit");
+  const btns = [...document.querySelectorAll("#controls button, #controls input, #controls select, #controls textarea")];
+  btns.forEach(b => b.disabled = true);
+  const t0 = performance.now(); let done = null, error = null;
+  const tick = setInterval(() => { if (running) $("total").innerHTML = `<b>${num(Math.round(performance.now() - t0))} ms</b> so far`; }, 250);
+  ctrl = new AbortController(); setFoot(busyText);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok || !res.body) { const b = await res.json().catch(() => ({})); throw new Error(b.error || `HTTP ${res.status}`); }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (value) buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1); if (!line) continue;
+        const ev = JSON.parse(line);
+        if (ev.type === "step") onStep(ev);
+        else if (ev.type === "done") done = ev;
+        else if (ev.type === "error") error = ev.message;
+        onEvent(ev);
+      }
+      if (end) break;
+    }
+  } catch (e) { error = e.name === "AbortError" ? "Cancelled. Nothing was sent anywhere: this page only reads." : e.message; }
+  clearInterval(tick);
+  await queue;
+  // any lamp still running when the run stopped: mark it failed with the error
+  if (!done) document.querySelectorAll(".lamp.state-running").forEach(li => { li.className = "lamp reached state-failed"; li.querySelector(".meta").innerHTML = `<b>${esc((error || "stopped").slice(0, 90))}</b>`; });
+  ctrl = null; running = false;
+  btns.forEach(b => b.disabled = false); $("run-label").textContent = "Run again ";
+  if (done) { runN++; $("total").innerHTML = `<b>${num(done.totalMs)} ms</b> total`; }
+  else { $("total").textContent = "stopped"; setFoot(error || "The run ended without a result.", "bad"); }
+  return { done, error, id: "run-" + String(runN).padStart(3, "0"), at: new Date() };
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-target]");
+  if (a) {
+    e.preventDefault(); const el = $(a.dataset.target); if (!el) return;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); return;
+  }
+  const c = e.target.closest("[data-copy]");
+  if (c) {
+    (navigator.clipboard?.writeText(c.dataset.copy) || Promise.reject()).then(() => c.textContent = "Copied", () => c.textContent = "Copy blocked");
+    setTimeout(() => c.textContent = "Copy", 1400);
+  }
+});
+function drawReqs(reqs) {
+  $("reqs").innerHTML = reqs.map(r => `<li><span class="rn">${r[0]}</span><span class="rt">${esc(r[1])}<small>${r[2]}</small></span><span class="st ${r[3]}">${r[3]}</span><a class="showme" href="#${r[4]}" data-target="${r[4]}">show me ↓</a></li>`).join("");
+}
+function tabs(group, onChange) {
+  document.querySelectorAll(`[data-tabs="${group}"] .tab`).forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(`[data-tabs="${group}"] .tab`).forEach(x => x.setAttribute("aria-selected", x === t)); onChange(t.dataset.t);
+  }));
+}
+function scenarios(onPick) {
+  document.querySelectorAll(".scen [data-s]").forEach(b => b.addEventListener("click", () => {
+    if (running) return;
+    document.querySelectorAll(".scen [data-s]").forEach(x => x.setAttribute("aria-pressed", x === b)); onPick(b.dataset.s);
+  }));
+}
+function evRows(rows) {
+  return rows.map(([k, v, copy, link]) => `<li><span class="caps">${esc(k)}</span><span class="v"${copy ? ` title="${esc(copy)}"` : ""}>${v}</span>${copy || link ? `<span class="act">${link || ""}${copy ? copyBtn(copy) : ""}</span>` : ""}</li>`).join("");
+}
+async function rawJson(file) {
+  const r = await fetch(RAW + file, { cache: "force-cache" });
+  if (!r.ok) throw new Error(`HTTP ${r.status} for ${file}`);
+  return r.json();
+}
+const recordedLabel = (meta, file) => `recorded on ${esc((meta?.createdAt || "").slice(0, 10))} by the CLI, committed in the repo · ${proofLink("proof/" + file, file)}`;
+async function loadDeploy() {
+  try {
+    const d = await (await fetch(`${API}?action=info`, { cache: "no-store" })).json();
+    const c = d.deploy?.commit;
+    $("deployed").innerHTML = c ? `deployed from <a href="https://github.com/edycutjong/pharos-beacon/commit/${esc(c)}" rel="noopener">${esc(c)}</a> · ${esc(d.deploy.env)}` : `deployed from the working tree (no commit) · ${esc(d.deploy?.env || "")}`;
+    return d;
+  } catch { $("deployed").textContent = "deploy info unavailable"; return null; }
+}
+// ---- end of shared part ----
+
+const SCEN = {
+  mainnet: { obs: 4, net: "pharos", file: "state/mainnet-balance.json", name: "replay state/mainnet-balance.json: 4 stored mainnet observations" },
+  spike: { obs: 6, net: "atlantic", file: "state/big-spike.json", name: "replay state/big-spike.json: a 10× dip that reverses, then three small falls" },
+  first: { obs: 6, net: "atlantic", file: "state/history.json", name: "replay state/history.json: the first Atlantic run" },
+  sample: { obs: null, net: "pharos", name: "sample mainnet now" }
+};
+const REQS = [
+  ["01", "Stores state between runs: persistent storage, not just in-memory.", "The CLI keeps a JSON history file, written atomically under a lock. The committed files are what the replays read; every value is re-checked on chain.", "met", "recorded"],
+  ["02", "Trend rule needs at least 3 observations to trigger and is configurable.", "Moves in a row (2–6, so 3–7 observations) and the direction are set above; 1 is refused. Change them and run again.", "met", "rule"],
+  ["03", "Handles restarts without losing or duplicating history.", "Recorded: seven separate processes grew one file; the seventh re-read the same block and stored nothing, acted on nothing. This page cannot restart the CLI, so it shows those runs.", "met", "recorded"],
+  ["04", "Shows the stored history and the exact moment the trend condition was met.", "Every observation with its block, value, move and streak; the row where the rule is met is marked.", "met", "output"],
+  ["05", "Demonstrates that a single spike does not trigger it.", "“Replay the 10× spike”: the dip at #2 reverses at #3 and the streak resets; only #4–#6 fire.", "met", "controls"]
+];
+let cur = "mainnet", view = "read", last = null;
+
+function lampsFor(s) {
+  const n = SCEN[s].obs ?? Number($("f-steps").value) + 1;
+  return [...Array.from({ length: n }, (_, i) => [`obs-${i + 1}`, `Observation #${i + 1}`]), ["evaluate", "Evaluate rule"]];
+}
+function pick(s) {
+  cur = s; const c = SCEN[s];
+  $("sample-fields").setAttribute("aria-disabled", s === "sample" ? "false" : "true");
+  ["f-metric", "f-addr", "f-gap"].forEach(id => $(id).disabled = s !== "sample");
+  $("net-text").textContent = c.net === "pharos" ? "Pacific mainnet · 1672 · read-only" : "Atlantic testnet · eip155:688689 · read-only";
+  $("scen-name").textContent = c.name; drawLamps(lampsFor(s)); resetStrip();
+}
+$("f-steps").addEventListener("change", () => { if (cur === "sample") drawLamps(lampsFor(cur)); });
+
+function renderOut() {
+  const b = $("out-body"), r = last; if (!r) return;
+  const d = r.done, s = r.start;
+  if (view === "raw") { b.innerHTML = `<pre class="raw">${esc(JSON.stringify({ start: s, done: d }, null, 2))}</pre>`; return; }
+  if (view === "cli") { b.innerHTML = `<pre class="cli">${esc(d.table)}</pre><p class="foot-note">The same historyTable() the CLI prints, over the series this run read.</p>`; return; }
+  let streak = 0;
+  const rows = d.observations.map((o, i) => {
+    const step = r.steps[`obs-${i + 1}`]?.detail || {};
+    const move = step.move || "";
+    streak = i && move === s.rule.direction ? streak + 1 : 0;
+    const met = d.evaluation.triggers.includes(i);
+    return `<tr class="${met ? "met" : ""}"><td class="m">#${i + 1}</td><td class="n">${num(o.block)}</td><td class="n">${esc(o.value)}</td><td>${esc(move)}</td><td class="n">${streak}</td>${o.stored !== undefined ? `<td>${o.matches ? "matches" : `<b style="color:var(--bad)">stored ${esc(o.stored)}</b>`}</td>` : ""}<td>${met ? `◀ TREND MET: ${s.rule.steps} ${s.rule.direction}s in a row` : ""}</td></tr>`;
+  }).join("");
+  const ev = d.evaluation;
+  const verdict = ev.triggers.length ? `<b style="color:var(--ok)">Trend met at observation #${ev.triggers[0] + 1}</b>` : ev.state === "too-few" ? `<b style="color:var(--warn)">Too few observations for this rule</b>` : `<b style="color:var(--warn)">No trigger</b>: streak ${ev.streak} of ${s.rule.steps}`;
+  b.innerHTML = `<p class="spark" aria-label="sparkline">${esc(d.sparkline)}</p><p style="margin:0 0 12px">${verdict} · ${esc(s.metric)} · rule ${s.rule.steps} ${s.rule.direction}s in a row</p>
+    <div class="scroll-x"><table class="data"><tr><th>Obs.</th><th style="text-align:right">Block</th><th style="text-align:right">Value</th><th>Move</th><th style="text-align:right">Streak</th>${s.mode === "replay" ? "<th>Stored value</th>" : ""}<th></th></tr>${rows}</table></div>
+    ${d.alerts.map(a => `<p class="alert">${esc(a.message)}</p>`).join("")}
+    ${s.mode === "sample" ? `<p class="foot-note">A live sample: ${d.observations.length} archive reads ${num(s.blocks[1] - s.blocks[0])} blocks apart, ending at the head. Real chain metrics seldom move ${s.rule.steps} times in a row, so “no trigger” is the usual, honest answer here.</p>` : ""}`;
+}
+function renderEv() {
+  const r = last, s = r.start, d = r.done, net = s.network;
+  $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  const rows = [
+    ["Metric", esc(s.metric)],
+    ["Network", net === "pharos" ? "Pacific mainnet · 1672" : "Atlantic testnet · 688689"],
+    ["Read via", esc(s.endpoint)],
+    ["Rule", `${s.rule.steps} ${esc(s.rule.direction)}s in a row (needs ${s.rule.steps + 1} observations)`],
+    ["Source", s.mode === "replay" ? proofLink(s.source.replace(`tasks/${SLUG}/`, ""), s.source.replace(`tasks/${SLUG}/`, "")) + " at commit 1004316" : "live sample, not stored"],
+    ["Blocks", s.blocks.map(b => num(b)).join(", ")]
+  ];
+  if (s.mode === "replay") rows.push(["Stored = chain", d.allMatch ? `yes, all ${d.observations.length} values` : `<b style="color:var(--bad)">no</b>`]);
+  if (s.spec.kind === "balance") rows.push(["Address", addrLink(net, s.spec.address, short(s.spec.address)), s.spec.address]);
+  $("ev").innerHTML = evRows(rows);
+}
+
+scenarios(pick);
+tabs("out", t => { view = t; renderOut(); });
+$("run").addEventListener("click", async () => {
+  const q = new URLSearchParams({ action: "run", steps: $("f-steps").value, direction: $("f-dir").value });
+  if (cur === "sample") {
+    const a = $("f-addr").value.trim();
+    if ($("f-metric").value === "balance" && !/^0x[0-9a-fA-F]{40}$/.test(a)) { setFoot("That is not a 0x address.", "warn"); return; }
+    q.set("mode", "sample"); q.set("metric", $("f-metric").value); q.set("gap", $("f-gap").value); if ($("f-metric").value === "balance") q.set("address", a);
+  } else { q.set("mode", "replay"); q.set("history", cur); }
+  drawLamps(lampsFor(cur));
+  let start = null; const steps = {};
+  const r = await runLive(`${API}?${q}`, ev => { if (ev.type === "start") start = ev; if (ev.type === "step" && ev.state !== "running") steps[ev.id] = ev; }, `Reading ${SCEN[cur].net === "pharos" ? "Pacific mainnet through the hosted Chain MCP" : "Atlantic through its public RPC"}… (Esc cancels)`);
+  if (!r || !r.done) return;
+  last = { ...r, start, steps };
+  const ev = r.done.evaluation;
+  setFoot(ev.triggers.length ? `Trend met at observation #${ev.triggers[0] + 1}${start.mode === "replay" ? (r.done.allMatch ? "; every stored value matches the chain." : "; a stored value does NOT match the chain.") : "."}` : ev.state === "too-few" ? "Too few observations for this rule: nothing fires." : `No trigger: streak ${ev.streak} of ${start.rule.steps}. Nothing fires.`, ev.triggers.length ? "" : "warn");
+  renderOut(); renderEv();
+});
+
+async function loadRecorded() {
+  const names = ["s1-baseline", "s2-fall", "s3-rise", "s4-fall", "s5-fall", "s6-trend-met", "s7-dedupe"];
+  try {
+    const ps = await Promise.all(names.map(n => rawJson(`proof/${n}.json`)));
+    const fmtV = v => (Number(BigInt(v) / 10n ** 9n) / 1e9).toFixed(9) + " PHRS";
+    $("rec-runs").innerHTML = `<h3>The first Atlantic run: a dip, a reset, three falls, a duplicate</h3>
+      <p class="src">Each row is its own CLI process that loaded the history file the previous one wrote. The balance is our test wallet ${addrLink("atlantic", ps[0].metric.address, short(ps[0].metric.address))}; we moved it with real 0.001 PHRS transactions between runs (they are listed in the <a href="https://github.com/edycutjong/pharos-beacon/tree/1004316/tasks/trend-watcher#the-live-run-atlantic-real-observations-a-trend-we-made" rel="noopener">README</a>).</p>
+      <div class="scroll-x"><table class="data log"><tr><th>Run</th><th style="text-align:right">Block</th><th style="text-align:right">Balance</th><th>Stored?</th><th style="text-align:right">History</th><th>State</th><th>Acted</th><th>Recorded</th></tr>
+      ${ps.map((p, i) => `<tr><td>${proofLink(`proof/${names[i]}.json`, names[i])}</td><td class="n">${num(p.observation.block)}</td><td class="n">${fmtV(p.observation.value)}</td><td>${esc(p.added)}</td><td class="n">${p.history.length}</td><td>${esc(p.evaluation.state)} · streak ${p.evaluation.streak}</td><td>${p.acted.length ? p.acted.map(a => `#${a.index} → ${esc(a.notifier)}`).join(", ") : "nothing"}</td><td class="m">${esc(p.meta.createdAt.slice(11, 19))} UTC</td></tr>`).join("")}</table></div>
+      <p class="foot-note">Run s3 is the single spike ending: streak back to 0, nothing acted. Run s6 met the rule and sent one Discord alert (its message id is in the proof). Run s7 read block ${num(ps[6].observation.block)} again: <b>${esc(ps[6].added)}</b>, ${ps[6].history.length} observations kept, ${ps[6].acted.length} actions. All recorded on ${esc(ps[0].meta.createdAt.slice(0, 10))} by the CLI, committed in the repo.</p>`;
+  } catch (e) { $("rec-runs").innerHTML = `<p class="empty">Could not load the proofs from GitHub just now (${esc(e.message)}).</p>`; }
+}
+
+drawReqs(REQS); pick("mainnet");
+loadDeploy(); loadRecorded();
+</script>
+</body>
+</html>
