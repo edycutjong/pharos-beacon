@@ -1,0 +1,14 @@
+$ npm run gas-fee-optimizer -- send --to 0x7B145C7C50a201fAe79d877c0ED6EB7498FeD18c --value 0.0001 --deadline 60 --target-gwei 1.5 --interval 3 --execute --proof early
+request: send 0.0001 PHRS to 0x7B145C7C50a201fAe79d877c0ED6EB7498FeD18c · target 1.5 gwei · deadline 06:20:12Z (60s)
+  06:19:12 price 1 gwei · target 1.5 · 60s to deadline
+decision: send now — gas at or below target after 0.1s (1 samples)
+last 5 of 5 samples:
+  time (UTC)   block      base fee      priority      price (gwei)
+  06:18:08     31564608   1             0             1
+  06:18:11     31564609   1             0             1
+  06:18:14     31564610   1             0             1
+  06:18:17     31564611   1             0             1
+  06:19:12     31564633   1             0             1
+  min 1 · max 1 gwei over all 5
+SENT: https://atlantic.pharosscan.xyz/tx/0xae3e7d6675fa84659c1b581d2593a3c39a1d63ef78d2a57e8e632366bf2000cb (block 31564634, gas used 21000)
+price at request 1 gwei · price paid 1 gwei · gas paid 0.000021 PHRS vs 0.000021 PHRS at the request price (saved 0 PHRS, 0.00%)

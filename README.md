@@ -14,6 +14,8 @@ Reviewing one task? It's in the table below; shared code is in `src/lib/`.
 |---|---|---|---|
 | [Threshold Guardian](tasks/threshold-guardian/) | Medium | Checks N onchain conditions through Chain MCP and acts only if all pass. Fails closed and re-checks before sending. Also packaged as a [SkillEngine-format skill](skills/threshold-guardian/SKILL.md) | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0xd567073eaa5d89eb5e30c3e3efa2948818851648fe628d93ff6fa29074dfbf39) · [proof/](tasks/threshold-guardian/proof/) |
 | [Policy Gatekeeper](tasks/policy-gatekeeper/) | Medium | Checks a request against a spend limit (per tx and per window), a recipient allowlist and a UTC time window, names the rule that decided, never sends a denied request, and keeps a hash-chained audit log. Also a [SkillEngine-format skill](skills/policy-gatekeeper/SKILL.md) | [Atlantic tx](https://atlantic.pharosscan.xyz/tx/0x801160985556a2888c927db0109469d17f3a80b9b395baa5c30e49a060e969cd) · [proof/](tasks/policy-gatekeeper/proof/) · [audit log](tasks/policy-gatekeeper/audit/audit.jsonl) |
+| [Dry-Run Executor](tasks/dry-run-executor/) | Medium | Simulates a transaction with `eth_call` + `estimate_gas`, reports success or the decoded revert reason, the fee and balances before/after, blocks a failing one (exit 3, nothing signed), and compares the prediction with the receipt after a real send. Also a [SkillEngine-format skill](skills/dry-run-executor/SKILL.md) | [proof/](tasks/dry-run-executor/proof/) |
+| [Gas Fee Optimizer](tasks/gas-fee-optimizer/) | Medium | Samples Atlantic gas over time, holds a transaction until gas is at or below a target (fixed price or percentile of history) and always sends at the deadline. Atlantic gas is flat, so the live runs show the mechanics, not a saving. Also a [SkillEngine-format skill](skills/gas-fee-optimizer/SKILL.md) | [proof/](tasks/gas-fee-optimizer/proof/) |
 | [Read Contract State](tasks/read-contract-state/) | Easy | Reads name, symbol, decimals, totalSupply, balances, owner and paused from Pharos mainnet USDC through the Chain MCP, pinned to one block, decimals applied, addresses labelled | [proof JSON](tasks/read-contract-state/proof/0xc879c018db60520f4355c26ed1a6d572cdac1815.json) (read-only, no tx) |
 | [Doc-Search CLI](tasks/doc-search-cli/) | Easy | `pharos-docs "<question>"`: a concise answer with source links from the Developer Docs MCP; says "not found" with the closest pages instead of inventing an answer | [proof/](tasks/doc-search-cli/proof/) (read-only, no tx) |
 | [dApp Support Agent](tasks/dapp-support-agent/) | Easy | `npm run dapp-support-agent -- 0x<txHash>`: replays a failed transaction one block earlier and explains the cause (balance, allowance, out of gas, revert reason) in plain words with a fix | [proof/](tasks/dapp-support-agent/proof/) (4 real failed Atlantic txs, 2 failed mainnet txs from other wallets) |
@@ -27,7 +29,7 @@ Reviewing one task? It's in the table below; shared code is in `src/lib/`.
 
 ```bash
 npm ci
-npm test            # 446 tests: guardian, gatekeeper, dry-run executor, read-contract-state, watcher, event monitor, alert bot, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, doc-grounded builder agent, Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 465 tests: guardian, gatekeeper, dry-run executor, read-contract-state, watcher, event monitor, alert bot, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, doc-grounded builder agent, gas optimizer, Chain MCP and Docs MCP clients, signer, shared helpers
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)
@@ -56,6 +58,8 @@ Mainnet (chain 1672) is read-only here.
 | `src/lib/networks.ts` | chain definitions + known token addresses (from SkillEngine `assets/`), explorer links |
 | `src/guardian/` | Threshold Guardian: policy schema, MCP reader, evaluator, guard |
 | `src/gatekeeper/` | Policy Gatekeeper: policy schema, pure evaluator, hash-chained audit log, request runner |
+| `src/dryrun/` | Dry-Run Executor: simulation (`eth_call` + `estimate_gas`), balance changes, the simulate-then-send gate |
+| `src/gas/` | Gas Fee Optimizer: price samples, percentile target, the hold-until-cheap loop, paid-vs-request report |
 | `src/watch/` | the shared log poller (cursor, handled-set, decoding) and the Discord notifier used by the Event/Log Monitor, the Alert Bot |
 | `skills/<name>/` | agent skills in SkillEngine format (`SKILL.md` + `references/`), installable with `npx skills add` |
 | `tasks/<slug>/` | one Arena task each: entry point + README + proof (start from `tasks/_template/`) |
