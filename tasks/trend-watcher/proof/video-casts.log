@@ -1,0 +1,71 @@
+=== cast s2-fall (terminal output of the recorded run; the `proof:` path line is omitted) ===
+$ npm run -s trend-demo-move -- fall --amount 0.001
+tracked wallet (wallet 2): 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+fall: success https://atlantic.pharosscan.xyz/tx/0x7979239a5f7106c1dbe47d11fca4e124da48ca463354ffe9817d87070bb43230 (block 31570141)
+$ npm run -s trend-watcher -- observe --metric balance --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --network atlantic --steps 3 --direction fall --proof s2-fall 
+observed native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic: 15.028179205 PHRS at block 31570151 — stored
+history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic · 2 observations, showing 2 · rule: 3 consecutive falls
+  #1   block 31570137  15.029200205 PHRS          start streak 0
+  #2   block 31570151  15.028179205 PHRS          fall  streak 1
+trend: █▁   (too-few, current streak 1/3)
+no action: only 2 of the 4 observations a 3-move trend needs
+$ 
+=== cast s3-spike-ends (terminal output of the recorded run; the `proof:` path line is omitted) ===
+$ npm run -s trend-demo-move -- rise --amount 0.001
+tracked wallet (wallet 2): 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+rise: success https://atlantic.pharosscan.xyz/tx/0x5598cf63bcf09fa05da2b0ebf7ed150a86fd4f1e25a792718a360c20566d811d (block 31570155)
+$ npm run -s trend-watcher -- observe --metric balance --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --network atlantic --steps 3 --direction fall --proof s3-rise 
+observed native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic: 15.029179205 PHRS at block 31570165 — stored
+history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic · 3 observations, showing 3 · rule: 3 consecutive falls
+  #1   block 31570137  15.029200205 PHRS          start streak 0
+  #2   block 31570151  15.028179205 PHRS          fall  streak 1
+  #3   block 31570165  15.029179205 PHRS          rise  streak 0
+trend: █▁▇   (too-few, current streak 0/3)
+no action: only 3 of the 4 observations a 3-move trend needs
+$ 
+=== cast s4-fall (terminal output of the recorded run; the `proof:` path line is omitted) ===
+$ npm run -s trend-demo-move -- fall --amount 0.001
+tracked wallet (wallet 2): 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+fall: success https://atlantic.pharosscan.xyz/tx/0x82ee30e4dc5b123a885a6bd158250294ef91a1c1c64c60523e4f4e4690233828 (block 31570169)
+$ npm run -s trend-watcher -- observe --metric balance --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --network atlantic --steps 3 --direction fall --proof s4-fall 
+observed native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic: 15.028158205 PHRS at block 31570179 — stored
+history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic · 4 observations, showing 4 · rule: 3 consecutive falls
+  #1   block 31570137  15.029200205 PHRS          start streak 0
+  #2   block 31570151  15.028179205 PHRS          fall  streak 1
+  #3   block 31570165  15.029179205 PHRS          rise  streak 0
+  #4   block 31570179  15.028158205 PHRS          fall  streak 1
+trend: █▁▇▁   (building, current streak 1/3)
+no action: streak 1 of 3
+$ 
+=== cast s5-fall (terminal output of the recorded run; the `proof:` path line is omitted) ===
+$ npm run -s trend-demo-move -- fall --amount 0.001
+tracked wallet (wallet 2): 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+fall: success https://atlantic.pharosscan.xyz/tx/0x98c42214e2e4932f3a84a20356ca02ae36e7cf1a620d0111e670c45c2ad7b838 (block 31570183)
+$ npm run -s trend-watcher -- observe --metric balance --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --network atlantic --steps 3 --direction fall --proof s5-fall 
+observed native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic: 15.027137205 PHRS at block 31570193 — stored
+history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic · 5 observations, showing 5 · rule: 3 consecutive falls
+  #1   block 31570137  15.029200205 PHRS          start streak 0
+  #2   block 31570151  15.028179205 PHRS          fall  streak 1
+  #3   block 31570165  15.029179205 PHRS          rise  streak 0
+  #4   block 31570179  15.028158205 PHRS          fall  streak 1
+  #5   block 31570193  15.027137205 PHRS          fall  streak 2
+trend: █▄▇▄▁   (building, current streak 2/3)
+no action: streak 2 of 3
+$ 
+=== cast s6-trend (terminal output of the recorded run; the `proof:` path line is omitted) ===
+$ npm run -s trend-demo-move -- fall --amount 0.001
+tracked wallet (wallet 2): 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+fall: success https://atlantic.pharosscan.xyz/tx/0x6745b462ace9d6678aaf47b903ee3a68b438843c4f2ae127b00fa1580c35e629 (block 31570196)
+$ npm run -s trend-watcher -- observe --metric balance --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --network atlantic --steps 3 --direction fall --proof s6-trend-met --discord
+ACTION [discord] message 1561311267103449119: TREND MET: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic — 3 consecutive falls at observation #6 (block 31570206, 2026-10-18T09:33:33.372Z). █▅▃▁ slope -0.001021 PHRS per observation, -0.00007470731707317 PHRS per block (-0.003063 PHRS over 3 observations, 41 blocks)
+observed native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic: 15.026116205 PHRS at block 31570206 — stored
+history: native balance of 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B on atlantic · 6 observations, showing 6 · rule: 3 consecutive falls
+  #1   block 31570137  15.029200205 PHRS          start streak 0
+  #2   block 31570151  15.028179205 PHRS          fall  streak 1
+  #3   block 31570165  15.029179205 PHRS          rise  streak 0
+  #4   block 31570179  15.028158205 PHRS          fall  streak 1
+  #5   block 31570193  15.027137205 PHRS          fall  streak 2
+  #6   block 31570206  15.026116205 PHRS          fall  streak 3   ◀ TREND MET: 3 consecutive falls
+trend: █▅▇▅▃▁   (triggered, current streak 3/3)
+acted 1× (the trend was met)
+$ 

@@ -1,0 +1,7 @@
+$ npm run trend-watcher -- history --metric balance --network pharos --address 0x1F3546a29EeC2102c8d52E21a45114124014c85C --state tasks/trend-watcher/state/mainnet-balance.json
+history: native balance of 0x1F3546a29EeC2102c8d52E21a45114124014c85C on pharos · 4 observations, showing 4 · rule: 3 consecutive falls
+  #1   block 20548019  52.893234045 PROS          start streak 0
+  #2   block 20548119  52.889172915 PROS          fall  streak 1
+  #3   block 20548219  52.877331345 PROS          fall  streak 2
+  #4   block 20548319  52.873256895 PROS          fall  streak 3   ◀ TREND MET: 3 consecutive falls
+trend: █▆▂▁   (triggered, current streak 3/3)

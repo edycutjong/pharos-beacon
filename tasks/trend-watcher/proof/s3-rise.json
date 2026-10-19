@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "task": "trend-watcher",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/trend-watcher/index.ts observe --metric balance --address 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --network atlantic --steps 3 --direction fall --proof s3-rise",
+    "git": {
+      "commit": "faa4fb10dd19",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T09:32:28.058Z"
+  },
+  "metric": {
+    "kind": "balance",
+    "network": "atlantic",
+    "address": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+  },
+  "rule": {
+    "direction": "fall",
+    "steps": 3
+  },
+  "observation": {
+    "block": "31570165",
+    "value": "15029179205000000000",
+    "at": "2026-10-18T09:32:28.121Z"
+  },
+  "added": "added",
+  "evaluation": {
+    "streak": 0,
+    "triggers": [],
+    "state": "too-few"
+  },
+  "acted": [],
+  "history": [
+    {
+      "block": "31570137",
+      "value": "15029200205000000000",
+      "at": "2026-10-18T09:31:40.823Z"
+    },
+    {
+      "block": "31570151",
+      "value": "15028179205000000000",
+      "at": "2026-10-18T09:32:06.449Z"
+    },
+    {
+      "block": "31570165",
+      "value": "15029179205000000000",
+      "at": "2026-10-18T09:32:28.121Z"
+    }
+  ]
+}

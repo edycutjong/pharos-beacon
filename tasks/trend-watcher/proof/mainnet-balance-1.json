@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "task": "trend-watcher",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/trend-watcher/index.ts observe --metric balance --network pharos --address 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548019 --state tasks/trend-watcher/state/mainnet-balance.json --proof mainnet-balance-1",
+    "git": {
+      "commit": "49f40b5dc7f9",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T15:24:05.680Z"
+  },
+  "metric": {
+    "kind": "balance",
+    "network": "pharos",
+    "address": "0x1F3546a29EeC2102c8d52E21a45114124014c85C"
+  },
+  "rule": {
+    "direction": "fall",
+    "steps": 3
+  },
+  "observation": {
+    "block": "20548019",
+    "value": "52893234045000000000",
+    "at": "2026-10-18T15:24:05.723Z"
+  },
+  "added": "added",
+  "evaluation": {
+    "streak": 0,
+    "triggers": [],
+    "state": "too-few"
+  },
+  "acted": [],
+  "history": [
+    {
+      "block": "20548019",
+      "value": "52893234045000000000",
+      "at": "2026-10-18T15:24:05.723Z"
+    }
+  ]
+}

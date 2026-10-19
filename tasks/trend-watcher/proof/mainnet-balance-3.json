@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "task": "trend-watcher",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/trend-watcher/index.ts observe --metric balance --network pharos --address 0x1F3546a29EeC2102c8d52E21a45114124014c85C --block 20548219 --state tasks/trend-watcher/state/mainnet-balance.json --proof mainnet-balance-3",
+    "git": {
+      "commit": "d478b0d9a6b5",
+      "dirty": false
+    },
+    "createdAt": "2026-10-18T15:24:07.928Z"
+  },
+  "metric": {
+    "kind": "balance",
+    "network": "pharos",
+    "address": "0x1F3546a29EeC2102c8d52E21a45114124014c85C"
+  },
+  "rule": {
+    "direction": "fall",
+    "steps": 3
+  },
+  "observation": {
+    "block": "20548219",
+    "value": "52877331345000000000",
+    "at": "2026-10-18T15:24:07.973Z"
+  },
+  "added": "added",
+  "evaluation": {
+    "streak": 2,
+    "triggers": [],
+    "state": "too-few"
+  },
+  "acted": [],
+  "history": [
+    {
+      "block": "20548019",
+      "value": "52893234045000000000",
+      "at": "2026-10-18T15:24:05.723Z"
+    },
+    {
+      "block": "20548119",
+      "value": "52889172915000000000",
+      "at": "2026-10-18T15:24:06.841Z"
+    },
+    {
+      "block": "20548219",
+      "value": "52877331345000000000",
+      "at": "2026-10-18T15:24:07.973Z"
+    }
+  ]
+}
