@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Demos</title>
+<meta name="description" content="Live demos of Beacon's Pharos Agent Arena tasks, each run for real on Pharos mainnet or Atlantic testnet.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Atkinson+Hyperlegible:wght@400;700&family=Martian+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: keeper's log — title block, the Sequence strip as the signature, output beside evidence, then requirements, run log, what's ours */
+:root{
+  --paper:#f4f2ec; --sheet:#fbfaf6; --ink:#12222b; --ink-2:#4d5f68; --rule:#d6d2c6;
+  --signal:#e8730c; --signal-ink:#1a0c00; --sea:#1f5f7a; --ok:#1d7a4c; --warn:#a5650a; --bad:#b3261e;
+  --ok-bg:#e2f1e8; --warn-bg:#f8ecd6; --code:#efece4;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,sans-serif;
+  --f-mono:"Martian Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0d1418; --sheet:#131c21; --ink:#dbe4e6; --ink-2:#93a4aa; --rule:#26333a;
+  --signal:#ff9433; --signal-ink:#1a0c00; --sea:#6fb4cf; --ok:#5fd39a; --warn:#f0b35a; --bad:#ff8a80;
+  --ok-bg:#123024; --warn-bg:#33240c; --code:#182328; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0d1418; --sheet:#131c21; --ink:#dbe4e6; --ink-2:#93a4aa; --rule:#26333a;
+  --signal:#ff9433; --signal-ink:#1a0c00; --sea:#6fb4cf; --ok:#5fd39a; --warn:#f0b35a; --bad:#ff8a80;
+  --ok-bg:#123024; --warn-bg:#33240c; --code:#182328; color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 var(--f-body);padding:0 16px;
+  background-image:linear-gradient(color-mix(in srgb,var(--rule) 35%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--rule) 35%,transparent) 1px,transparent 1px);
+  background-size:24px 24px}
+a{color:var(--sea);text-underline-offset:3px}
+a:hover{color:var(--ink)}
+.wrap{max-width:1120px;margin:0 auto;padding-block:0 72px}
+.mono{font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.caps{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+
+
+/* top bar */
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:18px;border-bottom:1px solid var(--rule)}
+.mark{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.mark b{font:800 22px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+.mark small{color:var(--ink-2);font-size:13px}
+.top nav{margin-left:auto;display:flex;gap:18px;flex-wrap:wrap;font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;font:500 11.5px/1 var(--f-mono);padding:5px 10px;border-radius:999px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink-2);white-space:nowrap}
+.chip.tier{border-color:var(--ink);color:var(--ink)}
+h1{font:800 clamp(44px,8vw,76px)/.92 var(--f-display);letter-spacing:.01em;text-transform:uppercase;margin:44px 0 14px}
+.lede{max-width:60ch;margin:0 0 40px;color:var(--ink-2);font-size:17px}
+.demos{list-style:none;margin:0;padding:0;border-top:1px solid var(--ink)}
+.demos li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 24px;align-items:baseline;padding:18px 4px;border-bottom:1px solid var(--rule);transition:border-color .12s}
+.demos li:hover{border-bottom-color:var(--sea)}
+.demos h2{font:800 28px/1.05 var(--f-display);text-transform:uppercase;letter-spacing:.02em;margin:6px 0 6px}
+.demos h2 a{color:var(--ink);text-decoration:none}
+.demos h2 a:hover{color:var(--sea)}
+.demos p{margin:0;color:var(--ink-2);max-width:68ch}
+.demos .go{font-weight:700;white-space:nowrap}
+footer{margin-top:72px;padding-top:18px;border-top:1px solid var(--rule);display:flex;gap:10px 24px;flex-wrap:wrap;color:var(--ink-2);font-size:13px}
+.tier-head{margin:44px 0 10px}
+@media (max-width:640px){.demos li{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon" rel="noopener">Repo ↗</a></nav>
+  </header>
+  <h1>Beacon demos</h1>
+  <p class="lede">Eighteen Pharos Agent Arena tasks. Fifteen of them run from this site: press Run live and the page calls the real chain, Pacific mainnet or Atlantic testnet, and links every result to the explorer. Nothing here asks for a wallet. Steps that sign are shown from the recorded runs committed in the repo.</p>
+  <h2 class="tier-head caps">Hard tasks</h2>
+  <ol class="demos">
+    <li>
+      <div><span class="chip tier">HARD · 200 PTS</span><h2><a href="/trend-watcher">Trend Watcher</a></h2><p>Keeps a history of a metric across runs and acts only after N moves in a row. A single spike never triggers it.</p></div>
+      <a class="go" href="/trend-watcher">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">HARD · 200 PTS</span><h2><a href="/doc-grounded-builder-agent">Doc-Grounded Builder Agent</a></h2><p>Turns a “how do I…” request into a plan from the Pharos docs, executes it through the Chain MCP, then verifies the result.</p></div>
+      <a class="go" href="/doc-grounded-builder-agent">Run it live →</a>
+    </li>
+  </ol>
+  <h2 class="tier-head caps">Medium tasks</h2>
+  <ol class="demos">
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/x402-paywalled-api">x402 Paywalled API</a></h2><p>An API that charges per request in test USDC: a 402, a signed payment, settled by its own facilitator, then the data with its receipt.</p></div>
+      <a class="go" href="/x402-paywalled-api">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/batch-executor">Batch Executor</a></h2><p>Bundles several sends into one Multicall3 transaction, simulates each first and names the one that would fail.</p></div>
+      <a class="go" href="/batch-executor">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/recurring-payment-agent">Recurring Payment Agent</a></h2><p>Pays a weekly or monthly plan from a ledger that makes each period payable once, even after a crash.</p></div>
+      <a class="go" href="/recurring-payment-agent">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/wallet-risk-checker">Wallet Risk Checker</a></h2><p>Checks a wallet&#x27;s history for six risk signals and gives LOW, MEDIUM or HIGH with plain reasons.</p></div>
+      <a class="go" href="/wallet-risk-checker">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/whale-watching-agent">Whale-Watching Agent</a></h2><p>Watches seven mainnet addresses for large USDC and WPROS moves and explains each one with balances before and after.</p></div>
+      <a class="go" href="/whale-watching-agent">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/gas-fee-optimizer">Gas Fee Optimizer</a></h2><p>Samples gas over time and holds a transaction until gas is cheap or its deadline arrives.</p></div>
+      <a class="go" href="/gas-fee-optimizer">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/dry-run-executor">Dry-Run Executor</a></h2><p>Simulates a transaction first, shows gas and the expected outcome, and blocks it if it would fail.</p></div>
+      <a class="go" href="/dry-run-executor">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/docs-chain-mcp-agent">Docs MCP + Chain MCP Agent</a></h2><p>Asks the Pharos docs what a contract function does, calls it on mainnet, then reads the result with the docs.</p></div>
+      <a class="go" href="/docs-chain-mcp-agent">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2>Threshold Guardian</h2><p>Checks five on-chain conditions before it lets an action fire. Approved 17/25.</p></div>
+      <a class="go" href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/threshold-guardian" rel="noopener">Code and proofs ↗</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2>Policy Gatekeeper</h2><p>Checks each action against spend limits, an allowlist and time windows, with an audit log. Approved 17/25.</p></div>
+      <a class="go" href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/policy-gatekeeper" rel="noopener">Code and proofs ↗</a>
+    </li>
+  </ol>
+  <h2 class="tier-head caps">Easy tasks</h2>
+  <ol class="demos">
+    <li>
+      <div><span class="chip tier">EASY · 50 PTS</span><h2><a href="/event-log-monitor">Event/Log Monitor</a></h2><p>Follows one contract&#x27;s events and prints each new one once, even across restarts.</p></div>
+      <a class="go" href="/event-log-monitor">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">EASY · 50 PTS</span><h2><a href="/on-chain-alert-bot">On-Chain Alert Bot</a></h2><p>Rules in a file turn matching on-chain events into alerts, sent once per event.</p></div>
+      <a class="go" href="/on-chain-alert-bot">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">EASY · 50 PTS</span><h2><a href="/doc-search-cli">Doc-Search CLI</a></h2><p>Answers a question from the Pharos docs with sources, and says “not found” instead of inventing an answer.</p></div>
+      <a class="go" href="/doc-search-cli">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">EASY · 50 PTS</span><h2><a href="/docs-mcp-onboarding">Docs MCP Onboarding</a></h2><p>An onboarding log made only from the Docs MCP, with the gaps it found and fixes for each.</p></div>
+      <a class="go" href="/docs-mcp-onboarding">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">EASY · 50 PTS</span><h2><a href="/dapp-support-agent">dApp Support Agent</a></h2><p>Explains why a transaction failed, in plain words, and what to do about it.</p></div>
+      <a class="go" href="/dapp-support-agent">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">EASY · 50 PTS</span><h2>Read Contract State</h2><p>Reads a contract&#x27;s state on mainnet at one block, decimals applied, addresses labelled. Approved 18/25.</p></div>
+      <a class="go" href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/read-contract-state" rel="noopener">Code and proofs ↗</a>
+    </li>
+  </ol>
+  <footer><span class="mono">edycutjong/pharos-beacon</span><span>Every task also runs from the command line; see the repo README.</span></footer>
+</div>
+</body>
+</html>

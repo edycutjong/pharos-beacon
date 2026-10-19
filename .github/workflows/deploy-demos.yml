@@ -1,0 +1,42 @@
+name: Deploy demos
+
+# Deploys the live demo pages (web/) and their API (api/, Vercel Functions) to the Vercel project pharos-beacon
+# when they change on main. Keys never pass through here: they are Vercel environment variables of the project.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "web/**"
+      - "tasks/**"
+      - "src/**"
+      - "vercel.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-demos
+  cancel-in-progress: false
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npx --yes vercel@53 pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - run: npx --yes vercel@53 build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - run: npx --yes vercel@53 deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

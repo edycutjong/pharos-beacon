@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon x402 Demo</title>
+<meta name="description" content="x402 Paywalled API on Pharos Atlantic: a 402, a signed payment, settled by our own facilitator, a 200 with the receipt. Run it live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+</head>
+<body>
+<style>
+/* additions to the template: notices, links inside tables, the live-run state of the strip footer */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,540px)}
+@media (max-width:820px){.title{grid-template-columns:1fr}}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)}
+.strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+kbd{font:500 11px var(--f-mono);border:1px solid var(--rule);border-radius:4px;padding:1px 5px;background:var(--sheet)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Atlantic testnet · eip155:688689</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/x402-paywalled-api" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">MEDIUM · 100 PTS</span>
+      <h1>x402 Paywalled API</h1>
+      <p class="lede">An API that charges per request in test USDC on Pharos Atlantic. It answers 402, takes a signed payment, settles it through its own facilitator and returns the data with the receipt.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Scenario">
+        <button class="btn" type="button" data-s="a" aria-pressed="true">Gas snapshot · 0.001 USDC</button>
+        <button class="btn" type="button" data-s="b" aria-pressed="false">Whale brief · 0.01 USDC</button>
+        <button class="btn" type="button" data-s="under" aria-pressed="false">Send an underpaid payment</button>
+        <button class="btn" type="button" data-s="replay" aria-pressed="false">Replay a payment</button>
+        <button class="btn" type="button" data-s="free" aria-pressed="false">Free route /health</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">GET /api/x402-paywalled-api/gas-snapshot</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real response arrives. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw HTTP</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live pays 0.001 test USDC on Atlantic and shows what the paid route returns.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 6 of 6 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">02</span><h2>Run log</h2><p>Last 10 payments, read back from the chain</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Route</th><th>Paid</th><th>Payer</th><th>Settle tx</th><th>Block</th></tr></thead><tbody id="log-body"></tbody></table></div>
+    <p class="foot-note" id="log-note">Every settled payment is a USDC Transfer to the payee, so this log is what the chain says was paid; refused runs move nothing and are not in it. No database.</p>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours">
+      <article><h3>Receipt check</h3><p>The buyer does not trust the PAYMENT-RESPONSE header alone. It reads the settle transaction's receipt on Atlantic and only accepts the data when the receipt says status 1 and a USDC Transfer from the payer to the payee matches the price.</p></article>
+      <article><h3>Replay refused</h3><p>The same signed payment sent twice gets a second 402. Before verifying or settling, our facilitator reads the EIP-3009 nonce on chain (authorizationState); a used nonce is refused. Press “Replay a payment” to see it live.</p></article>
+      <article><h3>Price on the 402</h3><p>Every 402 states the price, the asset and the payee in plain words, so an agent (or a person) can decide before signing anything. Open <a href="/api/x402-paywalled-api/gas-snapshot" rel="noopener">the paid route</a> without paying to read it.</p></article>
+    </div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The route design, the prices, the failure cases and the receipt check were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/x402-paywalled-api</span><span class="mono" id="deployed">deployed from …</span><span>Keys live in Vercel environment variables, never in code.</span></footer>
+</div>
+
+<script>
+const API = "/api/x402-paywalled-api";
+const EXPLORER = "https://atlantic.pharosscan.xyz/tx/";
+const MAINNET_EXPLORER = "https://www.pharosscan.xyz/tx/";
+const SCEN = {
+  a: { route: "gas-snapshot", price: "0.001", label: "Gas snapshot" },
+  b: { route: "whale-brief", price: "0.01", label: "Whale brief" },
+  under: { route: "gas-snapshot", price: "0.001", label: "Underpaid payment" },
+  replay: { route: "gas-snapshot", price: "0.001", label: "Replay" },
+  free: { route: "health", price: null, label: "Free route" }
+};
+const STEP_NAMES = { req: "Request", q: "402 quote", sign: "Sign payment", verify: "Verify", settle: "Settle", ok: "200 + receipt", replay: "Replay → 402" };
+const stepsFor = s => s === "replay" ? ["req","q","sign","verify","settle","ok","replay"] : ["req","q","sign","verify","settle","ok"];
+const REQS = [
+  ["01","Runs on Atlantic Testnet (eip155:688689), priced in test USDC.","Network badge at the top; the 402 quote names the asset and the network.","met","net"],
+  ["02","Has at least 2 paid routes at different prices and 1 free route, such as /health.","Gas snapshot 0.001 · whale brief 0.01 · /health free.","met","controls"],
+  ["03","Runs its own facilitator with /verify, /settle and /supported.","The Verify and Settle lamps time calls to our facilitator; /supported is linked in Evidence.","met","evidence"],
+  ["04","Shows the full flow in the demo: a 402, then a signed payment, then a 200 with a PAYMENT-RESPONSE header and its tx hash, linked on the explorer.","The Sequence strip, then Evidence → settle tx, and the Raw HTTP tab.","met","strip"],
+  ["05","Rejects a bad or underpaid payment with another 402.","Run “Send an underpaid payment”, or “Replay a payment”.","met","controls"],
+  ["06","Keeps private keys in env vars or a file, never in code or prompts.","Footer; the repo has no key and CI scans for secrets.","met","keys"]
+];
+
+let cur = "a", running = false, view = "read", last = null, ctrl = null, runN = 0;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const short = h => h ? h.slice(0, 6) + "…" + h.slice(-4) : "—";
+const shortReason = s => String(s ?? "").replace(/invalid_exact_evm_(payload_authorization_)?/g, "");
+const isHash = h => /^0x[0-9a-fA-F]{64}$/.test(h || "");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = ms => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+const route = s => "GET " + API + "/" + SCEN[s].route;
+
+function drawLamps() {
+  $("lamps").innerHTML = stepsFor(cur).map(id => `<li class="lamp" id="l-${id}"><span class="bulb"><i></i></span><span class="name">${STEP_NAMES[id]}</span><span class="meta" id="m-${id}">&nbsp;</span></li>`).join("");
+}
+function drawReqs() {
+  $("reqs").innerHTML = REQS.map(r => `<li><span class="rn">${r[0]}</span><span class="rt">${r[1]}<small>${r[2]}</small></span><span class="st ${r[3]}">${r[3]}</span><a class="showme" href="#${r[4]}" data-target="${r[4]}">show me ↓</a></li>`).join("");
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-target]"); if (!a) return;
+  e.preventDefault(); const el = $(a.dataset.target);
+  el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+});
+document.querySelectorAll(".scen .btn").forEach(b => b.addEventListener("click", () => {
+  if (running) return; cur = b.dataset.s;
+  document.querySelectorAll(".scen .btn").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("scen-name").textContent = route(cur); resetStrip();
+}));
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  view = t.dataset.t; document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t)); renderOut();
+}));
+function setFoot(text, tone) { const f = $("foot"); f.textContent = text; f.className = "strip-foot" + (tone ? " " + tone : ""); }
+function resetStrip() {
+  drawLamps(); $("total").textContent = "idle · press Run live"; $("strip").classList.remove("lit");
+  setFoot("Each lamp lights when the real response arrives. Times are measured, not animated.");
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && running && ctrl) ctrl.abort(); });
+
+// Lamps light in arrival order; a step faster than 120 ms is still shown for 120 ms so the eye can follow (the label keeps the true ms).
+let queue = Promise.resolve();
+function lightStep(ev) {
+  queue = queue.then(async () => {
+    const li = $("l-" + ev.id); if (!li) return;
+    $("run-label").textContent = STEP_NAMES[ev.id] + "… ";
+    li.className = "lamp reached state-running";
+    await wait(ev.state === "skip" ? 60 : 120);
+    li.className = "lamp reached state-" + ev.state;
+    $("m-" + ev.id).innerHTML = ev.state === "skip" ? esc(ev.label) : `<b>${esc(shortReason(ev.label))}</b><br>${Number(ev.ms).toLocaleString()} ms`;
+  });
+  return queue;
+}
+
+$("run").addEventListener("click", async () => {
+  if (running) return; running = true; resetStrip(); $("strip").classList.add("lit");
+  const btns = [$("run"), ...document.querySelectorAll(".scen .btn")]; btns.forEach(b => b.disabled = true);
+  const scen = cur, steps = {}, started = performance.now();
+  let done = null, error = null, start = null;
+  ctrl = new AbortController();
+  setFoot(SCEN[scen].price ? "Running on Atlantic… (Esc cancels the view; a payment already sent still settles)" : "Calling the free route…");
+  try {
+    const res = await fetch(`${API}/demo-run?scenario=${scen}`, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok || !res.body) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || `HTTP ${res.status}`);
+    }
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (value) buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
+        if (!line) continue;
+        const ev = JSON.parse(line);
+        if (ev.type === "start") start = ev;
+        else if (ev.type === "step") { steps[ev.id] = ev; lightStep(ev); $("total").innerHTML = `<b>${Math.round(performance.now() - started).toLocaleString()} ms</b> so far`; }
+        else if (ev.type === "done") done = ev;
+        else if (ev.type === "error") error = ev.message;
+      }
+      if (end) break;
+    }
+  } catch (e) {
+    error = e.name === "AbortError" ? "Cancelled. The server finishes the run on its own; it will appear in the run log if it paid." : e.message;
+  }
+  await queue;
+  ctrl = null;
+  if (done) {
+    runN++;
+    last = { ...done, start, steps, scen, id: "run-" + String(runN).padStart(3, "0"), at: new Date() };
+    $("total").innerHTML = `<b>${done.totalMs.toLocaleString()} ms</b> total`;
+    setFoot(done.summary, done.outcome === "failed" ? "bad" : done.outcome === "refused" ? "warn" : "");
+    renderOut(); renderEv();
+    if (done.tx) setTimeout(loadRuns, 1500);
+  } else {
+    $("total").textContent = "stopped";
+    setFoot(error || "The run ended without a result.", "bad");
+  }
+  btns.forEach(b => b.disabled = false); $("run-label").textContent = "Run again "; running = false;
+});
+
+function table(head, rows) {
+  return `<table class="data"><tr>${head.map((h, i) => `<th${i ? ' style="text-align:right"' : ""}>${h}</th>`).join("")}</tr>${rows.map(r => `<tr>${r.map((c, i) => `<td${i ? ' class="n"' : ""}>${c}</td>`).join("")}</tr>`).join("")}</table>`;
+}
+function renderOut() {
+  const b = $("out-body"), r = last;
+  if (!r) { b.innerHTML = '<p class="empty">No run yet. Run live pays 0.001 test USDC on Atlantic and shows what the paid route returns.</p>'; return; }
+  if (view === "raw") { b.innerHTML = `<pre class="raw">${raw(r)}</pre>`; return; }
+  const d = r.data || {};
+  if (r.outcome === "free") { b.innerHTML = table(["Check", "Result"], [["API", esc(d.status)], ["Network", esc(d.network)], ["Facilitator signer", esc(short(d.facilitator?.signer))], ["Payment needed", "no"]]); return; }
+  if (r.outcome === "refused") {
+    const offered = r.steps.sign?.detail?.value, asked = r.start?.price;
+    b.innerHTML = `<p style="margin:0 0 10px"><b style="color:var(--warn)">402 Payment Required (again)</b></p><p class="empty">${offered ? `The client offered <span class="mono">${esc(Number(offered) / 1e6)} USDC</span>; the route costs <span class="mono">${esc(asked)}</span>. ` : ""}Our facilitator's /verify answered <span class="mono">${esc(r.refusal)}</span>, so nothing was settled and no data was returned. ${r.scen === "under" ? "This is requirement 05." : ""}</p><p class="empty" style="margin-top:10px">${esc(d.message || "")}</p>`;
+    return;
+  }
+  if (r.outcome !== "paid") { b.innerHTML = `<p class="empty">${esc(r.summary)}</p>`; return; }
+  let note = "";
+  if (r.scen === "replay" && r.steps.replay) note = `<p class="empty" style="margin-top:12px">Then the same PAYMENT-SIGNATURE was sent again: <b style="color:var(--warn)">402</b> <span class="mono">${esc(r.steps.replay.detail?.reason)}</span>. Charged once.</p>`;
+  if (r.start?.route.endsWith("whale-brief")) {
+    const rows = (d.largest || []).map(m => [`<a href="${MAINNET_EXPLORER}${esc(m.tx)}" rel="noopener">${esc(short(m.from))} → ${esc(short(m.to))}</a>`, esc(Number(m.usdc).toLocaleString(undefined, { maximumFractionDigits: 2 }))]);
+    b.innerHTML = table([`Whale brief · Pharos mainnet · blocks ${esc(d.blocks)}`, "USDC"], rows.length ? rows : [["No USDC transfers in these blocks", "—"]]) + `<p class="foot-note">${esc(d.transfers)} USDC transfers in the window, largest 5 shown · ${esc(d.source)}</p>` + note;
+    return;
+  }
+  b.innerHTML = table(["Gas snapshot, Atlantic", "Value"], [["Base fee", esc(d.baseFeeGwei ?? "—") + " gwei"], ["Gas price", esc(d.gasPriceGwei) + " gwei"], ["Priority fee", esc(d.priorityFeeGwei) + " gwei"], ["Cost of a plain transfer", esc(d.plainTransferCostPHRS) + " PHRS"], ["Block", Number(d.block).toLocaleString()]]) + `<p class="foot-note">${esc(d.source)}</p>` + note;
+}
+function raw(r) {
+  const fmt = v => esc(typeof v === "string" ? v : JSON.stringify(v, null, 2));
+  return (r.raw || []).map(e => {
+    const status = e.dir === "←" ? (e.line.startsWith("2") ? "s2" : "s4") : "k";
+    let o = `<span class="${status}">${esc(e.dir)} ${esc(e.line)}</span>\n`;
+    for (const [k, v] of Object.entries(e.headers || {})) o += `<span class="k">${esc(k)}:</span> ${esc(v)}\n`;
+    if (e.body !== undefined) o += fmt(e.body).slice(0, 1600) + "\n";
+    return o;
+  }).join("\n");
+}
+function renderEv() {
+  const r = last; $("run-id").textContent = r.id + " · " + r.at.toISOString().slice(11, 19) + " UTC";
+  const rows = [["Route", esc(r.start?.route || route(r.scen))], ["Price", r.start?.price ? esc(r.start.price) + " (test) · Atlantic" : "free"]];
+  if (r.start?.payer) rows.push(["Payer", esc(short(r.start.payer)), r.start.payer]);
+  if (r.tx && isHash(r.tx)) rows.push(["Settle tx", esc(short(r.tx)), r.tx, true], ["Block", Number(r.block).toLocaleString()], ["Receipt", esc(r.receipt?.reason)]);
+  if (r.steps.verify && r.steps.verify.state !== "skip") rows.push(["Verify", esc(r.steps.verify.label) + ` · ${r.steps.verify.ms} ms`]);
+  if (r.steps.settle && r.steps.settle.state !== "skip") rows.push(["Settle", esc(r.steps.settle.label) + ` · ${r.steps.settle.ms} ms`]);
+  if (r.outcome === "refused") rows.push(["Settled", "nothing"]);
+  if (r.steps.replay) rows.push(["Replay", esc(r.steps.replay.label)]);
+  rows.push(["Facilitator", `<a href="${API}/supported" rel="noopener">/supported ↗</a> · /verify · /settle`]);
+  $("ev").innerHTML = rows.map(([k, v, copy, tx]) => `<li><span class="caps">${k}</span><span class="v"${copy ? ` title="${esc(copy)}"` : ""}>${v}</span>${copy ? `<span class="act">${tx ? `<a href="${EXPLORER}${esc(copy)}" rel="noopener">Explorer ↗</a>` : ""}<button class="copy" type="button" data-copy="${esc(copy)}">Copy</button></span>` : ""}</li>`).join("");
+}
+document.addEventListener("click", e => {
+  const c = e.target.closest("[data-copy]"); if (!c) return;
+  const t = c.dataset.copy; (navigator.clipboard?.writeText(t) || Promise.reject()).then(() => c.textContent = "Copied", () => c.textContent = "Copy blocked");
+  setTimeout(() => c.textContent = "Copy", 1400);
+});
+
+async function loadRuns() {
+  const tb = $("log-body");
+  try {
+    const res = await fetch(`${API}/runs`, { cache: "no-store" });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
+    if (!d.payments.length) { tb.innerHTML = `<tr><td colspan="6" style="color:var(--ink-2)">No payments in the last ${Number(d.scannedBlocks).toLocaleString()} blocks. Press Run live; it pays 0.001 test USDC on Atlantic.</td></tr>`; return; }
+    tb.innerHTML = d.payments.map(p => `<tr><td class="m">${esc(p.time ? p.time.slice(0, 19).replace("T", " ") : "—")}</td><td class="m">/${esc(p.route)}</td><td class="m">${esc(p.usdc)} USDC</td><td class="m">${esc(short(p.payer))}</td><td class="m"><a href="${esc(p.explorer)}" rel="noopener">${esc(short(p.tx))} ↗</a></td><td class="m">${Number(p.block).toLocaleString()}</td></tr>`).join("");
+    $("log-note").textContent = `Read from Atlantic at block ${Number(d.latestBlock).toLocaleString()} (the last ${Number(d.scannedBlocks).toLocaleString()} blocks). Every settled payment is a USDC Transfer to the payee, so this log is what the chain says was paid; refused runs move nothing and are not in it. No database.`;
+  } catch (e) {
+    tb.innerHTML = `<tr><td colspan="6" style="color:var(--warn)">Could not read the log from the chain just now (${esc(e.message)}). It reloads after the next paid run.</td></tr>`;
+  }
+}
+async function loadDeploy() {
+  try {
+    const d = await (await fetch(`${API}/health`, { cache: "no-store" })).json();
+    const c = d.deploy?.commit;
+    $("deployed").innerHTML = c ? `deployed from <a href="https://github.com/edycutjong/pharos-beacon/commit/${esc(c)}" rel="noopener">${esc(c)}</a> · ${esc(d.deploy.env)}` : `deployed from the working tree (no commit) · ${esc(d.deploy?.env || "")}`;
+  } catch { $("deployed").textContent = "deploy info unavailable"; }
+}
+
+drawLamps(); drawReqs();
+$("log-body").innerHTML = '<tr><td colspan="6" style="color:var(--ink-2)">Reading the last payments from Atlantic…</td></tr>';
+loadDeploy(); loadRuns();
+</script>
+</body>
+</html>

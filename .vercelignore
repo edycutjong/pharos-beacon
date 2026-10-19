@@ -1,0 +1,13 @@
+# Only what the demos need goes to Vercel: the web pages, the function, and the code it imports.
+.cache
+.vitest
+.git
+node_modules
+**/proof
+**/plans
+**/state
+test
+skills
+bin
+*.md
+!web/**
