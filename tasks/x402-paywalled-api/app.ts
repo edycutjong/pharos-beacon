@@ -1,4 +1,4 @@
-// One router for the whole API, Request → Response, so the Vercel Function (api/x402-paywalled-api.ts) and the local server
+// One router for the whole API, Request → Response, so the Vercel Function (api/router.ts) and the local server
 // (`npm run x402-paywalled-api -- serve`) run the same code. Paths, under /api/x402-paywalled-api/:
 //   GET  health                  free
 //   GET  gas-snapshot            0.001 USDC        GET whale-brief   0.01 USDC

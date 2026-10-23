@@ -3,13 +3,13 @@
 **Task:** [x402 Paywalled API](https://pharos-agent-arena.vercel.app/tasks/x402-paywalled-api) (Payments · Medium · 100 pts): an API that charges per request with x402 on Pharos Atlantic.
 **Live demo:** [pharos.edycu.dev/x402-paywalled-api](https://pharos.edycu.dev/x402-paywalled-api). Press *Run live*. No wallet is needed: a demo buyer on the server pays with test USDC. (The quoted `whale-range` route is on branch `task/x402-paywalled-api`; the live page gets it once that branch is pushed and deployed.)
 **Run** (Atlantic testnet only; keys in `~/.config/pharos/x402.env` and `testnet.env`):
-`npm run x402-paywalled-api -- pay a|b|under|replay|free [--base https://pharos.edycu.dev] [--json] [--proof name]` ·
+`npm run x402-paywalled-api -- pay a|b|under|replay|free|quote [--base https://pharos.edycu.dev] [--json] [--proof name]` ·
 `npm run x402-paywalled-api -- serve [--port 4021]` (the same API on your machine; then `pay … --base http://localhost:4021`).
 **Uses:** x402 SDK 2.28 (`@x402/core` resource server + facilitator, `@x402/evm` exact scheme, EIP-3009), viem; Pharos Chain MCP ✅ (`get_block_number`, `get_logs`, hosted mainnet) for the whale brief.
 
 ## Routes
 
-All under `/api/x402-paywalled-api/`. One Vercel Function ([`api/x402-paywalled-api.ts`](../../api/x402-paywalled-api.ts)) runs the router in [`app.ts`](app.ts); `serve` runs the same router locally.
+All under `/api/x402-paywalled-api/`. One Vercel Function ([`api/router.ts`](../../api/router.ts), shared by all the demo APIs) runs the router in [`app.ts`](app.ts); `serve` runs the same router locally.
 
 | Route | Price | What it returns |
 |---|---|---|
@@ -60,7 +60,7 @@ Six runs against `serve` on this machine (`--base http://localhost:4021`), each 
 
 The first `quote` run settled nothing: the Atlantic RPC answered `cu limit exceeded; Request too fast per second` to the facilitator's send, and the API correctly answered 402 `invalid_exact_evm_transaction_failed` (no data, no charge). It is in the git history (`x402 paywalled api: proof quote`); the file shown is the re-run. The video's runs are separate recordings of the same commands (`proof/video-casts.log`).
 
-Sample output of `pay a`, pasted from the run above:
+Sample output of `pay a` (abridged: the URL and `data:` lines are left out), pasted from the run above:
 
 ```text
 GET /api/x402-paywalled-api/gas-snapshot · 0.001 USDC · payer 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
@@ -87,10 +87,10 @@ PAID in 3247 ms: Paid 0.001 USDC, settled on chain, receipt checked, data return
 
 - The Atlantic reads (gas snapshot, settle receipt, run log) use the Atlantic JSON-RPC, not the Chain MCP: the hosted Chain MCP serves mainnet only, and the local stdio Atlantic server that the CLI tasks use cannot run inside a Vercel Function. The whale brief (mainnet) is read through the hosted Chain MCP.
 - The run log is read from the chain, so it shows settled payments only (refused runs move nothing). The public RPC answers one 1,000-block log query at a time, so it looks back about 12 hours (24 windows).
-- The demo rate limit (one paid run every 10 s) and the facilitator's pending-settlement memory are per server instance; Vercel may run more than one.
+- The demo rate limit (one paid run every 10 s) is per server instance; Vercel may run more than one.
 - The Atlantic public RPC rate-limits bursts (seen once, above); a refused settle costs the buyer nothing and a retry works.
 - The quoted route's headline range is mainnet history read through the hosted Chain MCP, three `get_logs` calls for 2,500 blocks; the price covers that work, not the data's value.
-- The demo buyer is a server-side wallet holding test USDC; anyone pressing *Run live* spends it (0.001–0.01 test USDC per run).
+- The demo buyer is a server-side wallet holding test USDC; anyone pressing *Run live* spends it (0.001–0.015 test USDC per run, the top price being the quoted route).
 
 ## Tests
 
