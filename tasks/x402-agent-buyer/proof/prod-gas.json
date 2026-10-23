@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run retry --base https://pharos.edycu.dev/ --fresh --proof prod-gas",
     "git": {
-      "commit": "7f5f5fa47588",
+      "commit": "7b987865a189",
       "dirty": false
     },
-    "createdAt": "2026-10-23T23:42:24.431Z"
+    "createdAt": "2026-10-23T23:53:02.410Z"
   },
   "task": "retry",
   "goal": "One purchase, with a network failure after the payment is signed.",
@@ -37,39 +37,27 @@
       "type": "sign",
       "want": "gas",
       "key": "retry/gas",
-      "nonce": "0x78d325fcb67dfcda812926302f2b5cb30a56fd92091f3214651c25994e221abd",
+      "nonce": "0xef841ae1664f905e3f16d6caecbe31dd2a193cef2b68bee36d754d721c1317f5",
       "price": "0.001 USDC"
     },
     {
       "type": "attempt",
       "want": "gas",
       "n": 1,
-      "status": 200
+      "status": 402
     },
     {
-      "type": "paid",
+      "type": "reconcile",
       "want": "gas",
-      "row": {
-        "n": 1,
-        "at": "2026-10-23T23:42:34.109Z",
-        "task": "retry",
-        "key": "retry/gas",
-        "endpoint": "https://pharos.edycu.dev/api/x402-paywalled-api/gas-snapshot",
-        "bought": "Atlantic gas price now",
-        "price": "0.001 USDC",
-        "amount": "1000",
-        "tx": "0x13424cf33126679acfa6b51d216d9526325a12ebcc68fc412b626967e7ed893f",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x13424cf33126679acfa6b51d216d9526325a12ebcc68fc412b626967e7ed893f",
-        "block": 31801463,
-        "runningTotal": "0.001 USDC",
-        "runningTotalAtomic": "1000"
-      }
+      "nonceUsed": true,
+      "tx": "0x5ec452d5b760ab89c05eaba81c9a9e873542efe2827409bca133de5db5eec6d2",
+      "text": "authorization 0xef841ae1… was used in 0x5ec452d5b7…: it settled once"
     },
     {
       "type": "done",
       "summary": {
         "task": "retry",
-        "outcome": "finished",
+        "outcome": "unfinished",
         "paid": 1,
         "refused": 0,
         "spent": "0.001 USDC",
@@ -80,9 +68,9 @@
         "results": [
           {
             "want": "gas",
-            "status": "paid",
+            "status": "paid-data-lost",
             "price": "0.001 USDC",
-            "tx": "0x13424cf33126679acfa6b51d216d9526325a12ebcc68fc412b626967e7ed893f"
+            "tx": "0x5ec452d5b760ab89c05eaba81c9a9e873542efe2827409bca133de5db5eec6d2"
           }
         ]
       }
@@ -90,7 +78,7 @@
   ],
   "summary": {
     "task": "retry",
-    "outcome": "finished",
+    "outcome": "unfinished",
     "paid": 1,
     "refused": 0,
     "spent": "0.001 USDC",
@@ -101,9 +89,9 @@
     "results": [
       {
         "want": "gas",
-        "status": "paid",
+        "status": "paid-data-lost",
         "price": "0.001 USDC",
-        "tx": "0x13424cf33126679acfa6b51d216d9526325a12ebcc68fc412b626967e7ed893f"
+        "tx": "0x5ec452d5b760ab89c05eaba81c9a9e873542efe2827409bca133de5db5eec6d2"
       }
     ]
   }
