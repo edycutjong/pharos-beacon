@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run finish --base http://localhost:4021/ --fresh --proof finish",
     "git": {
-      "commit": "42e8225e7e75",
+      "commit": "318032bd5e81",
       "dirty": false
     },
-    "createdAt": "2026-10-23T23:41:39.660Z"
+    "createdAt": "2026-10-23T23:53:40.877Z"
   },
   "task": "finish",
   "goal": "Is it a good time to move USDC on Atlantic, and who is moving big USDC on Pharos mainnet?",
@@ -23,7 +23,7 @@
       "task": "finish",
       "budget": "0.05 USDC",
       "perCallCap": "0.02 USDC",
-      "wants": 5,
+      "wants": 6,
       "base": "http://localhost:4021",
       "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
     },
@@ -37,7 +37,7 @@
       "type": "sign",
       "want": "gas",
       "key": "finish/gas",
-      "nonce": "0xa37ed29f45220f54d332f2a081d6ec3f030d4b7e0decf3f9f094c4baf65a8692",
+      "nonce": "0x034e42883693f25eacb434aa9dc697e1c1992b65d1e48d29acd67d00f01bb184",
       "price": "0.001 USDC"
     },
     {
@@ -51,16 +51,16 @@
       "want": "gas",
       "row": {
         "n": 1,
-        "at": "2026-10-23T23:41:43.072Z",
+        "at": "2026-10-23T23:53:44.443Z",
         "task": "finish",
         "key": "finish/gas",
         "endpoint": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
         "bought": "Atlantic gas price now, to cost the transfer",
         "price": "0.001 USDC",
         "amount": "1000",
-        "tx": "0x6adce7aa0e020ee2496605266621e942d1c12b66b5e8d10ff403a01672a18a98",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x6adce7aa0e020ee2496605266621e942d1c12b66b5e8d10ff403a01672a18a98",
-        "block": 31801413,
+        "tx": "0xb2926a23794ac0d728b7dc63a0e85c90a7328a0dda9550031fc9bea5d6e08e92",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0xb2926a23794ac0d728b7dc63a0e85c90a7328a0dda9550031fc9bea5d6e08e92",
+        "block": 31801793,
         "runningTotal": "0.001 USDC",
         "runningTotalAtomic": "1000"
       }
@@ -75,7 +75,7 @@
       "type": "sign",
       "want": "whales",
       "key": "finish/whales",
-      "nonce": "0x73db837a248a546d32598c274bc35ce33da1926baccf08d03891f5b985a21cac",
+      "nonce": "0x3650627c833eabe09c95be496f7b2ec4da0ae31bf2587e130aeab87dc904815a",
       "price": "0.01 USDC"
     },
     {
@@ -89,16 +89,16 @@
       "want": "whales",
       "row": {
         "n": 2,
-        "at": "2026-10-23T23:41:46.289Z",
+        "at": "2026-10-23T23:53:48.288Z",
         "task": "finish",
         "key": "finish/whales",
         "endpoint": "http://localhost:4021/api/x402-paywalled-api/whale-brief",
         "bought": "largest USDC transfers on Pharos mainnet, last ~1,000 blocks",
         "price": "0.01 USDC",
         "amount": "10000",
-        "tx": "0x90d40f81e0cbf1ee13510a7a4c58139243be914306248ba8beeeef4390418971",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x90d40f81e0cbf1ee13510a7a4c58139243be914306248ba8beeeef4390418971",
-        "block": 31801417,
+        "tx": "0x6ba0f455cb3468538dfac178bfef78e97372e9e9469439e72fefbe269c7f3f65",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x6ba0f455cb3468538dfac178bfef78e97372e9e9469439e72fefbe269c7f3f65",
+        "block": 31801798,
         "runningTotal": "0.011 USDC",
         "runningTotalAtomic": "11000"
       }
@@ -113,7 +113,7 @@
       "type": "refused",
       "want": "whales-1k",
       "why": "redundant",
-      "text": "already bought (finish/whales, whale-brief) and it still answers this: skipping saves 0.005 USDC",
+      "text": "already bought (finish/whales) and it still answers this: skipping saves 0.005 USDC",
       "saved": "0.005 USDC"
     },
     {
@@ -126,8 +126,46 @@
       "type": "refused",
       "want": "gas-again",
       "why": "redundant",
-      "text": "already bought (finish/gas, gas-snapshot) and it still answers this: skipping saves 0.001 USDC",
+      "text": "already bought (finish/gas) and it still answers this: skipping saves 0.001 USDC",
       "saved": "0.001 USDC"
+    },
+    {
+      "type": "ask",
+      "want": "range",
+      "path": "whale-range?blocks=2000",
+      "price": "0.01 USDC"
+    },
+    {
+      "type": "sign",
+      "want": "range",
+      "key": "finish/range",
+      "nonce": "0x5e265fcf22308d16a3e082ed849b0e41a4e3c3ce39bbba8f93f28309449f3273",
+      "price": "0.01 USDC"
+    },
+    {
+      "type": "attempt",
+      "want": "range",
+      "n": 1,
+      "status": 200
+    },
+    {
+      "type": "paid",
+      "want": "range",
+      "row": {
+        "n": 3,
+        "at": "2026-10-23T23:53:52.488Z",
+        "task": "finish",
+        "key": "finish/range",
+        "endpoint": "http://localhost:4021/api/x402-paywalled-api/whale-range?blocks=2000",
+        "bought": "twice the history: the largest USDC transfers over 2,000 blocks",
+        "price": "0.01 USDC",
+        "amount": "10000",
+        "tx": "0x3f4b00b0920e43b75570efed5942f9994d8bf35b40bcb572b559810a9ed19d5e",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x3f4b00b0920e43b75570efed5942f9994d8bf35b40bcb572b559810a9ed19d5e",
+        "block": 31801803,
+        "runningTotal": "0.021 USDC",
+        "runningTotalAtomic": "21000"
+      }
     },
     {
       "type": "ask",
@@ -139,32 +177,32 @@
       "type": "refused",
       "want": "deep-history",
       "why": "not-worth",
-      "text": "0.015 USDC is more than this answer is worth to the task (0.01 USDC)"
+      "text": "0.015 USDC is more than this is worth to the task (0.01 USDC)"
     },
     {
       "type": "done",
       "summary": {
         "task": "finish",
         "outcome": "finished",
-        "paid": 2,
+        "paid": 3,
         "refused": 3,
-        "spent": "0.011 USDC",
-        "spentAtomic": "11000",
+        "spent": "0.021 USDC",
+        "spentAtomic": "21000",
         "saved": "0.006 USDC",
         "budget": "0.05 USDC",
-        "left": "0.039 USDC",
+        "left": "0.029 USDC",
         "results": [
           {
             "want": "gas",
             "status": "paid",
             "price": "0.001 USDC",
-            "tx": "0x6adce7aa0e020ee2496605266621e942d1c12b66b5e8d10ff403a01672a18a98"
+            "tx": "0xb2926a23794ac0d728b7dc63a0e85c90a7328a0dda9550031fc9bea5d6e08e92"
           },
           {
             "want": "whales",
             "status": "paid",
             "price": "0.01 USDC",
-            "tx": "0x90d40f81e0cbf1ee13510a7a4c58139243be914306248ba8beeeef4390418971"
+            "tx": "0x6ba0f455cb3468538dfac178bfef78e97372e9e9469439e72fefbe269c7f3f65"
           },
           {
             "want": "whales-1k",
@@ -179,6 +217,12 @@
             "price": "0.001 USDC"
           },
           {
+            "want": "range",
+            "status": "paid",
+            "price": "0.01 USDC",
+            "tx": "0x3f4b00b0920e43b75570efed5942f9994d8bf35b40bcb572b559810a9ed19d5e"
+          },
+          {
             "want": "deep-history",
             "status": "not-worth",
             "amount": "15000",
@@ -191,25 +235,25 @@
   "summary": {
     "task": "finish",
     "outcome": "finished",
-    "paid": 2,
+    "paid": 3,
     "refused": 3,
-    "spent": "0.011 USDC",
-    "spentAtomic": "11000",
+    "spent": "0.021 USDC",
+    "spentAtomic": "21000",
     "saved": "0.006 USDC",
     "budget": "0.05 USDC",
-    "left": "0.039 USDC",
+    "left": "0.029 USDC",
     "results": [
       {
         "want": "gas",
         "status": "paid",
         "price": "0.001 USDC",
-        "tx": "0x6adce7aa0e020ee2496605266621e942d1c12b66b5e8d10ff403a01672a18a98"
+        "tx": "0xb2926a23794ac0d728b7dc63a0e85c90a7328a0dda9550031fc9bea5d6e08e92"
       },
       {
         "want": "whales",
         "status": "paid",
         "price": "0.01 USDC",
-        "tx": "0x90d40f81e0cbf1ee13510a7a4c58139243be914306248ba8beeeef4390418971"
+        "tx": "0x6ba0f455cb3468538dfac178bfef78e97372e9e9469439e72fefbe269c7f3f65"
       },
       {
         "want": "whales-1k",
@@ -222,6 +266,12 @@
         "status": "redundant",
         "amount": "1000",
         "price": "0.001 USDC"
+      },
+      {
+        "want": "range",
+        "status": "paid",
+        "price": "0.01 USDC",
+        "tx": "0x3f4b00b0920e43b75570efed5942f9994d8bf35b40bcb572b559810a9ed19d5e"
       },
       {
         "want": "deep-history",
