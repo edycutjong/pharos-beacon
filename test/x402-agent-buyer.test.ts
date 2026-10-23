@@ -133,7 +133,7 @@ describe("covers: when an answer already bought still answers the question", () 
 });
 
 describe("a task that finishes", () => {
-  it("buys two answers, refuses a repeat as redundant and a dear extra as not worth it, and logs a running total", async () => {
+  it("buys three answers, refuses two repeats as redundant and a dear extra as not worth it, and logs a running total", async () => {
     const { agent, w, events } = agentFor("finish");
     const s = await agent.run(TASKS.finish!.wants);
     expect(s.outcome).toBe("finished");
