@@ -10,7 +10,7 @@ import { dirname } from "node:path";
 import { decodePaymentRequiredHeader, decodePaymentResponseHeader, encodePaymentSignatureHeader } from "@x402/core/http";
 import type { PaymentRequired } from "@x402/core/types";
 import { createPublicClient, getAddress, http, parseAbi, parseAbiItem, type Hex, type TransactionReceipt } from "viem";
-import { readState, writeJsonAtomic } from "../../src/lib/state.js";
+import { readState, withLock, writeJsonAtomic } from "../../src/lib/state.js";
 import { X402_USDC, atlantic, explorerTx } from "../../src/lib/networks.js";
 import { buyerClient, matchReceipt } from "../x402-paywalled-api/buyer.js";
 import { BASE_PATH, NETWORK, usdc } from "../x402-paywalled-api/config.js";
@@ -87,11 +87,11 @@ export function decide(o: { want: Want; ask: bigint; asset: string; network: str
   if (o.asset.toLowerCase() !== X402_USDC.address.toLowerCase() || o.network !== NETWORK)
     return { buy: false, why: "wrong-asset", text: `asks ${o.network} ${o.asset}, not test USDC on ${NETWORK}` };
   if (ask > policy.perCallCap) return { buy: false, why: "over-cap", text: `${usdc(ask)} is over the per-call cap ${usdc(policy.perCallCap)}` };
-  if (ask > want.maxWorth) return { buy: false, why: "not-worth", text: `${usdc(ask)} is more than this answer is worth to the task (${usdc(want.maxWorth)})` };
+  if (ask > want.maxWorth) return { buy: false, why: "not-worth", text: `${usdc(ask)} is more than this is worth to the task (${usdc(want.maxWorth)})` };
   const hit = o.cache.find((c) => covers(want, c, o.now));
-  if (hit) return { buy: false, why: "redundant", text: `already bought (${hit.key}, ${routeOf(hit.path)}) and it still answers this: skipping saves ${usdc(ask)}`, saved: ask, from: hit.key };
+  if (hit) return { buy: false, why: "redundant", text: `already bought (${hit.key}) and it still answers this: skipping saves ${usdc(ask)}`, saved: ask, from: hit.key };
   const left = policy.budget - o.spent - o.pending;
-  if (ask > left) return { buy: false, why: "over-budget", text: `${usdc(ask)} would take the spend to ${usdc(o.spent + o.pending + ask)}, over the budget ${usdc(policy.budget)} (${usdc(left)} left)` };
+  if (ask > left) return { buy: false, why: "over-budget", text: `${usdc(ask)} would make the spend ${usdc(o.spent + o.pending + ask)}, over the ${usdc(policy.budget)} budget (${usdc(left)} left)` };
   return { buy: true };
 }
 
@@ -116,6 +116,7 @@ export interface Purchase {
   block?: number;
   at: number;
   data?: unknown;
+  note?: string;
 }
 export type Journal = Record<string, Purchase>;
 
@@ -128,8 +129,9 @@ export interface PaymentRow {
   bought: string;
   price: string;
   amount: string;
-  tx: Hex;
-  explorer: string;
+  /** Absent only when the token says the authorization was used but the settling transaction is outside the lookback. */
+  tx?: Hex;
+  explorer?: string;
   block?: number;
   runningTotal: string;
   runningTotalAtomic: string;
@@ -171,8 +173,8 @@ export const atlanticChain: Chain = {
   nonceUsed: (payer, nonce) => rpc.readContract({ address: getAddress(X402_USDC.address), abi: usdcAbi, functionName: "authorizationState", args: [payer, nonce] }),
   async settlementOf(payer, nonce) {
     const latest = await rpc.getBlockNumber();
-    // The RPC takes 1,000 blocks per log query; the authorization lives 120 s, so a few windows are plenty.
-    for (let i = 0n; i < 4n; i++) {
+    // The RPC takes 1,000 blocks per log query; an authorization lives a few minutes, so a few windows are plenty.
+    for (let i = 0n; i < 8n; i++) {
       const toBlock = latest - i * 1000n;
       const logs = await rpc.getLogs({ address: getAddress(X402_USDC.address), event: authUsed, args: { authorizer: payer, nonce }, fromBlock: toBlock - 999n, toBlock });
       if (logs[0]) return { tx: logs[0].transactionHash, block: Number(logs[0].blockNumber) };
@@ -229,6 +231,10 @@ export interface AgentOptions {
 
 const reasonOf = (body: unknown, pr?: PaymentRequired) => (body as { reason?: string } | null)?.reason ?? pr?.error ?? "payment required";
 const idemKey = (task: string, id: string) => `${task}/${id}`;
+/** Seconds past validBefore before an unused authorization counts as lapsed (clock skew, a transaction still being mined). */
+const LAPSE_MARGIN_S = 60;
+/** The longest authorization lifetime the agent will sign: a seller cannot make it sign a payment that stays open for hours. */
+const MAX_AUTH_LIFETIME_S = 900;
 
 export class Agent {
   readonly o: AgentOptions & Required<Pick<AgentOptions, "retries">>;
@@ -238,6 +244,8 @@ export class Agent {
   private readonly now: () => number;
   private readonly sleep: (ms: number) => Promise<void>;
   private readonly client: ReturnType<typeof buyerClient>;
+  /** buy() calls run one at a time in this process, so spent + pending is never read by two purchases at once. */
+  private tail: Promise<unknown> = Promise.resolve();
 
   constructor(o: AgentOptions) {
     this.o = { retries: 3, ...o };
@@ -251,15 +259,18 @@ export class Agent {
 
   private journal = (): Journal => readState<Journal>(this.o.journalFile, {});
   private save = (j: Journal) => writeJsonAtomic(this.o.journalFile, j);
-  private url = (path: string) => `${this.o.base.replace(/\/+$/, "")}${BASE_PATH}/${path}`;
+  private url = (path: string) => (/^https?:\/\//.test(path) ? path : `${this.o.base.replace(/\/+$/, "")}${BASE_PATH}/${path}`);
   private get = (path: string, headers: Record<string, string> = {}) => this.fetchFn(this.url(path), { headers: { accept: "application/json", ...this.o.headers, ...headers } });
+  /** Past validBefore plus a minute of margin for clock skew and a transaction still in a block's making. */
+  private lapsed = (p: Purchase) => this.now() / 1000 > p.validBefore + LAPSE_MARGIN_S;
 
   /** Total paid in this task, from the payment log. */
   spent = (): bigint => readLog(this.o.logFile).filter((r) => r.task === this.o.task).reduce((s, r) => s + BigInt(r.amount), 0n);
-  /** Signed but unresolved authorizations: they may still settle, so they count against the budget. */
-  pending = (j = this.journal(), except?: string): bigint => Object.values(j).filter((p) => p.key.startsWith(`${this.o.task}/`) && p.state === "signed" && p.key !== except).reduce((s, p) => s + BigInt(p.amount), 0n);
+  /** Signed but unresolved authorizations (also ones the API refused, until they lapse): they may still settle, so they count against the budget. */
+  pending = (j = this.journal(), except?: string): bigint =>
+    Object.values(j).filter((p) => p.key.startsWith(`${this.o.task}/`) && p.key !== except && (p.state === "signed" || (p.state === "rejected" && !this.lapsed(p)))).reduce((s, p) => s + BigInt(p.amount), 0n);
 
-  private log(p: Purchase, tx: Hex, block: number | undefined, note?: string): PaymentRow {
+  private log(p: Purchase, tx: Hex | undefined, block: number | undefined, note?: string): PaymentRow {
     const rows = readLog(this.o.logFile);
     // One row per purchase: the same purchase is never logged twice, whatever the retry path.
     const prior = rows.find((r) => r.key === p.key);
@@ -274,8 +285,7 @@ export class Agent {
       bought: p.purpose,
       price: usdc(p.amount),
       amount: p.amount,
-      tx,
-      explorer: explorerTx("atlantic", tx),
+      ...(tx ? { tx, explorer: explorerTx("atlantic", tx) } : {}),
       ...(block !== undefined ? { block } : {}),
       runningTotal: usdc(total),
       runningTotalAtomic: total.toString(),
@@ -292,54 +302,73 @@ export class Agent {
   }
 
   /**
-   * An unresolved purchase from an earlier send: ask the token whether its nonce was used.
-   *   used → it settled; find the tx, log it once (the answer, if we never got it, is gone).
+   * An unresolved purchase: ask the token whether its nonce was used.
+   *   used → it settled; log it once (with the tx found from the AuthorizationUsed event; the answer, if never received, is gone).
    *   not used and lapsed → it can never settle; the purchase may be signed again with a new nonce.
-   *   not used and still valid → it may still settle; the caller re-sends the SAME header.
+   *   not used and still valid → it may still settle; the caller re-sends the SAME header, or waits.
    */
   private async reconcile(p: Purchase, want: string, j: Journal): Promise<"settled" | "lapsed" | "open"> {
     const used = await this.chain.nonceUsed(p.payer, p.nonce);
     if (used) {
       const s = await this.chain.settlementOf(p.payer, p.nonce);
-      this.emit({ type: "reconcile", want, nonceUsed: true, ...(s ? { tx: s.tx } : {}), text: s ? `authorization ${p.nonce.slice(0, 10)}… was used in ${s.tx.slice(0, 12)}…: it settled once` : `authorization ${p.nonce.slice(0, 10)}… was used, settling tx not found in the lookback` });
-      if (s) {
-        p.tx = s.tx;
-        p.block = s.block;
-        p.state = p.data !== undefined ? "paid" : "paid-data-lost";
-        this.log(p, s.tx, s.block, p.data !== undefined ? undefined : "the response was lost after the API settled; counted once, not bought again");
-        this.save(j);
-        return "settled";
-      }
-      return "open";
+      this.emit({ type: "reconcile", want, nonceUsed: true, ...(s ? { tx: s.tx } : {}), text: s ? `authorization ${p.nonce.slice(0, 10)}… was used in ${s.tx.slice(0, 12)}…: it settled once` : `authorization ${p.nonce.slice(0, 10)}… was used; the settling tx is outside the lookback, logged without one` });
+      p.tx = s?.tx;
+      p.block = s?.block;
+      p.state = p.data !== undefined ? "paid" : "paid-data-lost";
+      this.log(p, s?.tx, s?.block, p.data !== undefined ? undefined : `the response was lost after the API settled; counted once, not bought again${s ? "" : " (tx not found in the lookback)"}`);
+      this.save(j);
+      return "settled";
     }
-    if (this.now() / 1000 > p.validBefore) {
+    if (this.lapsed(p)) {
       p.state = "expired";
       this.save(j);
       this.emit({ type: "reconcile", want, nonceUsed: false, text: `authorization ${p.nonce.slice(0, 10)}… was never used and has expired: it can no longer be charged` });
       return "lapsed";
     }
-    this.emit({ type: "reconcile", want, nonceUsed: false, text: `authorization ${p.nonce.slice(0, 10)}… not used yet and still valid: re-sending the same signature` });
+    this.emit({ type: "reconcile", want, nonceUsed: false, text: `authorization ${p.nonce.slice(0, 10)}… not used yet and still valid` });
     return "open";
   }
 
-  /** One purchase. Never throws: every outcome is returned. */
-  async buy(want: Want): Promise<TaskSummary["results"][number] & { data?: unknown }> {
+  /** One purchase. Never throws: every outcome is returned. Purchases run one at a time. */
+  buy(want: Want): Promise<TaskSummary["results"][number] & { data?: unknown }> {
+    const next = this.tail.then(() => this.buyOne(want));
+    this.tail = next.catch(() => undefined);
+    return next;
+  }
+
+  private async buyOne(want: Want): Promise<TaskSummary["results"][number] & { data?: unknown }> {
+    try {
+      return await this.purchase(want);
+    } catch (e) {
+      const text = `unexpected error: ${(e as Error).message}; any signed payment stays in the journal and counts against the budget until it is settled or lapses`;
+      this.emit({ type: "failed", want: want.id, text });
+      return { want: want.id, status: "failed" };
+    }
+  }
+
+  private async purchase(want: Want): Promise<TaskSummary["results"][number] & { data?: unknown }> {
     const key = idemKey(this.o.task, want.id);
     const j = this.journal();
     let p = j[key];
     const ev = this.emit;
+    const fail = (text: string, extra: Partial<TaskSummary["results"][number]> = {}) => {
+      ev({ type: "failed", want: want.id, text });
+      return { want: want.id, status: "failed" as const, ...extra };
+    };
     // 0. This intent already has an outcome (a re-run after a crash or a repeated task).
+    if (p && p.path !== want.path && p.state !== "expired") return fail(`key ${key} was used for another question (${p.path}); not reusing it for ${want.path}`);
     if (p?.state === "paid") {
       ev({ type: "already-paid", want: want.id, key, ...(p.tx ? { tx: p.tx } : {}) });
       return { want: want.id, status: "already-paid", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}), data: p.data };
     }
     if (p?.state === "paid-data-lost") {
-      ev({ type: "failed", want: want.id, text: `already paid once (${p.tx}) but the answer was lost; not buying it again under the same key` });
+      ev({ type: "failed", want: want.id, text: `already paid once${p.tx ? ` (${p.tx})` : ""} but the answer was lost; not buying it again under the same key` });
       return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
     }
-    if (p?.state === "signed") {
+    if (p?.state === "signed" || p?.state === "rejected") {
       const r = await this.reconcile(p, want.id, j);
-      if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), tx: p.tx! };
+      if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
+      if (r === "open" && p.state === "rejected") return fail(`the API refused the earlier payment for this purchase and its authorization is still valid until ${new Date(p.validBefore * 1000).toISOString()}; not signing a second one before it lapses`);
     }
 
     // 1. Ask. A 402 is free, and tells the price, the asset and the payee.
@@ -347,20 +376,14 @@ export class Agent {
     try {
       first = await this.get(want.path);
     } catch (e) {
-      ev({ type: "failed", want: want.id, text: `could not reach the API: ${(e as Error).message}` });
-      return { want: want.id, status: "failed" };
+      return fail(`could not reach the API: ${(e as Error).message}`);
     }
-    if (first.status !== 402) {
-      ev({ type: "failed", want: want.id, text: `expected 402, got ${first.status}` });
-      return { want: want.id, status: "failed" };
-    }
+    if (first.status !== 402) return fail(`expected 402, got ${first.status}`);
     const header = first.headers.get("PAYMENT-REQUIRED");
-    if (!header) {
-      ev({ type: "failed", want: want.id, text: "the 402 has no PAYMENT-REQUIRED header" });
-      return { want: want.id, status: "failed" };
-    }
+    if (!header) return fail("the 402 has no PAYMENT-REQUIRED header");
     const pr = decodePaymentRequiredHeader(header);
-    const ask = pr.accepts[0]!;
+    const ask = pr.accepts.find((a) => a.network === NETWORK && a.asset.toLowerCase() === X402_USDC.address.toLowerCase()) ?? pr.accepts[0];
+    if (!ask) return fail("the 402 offers no way to pay");
     const price = BigInt(ask.amount);
     ev({ type: "ask", want: want.id, path: want.path, price: usdc(price) });
 
@@ -371,11 +394,15 @@ export class Agent {
       const hit = d.from ? j[d.from] : undefined;
       return { want: want.id, status: d.why, amount: price.toString(), price: usdc(price), ...(hit ? { data: hit.data } : {}) };
     }
+    if (p?.state === "signed" && p.amount !== ask.amount) return fail(`the price changed from ${usdc(p.amount)} to ${usdc(price)} since the payment was signed; waiting for the old authorization to lapse`);
 
-    // 3. Sign ONCE and write it down before it goes out. A lapsed or never-sent earlier authorization is replaced only now.
+    // 3. Sign ONCE and write it down before it goes out. A lapsed earlier authorization is replaced only now.
     if (!p || p.state === "expired" || p.state === "rejected") {
-      const payload = await this.client.client.createPaymentPayload(pr);
-      const auth = (payload.payload as { authorization: { nonce: Hex; validBefore: string } }).authorization;
+      const payload = await this.client.client.createPaymentPayload({ ...pr, accepts: [ask] });
+      const auth = (payload.payload as { authorization: { nonce: Hex; value: string; to: string; validBefore: string } }).authorization;
+      // The cap and the budget were checked against the quote: what is signed must be exactly the quote, to the quoted payee.
+      if (auth.value !== ask.amount || getAddress(auth.to) !== getAddress(ask.payTo)) return fail("the signed authorization does not match the quote; not sending it");
+      if (Number(auth.validBefore) > this.now() / 1000 + MAX_AUTH_LIFETIME_S) return fail(`the API asks for an authorization valid longer than ${MAX_AUTH_LIFETIME_S} s; not signing it`);
       p = {
         key, path: want.path, purpose: want.purpose, state: "signed", amount: ask.amount, nonce: auth.nonce, payer: this.client.address, payTo: getAddress(ask.payTo),
         header: encodePaymentSignatureHeader(payload), validBefore: Number(auth.validBefore), attempts: 0, at: this.now(),
@@ -385,7 +412,7 @@ export class Agent {
       ev({ type: "sign", want: want.id, key, nonce: p.nonce, price: usdc(price) });
     }
 
-    // 4. Send. Every retry re-sends the same signature; between tries the token is asked whether it already settled.
+    // 4. Send. Every retry re-sends the same signature; after a network error the token is asked whether it already settled.
     for (let n = 1; n <= this.o.retries; n++) {
       p.attempts = n;
       this.save(j);
@@ -396,7 +423,7 @@ export class Agent {
         ev({ type: "attempt", want: want.id, n, error: (e as Error).message });
         await this.sleep(2 ** n * 250);
         const r = await this.reconcile(p, want.id, j).catch(() => "open" as const);
-        if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), tx: p.tx! };
+        if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
         if (r === "lapsed") break;
         continue;
       }
@@ -409,12 +436,25 @@ export class Agent {
       const settle = res.headers.get("PAYMENT-RESPONSE") ? decodePaymentResponseHeader(res.headers.get("PAYMENT-RESPONSE")!) : undefined;
       if (res.status === 200 && settle?.success && settle.transaction) {
         const tx = settle.transaction as Hex;
-        const verdict = matchReceipt(await this.chain.receipt(tx), { token: getAddress(X402_USDC.address), from: p.payer, to: p.payTo, value: BigInt(p.amount) });
+        let verdict: ReturnType<typeof matchReceipt>;
+        try {
+          verdict = matchReceipt(await this.chain.receipt(tx), { token: getAddress(X402_USDC.address), from: p.payer, to: p.payTo, value: BigInt(p.amount) });
+        } catch (e) {
+          // No receipt yet: the payment stays pending (counted against the budget); a re-run reconciles it from the chain.
+          return fail(`the API answered 200 (tx ${tx}) but its receipt could not be read: ${(e as Error).message}; the payment stays pending`, { tx });
+        }
         if (!verdict.ok) {
-          ev({ type: "failed", want: want.id, text: `the API answered 200 but the receipt check failed: ${verdict.reason}; the data is not accepted` });
-          p.state = "rejected";
+          if (verdict.status === "reverted") {
+            p.state = "rejected";
+            this.save(j);
+            return fail(`the API answered 200 but the settle transaction reverted: nothing moved; the data is not accepted`, { tx });
+          }
+          // Mined, but not the payment we signed: money may have moved, so it is counted, and the data is not accepted.
+          p.state = "paid-data-lost";
+          p.tx = tx;
+          this.log(p, tx, verdict.block, `receipt check failed (${verdict.reason}); counted as spent, data not accepted`);
           this.save(j);
-          return { want: want.id, status: "failed", tx };
+          return fail(`the API answered 200 but the receipt check failed: ${verdict.reason}; the data is not accepted and the payment is counted as spent`, { tx });
         }
         p.state = "paid";
         p.tx = tx;
@@ -427,30 +467,32 @@ export class Agent {
       }
       if (res.status === 402) {
         const why = reasonOf(body);
-        if (/nonce_already_used/.test(why)) {
-          // The first send settled and its answer never reached us: the replay was refused, which is the proof of one payment.
-          const r = await this.reconcile(p, want.id, j);
-          if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), tx: p.tx! };
-          ev({ type: "failed", want: want.id, text: `the authorization was used but its transaction was not found: ${why}` });
-          return { want: want.id, status: "failed" };
-        }
+        const r = await this.reconcile(p, want.id, j).catch(() => "open" as const);
+        if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
+        // The 402 does not say it was not charged: the token does. Unused, so nothing moved; the authorization still counts until it lapses.
         p.state = "rejected";
         this.save(j);
-        ev({ type: "failed", want: want.id, text: `the API refused the payment: ${why}; nothing was charged` });
-        return { want: want.id, status: "failed" };
+        return fail(`the API refused the payment: ${why}; the token shows the authorization unused, so nothing was charged`);
       }
       ev({ type: "failed", want: want.id, text: `HTTP ${res.status} on the paid request` });
       await this.sleep(2 ** n * 250);
     }
-    ev({ type: "failed", want: want.id, text: `no confirmed outcome after ${this.o.retries} sends; the signed payment stays in the journal as "${p.state}" and counts against the budget until it is settled or expires` });
-    return { want: want.id, status: "failed" };
+    // No clear answer: the token decides whether the payment happened.
+    const last = await this.reconcile(p, want.id, j).catch(() => "open" as const);
+    if (last === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
+    return fail(`no confirmed outcome after ${this.o.retries} sends; the signed payment stays in the journal as "${p.state}" and counts against the budget until it is settled or lapses`);
   }
 
   /**
-   * Run a task. A required want refused for budget stops the task there ("the agent stops because it hit the budget");
-   * any other refusal moves on to the next want; the task finishes when every required want has data.
+   * Run a task (one run per ledger at a time: a second run fails at once on the lock file). A required want refused for
+   * budget stops the task there ("the agent stops because it hit the budget"); any other refusal moves on to the next
+   * want; the task finishes when every required want has data.
    */
-  async run(wants: Want[]): Promise<TaskSummary> {
+  run(wants: Want[]): Promise<TaskSummary> {
+    return withLock(this.o.journalFile, () => this.runLocked(wants));
+  }
+
+  private async runLocked(wants: Want[]): Promise<TaskSummary> {
     this.emit({ type: "task", task: this.o.task, budget: usdc(this.o.policy.budget), perCallCap: usdc(this.o.policy.perCallCap), wants: wants.length, base: this.o.base, payer: this.client.address });
     const results: TaskSummary["results"] = [];
     let stoppedBy: string | undefined;
@@ -466,7 +508,7 @@ export class Agent {
       if (r.status === "redundant" && r.amount) saved += BigInt(r.amount);
       if (r.status === "over-budget" && !w.optional) {
         stoppedBy = w.id;
-        this.emit({ type: "stopped", want: w.id, text: `stopping: the budget is spent (${usdc(this.spent())} of ${usdc(this.o.policy.budget)}); ${wants.length - results.length} want(s) not attempted` });
+        this.emit({ type: "stopped", want: w.id, text: `stopping: "${w.id}" does not fit the budget (${usdc(this.spent())} spent of ${usdc(this.o.policy.budget)}); ${wants.length - results.length} want(s) not attempted` });
       }
     }
     const spent = this.spent();

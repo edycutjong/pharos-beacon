@@ -1,14 +1,14 @@
 import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { decodePaymentSignatureHeader, encodePaymentRequiredHeader, encodePaymentResponseHeader } from "@x402/core/http";
+import { decodePaymentRequiredHeader, decodePaymentSignatureHeader, encodePaymentRequiredHeader, encodePaymentResponseHeader } from "@x402/core/http";
 import { encodeAbiParameters, encodeEventTopics, getAddress, parseAbiItem, type Hex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { describe, expect, it } from "vitest";
 import { X402_USDC } from "../src/lib/networks.js";
 import { Agent, covers, decide, readLog, type AgentEvent, type CachedAnswer, type Chain, type Want } from "../tasks/x402-agent-buyer/agent.js";
 import { failOnce, formatLog } from "../tasks/x402-agent-buyer/index.js";
-import { TASKS } from "../tasks/x402-agent-buyer/plan.js";
+import { PARTNER_URL, TASKS, partnerTask } from "../tasks/x402-agent-buyer/plan.js";
 import { BASE_PATH, NETWORK, quoteFor } from "../tasks/x402-paywalled-api/config.js";
 
 const KEY = generatePrivateKey();
@@ -137,20 +137,21 @@ describe("a task that finishes", () => {
     const { agent, w, events } = agentFor("finish");
     const s = await agent.run(TASKS.finish!.wants);
     expect(s.outcome).toBe("finished");
-    expect(s.results.map((r) => `${r.want}:${r.status}`)).toEqual(["gas:paid", "whales:paid", "whales-1k:redundant", "gas-again:redundant", "deep-history:not-worth"]);
-    expect(w.settles()).toBe(2);
+    expect(s.results.map((r) => `${r.want}:${r.status}`)).toEqual(["gas:paid", "whales:paid", "whales-1k:redundant", "gas-again:redundant", "range:paid", "deep-history:not-worth"]);
+    expect(w.settles()).toBe(3);
     expect(s.saved).toBe("0.006 USDC"); // 0.005 (the other route) + 0.001 (gas again)
     const rows = readLog(agent.o.logFile);
-    expect(rows.map((r) => [r.price, r.runningTotal])).toEqual([["0.001 USDC", "0.001 USDC"], ["0.01 USDC", "0.011 USDC"]]);
-    expect(rows.every((r) => /^0x[0-9a-f]{64}$/.test(r.tx) && r.explorer.endsWith(r.tx) && r.bought.length > 0)).toBe(true);
+    expect(rows.map((r) => [r.price, r.runningTotal])).toEqual([["0.001 USDC", "0.001 USDC"], ["0.01 USDC", "0.011 USDC"], ["0.01 USDC", "0.021 USDC"]]);
+    expect(rows.every((r) => /^0x[0-9a-f]{64}$/.test(r.tx!) && r.explorer!.endsWith(r.tx!) && r.bought.length > 0)).toBe(true);
     expect(events.filter((e) => e.type === "refused").map((e) => (e as { why: string }).why)).toEqual(["redundant", "redundant", "not-worth"]);
   });
   it("asks the price of a redundant or refused want without paying for it", async () => {
     const { agent, w } = agentFor("finish");
     await agent.run(TASKS.finish!.wants);
-    expect(w.requests.filter((r) => r.paid)).toHaveLength(2);
+    expect(w.requests.filter((r) => r.paid)).toHaveLength(3);
     expect(w.requests.filter((r) => !r.paid && r.path === "whale-range?blocks=3000")).toHaveLength(1);
-    expect(w.requests.filter((r) => r.paid && r.path.startsWith("whale-range"))).toHaveLength(0);
+    expect(w.requests.filter((r) => r.paid && r.path === "whale-range?blocks=2000")).toHaveLength(1);
+    expect(w.requests.filter((r) => r.paid && r.path === "whale-range?blocks=1000")).toHaveLength(0);
   });
 });
 
@@ -265,14 +266,164 @@ describe("safe retries: the same payment never counts twice", () => {
     expect(readLog(agent.o.logFile)).toHaveLength(1);
   });
 
-  it("rejects a 200 whose receipt does not hold the payment", async () => {
+  it("a 200 whose receipt holds no matching Transfer: data refused, the payment counted as spent", async () => {
     const w = world();
     const bad: Chain = { ...w.chain, receipt: async () => ({ status: "success", blockNumber: 1n, logs: [] }) as never };
     const { agent, events } = agentFor("retry", w, { chain: bad });
     const r = await agent.buy(gas);
     expect(r.status).toBe("failed");
-    expect(readLog(agent.o.logFile)).toHaveLength(0);
+    const rows = readLog(agent.o.logFile);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.note).toContain("counted as spent");
+    expect(agent.spent()).toBe(1000n);
     expect(events.some((e) => e.type === "failed" && e.text.includes("receipt check failed"))).toBe(true);
+    // A re-run does not sign a second payment under the same key.
+    expect((await agent.buy(gas)).status).toBe("paid-data-lost");
+    expect(w.settles()).toBe(1);
+  });
+
+  it("a 200 whose settle tx reverted: nothing moved, data refused, nothing logged", async () => {
+    const w = world();
+    const reverted: Chain = { ...w.chain, receipt: async () => ({ status: "reverted", blockNumber: 1n, logs: [] }) as never };
+    const { agent } = agentFor("retry", w, { chain: reverted });
+    expect((await agent.buy(gas)).status).toBe("failed");
+    expect(readLog(agent.o.logFile)).toHaveLength(0);
+  });
+
+  it("a receipt that cannot be read leaves the payment pending, and a re-run reconciles it from the chain without paying again", async () => {
+    const w = world();
+    const flaky: Chain = { ...w.chain, receipt: async () => { throw new Error("rpc timeout"); } };
+    const { agent } = agentFor("retry", w, { chain: flaky });
+    const r = await agent.buy(gas);
+    expect(r.status).toBe("failed");
+    expect(agent.pending()).toBe(1000n);
+    expect(agent.spent()).toBe(0n);
+    const again = await agent.buy(gas);
+    expect(again.status).toBe("paid-data-lost");
+    expect(w.settles()).toBe(1);
+    expect(readLog(agent.o.logFile)).toHaveLength(1);
+  });
+
+  it("a 402 that is not a replay: the token is asked, the authorization stays counted until it lapses, and no second payment is signed", async () => {
+    const w = world();
+    let refuse = true;
+    const api = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (refuse && new Headers(init?.headers).has("PAYMENT-SIGNATURE")) {
+        const bare = await w.api(input, {});
+        return new Response(JSON.stringify({ reason: "invalid_exact_evm_transaction_failed" }), { status: 402, headers: bare.headers });
+      }
+      return w.api(input, init);
+    }) as typeof fetch;
+    let t = Date.now();
+    const { agent, events } = agentFor("retry", w, { fetch: api, now: () => t });
+    expect((await agent.buy(gas)).status).toBe("failed");
+    expect(agent.pending()).toBe(1000n);
+    refuse = false;
+    // Still valid: not signing a second authorization.
+    expect((await agent.buy(gas)).status).toBe("failed");
+    expect(events.filter((e) => e.type === "sign")).toHaveLength(1);
+    // Lapsed (past validBefore + margin): safe to sign again, and it pays once.
+    t += 10 * 60_000;
+    expect((await agent.buy(gas)).status).toBe("paid");
+    expect(events.filter((e) => e.type === "sign")).toHaveLength(2);
+    expect(w.settles()).toBe(1);
+  });
+
+  it("exhausted retries still ask the token: a payment that did settle is logged once", async () => {
+    const w = world();
+    // The API settles, then answers 503 every time.
+    const api = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await w.api(input, init);
+      return new Headers(init?.headers).has("PAYMENT-SIGNATURE") ? new Response("busy", { status: 503 }) : res;
+    }) as typeof fetch;
+    const { agent } = agentFor("retry", w, { fetch: api, retries: 2 });
+    const r = await agent.buy(gas);
+    expect(r.status).toBe("paid-data-lost");
+    expect(w.settles()).toBe(1);
+    expect(readLog(agent.o.logFile)).toHaveLength(1);
+  });
+
+  it("a settlement outside the lookback is still logged once, without a tx", async () => {
+    const w = world();
+    const blind: Chain = { ...w.chain, settlementOf: async () => undefined };
+    const { agent } = agentFor("retry", w, { chain: blind, fetch: failOnce(w.api, "after") });
+    expect((await agent.buy(gas)).status).toBe("paid-data-lost");
+    const rows = readLog(agent.o.logFile);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.tx).toBeUndefined();
+    expect(formatLog(rows)).toContain("not found in the lookback");
+  });
+
+  it("refuses to sign an authorization that stays valid longer than 15 minutes", async () => {
+    const w = world();
+    const long = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await w.api(input, init);
+      if (res.status !== 402) return res;
+      const pr = decodePaymentRequiredHeader(res.headers.get("PAYMENT-REQUIRED")!);
+      pr.accepts[0]!.maxTimeoutSeconds = 7200;
+      return new Response(res.body, { status: 402, headers: { "PAYMENT-REQUIRED": encodePaymentRequiredHeader(pr) } });
+    }) as typeof fetch;
+    const { agent, events } = agentFor("retry", w, { fetch: long });
+    expect((await agent.buy(gas)).status).toBe("failed");
+    expect(events.some((e) => e.type === "failed" && e.text.includes("valid longer"))).toBe(true);
+    expect(w.settles()).toBe(0);
+  });
+
+  it("signs the offer in test USDC on Atlantic even when it is not the first one listed", async () => {
+    const w = world();
+    const two = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await w.api(input, init);
+      if (res.status !== 402) return res;
+      const pr = decodePaymentRequiredHeader(res.headers.get("PAYMENT-REQUIRED")!);
+      pr.accepts.unshift({ ...pr.accepts[0]!, amount: "5", asset: "0x0000000000000000000000000000000000000001" });
+      return new Response(res.body, { status: 402, headers: { "PAYMENT-REQUIRED": encodePaymentRequiredHeader(pr) } });
+    }) as typeof fetch;
+    const { agent } = agentFor("retry", w, { fetch: two });
+    expect((await agent.buy(gas)).status).toBe("paid");
+    expect(agent.spent()).toBe(1000n);
+  });
+
+  it("does not reuse an idempotency key for another question", async () => {
+    const w = world();
+    const { agent } = agentFor("retry", w);
+    await agent.buy(gas);
+    const r = await agent.buy({ ...gas, path: "whale-brief" });
+    expect(r.status).toBe("failed");
+    expect(w.settles()).toBe(1);
+  });
+
+  it("two purchases started at once cannot both fit a budget that holds one", async () => {
+    const w = world();
+    const { agent } = agentFor("retry", w); // budget 0.01
+    const [a, b] = await Promise.all([agent.buy({ ...gas, id: "a", path: "whale-brief", maxWorth: u("0.02") }), agent.buy({ ...gas, id: "b", path: "gas-snapshot", maxWorth: u("0.02") })]);
+    expect([a.status, b.status].sort()).toEqual(["over-budget", "paid"]);
+    expect(w.settles()).toBe(1);
+  });
+
+  it("a second run on the same ledger fails at once on the lock", async () => {
+    const w = world();
+    const { agent } = agentFor("finish", w);
+    const slow = (async (input: RequestInfo | URL, init?: RequestInit) => { await new Promise((r) => setTimeout(r, 30)); return w.api(input, init); }) as typeof fetch;
+    const dir = agent.o.journalFile;
+    const a = new Agent({ ...agent.o, fetch: slow, journalFile: dir });
+    const b = new Agent({ ...agent.o, fetch: slow, journalFile: dir });
+    const res = await Promise.allSettled([a.run(TASKS.finish!.wants.slice(0, 1)), b.run(TASKS.finish!.wants.slice(0, 1))]);
+    expect(res.map((r) => r.status).sort()).toEqual(["fulfilled", "rejected"]);
+    expect(w.settles()).toBe(1);
+  });
+
+  it("buys from a seller at another address (an absolute URL) under the same rules", async () => {
+    const w = world();
+    const other = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const u2 = new URL(String(input));
+      const rewritten = u2.hostname === "partner.test" ? `https://api.test${BASE_PATH}/gas-snapshot` : String(input);
+      return w.api(rewritten, init);
+    }) as typeof fetch;
+    const { agent, events } = agentFor("retry", w, { fetch: other });
+    const r = await agent.buy({ ...gas, id: "theirs", path: "https://partner.test/paid/network-snapshot?block=1" });
+    expect(r.status).toBe("paid");
+    expect(readLog(agent.o.logFile)[0]!.endpoint).toBe("https://partner.test/paid/network-snapshot?block=1");
+    expect(events.some((e) => e.type === "ask")).toBe(true);
   });
 
   it("failOnce drops only the first paid request", async () => {
@@ -304,5 +455,13 @@ describe("the demo tasks", () => {
     expect(TASKS.budget!.policy.budget).toBeLessThan(u("0.026"));
     expect(TASKS.cap!.policy.perCallCap).toBeLessThan(quoteFor(3000).amount);
     expect(TASKS.cap!.policy.perCallCap).toBeGreaterThan(10_000n);
+  });
+});
+
+describe("the partner task", () => {
+  it("asks another developer's two routes at a recent block and keeps within a 0.01 budget", () => {
+    const t = partnerTask(`${PARTNER_URL}/`, 31801660);
+    expect(t.wants.map((x) => x.path)).toEqual(["gas-snapshot", `${PARTNER_URL}/paid/network-snapshot?block=31801660`, `${PARTNER_URL}/paid/activity-summary?block=31801660`]);
+    expect(t.wants.reduce((s, x) => s + x.maxWorth, 0n)).toBeLessThanOrEqual(u("0.01"));
   });
 });

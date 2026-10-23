@@ -6,9 +6,27 @@ const u = (usdc: string) => BigInt(Math.round(Number(usdc) * 1e6));
 
 export interface Task { id: string; goal: string; policy: Policy; wants: Want[] }
 
+/** Another developer's live x402 seller on Atlantic (shoupeorg/pharos-x402-paywalled-api, Cloudflare Worker, the official test USDC). */
+export const PARTNER_URL = "https://pharos-x402-paywalled-api.shoupeorg.workers.dev";
+
+/** Our gas route plus the partner's two routes. The partner's routes take a recent Atlantic block (a stale one is a 400). */
+export function partnerTask(partner: string, block: number): Task {
+  const root = partner.replace(/\/+$/, "");
+  return {
+    id: "partner",
+    goal: "Compare Atlantic from three sellers: our gas snapshot and another developer's network snapshot and activity summary.",
+    policy: { budget: u("0.01"), perCallCap: u("0.005") },
+    wants: [
+      { id: "ours", path: "gas-snapshot", purpose: "Atlantic gas price from our API", maxWorth: u("0.002") },
+      { id: "theirs-snapshot", path: `${root}/paid/network-snapshot?block=${block}`, purpose: `another developer's network snapshot at block ${block}`, maxWorth: u("0.002") },
+      { id: "theirs-activity", path: `${root}/paid/activity-summary?block=${block}`, purpose: `another developer's activity summary around block ${block}`, maxWorth: u("0.003") },
+    ],
+  };
+}
+
 export const TASKS: Record<string, Task> = {
-  // Completes: two purchases, two questions it already has the answer to (U1: one is asked through a different route), one
-  // answer it finds not worth its price.
+  // Completes: three purchases from three routes, two questions it already has the answer to (U1: one is asked through a
+  // different route), one answer it finds not worth its price.
   finish: {
     id: "finish",
     goal: "Is it a good time to move USDC on Atlantic, and who is moving big USDC on Pharos mainnet?",
@@ -18,6 +36,7 @@ export const TASKS: Record<string, Task> = {
       { id: "whales", path: "whale-brief", purpose: "largest USDC transfers on Pharos mainnet, last ~1,000 blocks", maxWorth: u("0.02"), top: 3 },
       { id: "whales-1k", path: "whale-range?blocks=1000", purpose: "the same 1,000 blocks through the other whale route", maxWorth: u("0.01") },
       { id: "gas-again", path: "gas-snapshot", purpose: "gas price again, to decide when to send", maxWorth: u("0.002") },
+      { id: "range", path: "whale-range?blocks=2000", purpose: "twice the history: the largest USDC transfers over 2,000 blocks", maxWorth: u("0.01") },
       { id: "deep-history", path: "whale-range?blocks=3000", purpose: "three windows of whale history (nice to have)", maxWorth: u("0.01"), optional: true },
     ],
   },
