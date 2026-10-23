@@ -7,7 +7,8 @@ const u = (usdc: string) => BigInt(Math.round(Number(usdc) * 1e6));
 export interface Task { id: string; goal: string; policy: Policy; wants: Want[] }
 
 export const TASKS: Record<string, Task> = {
-  // Completes: two purchases, one repeat question the agent refuses as redundant (U1), one answer it finds not worth its price.
+  // Completes: two purchases, two questions it already has the answer to (U1: one is asked through a different route), one
+  // answer it finds not worth its price.
   finish: {
     id: "finish",
     goal: "Is it a good time to move USDC on Atlantic, and who is moving big USDC on Pharos mainnet?",
@@ -15,6 +16,7 @@ export const TASKS: Record<string, Task> = {
     wants: [
       { id: "gas", path: "gas-snapshot", purpose: "Atlantic gas price now, to cost the transfer", maxWorth: u("0.002") },
       { id: "whales", path: "whale-brief", purpose: "largest USDC transfers on Pharos mainnet, last ~1,000 blocks", maxWorth: u("0.02"), top: 3 },
+      { id: "whales-1k", path: "whale-range?blocks=1000", purpose: "the same 1,000 blocks through the other whale route", maxWorth: u("0.01") },
       { id: "gas-again", path: "gas-snapshot", purpose: "gas price again, to decide when to send", maxWorth: u("0.002") },
       { id: "deep-history", path: "whale-range?blocks=3000", purpose: "three windows of whale history (nice to have)", maxWorth: u("0.01"), optional: true },
     ],

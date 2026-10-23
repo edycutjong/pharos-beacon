@@ -137,19 +137,20 @@ describe("a task that finishes", () => {
     const { agent, w, events } = agentFor("finish");
     const s = await agent.run(TASKS.finish!.wants);
     expect(s.outcome).toBe("finished");
-    expect(s.results.map((r) => `${r.want}:${r.status}`)).toEqual(["gas:paid", "whales:paid", "gas-again:redundant", "deep-history:not-worth"]);
+    expect(s.results.map((r) => `${r.want}:${r.status}`)).toEqual(["gas:paid", "whales:paid", "whales-1k:redundant", "gas-again:redundant", "deep-history:not-worth"]);
     expect(w.settles()).toBe(2);
-    expect(s.saved).toBe("0.001 USDC");
+    expect(s.saved).toBe("0.006 USDC"); // 0.005 (the other route) + 0.001 (gas again)
     const rows = readLog(agent.o.logFile);
     expect(rows.map((r) => [r.price, r.runningTotal])).toEqual([["0.001 USDC", "0.001 USDC"], ["0.01 USDC", "0.011 USDC"]]);
     expect(rows.every((r) => /^0x[0-9a-f]{64}$/.test(r.tx) && r.explorer.endsWith(r.tx) && r.bought.length > 0)).toBe(true);
-    expect(events.filter((e) => e.type === "refused").map((e) => (e as { why: string }).why)).toEqual(["redundant", "not-worth"]);
+    expect(events.filter((e) => e.type === "refused").map((e) => (e as { why: string }).why)).toEqual(["redundant", "redundant", "not-worth"]);
   });
   it("asks the price of a redundant or refused want without paying for it", async () => {
     const { agent, w } = agentFor("finish");
     await agent.run(TASKS.finish!.wants);
     expect(w.requests.filter((r) => r.paid)).toHaveLength(2);
     expect(w.requests.filter((r) => !r.paid && r.path === "whale-range?blocks=3000")).toHaveLength(1);
+    expect(w.requests.filter((r) => r.paid && r.path.startsWith("whale-range"))).toHaveLength(0);
   });
 });
 
