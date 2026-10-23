@@ -10,3 +10,4 @@ coverage/
 .cache/
 .vitest/
 .vercel
+tasks/x402-agent-buyer/state/
