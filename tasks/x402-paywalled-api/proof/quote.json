@@ -1,0 +1,175 @@
+{
+  "meta": {
+    "task": "x402-paywalled-api",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "http://localhost:4021 (x402 API) + Atlantic RPC (receipt check)"
+    },
+    "command": "tasks/x402-paywalled-api/index.ts pay quote --base http://localhost:4021/ --proof quote",
+    "git": {
+      "commit": "d56974a971cf",
+      "dirty": false
+    },
+    "createdAt": "2026-10-23T23:18:31.836Z"
+  },
+  "scenario": "quote",
+  "base": "http://localhost:4021",
+  "events": [
+    {
+      "type": "start",
+      "scenario": "quote",
+      "route": "GET /api/x402-paywalled-api/whale-range",
+      "url": "http://localhost:4021/api/x402-paywalled-api/whale-range?blocks=2500",
+      "price": "0.015 USDC (quoted)",
+      "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+      "steps": [
+        "req",
+        "q",
+        "sign",
+        "verify",
+        "settle",
+        "ok"
+      ]
+    },
+    {
+      "type": "step",
+      "id": "req",
+      "state": "ok",
+      "label": "sent",
+      "ms": 27
+    },
+    {
+      "type": "step",
+      "id": "q",
+      "state": "refused",
+      "label": "402 · 0.015 USDC",
+      "ms": 0,
+      "detail": {
+        "amount": "15000",
+        "asset": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+        "payTo": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "network": "eip155:688689",
+        "message": "This route costs 0.015 USDC (2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each) (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B. Sign an EIP-3009 transferWithAuthorization for exactly that amount and send it in the PAYMENT-SIGNATURE header."
+      }
+    },
+    {
+      "type": "step",
+      "id": "sign",
+      "state": "ok",
+      "label": "EIP-3009 signed",
+      "ms": 4,
+      "detail": {
+        "value": "15000"
+      }
+    },
+    {
+      "type": "step",
+      "id": "verify",
+      "state": "ok",
+      "label": "/verify valid",
+      "ms": 587
+    },
+    {
+      "type": "step",
+      "id": "settle",
+      "state": "failed",
+      "label": "/settle failed: invalid_exact_evm_transaction_failed",
+      "ms": 2049
+    },
+    {
+      "type": "step",
+      "id": "ok",
+      "state": "refused",
+      "label": "402 again",
+      "ms": 1045
+    },
+    {
+      "type": "done",
+      "scenario": "quote",
+      "totalMs": 3715,
+      "raw": [
+        {
+          "dir": "→",
+          "line": "GET http://localhost:4021/api/x402-paywalled-api/whale-range?blocks=2500"
+        },
+        {
+          "dir": "←",
+          "line": "402 Payment Required",
+          "headers": {
+            "PAYMENT-REQUIRED": "{\"scheme\":\"exact\",\"network\":\"eip155:688689\",\"amount\":\"15000\",\"asset\":\"0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B\",\"payTo\":\"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\",\"maxTimeoutSeconds\":120,\"extra\":{\"name\":\"USDC\",\"version\":\"2\"}}"
+          },
+          "body": {
+            "status": 402,
+            "reason": "Payment required",
+            "message": "This route costs 0.015 USDC (2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each) (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B. Sign an EIP-3009 transferWithAuthorization for exactly that amount and send it in the PAYMENT-SIGNATURE header.",
+            "price": "0.015 USDC",
+            "amount": "15000",
+            "quote": {
+              "blocks": 2500,
+              "windows": 3,
+              "perWindow": "0.005 USDC",
+              "perWindowAmount": "5000",
+              "rule": "0.005 USDC per started 1000 blocks, up to 3",
+              "why": "2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each"
+            },
+            "network": "eip155:688689",
+            "payTo": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+          }
+        },
+        {
+          "dir": "→",
+          "line": "GET http://localhost:4021/api/x402-paywalled-api/whale-range?blocks=2500",
+          "headers": {
+            "PAYMENT-SIGNATURE": "eyJ4NDAyVmVyc2lvbiI6Miwi… (signed 0.015 USDC)"
+          }
+        },
+        {
+          "dir": "←",
+          "line": "402 Payment Required",
+          "headers": {
+            "PAYMENT-RESPONSE": "{\"success\":false,\"errorReason\":\"invalid_exact_evm_transaction_failed\",\"errorMessage\":\"RPC Request failed.\\n\\nURL: https://atlantic.dplabs-internal.com\\nRequest body: {\\\"method\\\":\\\"eth_sendRawTransaction\\\",\\\"params\\\":[\\\"0x02f90190830a82310a808447868c008301b71794cfc8330f4bcab529c625d12781b1c19466a9fc8b80b90124e3ee160e000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b029750000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b0000000000000000000000000000000000000000000000000000000000003a980000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006adbebbc40d5477aebce47f1d42b29076710732d6323f5ce9793691119386b0f6f17e3fa000000000000000000000000000000000000000000000000000000000000001c6c2b164ce0831f9616a1df0c23e4a296fe0696873853ecf7fa509e298f12a4d03230b9ceef87b28c1921bf88f6ec05fc67730380ff24bdec3d25eeb6d481c7afc001a064519505ab0257c3d088fb7e38f3cca8de8cb50e9aa8365fed76525e20e1c0e6a07a4522a0fb398d84b01a6636bb3364276cde6cfe286d5a19a76609fa7966a88d\\\"]}\\n \\nRequest Arguments:\\n  from:  0x5b3116cD6B3d0783581D163152A2A14c9CD4DaDF\\n  to:    0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B\\n  data:  0xe3ee160e000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b029750000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b0000000000000000000000000000000000000000000000000000000000003a980000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006adbebbc40d5477aebce47f1d42b29076710732d6323f5ce9793691119386b0f6f17e3fa000000000000000000000000000000000000000000000000000000000000001c6c2b164ce0831f9616a1df0c23e4a296fe0696873853ecf7fa509e298f12a4d03230b9ceef87b28c1921bf88f6ec05fc67730380ff24bdec3d25eeb6d481c7af\\n \\nContract Call:\\n  address:   0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B\\n  function:  transferWithAuthorization(address from, address to, uint256 value, uint256 validAfter, uint256 validBefore, bytes32 nonce, uint8 v, bytes32 r, bytes32 s)\\n  args:                               (0x317bca01Bb101C0F1E86C21576a4e14D92B02975, 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B, 15000, 0, 1792797628, 0x40d5477aebce47f1d42b29076710732d6323f5ce9793691119386b0f6f17e3fa, 28, 0x6c2b164ce0831f9616a1df0c23e4a296fe0696873853ecf7fa509e298f12a4d0, 0x3230b9ceef87b28c1921bf88f6ec05fc67730380ff24bdec3d25eeb6d481c7af)\\n  sender:    0x5b3116cD6B3d0783581D163152A2A14c9CD4DaDF\\n\\nDocs: https://viem.sh/docs/contract/writeContract\\nDetails: cu limit exceeded; Request too fast per second. Please visit https://zan.top/ and register to unlock more.\\nVersion: viem@2.57.3\",\"payer\":\"0x317bca01Bb101C0F1E86C21576a4e14D92B02975\",\"transaction\":\"\",\"network\":\"eip155:688689\"}",
+            "Server-Timing": "verify;dur=587;desc=\"facilitator /verify\", data;dur=1041;desc=\"route handler\", settle;dur=2049;desc=\"facilitator /settle\""
+          },
+          "body": {
+            "status": 402,
+            "reason": "invalid_exact_evm_transaction_failed",
+            "message": "This route costs 0.015 USDC (2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each) (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B. Sign an EIP-3009 transferWithAuthorization for exactly that amount and send it in the PAYMENT-SIGNATURE header.",
+            "price": "0.015 USDC",
+            "amount": "15000",
+            "quote": {
+              "blocks": 2500,
+              "windows": 3,
+              "perWindow": "0.005 USDC",
+              "perWindowAmount": "5000",
+              "rule": "0.005 USDC per started 1000 blocks, up to 3",
+              "why": "2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each"
+            },
+            "network": "eip155:688689",
+            "payTo": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+          }
+        }
+      ],
+      "outcome": "refused",
+      "refusal": "invalid_exact_evm_transaction_failed",
+      "summary": "Refused with 402: invalid_exact_evm_transaction_failed.",
+      "data": {
+        "status": 402,
+        "reason": "invalid_exact_evm_transaction_failed",
+        "message": "This route costs 0.015 USDC (2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each) (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B. Sign an EIP-3009 transferWithAuthorization for exactly that amount and send it in the PAYMENT-SIGNATURE header.",
+        "price": "0.015 USDC",
+        "amount": "15000",
+        "quote": {
+          "blocks": 2500,
+          "windows": 3,
+          "perWindow": "0.005 USDC",
+          "perWindowAmount": "5000",
+          "rule": "0.005 USDC per started 1000 blocks, up to 3",
+          "why": "2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each"
+        },
+        "network": "eip155:688689",
+        "payTo": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+      }
+    }
+  ]
+}
