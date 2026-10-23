@@ -119,7 +119,8 @@ export async function main(_ctx: RunContext, argv = process.argv.slice(2)): Prom
     console.log(`proof: ${writeProof(join(proofDir, `${proofName}.json`), { task: task.id, goal: task.goal, base: new URL(base).origin, simulateFailure: mode ?? null, events, summary }, meta)}`);
   }
   // Exit 0 when the task ended the way its demo says it should (finish → finished, budget → stopped-budget), 1 otherwise.
-  const expected = task.id === "budget" ? "stopped-budget" : "finished";
+  // The partner seller only accepts payments from its own buyer wallet, so that task ends unfinished by design.
+  const expected = task.id === "budget" ? "stopped-budget" : task.id === "partner" ? "unfinished" : "finished";
   return summary.outcome === expected || (task.id === "retry" && mode === "after") ? 0 : 1;
 }
 
