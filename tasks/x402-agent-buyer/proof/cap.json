@@ -1,0 +1,184 @@
+{
+  "meta": {
+    "task": "x402-agent-buyer",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "http://localhost:4021 (x402 API) + Atlantic RPC (receipt and authorization checks)"
+    },
+    "command": "tasks/x402-agent-buyer/index.ts run cap --base http://localhost:4021/ --fresh --proof cap",
+    "git": {
+      "commit": "76c9f27d506b",
+      "dirty": false
+    },
+    "createdAt": "2026-10-23T23:41:54.504Z"
+  },
+  "task": "cap",
+  "goal": "A 0.012 USDC cap per call with plenty of budget: the 0.015 answer is refused.",
+  "base": "http://localhost:4021",
+  "simulateFailure": null,
+  "events": [
+    {
+      "type": "task",
+      "task": "cap",
+      "budget": "0.05 USDC",
+      "perCallCap": "0.012 USDC",
+      "wants": 3,
+      "base": "http://localhost:4021",
+      "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+    },
+    {
+      "type": "ask",
+      "want": "gas",
+      "path": "gas-snapshot",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "sign",
+      "want": "gas",
+      "key": "cap/gas",
+      "nonce": "0x792624fd9ef1ad25e68b515f485af858f0dbd8cb9adce60e39d1aa25399542e8",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "attempt",
+      "want": "gas",
+      "n": 1,
+      "status": 200
+    },
+    {
+      "type": "paid",
+      "want": "gas",
+      "row": {
+        "n": 1,
+        "at": "2026-10-23T23:41:57.719Z",
+        "task": "cap",
+        "key": "cap/gas",
+        "endpoint": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
+        "bought": "Atlantic gas price now",
+        "price": "0.001 USDC",
+        "amount": "1000",
+        "tx": "0xfec26823203265b71785f3dff3c94f7f23d03d69efb5f0ea1b3a6a78c9ab8d7e",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0xfec26823203265b71785f3dff3c94f7f23d03d69efb5f0ea1b3a6a78c9ab8d7e",
+        "block": 31801431,
+        "runningTotal": "0.001 USDC",
+        "runningTotalAtomic": "1000"
+      }
+    },
+    {
+      "type": "ask",
+      "want": "history",
+      "path": "whale-range?blocks=3000",
+      "price": "0.015 USDC"
+    },
+    {
+      "type": "refused",
+      "want": "history",
+      "why": "over-cap",
+      "text": "0.015 USDC is over the per-call cap 0.012 USDC"
+    },
+    {
+      "type": "ask",
+      "want": "whales",
+      "path": "whale-brief",
+      "price": "0.01 USDC"
+    },
+    {
+      "type": "sign",
+      "want": "whales",
+      "key": "cap/whales",
+      "nonce": "0x5e6054781b8e8c528422fdc24f4abf4f713e8024240812fad2cbccbff803888a",
+      "price": "0.01 USDC"
+    },
+    {
+      "type": "attempt",
+      "want": "whales",
+      "n": 1,
+      "status": 200
+    },
+    {
+      "type": "paid",
+      "want": "whales",
+      "row": {
+        "n": 2,
+        "at": "2026-10-23T23:42:01.374Z",
+        "task": "cap",
+        "key": "cap/whales",
+        "endpoint": "http://localhost:4021/api/x402-paywalled-api/whale-brief",
+        "bought": "largest USDC transfers on Pharos mainnet, last ~1,000 blocks",
+        "price": "0.01 USDC",
+        "amount": "10000",
+        "tx": "0x6468969d0f7382d7e026309551db0ebc526679a347a1cd41a6e619b4060bc256",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x6468969d0f7382d7e026309551db0ebc526679a347a1cd41a6e619b4060bc256",
+        "block": 31801435,
+        "runningTotal": "0.011 USDC",
+        "runningTotalAtomic": "11000"
+      }
+    },
+    {
+      "type": "done",
+      "summary": {
+        "task": "cap",
+        "outcome": "finished",
+        "paid": 2,
+        "refused": 1,
+        "spent": "0.011 USDC",
+        "spentAtomic": "11000",
+        "saved": "0 USDC",
+        "budget": "0.05 USDC",
+        "left": "0.039 USDC",
+        "results": [
+          {
+            "want": "gas",
+            "status": "paid",
+            "price": "0.001 USDC",
+            "tx": "0xfec26823203265b71785f3dff3c94f7f23d03d69efb5f0ea1b3a6a78c9ab8d7e"
+          },
+          {
+            "want": "history",
+            "status": "over-cap",
+            "amount": "15000",
+            "price": "0.015 USDC"
+          },
+          {
+            "want": "whales",
+            "status": "paid",
+            "price": "0.01 USDC",
+            "tx": "0x6468969d0f7382d7e026309551db0ebc526679a347a1cd41a6e619b4060bc256"
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "task": "cap",
+    "outcome": "finished",
+    "paid": 2,
+    "refused": 1,
+    "spent": "0.011 USDC",
+    "spentAtomic": "11000",
+    "saved": "0 USDC",
+    "budget": "0.05 USDC",
+    "left": "0.039 USDC",
+    "results": [
+      {
+        "want": "gas",
+        "status": "paid",
+        "price": "0.001 USDC",
+        "tx": "0xfec26823203265b71785f3dff3c94f7f23d03d69efb5f0ea1b3a6a78c9ab8d7e"
+      },
+      {
+        "want": "history",
+        "status": "over-cap",
+        "amount": "15000",
+        "price": "0.015 USDC"
+      },
+      {
+        "want": "whales",
+        "status": "paid",
+        "price": "0.01 USDC",
+        "tx": "0x6468969d0f7382d7e026309551db0ebc526679a347a1cd41a6e619b4060bc256"
+      }
+    ]
+  }
+}
