@@ -1,0 +1,240 @@
+{
+  "meta": {
+    "task": "x402-agent-buyer",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "https://pharos.edycu.dev (x402 API) + Atlantic RPC (receipt and authorization checks)"
+    },
+    "command": "tasks/x402-agent-buyer/index.ts run partner --fresh --proof partner-seller",
+    "git": {
+      "commit": "46a142956370",
+      "dirty": false
+    },
+    "createdAt": "2026-10-23T23:53:12.794Z"
+  },
+  "task": "partner",
+  "goal": "Compare Atlantic from three sellers: our gas snapshot and another developer's network snapshot and activity summary.",
+  "base": "https://pharos.edycu.dev",
+  "simulateFailure": null,
+  "events": [
+    {
+      "type": "task",
+      "task": "partner",
+      "budget": "0.01 USDC",
+      "perCallCap": "0.005 USDC",
+      "wants": 3,
+      "base": "https://pharos.edycu.dev",
+      "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+    },
+    {
+      "type": "ask",
+      "want": "ours",
+      "path": "gas-snapshot",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "sign",
+      "want": "ours",
+      "key": "partner/ours",
+      "nonce": "0x71dd6d1dc06b80ef6af313cb5489b6b52699bb6544120239a6270ac9ebb801bd",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "attempt",
+      "want": "ours",
+      "n": 1,
+      "status": 200
+    },
+    {
+      "type": "paid",
+      "want": "ours",
+      "row": {
+        "n": 1,
+        "at": "2026-10-23T23:53:22.477Z",
+        "task": "partner",
+        "key": "partner/ours",
+        "endpoint": "https://pharos.edycu.dev/api/x402-paywalled-api/gas-snapshot",
+        "bought": "Atlantic gas price from our API",
+        "price": "0.001 USDC",
+        "amount": "1000",
+        "tx": "0xcca04f6581b341291d4593946a2577dd66f3cbbf78c23b7220aefa298617e9b7",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0xcca04f6581b341291d4593946a2577dd66f3cbbf78c23b7220aefa298617e9b7",
+        "block": 31801779,
+        "runningTotal": "0.001 USDC",
+        "runningTotalAtomic": "1000"
+      }
+    },
+    {
+      "type": "ask",
+      "want": "theirs-snapshot",
+      "path": "https://pharos-x402-paywalled-api.shoupeorg.workers.dev/paid/network-snapshot?block=31801770",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "sign",
+      "want": "theirs-snapshot",
+      "key": "partner/theirs-snapshot",
+      "nonce": "0x52c828ce1f7d6537952394c8d1d5621f50ccb6d834309dd0dd998f0199b80d15",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "attempt",
+      "want": "theirs-snapshot",
+      "n": 1,
+      "status": 502
+    },
+    {
+      "type": "failed",
+      "want": "theirs-snapshot",
+      "text": "HTTP 502 on the paid request"
+    },
+    {
+      "type": "attempt",
+      "want": "theirs-snapshot",
+      "n": 2,
+      "status": 502
+    },
+    {
+      "type": "failed",
+      "want": "theirs-snapshot",
+      "text": "HTTP 502 on the paid request"
+    },
+    {
+      "type": "attempt",
+      "want": "theirs-snapshot",
+      "n": 3,
+      "status": 502
+    },
+    {
+      "type": "failed",
+      "want": "theirs-snapshot",
+      "text": "HTTP 502 on the paid request"
+    },
+    {
+      "type": "reconcile",
+      "want": "theirs-snapshot",
+      "nonceUsed": false,
+      "text": "authorization 0x52c828ce… not used yet and still valid"
+    },
+    {
+      "type": "failed",
+      "want": "theirs-snapshot",
+      "text": "no confirmed outcome after 3 sends; the signed payment stays in the journal as \"signed\" and counts against the budget until it is settled or lapses"
+    },
+    {
+      "type": "ask",
+      "want": "theirs-activity",
+      "path": "https://pharos-x402-paywalled-api.shoupeorg.workers.dev/paid/activity-summary?block=31801770",
+      "price": "0.002 USDC"
+    },
+    {
+      "type": "sign",
+      "want": "theirs-activity",
+      "key": "partner/theirs-activity",
+      "nonce": "0x0cd11a20e7f1f892b9e8eeec0f1dda9342176c12defb6bd78dc06dbffadfd053",
+      "price": "0.002 USDC"
+    },
+    {
+      "type": "attempt",
+      "want": "theirs-activity",
+      "n": 1,
+      "status": 502
+    },
+    {
+      "type": "failed",
+      "want": "theirs-activity",
+      "text": "HTTP 502 on the paid request"
+    },
+    {
+      "type": "attempt",
+      "want": "theirs-activity",
+      "n": 2,
+      "status": 502
+    },
+    {
+      "type": "failed",
+      "want": "theirs-activity",
+      "text": "HTTP 502 on the paid request"
+    },
+    {
+      "type": "attempt",
+      "want": "theirs-activity",
+      "n": 3,
+      "status": 502
+    },
+    {
+      "type": "failed",
+      "want": "theirs-activity",
+      "text": "HTTP 502 on the paid request"
+    },
+    {
+      "type": "reconcile",
+      "want": "theirs-activity",
+      "nonceUsed": false,
+      "text": "authorization 0x0cd11a20… not used yet and still valid"
+    },
+    {
+      "type": "failed",
+      "want": "theirs-activity",
+      "text": "no confirmed outcome after 3 sends; the signed payment stays in the journal as \"signed\" and counts against the budget until it is settled or lapses"
+    },
+    {
+      "type": "done",
+      "summary": {
+        "task": "partner",
+        "outcome": "unfinished",
+        "paid": 1,
+        "refused": 0,
+        "spent": "0.001 USDC",
+        "spentAtomic": "1000",
+        "saved": "0 USDC",
+        "budget": "0.01 USDC",
+        "left": "0.009 USDC",
+        "results": [
+          {
+            "want": "ours",
+            "status": "paid",
+            "price": "0.001 USDC",
+            "tx": "0xcca04f6581b341291d4593946a2577dd66f3cbbf78c23b7220aefa298617e9b7"
+          },
+          {
+            "want": "theirs-snapshot",
+            "status": "failed"
+          },
+          {
+            "want": "theirs-activity",
+            "status": "failed"
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "task": "partner",
+    "outcome": "unfinished",
+    "paid": 1,
+    "refused": 0,
+    "spent": "0.001 USDC",
+    "spentAtomic": "1000",
+    "saved": "0 USDC",
+    "budget": "0.01 USDC",
+    "left": "0.009 USDC",
+    "results": [
+      {
+        "want": "ours",
+        "status": "paid",
+        "price": "0.001 USDC",
+        "tx": "0xcca04f6581b341291d4593946a2577dd66f3cbbf78c23b7220aefa298617e9b7"
+      },
+      {
+        "want": "theirs-snapshot",
+        "status": "failed"
+      },
+      {
+        "want": "theirs-activity",
+        "status": "failed"
+      }
+    ]
+  }
+}
