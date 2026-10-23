@@ -88,6 +88,8 @@ export async function main(_ctx: RunContext, argv = process.argv.slice(2)): Prom
   const journalFile = join(STATE, `${id}.journal.json`);
   if (values.fresh) [logFile, journalFile].forEach((f) => rmSync(f, { force: true }));
   mkdirSync(STATE, { recursive: true });
+  // Provenance is taken before the run writes anything, so a proof records the tree as it was when the run started.
+  const meta = values.proof ? proofMeta(TASK, { network: "atlantic", chainId: atlantic.id, endpoint: `${new URL(base).origin} (x402 API) + Atlantic RPC (receipt and authorization checks)` }) : undefined;
   const events: AgentEvent[] = [];
   const agent = new Agent({
     task: task.id, base, key: buyerKey(), policy: task.policy, logFile, journalFile,
@@ -101,11 +103,10 @@ export async function main(_ctx: RunContext, argv = process.argv.slice(2)): Prom
   console.log(`goal: ${task.goal}`);
   const summary = await agent.run(task.wants);
   console.log("payment log:\n" + formatLog(readLog(logFile)));
-  if (values.proof) {
+  if (values.proof && meta) {
     const proofDir = join(HERE, "proof");
     mkdirSync(proofDir, { recursive: true });
     copyFileSync(logFile, join(proofDir, `${id}.payments.jsonl`));
-    const meta = proofMeta(TASK, { network: "atlantic", chainId: atlantic.id, endpoint: `${new URL(base).origin} (x402 API) + Atlantic RPC (receipt and authorization checks)` });
     console.log(`proof: ${writeProof(join(proofDir, `${id}.json`), { task: task.id, goal: task.goal, base: new URL(base).origin, simulateFailure: mode ?? null, events, summary }, meta)}`);
   }
   // Exit 0 when the task ended the way its demo says it should (finish → finished, budget → stopped-budget), 1 otherwise.
