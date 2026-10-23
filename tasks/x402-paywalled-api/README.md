@@ -16,6 +16,8 @@ All under `/api/x402-paywalled-api/`. One Vercel Function ([`api/x402-paywalled-
 | `GET health` | free | network, token, payee, facilitator signer, price list, deployed commit |
 | `GET gas-snapshot` | **0.001 USDC** | Atlantic gas price, priority fee, base fee and latest block (Atlantic RPC) |
 | `GET whale-brief` | **0.01 USDC** | the 5 largest USDC transfers on Pharos mainnet in the latest 1,000 blocks (Chain MCP `get_logs`, read-only) |
+| `GET whale-range?blocks=N` | **quoted**: 0.005 USDC per started 1,000 blocks (1–3 windows, so 0.005–0.015) | the same brief over N blocks of Pharos mainnet history (Chain MCP `get_logs`, one call per 1,000-block window) |
+| `GET quote?blocks=N` | free | the price of `whale-range` for N blocks, before asking for the 402 |
 | `POST verify` · `POST settle` · `GET supported` | — | **our facilitator** ([`facilitator.ts`](facilitator.ts)) |
 | `GET demo-run?scenario=a\|b\|under\|replay\|free` | — | a server-side demo buyer that calls the paid route over real HTTP and streams each step as NDJSON with measured ms |
 | `GET runs` | — | the last 10 payments, read back from the chain (USDC Transfer logs to the payee); no database |
@@ -48,6 +50,7 @@ The `0xE0BE…` USDC that the other tasks use has no `transferWithAuthorization`
 - **Receipt check.** The buyer does not trust `PAYMENT-RESPONSE` alone: no status-1 receipt with the matching USDC Transfer, no data accepted (`matchReceipt` in [`buyer.ts`](buyer.ts)).
 - **Replay refused before the SDK looks.** Before verify and before settle, the facilitator reads `authorizationState(payer, nonce)` on the token; a used nonce is refused at once, so a re-sent `PAYMENT-SIGNATURE` gets 402 and the facilitator spends no gas on it.
 - **Price in plain words.** Every 402 body states price, asset and payee as a sentence, also on the refusals.
+- **A quoted route.** `whale-range` costs what the request costs to serve: `?blocks=2500` needs 3 windows of 1,000 blocks, so the 402 asks 0.015 USDC and says why in `message` and in a `quote` object (`windows`, `perWindow`, `rule`, `why`); `?blocks=1000` asks 0.005. A buyer can also read the price first from the free `GET quote?blocks=N`. A bad `?blocks=` (0, 3001, 1.5, text) is refused with 400 before any 402, so nobody signs for a request that cannot be served. `pay quote` runs the whole flow on it (see `proof/quote.json`).
 - **Scoped facilitator.** It verifies and settles only payments to our payee, in our USDC, on Atlantic, so a stranger cannot use its gas for their own transfers.
 
 ## Limits

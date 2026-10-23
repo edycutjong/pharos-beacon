@@ -14,14 +14,16 @@ import { createPublicClient, getAddress, http, isAddressEqual, type Hex, type Lo
 import { privateKeyToAccount } from "viem/accounts";
 import { X402_USDC, atlantic, explorerTx } from "../../src/lib/networks.js";
 import { TRANSFER_TOPIC } from "../../src/whale/scan.js";
-import { BASE_PATH, NETWORK, PAID_ROUTES, usdc, type PaidRouteName } from "./config.js";
+import { BASE_PATH, NETWORK, PAID_ROUTES, QUOTE, quoteFor, usdc, type PaidRouteName } from "./config.js";
 import { parseServerTiming } from "./resource.js";
 
-export const SCENARIOS = ["a", "b", "under", "replay", "free"] as const;
+export const SCENARIOS = ["a", "b", "under", "replay", "free", "quote"] as const;
 export type Scenario = (typeof SCENARIOS)[number];
 export const isScenario = (s: unknown): s is Scenario => SCENARIOS.includes(s as Scenario);
 
-export const ROUTE_OF: Record<Scenario, "health" | PaidRouteName> = { a: "gas-snapshot", b: "whale-brief", under: "gas-snapshot", replay: "gas-snapshot", free: "health" };
+export const ROUTE_OF: Record<Scenario, "health" | PaidRouteName> = { a: "gas-snapshot", b: "whale-brief", under: "gas-snapshot", replay: "gas-snapshot", free: "health", quote: "whale-range" };
+/** Query string per scenario: the quoted route is asked for 2,500 blocks (3 windows). */
+const QUERY: Partial<Record<Scenario, string>> = { quote: "?blocks=2500" };
 /** Lamp ids, in order. Every scenario reports every one of its lamps (skipped ones as "skip"). */
 export const STEP_IDS = ["req", "q", "sign", "verify", "settle", "ok", "replay"] as const;
 export type StepId = (typeof STEP_IDS)[number];
@@ -122,7 +124,7 @@ export async function runScenario(o: BuyerOptions): Promise<DoneEvent> {
   const now = o.now ?? (() => performance.now());
   const getReceipt = o.getReceipt ?? defaultReceipt;
   const route = ROUTE_OF[o.scenario];
-  const url = `${o.base.replace(/\/+$/, "")}${BASE_PATH}/${route}`;
+  const url = `${o.base.replace(/\/+$/, "")}${BASE_PATH}/${route}${QUERY[o.scenario] ?? ""}`;
   const paid = route !== "health" ? PAID_ROUTES[route] : undefined;
   const { client, address } = buyerClient(o.key);
   const raw: RawEntry[] = [];
@@ -141,7 +143,7 @@ export async function runScenario(o: BuyerOptions): Promise<DoneEvent> {
   };
   const get = (headers: Record<string, string> = {}) => doFetch(url, { headers: { accept: "application/json", ...o.headers, ...headers } });
 
-  o.emit({ type: "start", scenario: o.scenario, route: `GET ${BASE_PATH}/${route}`, url, price: paid ? usdc(paid.amount) : null, payer: paid ? address : null, steps });
+  o.emit({ type: "start", scenario: o.scenario, route: `GET ${BASE_PATH}/${route}`, url, price: paid ? (route === QUOTE.route ? `${usdc(quoteFor(2500).amount)} (quoted)` : usdc(paid.amount)) : null, payer: paid ? address : null, steps });
   try {
     // 1. Ask without paying.
     let t = now();
