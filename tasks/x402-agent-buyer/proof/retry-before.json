@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run retry --simulate-failure before --base http://localhost:4021/ --fresh --proof retry-before",
     "git": {
-      "commit": "fd36234d40e6",
+      "commit": "a361d02aad6b",
       "dirty": false
     },
-    "createdAt": "2026-10-23T23:42:05.815Z"
+    "createdAt": "2026-10-23T23:54:28.104Z"
   },
   "task": "retry",
   "goal": "One purchase, with a network failure after the payment is signed.",
@@ -37,7 +37,7 @@
       "type": "sign",
       "want": "gas",
       "key": "retry/gas",
-      "nonce": "0xf6e1a0ecf3f6d42cd0d29948d718446bdb765fdb147093b8f63533d905d9cd26",
+      "nonce": "0x2b01d33a09f84f6690384d55a69ba2dff69530a8dc717e553d8b8668da1215b4",
       "price": "0.001 USDC"
     },
     {
@@ -50,7 +50,7 @@
       "type": "reconcile",
       "want": "gas",
       "nonceUsed": false,
-      "text": "authorization 0xf6e1a0ec… not used yet and still valid: re-sending the same signature"
+      "text": "authorization 0x2b01d33a… not used yet and still valid"
     },
     {
       "type": "attempt",
@@ -63,16 +63,16 @@
       "want": "gas",
       "row": {
         "n": 1,
-        "at": "2026-10-23T23:42:10.181Z",
+        "at": "2026-10-23T23:54:31.429Z",
         "task": "retry",
         "key": "retry/gas",
         "endpoint": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
         "bought": "Atlantic gas price now",
         "price": "0.001 USDC",
         "amount": "1000",
-        "tx": "0x7ea6d4188827d4ffc4565a2e090fccbe877765a7cdbb225edb8e666f4c9ae5d3",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x7ea6d4188827d4ffc4565a2e090fccbe877765a7cdbb225edb8e666f4c9ae5d3",
-        "block": 31801445,
+        "tx": "0xaece1c36efdf40bba747656968ddf75757a91404a50764faa741aff580da7e6c",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0xaece1c36efdf40bba747656968ddf75757a91404a50764faa741aff580da7e6c",
+        "block": 31801835,
         "runningTotal": "0.001 USDC",
         "runningTotalAtomic": "1000"
       }
@@ -94,7 +94,7 @@
             "want": "gas",
             "status": "paid",
             "price": "0.001 USDC",
-            "tx": "0x7ea6d4188827d4ffc4565a2e090fccbe877765a7cdbb225edb8e666f4c9ae5d3"
+            "tx": "0xaece1c36efdf40bba747656968ddf75757a91404a50764faa741aff580da7e6c"
           }
         ]
       }
@@ -115,7 +115,7 @@
         "want": "gas",
         "status": "paid",
         "price": "0.001 USDC",
-        "tx": "0x7ea6d4188827d4ffc4565a2e090fccbe877765a7cdbb225edb8e666f4c9ae5d3"
+        "tx": "0xaece1c36efdf40bba747656968ddf75757a91404a50764faa741aff580da7e6c"
       }
     ]
   }
