@@ -163,7 +163,8 @@ export function compactReport(a: Activity, info: { baseline?: Activity }): strin
   L.push(`transfers in     ${n(t.counts["transfer-in"])}`, `transfers out    ${n(t.counts["transfer-out"])}`, `swaps            ${n(t.counts.swap)}`, `approvals        ${n(t.counts.approval)}${t.unlimitedApprovals ? `  (${t.unlimitedApprovals} unlimited)` : ""}`, `contract calls   ${n(t.counts["contract-call"])}`, "");
   if (hl.length) {
     L.push("highlights");
-    for (const h of hl.slice(0, 6)) L.push(clip(` ! ${h.kind.replace(/-/g, " ")}: ${h.text.replace(/`/g, "").replace(/^(First time dealing with |Largest |Unlimited approval: )/, "")}`, 62), `   ${h.tx.slice(0, 10)}…${h.tx.slice(-4)}`);
+    const brief = (t: string) => t.replace(/`/g, "").replace(/0x[0-9a-fA-F]{40}/g, (a) => `${a.slice(0, 6)}…${a.slice(-4)}`).replace(/^(First time dealing with |Largest |Unlimited approval: )/, "");
+    for (const h of hl.slice(0, 6)) L.push(clip(` ! ${h.kind.replace(/-/g, " ")}: ${brief(h.text)}`, 62), `   ${h.tx.slice(0, 10)}…${h.tx.slice(-4)}`);
     L.push("");
   }
   L.push(c.sentExpected === null ? "sent-tx check: nonce not readable" : `sent txs: ${c.sentFound} of ${c.sentExpected} matched by the chain's nonce`);
