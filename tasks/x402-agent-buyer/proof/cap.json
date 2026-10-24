@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run cap --base http://localhost:4021/ --fresh --proof cap",
     "git": {
-      "commit": "e1c17b7caaf3",
+      "commit": "263a9847007d",
       "dirty": false
     },
-    "createdAt": "2026-10-24T00:18:07.717Z"
+    "createdAt": "2026-10-24T00:25:02.461Z"
   },
   "task": "cap",
   "goal": "A 0.012 USDC cap per call with plenty of budget: the 0.015 answer is refused.",
@@ -37,7 +37,7 @@
       "type": "sign",
       "want": "gas",
       "purchase": "cap/gas",
-      "nonce": "0x7f498b274027b85810a1d86ebc938dfcd20c2f5a5dfb9cb3996082774eb21a04",
+      "nonce": "0xf7201fb3c624ab9b5c2f55e0b6db84dd012c405338941b7e3813664b7bd8c5a9",
       "price": "0.001 USDC"
     },
     {
@@ -51,16 +51,16 @@
       "want": "gas",
       "row": {
         "n": 1,
-        "at": "2026-10-24T00:18:12.020Z",
+        "at": "2026-10-24T00:25:06.372Z",
         "task": "cap",
         "purchase": "cap/gas",
         "endpoint": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
         "bought": "Atlantic gas price now",
         "price": "0.001 USDC",
         "amount": "1000",
-        "tx": "0x268b5e95e5d6551cdd2b6065a96b2b32e3232219314cc12b2a5d41f1f332d9e2",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x268b5e95e5d6551cdd2b6065a96b2b32e3232219314cc12b2a5d41f1f332d9e2",
-        "block": 31802602,
+        "tx": "0x8d3578069fc3ce5ce70a16103bec6b4923a6cdddd64210a10638f6816f941875",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x8d3578069fc3ce5ce70a16103bec6b4923a6cdddd64210a10638f6816f941875",
+        "block": 31802853,
         "runningTotal": "0.001 USDC",
         "runningTotalAtomic": "1000"
       }
@@ -87,7 +87,7 @@
       "type": "sign",
       "want": "whales",
       "purchase": "cap/whales",
-      "nonce": "0xea9624d44d3a0492a1f7c31b7a813e184ea6d1a6e5c2ef5789eeaab54b73455e",
+      "nonce": "0x9398d2bc5a52a290ba7ec07ab1ddece9bb087e02490e632b4b6e94f3cc23df1e",
       "price": "0.01 USDC"
     },
     {
@@ -101,16 +101,16 @@
       "want": "whales",
       "row": {
         "n": 2,
-        "at": "2026-10-24T00:18:16.097Z",
+        "at": "2026-10-24T00:25:09.926Z",
         "task": "cap",
         "purchase": "cap/whales",
         "endpoint": "http://localhost:4021/api/x402-paywalled-api/whale-brief",
         "bought": "largest USDC transfers on Pharos mainnet, last ~1,000 blocks",
         "price": "0.01 USDC",
         "amount": "10000",
-        "tx": "0x3ab11773d5b33afaf36e462e9b4cfda1e839750841759c032754925ec7f590e4",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x3ab11773d5b33afaf36e462e9b4cfda1e839750841759c032754925ec7f590e4",
-        "block": 31802606,
+        "tx": "0x4f0de878fc8118de38c5a7203aeb135fdf5113b01331bb5c723d6b2eb99b64a1",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x4f0de878fc8118de38c5a7203aeb135fdf5113b01331bb5c723d6b2eb99b64a1",
+        "block": 31802858,
         "runningTotal": "0.011 USDC",
         "runningTotalAtomic": "11000"
       }
@@ -132,7 +132,7 @@
             "want": "gas",
             "status": "paid",
             "price": "0.001 USDC",
-            "tx": "0x268b5e95e5d6551cdd2b6065a96b2b32e3232219314cc12b2a5d41f1f332d9e2"
+            "tx": "0x8d3578069fc3ce5ce70a16103bec6b4923a6cdddd64210a10638f6816f941875"
           },
           {
             "want": "history",
@@ -144,7 +144,7 @@
             "want": "whales",
             "status": "paid",
             "price": "0.01 USDC",
-            "tx": "0x3ab11773d5b33afaf36e462e9b4cfda1e839750841759c032754925ec7f590e4"
+            "tx": "0x4f0de878fc8118de38c5a7203aeb135fdf5113b01331bb5c723d6b2eb99b64a1"
           }
         ]
       }
@@ -165,7 +165,7 @@
         "want": "gas",
         "status": "paid",
         "price": "0.001 USDC",
-        "tx": "0x268b5e95e5d6551cdd2b6065a96b2b32e3232219314cc12b2a5d41f1f332d9e2"
+        "tx": "0x8d3578069fc3ce5ce70a16103bec6b4923a6cdddd64210a10638f6816f941875"
       },
       {
         "want": "history",
@@ -177,7 +177,7 @@
         "want": "whales",
         "status": "paid",
         "price": "0.01 USDC",
-        "tx": "0x3ab11773d5b33afaf36e462e9b4cfda1e839750841759c032754925ec7f590e4"
+        "tx": "0x4f0de878fc8118de38c5a7203aeb135fdf5113b01331bb5c723d6b2eb99b64a1"
       }
     ]
   }
