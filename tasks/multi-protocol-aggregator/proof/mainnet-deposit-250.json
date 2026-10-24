@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts deposit --wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 --amount 250 --block 21146194 --proof mainnet-deposit-250",
     "git": {
-      "commit": "70f6c0d4e3c4",
+      "commit": "2eb61415b7a5",
       "dirty": false
     },
-    "createdAt": "2026-10-24T20:26:12.033Z"
+    "createdAt": "2026-10-24T21:02:00.474Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -245,7 +245,8 @@
           "kind": "centrifuge",
           "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
           "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -429,7 +430,8 @@
           "kind": "centrifuge",
           "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
           "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -1089,7 +1091,8 @@
         "kind": "centrifuge",
         "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
         "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "HYB",
@@ -1102,7 +1105,8 @@
         "kind": "centrifuge",
         "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
         "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "morpho-c79579",
@@ -1179,6 +1183,7 @@
         "protocolName": "Centrifuge",
         "eligible": false,
         "reasons": [
+          "Janus Henderson Treasury Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
           "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
           "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
         ],
@@ -1193,6 +1198,7 @@
         "protocolName": "Centrifuge",
         "eligible": false,
         "reasons": [
+          "NYLIM US High Yield Bond Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
           "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
           "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
         ],
@@ -1254,8 +1260,8 @@
       "Chose Morpho Blue syzUSD/USDC supply (Morpho Blue): over 30 d it nets $0.9341 = yield $0.9364 at its conservative 4.56% − entry fee $0.000000 − gas $0.002306.",
       "Next best: Morpho Blue APC3M/USDC supply nets $0.9058 (conservative 4.42%); Morpho Blue syzUSD/USDC supply is $0.0283 ahead.",
       "Not eligible: RockawayX USDC vault (RockawayX): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted).",
-      "Not eligible: Janus Henderson Treasury Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
-      "Not eligible: NYLIM US High Yield Bond Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move."
+      "Not eligible: Janus Henderson Treasury Fund (Centrifuge): Janus Henderson Treasury Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists; maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
+      "Not eligible: NYLIM US High Yield Bond Fund (Centrifuge): NYLIM US High Yield Bond Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists; maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move."
     ],
     "unplacedUsd": 0
   },
@@ -1273,7 +1279,8 @@
         "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
         "protocol": "morpho",
         "assets": "250000000",
-        "all": false
+        "all": false,
+        "market": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86"
       }
     ],
     "transactions": [
