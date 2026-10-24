@@ -34,7 +34,8 @@
     "docs-onboarding:render": "tsx tasks/docs-mcp-onboarding/render.ts",
     "batch-executor": "tsx tasks/batch-executor/index.ts",
     "x402-paywalled-api": "tsx tasks/x402-paywalled-api/index.ts",
-    "x402-agent-buyer": "tsx tasks/x402-agent-buyer/index.ts"
+    "x402-agent-buyer": "tsx tasks/x402-agent-buyer/index.ts",
+    "natural-language-payment-agent": "tsx tasks/natural-language-payment-agent/index.ts"
   },
   "keywords": [],
   "author": "",
