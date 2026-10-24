@@ -1,0 +1,4 @@
+vault 0xEAd78727Ab9523622C4fE706D15059A551502671 is CLOSED; owner 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+vault open success in block 31824470: https://atlantic.pharosscan.xyz/tx/0x687faad07b6093188d43e1f0a31cd9fcd67e2484ef6d8b2d702a719b32b2faae
+vault 0xEAd78727Ab9523622C4fE706D15059A551502671 is now OPEN (read back)
+proof: tasks/saga-executor/proof/vault-open.json
