@@ -167,8 +167,9 @@ const swapAbi = parseAbi(["function swap(address tokenIn,uint256 amountIn,uint25
 const word = (n: bigint) => encodeAbiParameters([{ type: "uint256" }], [n]);
 const addrWord = (a: string) => ("0x" + a.slice(2).toLowerCase().padStart(64, "0")) as Hex;
 
-function fakeChain(rates: Record<string, bigint>, opts: { moveRateAfterLeg1?: bigint } = {}) {
+function fakeChain(rates: Record<string, bigint>, opts: { moveRateAfterLeg1?: bigint; poolHolds?: { base: bigint; quote: bigint } } = {}) {
   const bal: Record<string, bigint> = { [BASE]: 0n, [QUOTE]: 10_000_000n };
+  const holds = opts.poolHolds ?? { base: 100n * 10n ** 18n, quote: 100_000_000n };
   const sent: string[] = [];
   const allowance: Record<string, bigint> = {};
   let legsDone = 0;
@@ -180,7 +181,11 @@ function fakeChain(rates: Record<string, bigint>, opts: { moveRateAfterLeg1?: bi
       const { to, data } = args.transaction as { to: Hex; data: Hex };
       const sel = data.slice(0, 10);
       const to_ = to.toLowerCase();
-      if (sel === "0x70a08231") return { result: word(bal[to_ === BASE.toLowerCase() ? BASE : QUOTE]!) }; // balanceOf
+      if (sel === "0x70a08231") {
+        const holder = ("0x" + data.slice(-40)).toLowerCase();
+        if (holder === POOL_A.toLowerCase() || holder === POOL_B.toLowerCase()) return { result: word(to_ === BASE.toLowerCase() ? holds.base : holds.quote) };
+        return { result: word(bal[to_ === BASE.toLowerCase() ? BASE : QUOTE]!) }; // balanceOf
+      }
       if (sel === "0xdd62ed3e") return { result: word(allowance[to_ + data.slice(-40)] ?? 0n) };
       const pool = to_ === POOL_A.toLowerCase() ? POOL_A : POOL_B;
       if (sel === "0x0fc63d10") return { result: addrWord(BASE) };
@@ -232,6 +237,13 @@ describe("readers", () => {
     const q = (await v.quote("quote-in", 1_000_000n)) as { out: bigint };
     expect(q.out).toBe((((1_000_000n * 10n ** 18n) / 650_000n) * 9970n) / 10000n);
     await expect(readArbPool(mcp.call.bind(mcp), POOL_A, { ...M, base: { ...M.base, address: QUOTE } })).rejects.toThrow(/expected/);
+  });
+  it("readArbPool refuses a size the pool cannot pay out", async () => {
+    const { mcp } = fakeChain({ [POOL_A]: 650_000n, [POOL_B]: 665_000n }, { poolHolds: { base: 10n ** 18n, quote: 1_000_000n } });
+    const v = await readArbPool(mcp.call.bind(mcp), POOL_A, M);
+    expect(await v.quote("quote-in", 500_000n)).toHaveProperty("out"); // ~0.77 base, the pool holds 1
+    expect((await v.quote("quote-in", 2_000_000n)) as { refused: string }).toHaveProperty("refused", expect.stringMatching(/the pool holds/));
+    expect(await v.quote("base-in", 2n * 10n ** 18n)).toHaveProperty("refused"); // ~1.3 quote, the pool holds 1.0
   });
   it("readUniV3 and readDodo reject a pool whose tokens are not the market's", async () => {
     const call = (async () => ({ result: addrWord("0x0000000000000000000000000000000000000001") })) as unknown as ChainMcp["call"];

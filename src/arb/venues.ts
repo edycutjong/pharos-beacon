@@ -177,16 +177,23 @@ export async function readArbPool(call: Call, address: Hex, m: Market, block?: b
     throw new Error(`${address}: tokenA/tokenB are ${addrOf(a!)}/${addrOf(b!)}, expected ${m.base.address}/${m.quote.address}`);
   }
   const feeBps = Number(u(fee!, 0));
+  // The pool pays out of its own balance: a size beyond it would revert, so it is refused, not priced.
+  const holds = async (token: Hex) => u(await ethCall(call, token, ("0x70a08231" + addrOf(address).slice(2).toLowerCase().padStart(64, "0")) as Hex, block), 0);
+  const [baseHeld, quoteHeld] = await Promise.all([holds(m.base.address), holds(m.quote.address)]);
   const quoteData = (token: Hex, amountIn: bigint) => ("0x8f79306e" + encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [token, amountIn]).slice(2)) as Hex;
   return {
     id: `arb-pool ${short(address)}`, kind: "arb-pool", address,
     mid: (Number(u(num!, 0)) / Number(u(den!, 0))) * 10 ** (m.base.decimals - m.quote.decimals), feeBps,
-    raw: { rateNum: u(num!, 0).toString(), rateDen: u(den!, 0).toString(), feeBps: String(feeBps) },
+    raw: { rateNum: u(num!, 0).toString(), rateDen: u(den!, 0).toString(), feeBps: String(feeBps), holdsBase: baseHeld.toString(), holdsQuote: quoteHeld.toString() },
     async quote(side, amountIn) {
       if (amountIn <= 0n) return { refused: "amount must be positive" };
       try {
         const r = await ethCall(call, address, quoteData(side === "base-in" ? m.base.address : m.quote.address, amountIn), block);
-        return u(r, 0) === 0n ? { refused: "the pool pays out nothing for this amount" } : { out: u(r, 0), feeBps };
+        const out = u(r, 0);
+        const held = side === "base-in" ? quoteHeld : baseHeld;
+        if (out === 0n) return { refused: "the pool pays out nothing for this amount" };
+        if (out > held) return { refused: `the pool holds ${held} raw units of the token it would pay out, the trade needs ${out}` };
+        return { out, feeBps };
       } catch (e) {
         return { refused: `pool refused the quote: ${(e as Error).message.slice(0, 120)}` };
       }
