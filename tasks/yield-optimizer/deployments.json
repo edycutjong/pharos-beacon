@@ -59,6 +59,14 @@
       "tx": "0xb6dfbe6fbbb84a798173fca81d73c21640a147f2f08c1761c0d259c88040fe9f",
       "block": 31833574,
       "why": "15 % -> 11 %: shows a headline rate that its 0.5 % entry fee and 7-day lock-in cancel"
+    },
+    {
+      "vault": "spike",
+      "rateBps": 3000,
+      "tx": "0xdd5af1db51ad5925450d7423b3b812f5ed2b5c178864b2ce83f05c3d1784cfc9",
+      "block": 31834358,
+      "at": "2026-10-24T19:31:41Z",
+      "why": "2 % -> 30 %: a rate that jumped a few minutes ago; its 10 m / 30 m / 1 h windows disagree"
     }
   ]
 }
