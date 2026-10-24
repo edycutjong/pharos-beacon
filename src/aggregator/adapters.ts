@@ -245,7 +245,7 @@ export function verifyActionPlan(plan: ActionPlan, usdc: Hex): string[] {
         }
       } else if (t.action === "deposit") {
         acc.moves++;
-        if (acc.approves !== 1) bad.push(`step ${t.step}: a deposit must come right after its approve`);
+        if (acc.approves !== 1) bad.push(`step ${t.step}: a deposit must come after its approve`);
         if (plan.request !== "deposit") bad.push(`step ${t.step}: a deposit inside a ${plan.request} plan`);
         if (!same(t.request.to, target)) bad.push(`step ${t.step}: goes to ${t.request.to}, not ${leg.name} (${target})`);
         if (leg.protocol === "morpho") {

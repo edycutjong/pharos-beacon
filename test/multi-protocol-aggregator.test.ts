@@ -482,7 +482,7 @@ describe("verifyActionPlan", () => {
     const p = await mk();
     const swapped = edit(p, (q) => q.transactions.reverse());
     const bad = buildPlan(swapped.request, swapped.chainId, swapped.wallet, swapped.legs, swapped.transactions);
-    expect(verifyActionPlan(bad, USDC).join()).toContain("must come right after its approve");
+    expect(verifyActionPlan(bad, USDC).join()).toContain("must come after its approve");
   });
   it("catches a withdrawal that pays someone else", async () => {
     const r = await aggregate(base(world(), { kind: "withdraw", assets: 100n * 10n ** 6n }, { down: ["morpho"] }));
