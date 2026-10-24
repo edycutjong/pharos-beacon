@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "task": "invoice-to-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "none"
+    },
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-totals.txt --proof flagged-totals",
+    "git": {
+      "commit": "216208408711",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:30:14.176Z"
+  },
+  "invoice": "tasks/invoice-to-payment-agent/samples/bad-totals.txt",
+  "extracted": {
+    "format": "text",
+    "flags": [
+      "the invoice states different totals (20 vs 25 vs 30): refusing to pick one"
+    ],
+    "notes": [],
+    "via": "labelled lines",
+    "number": "QX-9",
+    "issuer": "Quick Print Co",
+    "payee": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "currency": "USDC"
+  },
+  "outcome": "flagged",
+  "flags": [
+    "the invoice states different totals (20 vs 25 vs 30): refusing to pick one"
+  ]
+}
