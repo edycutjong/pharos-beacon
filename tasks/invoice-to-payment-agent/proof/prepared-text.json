@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "task": "invoice-to-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/nova-17.txt --proof prepared-text",
+    "git": {
+      "commit": "240e6f406a5c",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:30:11.193Z"
+  },
+  "invoice": "tasks/invoice-to-payment-agent/samples/nova-17.txt",
+  "extracted": {
+    "format": "text",
+    "flags": [],
+    "notes": [],
+    "via": "labelled lines",
+    "number": "NV-17",
+    "issuer": "Nova Audio Labs",
+    "payee": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "amount": "0.001",
+    "currency": "WPHRS"
+  },
+  "outcome": "prepared-unsigned",
+  "fingerprint": "a874a23658eb412d",
+  "notes": [],
+  "checks": [
+    {
+      "name": "recipient",
+      "ok": true,
+      "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)"
+    },
+    {
+      "name": "token",
+      "ok": true,
+      "detail": "WPHRS at 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (SkillEngine tokens.json)"
+    },
+    {
+      "name": "decimals",
+      "ok": true,
+      "detail": "decimals() = 18 read on chain"
+    },
+    {
+      "name": "amount",
+      "ok": true,
+      "detail": "0.001 WPHRS = 1000000000000000 base units"
+    },
+    {
+      "name": "reference",
+      "ok": true,
+      "detail": "\"NV-17\" appended to the transaction data (5 bytes)"
+    },
+    {
+      "name": "balance",
+      "ok": true,
+      "detail": "0x317b…2975 holds 0.00181 WPHRS, needs 0.001"
+    }
+  ],
+  "unsignedTx": {
+    "chainId": 688689,
+    "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+    "value": "0",
+    "data": "0xa9059cbb0000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b00000000000000000000000000000000000000000000000000038d7ea4c680004e562d3137",
+    "nonce": 113,
+    "gas": "46029",
+    "maxFeePerGas": "2000000000",
+    "maxPriorityFeePerGas": "0"
+  },
+  "walletRequest": {
+    "method": "eth_sendTransaction",
+    "params": [
+      {
+        "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+        "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+        "value": "0x0",
+        "data": "0xa9059cbb0000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b00000000000000000000000000000000000000000000000000038d7ea4c680004e562d3137",
+        "gas": "0xb3cd",
+        "maxFeePerGas": "0x77359400",
+        "maxPriorityFeePerGas": "0x0",
+        "nonce": "0x71",
+        "chainId": "0xa8231",
+        "type": "0x2"
+      }
+    ]
+  }
+}
