@@ -1,5 +1,5 @@
 import { explorerTx } from "../lib/networks.js";
-import { counterparties, dayUtc, fmtLeg, fmtWei, stampUtc, totalsOf, type Activity, type Item, type Leg, type TokenTotal } from "./engine.js";
+import { counterparties, dayUtc, isZero, fmtLeg, fmtWei, stampUtc, totalsOf, type Activity, type Item, type Leg, type TokenTotal } from "./engine.js";
 
 // The plain-language report for one wallet and one period, as Markdown or CSV. Everything it says comes from the Activity the engine
 // read; nothing is estimated. Highlights compare with a baseline period (the same length, right before) when one is given.
@@ -11,7 +11,7 @@ const sum = (rows: TokenTotal[]) => rows.map((r) => `${fmtLeg({ token: r.token a
 const legs = (ls: Leg[]) => ls.map(fmtLeg).join(" + ") || "—";
 /** An allowance, with "unlimited" instead of a 78-digit number when the approval has no cap. */
 const allowance = (it: Item) => (it.unlimited ? `${it.out[0]!.symbol} (unlimited)` : legs(it.out));
-const addrLink = (a: Activity, addr: string | null) => (addr ? `\`${short(addr)}\`` : "(contract creation)");
+const addrLink = (a: Activity, addr: string | null) => (addr ? `\`${short(addr)}\`${isZero(addr) ? " (mint or burn)" : ""}` : "(contract creation)");
 const whenOf = (it: Item) => stampUtc(it.timestamp).replace("T", " ").replace("Z", " UTC");
 
 export interface Highlight {
@@ -25,7 +25,7 @@ export function highlights(a: Activity, baseline?: Activity): Highlight[] {
   const out: Highlight[] = [];
   const known = baseline ? counterparties(baseline.items) : undefined;
   const firstSeen = new Map<string, Item>();
-  for (const it of a.items) if (it.counterparty && !firstSeen.has(lower(it.counterparty))) firstSeen.set(lower(it.counterparty), it);
+  for (const it of a.items) if (it.counterparty && !isZero(it.counterparty) && !firstSeen.has(lower(it.counterparty))) firstSeen.set(lower(it.counterparty), it);
   if (known) {
     for (const [addr, it] of firstSeen) {
       if (known.has(addr) || it.category === "contract-call" && it.counterparty === null) continue;

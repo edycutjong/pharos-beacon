@@ -435,9 +435,12 @@ export function totalsOf(items: Item[]): Totals {
 /** Counterparties the wallet dealt with in this activity (the other side of transfers, spenders, pools, called contracts). */
 export function counterparties(items: Item[]): Set<string> {
   const s = new Set<string>();
-  for (const it of items) if (it.counterparty) s.add(lower(it.counterparty));
+  for (const it of items) if (it.counterparty && !isZero(it.counterparty)) s.add(lower(it.counterparty));
   return s;
 }
+
+/** The zero address is where tokens are minted from and burned to, not someone the wallet dealt with. */
+export const isZero = (a: string) => /^0x0{40}$/i.test(a);
 
 export const dayUtc = (ts: number) => new Date(ts * 1000).toISOString().slice(0, 10);
 export const stampUtc = (ts: number) => new Date(ts * 1000).toISOString().replace(".000Z", "Z");

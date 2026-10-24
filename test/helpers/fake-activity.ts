@@ -83,3 +83,7 @@ export const spentAllowance = (): FakeTx => ({ n: 8, block: 105, from: W, to: TK
 export const payableCall = (): FakeTx => ({ n: 9, block: 112, from: W, to: C, value: 5n * 10n ** 17n, input: "0xd0e30db0" });
 /** A swap paid in the native token: value to the pool, a token back. */
 export const nativeSwap = (): FakeTx => ({ n: 10, block: 114, from: W, to: POOL, value: 10n ** 18n, input: "0x7ff36ab5", logs: [transfer(10, 114, OTH, POOL, W, 7n * 10n ** 18n)] });
+
+export const ZERO_ADDR = "0x0000000000000000000000000000000000000000" as Hex;
+/** Tokens minted to the wallet: a Transfer from the zero address, sent by someone else. */
+export const mintTx = (): FakeTx => ({ n: 11, block: 118, from: B, to: TKN, input: "0x1249c58b", logs: [transfer(11, 118, TKN, ZERO_ADDR, W, 9_000_000n)] });
