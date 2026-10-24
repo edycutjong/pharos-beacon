@@ -94,7 +94,12 @@ export async function aggregate(o: AggregateOptions): Promise<Report> {
   // a deposit probes every venue with 1 USDC (does it take deposits at all, at what fee); how MUCH each can take is routed separately,
   // from maxDeposit, so a venue with a small limit stays in the running and takes its share
   const probe = BigInt(dec);
-  const sizeFor = (h: { assets: bigint } | null): bigint => (o.request.kind === "deposit" ? (o.request.assets < probe ? o.request.assets : probe) : h ? h.assets : reference);
+  // a withdrawal is sized by what is asked (a Morpho market's idle liquidity only has to cover that, not the whole position)
+  const sizeFor = (h: { assets: bigint } | null): bigint => {
+    if (o.request.kind === "deposit") return o.request.assets < probe ? o.request.assets : probe;
+    if (!h) return reference;
+    return o.request.kind === "withdraw" && o.request.assets !== "all" && o.request.assets < h.assets ? o.request.assets : h.assets;
+  };
 
   const views: VenueView[] = [];
   const down: Down[] = [];

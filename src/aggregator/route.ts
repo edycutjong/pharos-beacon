@@ -179,7 +179,7 @@ export function routeWithdraw(views: VenueView[], down: Down[], amountUsd: numbe
   else {
     const top = name(allocations[0]!.venueId);
     lines.push(
-      `Chose ${top.name} (${top.protocolName})${allocations.length > 1 || amountUsd === "all" ? ` first` : ""}: taking ${usd(allocations[0]!.usd)} out costs ${usd(top.scoreUsd!)} over ${p.holdDays} d = exit fee ${usd(top.parts.exitFeeUsd!)} + gas ${usd(top.parts.gasUsd!)} + yield given up ${usd(top.parts.forgoneYieldUsd!)} at its optimistic ${top.ratePct}.`,
+      `Chose ${top.name} (${top.protocolName})${allocations.length > 1 ? ` first` : ""}: taking ${usd(allocations[0]!.usd)} out costs ${usd(top.scoreUsd!)} over ${p.holdDays} d = exit fee ${usd(top.parts.exitFeeUsd!)} + gas ${usd(top.parts.gasUsd!)} + yield given up ${usd(top.parts.forgoneYieldUsd!)} at its optimistic ${top.ratePct}.`,
     );
     const runner = ranked.find((o) => o.venueId !== top.venueId);
     if (runner) lines.push(`Next cheapest: ${runner.name} would cost ${usd(runner.scoreUsd!)} for ${usd(Math.min(runner.parts.atUsd!, allocations[0]!.usd))}; it keeps earning ${runner.ratePct}.`);

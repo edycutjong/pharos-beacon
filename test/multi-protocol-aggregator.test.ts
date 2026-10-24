@@ -311,6 +311,16 @@ describe("aggregate (fake chain: RockawayX-shaped vault, async fund vault, Morph
     expect(rd.args![0]).toBe(SHARES);
     expect(verifyActionPlan(all.plan!, USDC)).toEqual([]);
   });
+  it("sizes a Morpho exit by what is asked: idle liquidity covers 100 USDC of a position it could not cover whole", async () => {
+    const call = chain({}, { apr: 0.06, supplyShares: 1_500_000n * 10n ** 6n * 10n ** 6n }); // ≈ 1.5M USDC held, 1M idle
+    const mo = { venues: [venues[2]!] };
+    const part = await aggregate(base(call, { kind: "withdraw", assets: 100n * 10n ** 6n }, mo));
+    expect(part.route!.allocations.map((a) => a.venueId)).toEqual(["morpho-ab"]);
+    expect(verifyActionPlan(part.plan!, USDC)).toEqual([]);
+    const all = await aggregate(base(call, { kind: "withdraw", assets: "all" }, mo));
+    expect(all.plan).toBeNull();
+    expect(all.route!.explanation.join("\n")).toContain("idle liquidity");
+  });
   it("redeems a part of an ERC-4626 position in shares, rounded up", async () => {
     const r = await aggregate(base(world(), { kind: "withdraw", assets: 250n * 10n ** 6n }, { down: ["morpho"] }));
     const d = decodeFunctionData({ abi: erc4626, data: r.plan!.transactions[0]!.request.data });
