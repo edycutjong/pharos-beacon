@@ -7,7 +7,7 @@ checks
   PASS  token     WPHRS at 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (SkillEngine tokens.json)
   PASS  decimals  decimals() = 18 read on chain
   PASS  amount    1000 WPHRS = 1000000000000000000000 base units
-  FAIL  balance   0x317b…2975 holds 0.00231 WPHRS but 1000 is requested
+  FAIL  balance   0x317b…2975 holds 0.00081 WPHRS but 1000 is requested
 
 REFUSED: no transaction was prepared.
 proof: tasks/natural-language-payment-agent/proof/refused-balance.json

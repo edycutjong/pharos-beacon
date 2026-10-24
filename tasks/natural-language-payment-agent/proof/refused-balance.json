@@ -10,10 +10,10 @@
     },
     "command": "tasks/natural-language-payment-agent/index.ts send 1000 WPHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --proof refused-balance",
     "git": {
-      "commit": "02f867e06651",
+      "commit": "bafa5d3652b2",
       "dirty": false
     },
-    "createdAt": "2026-10-24T01:28:50.213Z"
+    "createdAt": "2026-10-24T01:37:08.120Z"
   },
   "turns": [
     "send 1000 WPHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
@@ -53,7 +53,7 @@
     {
       "name": "balance",
       "ok": false,
-      "detail": "0x317b…2975 holds 0.00231 WPHRS but 1000 is requested"
+      "detail": "0x317b…2975 holds 0.00081 WPHRS but 1000 is requested"
     }
   ]
 }

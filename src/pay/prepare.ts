@@ -46,7 +46,7 @@ export async function preparePayment(draft: Draft, o: { call: Call; from: Hex })
   else if (raw.toLowerCase() === o.from.toLowerCase()) add("recipient", false, "the recipient is the sender: a self-transfer pays nothing");
   else {
     recipient = getAddress(raw);
-    add("recipient", true, `${recipient} (valid, checksum ok)`);
+    add("recipient", true, raw === raw.toLowerCase() ? `${recipient} (valid; typed in lower case, so there is no checksum to verify)` : `${recipient} (valid, checksum ok)`);
   }
 
   // 2. Token from the SkillEngine list
