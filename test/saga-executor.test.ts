@@ -594,4 +594,35 @@ describe("races and give-up (review round 1)", () => {
     expect(j.status).toBe("completed");
     expect(j.actions.find((a) => a.id === "swap")!.attempts.map((a) => a.state)).toEqual(["refused", "mined"]);
   });
+
+  it("a permanent refusal of the SECOND send does not roll back while the first may still land", async () => {
+    const c = new FakeChain();
+    let swaps = 0;
+    c.mines = (_to, data) => decodeFunctionData({ abi: ABI, data }).functionName !== "swap" || ++swaps > 1; // the first swap send waits in the pool
+    c.broadcastError = (_n, _to, data) => (decodeFunctionData({ abi: ABI, data }).functionName === "swap" && swaps === 1 ? "insufficient funds for gas * price + value" : undefined);
+    const first = make(c);
+    const j = await first.saga.run();
+    expect(j.status).toBe("stuck");
+    expect(j.stuckFrom).toBe("running");
+    expect(j.actions.find((a) => a.id === "swap")!.failure!.kind).toBe("pending-unresolved");
+    expect(j.actions.some((a) => a.phase === "undo")).toBe(false);
+    // the first send lands; the resume finishes the saga with one swap
+    const firstSend = j.actions.find((a) => a.id === "swap")!.attempts[0]!.hash;
+    c.mineNow(firstSend);
+    c.broadcastError = undefined;
+    const done = await make(c, {}, loadJournal(first.file)!).saga.run();
+    expect(done.status).toBe("completed");
+    expect(c.bal[WPHRS]).toBe(5n * 10n ** 15n - P.amountIn);
+  });
+
+  it("every step verified but the end state differs from the expected one: STUCK, not COMPLETED", async () => {
+    const c = new FakeChain();
+    c.allow.set(c.key(WPHRS, POOL), 5n * 10n ** 15n); // a bigger allowance already exists: approve-in is skipped and some of it is left over
+    const { saga } = make(c);
+    const j = await saga.run();
+    expect(j.actions.find((a) => a.id === "approve-in")!.state).toBe("skipped");
+    expect(j.status).toBe("stuck");
+    expect(j.checks!.some((x) => !x.ok)).toBe(true);
+    expect(j.log.at(-1)!.detail).toContain("end state differs");
+  });
 });

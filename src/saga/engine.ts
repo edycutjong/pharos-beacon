@@ -326,10 +326,16 @@ export class Saga {
         }
       }
       if (j.status === "running") {
+        j.checks = await this.def.check(this.ctx, "completed");
+        const bad = j.checks.filter((c) => !c.ok);
+        if (bad.length) {
+          j.status = "stuck";
+          j.stuckFrom = "running";
+          this.log("saga", "STUCK", `every step verified, but the end state differs from the expected one for ${bad.map((c) => c.name).join(", ")}`);
+          return j;
+        }
         j.status = "completed";
         this.log("saga", "COMPLETED", "every step verified");
-        j.checks = await this.def.check(this.ctx, "completed");
-        this.save();
         return j;
       }
     }
@@ -381,7 +387,8 @@ export class Saga {
     const last = rec.attempts.at(-1);
     let pendingAttempt = last && ["signed", "sent", "timeout", "not-sent", "mined", "reverted"].includes(last.state) ? last : undefined;
 
-    if (!pendingAttempt) {
+    if (!pendingAttempt && !rec.attempts.some((a) => a.raw !== "0x")) {
+      // (An action with a send of its own is never skipped here: the loop below looks at that send's receipt first.)
       if (!rec.attempts.length) await d.before?.(ctx);
       let intent: TxFields | null;
       try {
@@ -399,7 +406,8 @@ export class Saga {
       this.save();
     }
 
-    let giveUp: string | undefined; // set when the sends are used up: one last look at every attempt before failing
+    let giveUp: string | undefined; // set when the sends are used up or a permanent error came: one last look at every attempt before failing
+    let giveUpKind: "transient-exhausted" | "revert" | "rejected" = "transient-exhausted";
     for (;;) {
       const attemptNo = rec.attempts.length + (pendingAttempt ? 0 : 1);
       let att = pendingAttempt;
@@ -408,7 +416,7 @@ export class Saga {
 
       const base = rec.base ?? 0;
       if (!att && giveUp === undefined && rec.attempts.length - base >= this.policy.maxAttempts) giveUp = `${rec.attempts.length - base} sends used`;
-      if (!att && giveUp !== undefined && !rec.attempts.some((a) => a.raw !== "0x")) return this.fail(rec, "transient-exhausted", giveUp);
+      if (!att && giveUp !== undefined && !rec.attempts.some((a) => a.raw !== "0x")) return this.fail(rec, giveUpKind, giveUp);
       if (!att && rec.attempts.some((a) => a.raw !== "0x")) {
         // Before signing anything new: did an earlier send land while we were backing off? (A slow node, a late block.)
         const hit = await this.sweep(rec);
@@ -419,7 +427,7 @@ export class Saga {
         } else if (giveUp !== undefined) {
           const pending = await this.stillKnown(rec);
           if (pending) return this.fail(rec, "pending-unresolved", `${pending} is still in the node's pool after ${rec.attempts.length} sends`);
-          return this.fail(rec, "transient-exhausted", giveUp);
+          return this.fail(rec, giveUpKind, giveUp);
         }
       }
 
@@ -457,7 +465,12 @@ export class Saga {
           const reason = reasonOf(e);
           rec.attempts.push({ n: attemptNo, hash: "0x", raw: "0x", nonce: -1, gas: "0", maxFeePerGas: "0", maxPriorityFeePerGas: "0", state: "refused", note: `not signed: ${reason}` });
           this.log(rec.id, kind === "permanent" ? "REFUSED" : "TRANSIENT", `attempt ${attemptNo} could not be prepared: ${reason}`);
-          if (kind === "permanent") return this.fail(rec, REVERT.test(reason) ? "revert" : "rejected", reason);
+          if (kind === "permanent") {
+            // A permanent refusal of THIS send says nothing about an earlier send that may still land: look at those first.
+            giveUp = reason;
+            giveUpKind = REVERT.test(reason) ? "revert" : "rejected";
+            continue;
+          }
           if (attemptNo - base >= this.policy.maxAttempts) {
             giveUp = reason;
             continue;
@@ -495,7 +508,9 @@ export class Saga {
             att.note = reason;
             if (kind === "permanent") {
               this.log(rec.id, "REFUSED", `the node refused ${att.hash}: ${reason}`);
-              return this.fail(rec, REVERT.test(reason) ? "revert" : "rejected", reason);
+              giveUp = reason;
+              giveUpKind = REVERT.test(reason) ? "revert" : "rejected";
+              continue;
             }
             this.log(rec.id, "TRANSIENT", `attempt ${attemptNo} refused by the node (${reason})`);
             if (attemptNo - base >= this.policy.maxAttempts) {

@@ -20,7 +20,7 @@ A journaled saga against the repo's own test pool and vault on Atlantic (Atlanti
 
 ```bash
 git clone https://github.com/edycutjong/pharos-beacon && cd pharos-beacon && npm ci
-npm run setup:mcp        # builds the open-source pharos-mcp server for Atlantic
+npm run setup:mcp        # builds the public PharosNetwork/pharos-mcp server for Atlantic (pinned commit)
 ```
 
 The saga wallet is `PRIVATE_KEY_2` in `~/.config/pharos/testnet.env`; the vault owner is `PRIVATE_KEY`. Never type a key into a command.
