@@ -1,4 +1,4 @@
-# Output of the three terminal recordings used in assets/demo/audit-log-agent (asciinema, real runs, not the proof runs).
+# Output of the three terminal recordings used in assets/demo/audit-log-agent (asciinema, real runs, not the proof runs; the third reads the CSV the Atlantic proof run wrote).
 
 === c1 mainnet
 $ npm run audit-log-agent -- --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901 --from-block 21042000 --to-block 21082000 --baseline none --compact
@@ -63,9 +63,12 @@ highlights
 sent txs: 10 of 10 matched by the chain's nonce
 ⠙$ 
 === c3 csv
-$ npm run -s audit-log-agent -- --wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 --network atlantic --from-block 31804700 --to-block 31806500 --baseline none --format csv --out /tmp/audit-csv 2>/dev/null | grep wrote
-wrote /tmp/audit-csv/audit-0x317bca-31804700-31806500.csv
-$ cut -d, -f3,8 /tmp/audit-csv/*.csv | sort | uniq -c | sort -rn
+$ ls tasks/audit-log-agent/proof/reports
+audit-0x28ed4a-2026-10-23_2026-10-23.csv	audit-0x317bca-31798000-31808000.md
+audit-0x28ed4a-2026-10-23_2026-10-23.md		audit-0x8d347c-31760575-31807814.csv
+audit-0x317bca-31798000-31808000.csv		audit-0x8d347c-31760575-31807814.md
+$ cut -d, -f3,8 tasks/audit-log-agent/proof/reports/audit-0x317bca-31798000-31808000.csv | sort | uniq -c | sort -rn
+ 111 transfer-out,call 0xe3ee160e
    4 transfer-out,plain transfer
    2 transfer-out,transfer
    1 transfer-out,call 0x494e562d
