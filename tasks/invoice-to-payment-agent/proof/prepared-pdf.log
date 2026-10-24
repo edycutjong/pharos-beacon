@@ -3,14 +3,14 @@ invoice: tasks/invoice-to-payment-agent/samples/faktur-bumi.pdf (pdf) · read by
   issuer    CV Bumi Digital
   payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
   amount    0.002 PHRS
-fingerprint eb616ef0db613c23 (invoice number + issuer + amount + currency)
+fingerprint b9e62b05657d0bc6 (invoice number + issuer + amount + currency)
 
 checks
   PASS  recipient 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)
   PASS  token     PHRS, the native coin (18 decimals)
   PASS  amount    0.002 PHRS = 2000000000000000 base units
   PASS  reference "BM/2026/10/088" appended to the transaction data (14 bytes)
-  PASS  balance   0x317b…2975 holds 14.917193901999979 PHRS, needs 0.002057338 (amount + max fee)
+  PASS  balance   0x317b…2975 holds 14.910116001999979 PHRS, needs 0.002057338 (amount + max fee)
 
 Send 0.002 PHRS
   from      0x317bca01Bb101C0F1E86C21576a4e14D92B02975
@@ -26,7 +26,7 @@ unsigned transaction
   "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
   "value": "2000000000000000",
   "data": "0x424d2f323032362f31302f303838",
-  "nonce": 113,
+  "nonce": 116,
   "gas": "28669",
   "maxFeePerGas": "2000000000",
   "maxPriorityFeePerGas": "0"
@@ -44,7 +44,7 @@ wallet signing request
       "gas": "0x6ffd",
       "maxFeePerGas": "0x77359400",
       "maxPriorityFeePerGas": "0x0",
-      "nonce": "0x71",
+      "nonce": "0x74",
       "chainId": "0xa8231",
       "type": "0x2"
     }
