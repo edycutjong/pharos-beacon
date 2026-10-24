@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { blockAtOrAfter, collectActivity, counterparties, MAX_RANGE_BLOCKS, parseWallet, rangeForTimes, totalsOf } from "../src/activity/engine.js";
 import { csvReport, highlights, markdownReport, notableTxs } from "../src/activity/report.js";
-import { B, C, fakeWorld, mintTx, nativeSwap, OTH, payableCall, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
+import { approval, B, C, fakeWorld, mintTx, nativeSwap, OTH, payableCall, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
 
 const range = { fromBlock: 90n, toBlock: 200n };
 const collect = (scanBlocks = 0, txs = world(), extra: object = { discoverSent: false }) => collectActivity(fakeWorld(txs), "pharos", W, range, { scanBlocks, ...extra });
@@ -204,10 +204,35 @@ describe("report", () => {
     expect(n[0]!.why).toMatch(/reverted/);
     expect(n.some((x) => /unlimited approval/.test(x.why))).toBe(true);
   });
+  it("an empty 'Transfers in' says what was not looked at when no block scan ran; with a scan it is plain", async () => {
+    const a = await collect(0, [world()[2]!]); // one approval only
+    expect(markdownReport(a, { generatedAt: "x" })).toContain("None found in the token event logs. Native PROS received is not checked unless `--scan-blocks` is used.");
+    const scanned = await collect(111, [world()[2]!]);
+    expect(markdownReport(scanned, { generatedAt: "x" })).toContain("## Transfers in\n\n_None in this period._");
+    expect(markdownReport(a, { generatedAt: "x" })).toContain("received tokens by plain transfer 0 times");
+  });
+
+  it("the header names the days of a date range and says both are included", async () => {
+    const a = await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 90n, toBlock: 200n, fromTs: Date.parse("2023-11-14T00:00:00Z") / 1000, toTs: Date.parse("2023-11-15T00:00:00Z") / 1000 });
+    expect(markdownReport(a, { generatedAt: "x" })).toContain("2023-11-14 to 2023-11-14 UTC (both days included)");
+  });
+
+  it("notable transactions: one entry per spender with the count, and an unlimited allowance reads 'unlimited' in the CSV, which marks the notable rows", async () => {
+    const dup = { ...world()[2]!, n: 12, block: 125, logs: [approval(12, 125, TKN, W, S, (1n << 256n) - 1n)] };
+    const a = await collect(0, [...world(), dup]);
+    const nt = notableTxs(a).filter((n) => /unlimited approval/.test(n.why));
+    expect(nt).toHaveLength(1);
+    expect(nt[0]!.why).toContain("2 approvals to it in all");
+    const csv = csvReport(a);
+    expect(csv).toContain("TKN (unlimited)");
+    expect(csv.split("\n").filter((l) => /,yes,0x/.test(l)).length).toBeGreaterThan(0);
+    expect(csv).not.toMatch(/\d{1,3}(,\d{3}){8,}/);
+  });
+
   it("csv has a header, one row per item, quotes cells with commas", async () => {
     const a = await collect(111);
     const rows = csvReport(a).trim().split("\n");
-    expect(rows[0]).toBe("time_utc,block,category,status,counterparty,gave,got,method,fee_native,tx,link");
+    expect(rows[0]).toBe("time_utc,block,category,status,counterparty,gave,got,method,fee_native,notable,tx,link");
     expect(rows).toHaveLength(1 + a.items.length);
     expect(csvReport(a)).toContain('"5 TKN"'.replace(/"/g, "")); // no comma in this amount: unquoted
     const big = { ...a, items: [{ ...a.items[0]!, out: [{ ...a.items[0]!.out[0]!, amountRaw: 1_234_567_000_000n }] }] };
