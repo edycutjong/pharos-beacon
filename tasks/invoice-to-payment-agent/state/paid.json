@@ -1,0 +1,12 @@
+[
+  {
+    "fingerprint": "91415a4420740ca2",
+    "number": "INV-2026-0042",
+    "issuer": "Acme Design Studio",
+    "amount": "0.005",
+    "token": "PHRS",
+    "hash": "0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6",
+    "url": "https://atlantic.pharosscan.xyz/tx/0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6",
+    "at": "2026-10-24T01:30:21.466Z"
+  }
+]
