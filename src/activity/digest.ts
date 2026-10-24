@@ -245,7 +245,9 @@ export function digestCompact(d: DigestInput): string {
     "",
     "top 3 events",
   ];
-  for (const [i, e] of d.events.entries()) L.push(`${i + 1}. ${e.kind}`, `   ${e.why.replace(/0x([0-9a-fA-F]{4})[0-9a-fA-F]{32}([0-9a-fA-F]{4})/g, "0x$1…$2").slice(0, 58)}`);
+  for (const [i, e] of d.events.entries()) L.push(`${i + 1}. ${e.kind}`, `   ${clipText(e.why.replace(/0x([0-9a-fA-F]{4})[0-9a-fA-F]{32}([0-9a-fA-F]{4})/g, "0x$1…$2"), 58)}`);
   if (d.events.length === 0) L.push("none");
   return L.join("\n");
 }
+
+const clipText = (s: string, n: number) => (s.length <= n ? s : `${s.slice(0, n - 1)}…`);
