@@ -164,6 +164,9 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
       return 0;
     }
   }
+  // --no-preflight is kept in the journal, so a resume sends the same way the run did.
+  if (values["no-preflight"] && j.params["fixedGas"] === undefined) j.params["fixedGas"] = "400000";
+  const fixedGas = j.params["fixedGas"] === undefined ? undefined : BigInt(j.params["fixedGas"]);
   const sagaP = paramsFromRecord(j.params);
   if (sagaP.wallet.toLowerCase() !== signer.address.toLowerCase()) throw new Error(`journal ${id} belongs to ${sagaP.wallet}, but PRIVATE_KEY_2 is ${signer.address}`);
   const def = defiSaga(sagaP);
@@ -171,11 +174,11 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   if (j.data["native0"] === undefined) j.data["native0"] = String(BigInt((await mcp.call("get_balance", { address: signer.address })).balanceWei));
 
   console.log(`${cmd === "run" ? "starting" : "resuming"} saga ${id} · wallet ${signer.address} · ${formatUnits(sagaP.amountIn, sagaP.decimalsIn)} WPHRS → USDC → vault · retries ${policy.maxAttempts}, backoff ${policy.backoffMs} ms ×2, receipt timeout ${policy.receiptTimeoutMs / 1000} s`);
-  if (values["no-preflight"]) console.log("pre-flight simulation OFF: every transaction is sent with a fixed 400000 gas limit, so one that would revert is mined with status 0");
+  if (fixedGas !== undefined) console.log("pre-flight simulation OFF: every transaction is sent with a fixed 400000 gas limit, so one that would revert is mined with status 0");
   if (inject.length) console.log(`fault injection: ${inject.map((i) => (i.kind === "crash" ? `crash ${i.action} at ${i.point}` : `${i.kind} ${i.action} (attempt 1)`)).join(", ")}`);
   const saga = new Saga(def, j, port, file, {
     policy, inject, onLog: printLog,
-    ...(values["no-preflight"] ? { fixedGas: 400_000n } : {}),
+    ...(fixedGas !== undefined ? { fixedGas } : {}),
     crash: () => {
       process.kill(process.pid, "SIGKILL");
       throw new Error("unreachable");

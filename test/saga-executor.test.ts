@@ -516,4 +516,45 @@ describe("races and give-up (review round 1)", () => {
     expect(j.status).toBe("stuck");
     expect(j.actions.find((a) => a.id === "undo-swap-approve")!.failure!.reason).toContain("could not build");
   });
+
+  it("a stuck rollback whose sends were all unmined resumes on the SAME nonce: one effect, never a fresh nonce", async () => {
+    const c = new FakeChain();
+    c.vaultOpen = false;
+    let swapBacks = 0;
+    // the first three swap-back sends are accepted by the node and not mined; later ones mine
+    c.mines = (_to, data) => {
+      const d = decodeFunctionData({ abi: ABI, data });
+      return !(d.functionName === "swap" && String(d.args![0]).toLowerCase() === USDC.toLowerCase() && ++swapBacks <= 3);
+    };
+    const first = make(c);
+    const j = await first.saga.run();
+    expect(j.status).toBe("stuck");
+    expect(j.stuckFrom).toBe("compensating");
+    const back = j.actions.find((a) => a.id === "undo-swap")!;
+    expect(back.failure!.kind).toBe("pending-unresolved");
+    expect(back.attempts).toHaveLength(3);
+    const second = make(c, {}, loadJournal(first.file)!);
+    const done = await second.saga.run();
+    expect(done.status).toBe("rolled-back");
+    const after = done.actions.find((a) => a.id === "undo-swap")!;
+    expect(new Set(after.attempts.map((a) => a.nonce)).size).toBe(1); // every send on one nonce
+    expect(after.attempts.length).toBeGreaterThan(3);
+    expect(after.earlier).toBeUndefined();
+    expect(c.bal[WPHRS]).toBe(5n * 10n ** 15n); // swapped back exactly once
+    expect(done.checks!.every((x) => x.ok)).toBe(true);
+  });
+
+  it("when the node cannot be asked, the engine stops instead of reading 'no receipt' and rolling back", async () => {
+    const c = new FakeChain();
+    c.mines = (_to, data) => decodeFunctionData({ abi: ABI, data }).functionName !== "swap"; // the swap send is not mined in time
+    const base = portFor(c);
+    const port: Port = { ...base, receipt: async (h) => { if (c.inPool.has(h)) throw new Error("fetch failed"); return base.receipt(h); } };
+    const def = defiSaga(P);
+    const journal = newJournal({ id: "t", wallet: ME, params: {} }, def.forward, new Date());
+    const file = join(dir, "s3.json");
+    await expect(new Saga(def, journal, port, file, { policy: POLICY }).run()).rejects.toThrow(/fetch failed/);
+    const saved = loadJournal(file)!;
+    expect(saved.status).toBe("running"); // not rolled back
+    expect(saved.actions.some((a) => a.phase === "undo")).toBe(false);
+  });
 });

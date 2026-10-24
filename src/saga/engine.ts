@@ -75,8 +75,10 @@ export interface ActionRec {
   /** A successful receipt was seen: the effect is on chain, so a rollback must reverse it. */
   landed?: boolean;
   attempts: AttemptRec[];
-  /** Attempts of an earlier try of this action, kept when a resume starts it afresh. */
+  /** Attempts of an earlier try of this action, kept when a resume starts it afresh (only after a mined revert, which used the nonce up). */
   earlier?: AttemptRec[];
+  /** Attempts that came before the current round of sends: a resume from STUCK gets a new round of `maxAttempts`, on the same nonce. */
+  base?: number;
   detail?: string;
   failure?: { kind: "transient-exhausted" | "pending-unresolved" | "revert" | "rejected" | "verify"; reason: string };
 }
@@ -281,10 +283,16 @@ export class Saga {
       j.status = j.stuckFrom ?? "compensating";
       for (const a of j.actions) {
         if (a.state === "failed" && (a.phase === "undo" || a.failure?.kind === "pending-unresolved")) {
-          // Keep the attempts when a send may still land or has landed (settle and verify them); otherwise start the action afresh.
-          if (!a.landed && a.failure?.kind !== "pending-unresolved") {
+          // Start the action afresh (new nonce) only when no send of it can still land: nothing was ever sent, or every send was
+          // MINED with status 0 (which used its nonce up). Otherwise keep the attempts: they are looked at again, and the next
+          // round of sends reuses their nonce, so at most one of them can have an effect.
+          const real = a.attempts.filter((t) => t.raw !== "0x");
+          if (!a.landed && real.every((t) => t.state === "reverted")) {
             a.earlier = [...(a.earlier ?? []), ...a.attempts];
             a.attempts = [];
+            a.base = 0;
+          } else {
+            a.base = a.attempts.length;
           }
           a.state = "pending";
           delete a.failure;
@@ -398,6 +406,8 @@ export class Saga {
       pendingAttempt = undefined;
       let rcpt: Rcpt | null = null;
 
+      const base = rec.base ?? 0;
+      if (!att && giveUp === undefined && rec.attempts.length - base >= this.policy.maxAttempts) giveUp = `${rec.attempts.length - base} sends used`;
       if (!att && giveUp !== undefined && !rec.attempts.some((a) => a.raw !== "0x")) return this.fail(rec, "transient-exhausted", giveUp);
       if (!att && rec.attempts.some((a) => a.raw !== "0x")) {
         // Before signing anything new: did an earlier send land while we were backing off? (A slow node, a late block.)
@@ -448,11 +458,11 @@ export class Saga {
           rec.attempts.push({ n: attemptNo, hash: "0x", raw: "0x", nonce: -1, gas: "0", maxFeePerGas: "0", maxPriorityFeePerGas: "0", state: "refused", note: `not signed: ${reason}` });
           this.log(rec.id, kind === "permanent" ? "REFUSED" : "TRANSIENT", `attempt ${attemptNo} could not be prepared: ${reason}`);
           if (kind === "permanent") return this.fail(rec, REVERT.test(reason) ? "revert" : "rejected", reason);
-          if (attemptNo >= this.policy.maxAttempts) {
+          if (attemptNo - base >= this.policy.maxAttempts) {
             giveUp = reason;
             continue;
           }
-          await this.backoff(rec, attemptNo);
+          await this.backoff(rec, attemptNo - base);
           continue;
         }
         att = {
@@ -488,11 +498,11 @@ export class Saga {
               return this.fail(rec, REVERT.test(reason) ? "revert" : "rejected", reason);
             }
             this.log(rec.id, "TRANSIENT", `attempt ${attemptNo} refused by the node (${reason})`);
-            if (attemptNo >= this.policy.maxAttempts) {
+            if (attemptNo - base >= this.policy.maxAttempts) {
               giveUp = reason;
               continue;
             }
-            await this.backoff(rec, attemptNo);
+            await this.backoff(rec, attemptNo - base);
             continue;
           }
         }
@@ -511,11 +521,11 @@ export class Saga {
       if (rcpt === null) {
         att!.state = "timeout";
         this.log(rec.id, "TRANSIENT", `attempt ${att!.n}: no receipt for ${att!.hash} within ${Math.round(this.policy.receiptTimeoutMs / 1000)} s (dropped, or the fee was too low)`);
-        if (rec.attempts.length >= this.policy.maxAttempts) {
-          giveUp = `no receipt after ${rec.attempts.length} attempts`;
+        if (rec.attempts.length - base >= this.policy.maxAttempts) {
+          giveUp = `no receipt after ${rec.attempts.length - base} attempts`;
           continue;
         }
-        await this.backoff(rec, rec.attempts.length);
+        await this.backoff(rec, rec.attempts.length - base);
         continue;
       }
 

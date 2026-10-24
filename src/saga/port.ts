@@ -75,28 +75,26 @@ export function chainPort(mcp: ChainMcp, signer: TestnetSigner): Port {
       }
     },
 
+    // receipt() and known() throw when the node cannot be asked: "cannot tell" must never read as "not there", because the
+    // engine rolls back only after it has looked at every send. The polling in waitReceipt tolerates a failed poll.
     async receipt(hash) {
-      const r = await call("get_transaction_receipt", { hash }).catch((e: unknown) => {
-        if (e instanceof ClientClosedError) throw e;
-        return null;
-      });
+      const r = await call("get_transaction_receipt", { hash });
       return r ? toRcpt(r as never) : null;
     },
 
     async known(hash) {
-      try {
-        return Boolean(await call("get_transaction", { hash }));
-      } catch (e) {
-        if (e instanceof ClientClosedError) throw e;
-        return false;
-      }
+      return Boolean(await call("get_transaction", { hash }));
     },
 
     async waitReceipt(hash, timeoutMs) {
       const deadline = Date.now() + timeoutMs;
       for (;;) {
-        const r = await port.receipt(hash);
-        if (r) return r;
+        try {
+          const r = await port.receipt(hash);
+          if (r) return r;
+        } catch (e) {
+          if (e instanceof ClientClosedError) throw e; // Ctrl-C closed the client: stop polling now
+        }
         if (Date.now() + 2_500 >= deadline) return null;
         await wait(2_500);
       }
