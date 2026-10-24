@@ -4,16 +4,57 @@
   "note": "Test contracts owned by this repo (tasks/arbitrage-scanner/contracts/src/ArbPool.sol). Atlantic has no DEX, so the executed trade runs between these two pools: fixed rate, 30 bps fee, owner-settable rate. They move the real Atlantic test USDC and WPHRS.",
   "deployer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
   "tokens": {
-    "WPHRS": { "address": "0x838800b758277CC111B2d48Ab01e5E164f8E9471", "decimals": 18 },
-    "USDC": { "address": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B", "decimals": 6 }
+    "WPHRS": {
+      "address": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+      "decimals": 18
+    },
+    "USDC": {
+      "address": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+      "decimals": 6
+    }
   },
   "pools": {
-    "A": { "address": "0x4c614696467128e14ba15e82dce543335184a271", "deployTx": "0xa02b71eeee3ffb9c5e35ce1729f0c7a83a12d8e9e3c86cb043d0ddc0fc84362d", "rate": "1 WPHRS = 0.65 USDC", "feeBps": 30 },
-    "B": { "address": "0xe9091a1d8c41b9b995d77e1fe939df97e169b4cd", "deployTx": "0x4a4c7ac5435f98237051964b954573f7b5f6bbd0a6f12d6302b7a6897e8aed64", "rate": "1 WPHRS = 0.653 USDC at deploy (the demo moves it)", "feeBps": 30 }
+    "A": {
+      "address": "0x4c614696467128e14ba15e82dce543335184a271",
+      "deployTx": "0xa02b71eeee3ffb9c5e35ce1729f0c7a83a12d8e9e3c86cb043d0ddc0fc84362d",
+      "rate": "1 WPHRS = 0.65 USDC",
+      "feeBps": 30
+    },
+    "B": {
+      "address": "0xe9091a1d8c41b9b995d77e1fe939df97e169b4cd",
+      "deployTx": "0x4a4c7ac5435f98237051964b954573f7b5f6bbd0a6f12d6302b7a6897e8aed64",
+      "rate": "1 WPHRS = 0.653 USDC at deploy (the demo moves it)",
+      "feeBps": 30
+    }
   },
   "setup": [
-    { "step": "wrap 5 PHRS into WPHRS", "tx": "0x12119821fee2f68798d21a2252f7c9c764999136b1a1641e2a9304469716d881" },
-    { "step": "seed pool A with 4.5 WPHRS (A pays out WPHRS when the scanner buys)", "tx": "0xe9a0d9fac110340fe273a368082399a619388ec3675dbf92cbd9962eb5703160" },
-    { "step": "seed pool B with 4 USDC (B pays out USDC when the scanner sells)", "tx": "0x7f3d72a43b83310f18f42b2c3c25997394b6c4a54ba56aa9a0a99eaed6bcd400" }
+    {
+      "step": "wrap 5 PHRS into WPHRS",
+      "tx": "0x12119821fee2f68798d21a2252f7c9c764999136b1a1641e2a9304469716d881"
+    },
+    {
+      "step": "seed pool A with 4.5 WPHRS (A pays out WPHRS when the scanner buys)",
+      "tx": "0xe9a0d9fac110340fe273a368082399a619388ec3675dbf92cbd9962eb5703160"
+    },
+    {
+      "step": "seed pool B with 4 USDC (B pays out USDC when the scanner sells)",
+      "tx": "0x7f3d72a43b83310f18f42b2c3c25997394b6c4a54ba56aa9a0a99eaed6bcd400"
+    },
+    {
+      "step": "after the executed trade, top-up: wrap 3 PHRS into WPHRS",
+      "tx": "0xe7c01f1e412a1377a31f148cc6e95ef0dca90487741d65661232e6262e2da301"
+    },
+    {
+      "step": "top-up pool A with 3.5 WPHRS",
+      "tx": "0x46976ebf4a2cd14d7d72c827462773f500fca184d92c7f58deca85e969876c60"
+    },
+    {
+      "step": "top-up pool B with 3 USDC",
+      "tx": "0x33d8e68363fe707fdf1299a4a7f885aaa91022951059fb0bff421e0cdf3ca8fe"
+    },
+    {
+      "step": "set pool B rate to 0.665 USDC per WPHRS (the demo's market move; `move-rate`)",
+      "tx": "0x039f17092a30c6bf5860c5c4050c8e9a9aa376719aa6814f99b7d62383b7681f"
+    }
   ]
 }
