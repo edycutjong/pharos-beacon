@@ -46,6 +46,7 @@ export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 export function fmtToken(raw: bigint, decimals: number, dp = 2): string {
   const neg = raw < 0n;
   const v = neg ? -raw : raw;
+  if (v !== 0n && v < 10n ** BigInt(decimals)) dp = Math.max(dp, Math.min(decimals, 6)); // under one unit: show enough places that it is not "0.00"
   const base = 10n ** BigInt(decimals);
   const scale = 10n ** BigInt(dp);
   const rounded = decimals >= dp ? (v * scale + base / 2n) / base : v * scale;
@@ -54,6 +55,9 @@ export function fmtToken(raw: bigint, decimals: number, dp = 2): string {
 }
 
 export const pct = (x: number, dp = 2) => `${(x * 100).toFixed(dp)}%`;
+
+/** A health factor for display; a position with next to no debt has an absurd one, shown as "> 1000". */
+export const fmtHf = (hf: number, dp = 4) => (hf > 1000 ? "> 1000" : hf.toFixed(dp));
 
 export interface Alert {
   level: Exclude<Level, "ok">;
@@ -70,7 +74,7 @@ export const marketLabel = (s: MarketSnapshot) => `${s.collateral.symbol}/${s.lo
 export function buildAlert(level: Exclude<Level, "ok">, s: MarketSnapshot, p: PositionHealth, t: Thresholds, now: Date, shock = 0): Alert {
   const label = marketLabel(s);
   const scenario = shock > 0 ? ` [scenario: ${s.collateral.symbol} price −${pct(shock, 1)}]` : "";
-  const head = `[${now.toISOString()}] ${level.toUpperCase()} Morpho ${label} ${short(p.user)}${scenario}: health factor ${p.hfNumber.toFixed(4)}`;
+  const head = `[${now.toISOString()}] ${level.toUpperCase()} Morpho ${label} ${short(p.user)}${scenario}: health factor ${fmtHf(p.hfNumber)}`;
   const debt = `debt ${fmtToken(p.debt, s.loan.decimals)} ${s.loan.symbol}, collateral ${fmtToken(p.collateral, s.collateral.decimals)} ${s.collateral.symbol}`;
   const danger = level === "liquidatable" ? "Liquidatable now." : `Liquidated if ${s.collateral.symbol} falls ${pct(p.dropToLiquidation)} further.`;
   // the remedy is computed at the (possibly shocked) price, so the action matches the number in the headline

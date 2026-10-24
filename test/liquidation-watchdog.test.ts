@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { decodeFunctionData, encodeFunctionResult, getAddress, parseAbi, type Hex } from "viem";
-import { buildAlert, checkThresholds, fmtToken, levelOf, nextLevel, pct, type Thresholds } from "../src/liq/alert.js";
+import { buildAlert, checkThresholds, fmtHf, fmtToken, levelOf, nextLevel, pct, type Thresholds } from "../src/liq/alert.js";
 import { addBorrowers, BORROW_TOPIC, discoverBorrowers, emptyIndex, loadIndex } from "../src/liq/discover.js";
 import {
   accrue, borrowAssets, dropToLiquidation, evaluate, healthFactor, maxBorrow, MORPHO_BLUE, ORACLE_PRICE_SCALE, readPosition, remedy, snapshotMarket, taylorCompounded, WAD,
@@ -136,7 +136,11 @@ describe("alert text", () => {
   });
   it("formats token amounts", () => {
     expect(fmtToken(1_523_800_410_000n, 6)).toBe("1,523,800.41");
-    expect(fmtToken(5n, 6)).toBe("0.00");
+    expect(fmtToken(5n, 6)).toBe("0.000005"); // a tiny amount is never shown as 0.00
+    expect(fmtToken(0n, 6)).toBe("0.00");
+    expect(fmtToken(1_500_000n, 6)).toBe("1.50");
+    expect(fmtHf(677060.0018)).toBe("> 1000");
+    expect(fmtHf(1.01339)).toBe("1.0134");
     expect(fmtToken(10n ** 18n * 3n / 2n, 18)).toBe("1.50");
     expect(fmtToken(-1_500_000n, 6)).toBe("-1.50");
     expect(pct(0.0132)).toBe("1.32%");
@@ -144,6 +148,10 @@ describe("alert text", () => {
 });
 
 describe("table", () => {
+  it("marks dust positions as listed but never alerted", () => {
+    const r = { ...row(1_200_000n, 1_000_000_000_000n), dust: true };
+    expect(tableText([r], 5, 0).split("\n")[1]).toContain("critical (dust, no alert)");
+  });
   it("lists the closest to liquidation first and adds the scenario column", () => {
     const rows = sortRows([row(2_000_000n, 1_000_000_000_000n), row(1_100_000n, 1_000_000_000_000n)]);
     const text = tableText(rows, 10, 0.05);
@@ -274,6 +282,7 @@ describe("CLI input checks (no network is touched)", () => {
     await bad(["position"], /needs --market and --user/);
     await bad(["position", "--market", ID, "--user", "nope"], /--user must be an address/);
     await bad(["scan", "--shock", "1.5"], /--shock/);
+    await bad(["scan", "--min-debt", "-1"], /--min-debt/);
     await bad(["watch", "--proof", "x"], /--proof is for scan/);
     await bad(["flip"], /command/);
     await expect(main(ctx, ["scan", "--warn", "x"])).rejects.toBeInstanceOf(UsageError);

@@ -14,7 +14,7 @@ import { wait } from "../../src/lib/net.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { writeJsonAtomic } from "../../src/lib/state.js";
 import { secondsPerBlock } from "../../src/arb/backtest.js";
-import { buildAlert, checkThresholds, fmtToken, levelOf, marketLabel, nextLevel, pct, short, severity, type Alert, type Level, type Thresholds } from "../../src/liq/alert.js";
+import { buildAlert, checkThresholds, fmtHf, fmtToken, levelOf, marketLabel, nextLevel, pct, short, severity, type Alert, type Level, type Thresholds } from "../../src/liq/alert.js";
 import { discoverBorrowers } from "../../src/liq/discover.js";
 import { evaluate, readPosition, snapshotMarket, type MarketSnapshot, type PositionHealth } from "../../src/liq/morpho.js";
 import { discordNotifier, loadWebhook, type Notifier } from "../../src/watch/discord.js";
@@ -22,7 +22,7 @@ import { discordNotifier, loadWebhook, type Notifier } from "../../src/watch/dis
 const TASK = "liquidation-watchdog";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 
-export interface Row { snap: MarketSnapshot; p: PositionHealth; level: Level }
+export interface Row { snap: MarketSnapshot; p: PositionHealth; level: Level; /** Debt under --min-debt: listed, never alerted. */ dust?: boolean }
 
 const num = (flag: string, v: string, min: number, max = Infinity) => {
   const n = Number(v);
@@ -40,9 +40,9 @@ export function tableText(rows: Row[], top: number, shock: number): string {
   const out = [head.join(" | ")];
   rows.slice(0, top).forEach((r, i) => {
     const { snap, p } = r;
-    const cells = [String(i + 1), marketLabel(snap), short(p.user), p.hfNumber.toFixed(4), pct(p.dropToLiquidation)];
-    if (shock > 0) cells.push(shockedHf(r, shock).toFixed(4));
-    cells.push(`${fmtToken(p.debt, snap.loan.decimals)} ${snap.loan.symbol}`, `${fmtToken(p.collateral, snap.collateral.decimals)} ${snap.collateral.symbol}`, r.level);
+    const cells = [String(i + 1), marketLabel(snap), short(p.user), fmtHf(p.hfNumber), pct(p.dropToLiquidation)];
+    if (shock > 0) cells.push(fmtHf(shockedHf(r, shock)));
+    cells.push(`${fmtToken(p.debt, snap.loan.decimals)} ${snap.loan.symbol}`, `${fmtToken(p.collateral, snap.collateral.decimals)} ${snap.collateral.symbol}`, r.dust ? `${r.level} (dust, no alert)` : r.level);
     out.push(cells.join(" | "));
   });
   return out.join("\n");
@@ -67,12 +67,12 @@ const loadLevels = (file: string): LevelFile => (existsSync(file) ? (JSON.parse(
 export async function main({ onExit, signal }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- scan|watch|position [--lookback-days N] [--market 0x<id>] [--user 0x<address>] [--warn 1.3] [--critical 1.1] [--rearm 0.02] [--shock 0.05] [--top N] [--discord] [--interval-s N] [--max-polls N] [--index file] [--proof name]`,
+      usage: `npm run ${TASK} -- scan|watch|position [--lookback-days N] [--market 0x<id>] [--user 0x<address>] [--warn 1.3] [--critical 1.1] [--rearm 0.02] [--shock 0.05] [--min-debt 1] [--top N] [--discord] [--interval-s N] [--max-polls N] [--index file] [--proof name]`,
       options: {
         "lookback-days": { type: "string", default: "7" }, market: { type: "string" }, user: { type: "string" },
         warn: { type: "string", default: "1.3" }, critical: { type: "string", default: "1.1" }, rearm: { type: "string", default: "0.02" },
         shock: { type: "string", default: "0" }, top: { type: "string", default: "10" }, discord: { type: "boolean", default: false },
-        "interval-s": { type: "string", default: "60" }, "max-polls": { type: "string", default: "10" },
+        "min-debt": { type: "string", default: "1" }, "interval-s": { type: "string", default: "60" }, "max-polls": { type: "string", default: "10" },
         index: { type: "string", default: join(HERE, "state/borrowers.json") }, levels: { type: "string", default: join(HERE, "state/levels.json") }, proof: { type: "string" },
       },
       positionals: [1, 1],
@@ -87,6 +87,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
     throw e instanceof UsageError ? e : new UsageError((e as Error).message);
   }
   const shock = num("--shock", values.shock!, 0, 0.99);
+  const minDebt = num("--min-debt", values["min-debt"]!, 0); // loan-token units; below this a position is dust
   const top = Math.round(num("--top", values.top!, 1, 200));
   const lookbackDays = num("--lookback-days", values["lookback-days"]!, 0.01, 400);
   const intervalS = num("--interval-s", values["interval-s"]!, 1);
@@ -121,7 +122,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
         const pos = await readPosition(call, id as Hex, user);
         const p = evaluate(user, pos, snap);
         if (p.debt === 0n) continue; // repaid or liquidated since its Borrow event
-        rows.push({ snap, p, level: levelOf(p.hfNumber, t) });
+        rows.push({ snap, p, level: levelOf(p.hfNumber, t), dust: Number(p.debt) / 10 ** snap.loan.decimals < minDebt });
       }
     }
     return rows;
@@ -148,7 +149,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
     const user = getAddress(values.user!);
     const snap = await snapshotMarket(call, id, timestamp);
     const p = evaluate(user, await readPosition(call, id, user), snap);
-    const row: Row = { snap, p, level: levelOf(p.hfNumber, t) };
+    const row: Row = { snap, p, level: levelOf(p.hfNumber, t) }; // a named position is always alerted on: no dust rule
     log(`block ${head} · Morpho ${marketLabel(snap)} ${id} · LLTV ${pct(Number(snap.params.lltv) / 1e18)} · ${snap.accrued ? "interest accrued to the head block" : "interest NOT accrued (IRM unreadable)"}`);
     if (p.debt === 0n) {
       log(`${user} has no debt in this market (collateral ${fmtToken(p.collateral, snap.collateral.decimals)} ${snap.collateral.symbol}): nothing to liquidate`);
@@ -156,7 +157,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
       log(tableText([row], 1, shock));
       const lvl = shock > 0 ? levelOf(shockedHf(row, shock), t) : row.level;
       if (lvl !== "ok") await deliver([buildAlert(lvl, snap, shock > 0 ? { ...p, hfNumber: shockedHf(row, shock), dropToLiquidation: 1 - 1 / shockedHf(row, shock) } : p, t, new Date(), shock)]);
-      else log(`ok: health ${p.hfNumber.toFixed(4)} is above the warn threshold ${t.warn.toFixed(2)}`);
+      else log(`ok: health ${fmtHf(p.hfNumber)} is above the warn threshold ${t.warn.toFixed(2)}`);
     }
     if (values.proof) {
       const file = join(HERE, "proof", `${values.proof}.json`);
@@ -191,7 +192,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
     for (const r of rows) {
       const hf = shock > 0 ? shockedHf(r, shock) : r.p.hfNumber;
       const lvl = levelOf(hf, t);
-      if (lvl === "ok") continue;
+      if (lvl === "ok" || r.dust) continue;
       const p = shock > 0 ? { ...r.p, hfNumber: hf, dropToLiquidation: hf <= 1 ? 0 : 1 - 1 / hf } : r.p;
       alerts.push(buildAlert(lvl, r.snap, p, t, new Date(), shock));
       if (alerts.length >= 20) break;
@@ -229,7 +230,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
       const key = `${r.snap.id}:${r.p.user}`;
       const hf = shock > 0 ? shockedHf(r, shock) : r.p.hfNumber;
       const prev = state.levels[key] ?? "ok";
-      const next = nextLevel(prev, hf, t);
+      const next = r.dust ? "ok" : nextLevel(prev, hf, t);
       state.levels[key] = next;
       if (next !== prev && severity(next) > severity(prev) && next !== "ok") alerts.push(buildAlert(next as Exclude<Level, "ok">, r.snap, { ...r.p, hfNumber: hf, dropToLiquidation: hf <= 1 ? 0 : 1 - 1 / hf }, t, new Date(), shock));
       else if (next !== prev) log(`[${new Date().toISOString()}] ${next === "ok" ? "CLEARED" : "EASED to " + next} Morpho ${marketLabel(r.snap)} ${short(r.p.user)}: health factor ${hf.toFixed(4)}`);
