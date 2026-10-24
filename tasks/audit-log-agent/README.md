@@ -8,7 +8,7 @@ about 5 minutes for a day: 192 `get_logs` windows for the day, about as many aga
 previous-period read; `--proof label` writes `proof/<label>.json`.
 **Uses:** Chain MCP ✅ (`get_chain_info`, `get_block_number`, `get_block`, `get_logs`, `get_transaction`, `get_transaction_receipt`, `get_code`, `eth_call`,
 `get_transaction_count`) · SkillEngine: not used · Docs MCP: not used. It never sends a transaction. The same engine (`src/activity/`) is reused by the
-Weekly Digest Agent, which lives on the next branch of the stack.
+Weekly Digest Agent, which lives in `tasks/weekly-digest-agent/`.
 
 ## Try it (a couple of minutes, keyless, read-only)
 

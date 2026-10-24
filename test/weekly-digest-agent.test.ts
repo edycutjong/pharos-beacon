@@ -82,6 +82,15 @@ describe("metrics, comparison and top events", () => {
     expect(topEvents(a, p).some((e) => e.kind === "mint")).toBe(false); // and does not make the top three while other events exist
   });
 
+  it("when every notable transaction is one kind, the top three still lists three (backfill past the two-per-kind cap)", async () => {
+    const all = await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 90n, toBlock: 200n }, { scanBlocks: 111 });
+    const swap = all.items.find((i) => i.category === "swap")!;
+    const a = { ...all, items: [1, 2, 3, 4].map((n) => ({ ...swap, tx: `0x${n}`.padEnd(66, "0") as typeof swap.tx })) };
+    const ev = topEvents(a);
+    expect(ev.map((e) => e.kind)).toEqual(["swap", "swap", "swap"]);
+    expect(new Set(ev.map((e) => e.tx)).size).toBe(3);
+  });
+
   it("never more than two events of one kind in the top three", async () => {
     const a = await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 90n, toBlock: 200n }, { scanBlocks: 111 });
     const ev = topEvents(a);

@@ -167,6 +167,11 @@ export function topEvents(a: Activity, prev?: Metrics, limit = 3): Notable[] {
     picked.push(c);
     if (picked.length === limit) break;
   }
+  // Backfill: when the two-per-kind cap leaves fewer than `limit`, fill from what was skipped (best first).
+  if (picked.length < limit) for (const c of sorted) {
+    if (picked.length === limit) break;
+    if (!picked.includes(c)) picked.push(c);
+  }
   return picked.map(({ block: _b, ...n }) => n);
 }
 

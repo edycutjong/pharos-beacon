@@ -70,6 +70,8 @@ GET /api/x402-paywalled-api/gas-snapshot · 0.001 USDC · payer 0x317bca01Bb101C
   ✓   verify  /verify valid  (606 ms)
   ✓   settle  /settle tx mined  (2435 ms)
   ✓   ok      200 · receipt ok  (112 ms)
+  (the CLI now also prints the header line, as in the re-recorded run, proof/video-casts.log:16:
+   200 OK · PAYMENT-RESPONSE: success, tx 0x5860fa1e1ae97593edd2917b61c78bc259757defc276dafced3732cc2915d85c)
 PAID in 3247 ms: Paid 0.001 USDC, settled on chain, receipt checked, data returned.
   settle tx https://atlantic.pharosscan.xyz/tx/0x42f1683455bf8e4db65b1f62347c936a1bdf4b7d87bebc7499690f0710eaa085 (block 31800721)
   receipt check: status 1 · USDC Transfer 0.001 USDC to the payee
@@ -88,7 +90,7 @@ PAID in 3247 ms: Paid 0.001 USDC, settled on chain, receipt checked, data return
 - The Atlantic reads (gas snapshot, settle receipt, run log) use the Atlantic JSON-RPC, not the Chain MCP: the hosted Chain MCP serves mainnet only, and the local stdio Atlantic server that the CLI tasks use cannot run inside a Vercel Function. The whale brief (mainnet) is read through the hosted Chain MCP.
 - The run log is read from the chain, so it shows settled payments only (refused runs move nothing). The public RPC answers one 1,000-block log query at a time, so it looks back about 12 hours (24 windows).
 - The demo rate limit (one paid run every 10 s) is per server instance; Vercel may run more than one.
-- The Atlantic public RPC rate-limits bursts (seen once, above); a refused settle costs the buyer nothing and a retry works.
+- The Atlantic public RPC rate-limits bursts (seen once, above); a settle the facilitator refuses before sending moves nothing and a retry works; a response lost after the transfer mined (seen once on the deployed API, see `tasks/x402-agent-buyer/proof/prod-gas.json`) needs a chain check before any retry.
 - The quoted route's headline range is mainnet history read through the hosted Chain MCP, three `get_logs` calls for 2,500 blocks; the price covers that work, not the data's value.
 - The demo buyer is a server-side wallet holding test USDC; anyone pressing *Run live* spends it (0.001–0.015 test USDC per run, the top price being the quoted route).
 

@@ -3,6 +3,7 @@
 **Task:** [Skill + Chain MCP Flow](https://pharos-agent-arena.vercel.app/tasks/skill-chain-mcp-flow) (Composition · Medium · 100 pts): compose a SkillEngine skill with a Chain MCP call into one working agent flow.
 **The flow we picked:** *"Can I treat this transaction as paid?"* The skill [`settlement-verdict`](../../skills/settlement-verdict/SKILL.md) decides SETTLED / WAIT / FAILED / MISMATCH / NOT_FOUND, and every on-chain fact it decides on (transaction, receipt, head block, block times) comes from the Pharos Chain MCP in the same run. The head block decides WAIT versus SETTLED; NOT_FOUND, FAILED and MISMATCH come from the transaction and receipt.
 **Run** (keyless, read-only, Pharos mainnet, Node ≥ 20): `npm ci && npm run skill-chain-mcp-flow -- 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0` (a mainnet transaction: SETTLED), `-- --latest` (whatever is newest: WAIT when it is only a few blocks old), or `npm run skill-chain-mcp-flow -- 0x<txhash> [--expect-to 0x… --min-value 0.5 --follow 60]`. `--network atlantic` needs the one-time `npm run setup:mcp`.
+**SkillEngine format:** `settlement-verdict` uses the same `SKILL.md` frontmatter as PharosNetwork's `pharos-skill-engine` skills (`name`, `description`, `version`, `requires.anyBins`), so it installs and loads like any SkillEngine skill.
 **Install as a skill:** `npx skills add https://github.com/edycutjong/pharos-beacon --skill settlement-verdict`.
 
 ## The flow: what calls what, in what order
