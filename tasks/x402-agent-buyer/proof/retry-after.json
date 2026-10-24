@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run retry --simulate-failure after --base http://localhost:4021/ --fresh --proof retry-after",
     "git": {
-      "commit": "502f8f71ee0e",
+      "commit": "5cbf2b658c47",
       "dirty": false
     },
-    "createdAt": "2026-10-24T00:26:36.326Z"
+    "createdAt": "2026-10-24T01:00:01.414Z"
   },
   "task": "retry",
   "goal": "One purchase, with a network failure after the payment is signed.",
@@ -37,7 +37,7 @@
       "type": "sign",
       "want": "gas",
       "purchase": "retry/gas",
-      "nonce": "0xc6ff394d8eeeebf09e9a9df4b00d9a1d7913c10945423e950b755871e2da9674",
+      "nonce": "0x553d99e9a308e0824e1525838d86fc5d77f029392de9ec7b35ccec1a74464a17",
       "price": "0.001 USDC"
     },
     {
@@ -50,8 +50,8 @@
       "type": "reconcile",
       "want": "gas",
       "nonceUsed": true,
-      "tx": "0x13fb1245206e85ab9bd44d79c13874bedb5dc4808fc5c32e67f94c47fe91101d",
-      "text": "authorization 0xc6ff394d… was used in 0x13fb124520…: it settled once"
+      "tx": "0x97e67f2c14ef62e50081f3c52d3b83adab1edcaa0cb08d6d4f30a83b0ab7c4fb",
+      "text": "authorization 0x553d99e9… was used in 0x97e67f2c14…: it settled once"
     },
     {
       "type": "done",
@@ -70,7 +70,7 @@
             "want": "gas",
             "status": "paid-data-lost",
             "price": "0.001 USDC",
-            "tx": "0x13fb1245206e85ab9bd44d79c13874bedb5dc4808fc5c32e67f94c47fe91101d"
+            "tx": "0x97e67f2c14ef62e50081f3c52d3b83adab1edcaa0cb08d6d4f30a83b0ab7c4fb"
           }
         ]
       }
@@ -91,7 +91,7 @@
         "want": "gas",
         "status": "paid-data-lost",
         "price": "0.001 USDC",
-        "tx": "0x13fb1245206e85ab9bd44d79c13874bedb5dc4808fc5c32e67f94c47fe91101d"
+        "tx": "0x97e67f2c14ef62e50081f3c52d3b83adab1edcaa0cb08d6d4f30a83b0ab7c4fb"
       }
     ]
   }
