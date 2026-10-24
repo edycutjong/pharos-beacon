@@ -25,6 +25,7 @@
     "whale-watching-agent": "tsx tasks/whale-watching-agent/index.ts",
     "wallet-risk-checker": "tsx tasks/wallet-risk-checker/index.ts",
     "trend-watcher": "tsx tasks/trend-watcher/index.ts",
+    "skill-chain-mcp-flow": "tsx tasks/skill-chain-mcp-flow/index.ts",
     "recurring-payment-agent": "tsx tasks/recurring-payment-agent/index.ts",
     "trend-demo-move": "tsx scripts/trend-demo-move.ts",
     "make-risky-wallet": "tsx scripts/make-risky-wallet.ts",
