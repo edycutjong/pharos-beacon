@@ -116,8 +116,8 @@ export function valueOf(p: Position): { usd: number; from: Fact[] } | null {
   return p.netUsd === null ? null : { usd: p.netUsd, from: [p.supplied, p.collateralValue, p.debt] };
 }
 
-const label = (p: Position): string =>
-  p.kind === "token" ? `${p.symbol} in wallet` : p.kind === "vault" ? `${p.symbol} (${p.protocol})` : `Morpho Blue ${p.pair} (collateral + supply − debt)`;
+const label = (p: Position, lang: Lang): string =>
+  p.kind === "token" ? `${p.symbol} ${W[lang].in} ${W[lang].wallet}` : p.kind === "vault" ? `${p.symbol} (${p.protocol})` : `Morpho Blue ${p.pair} (${W[lang].netDef})`;
 
 const MSG = {
   en: {
@@ -142,8 +142,8 @@ const MSG = {
 
 /** What each answer type calls itself in each language (the lines that are not numbers). */
 const W = {
-  en: { in: "in", wallet: "wallet", vault: "vault", worth: "worth", none: (t: string) => `You hold no ${t} here`, total: "Total value", of: "of", debt: "debt", collateral: "collateral", health: "health factor", noDebt: "No debt", earns: "grew", perYear: "a year", on: "on", about: "that is about", apy: "annualised", over: "over", days: "days", biggest: "Your biggest position is", ranked: "Ranked", changedSince: "Since block", before: "before", after: "after", flows: "from balance moves", priceMove: "from price/rate moves", nothingChanged: "Nothing changed", walletTokens: "wallet tokens", where: "Your" },
-  id: { in: "di", wallet: "dompet", vault: "vault", worth: "senilai", none: (t: string) => `Anda tidak punya ${t} di sini`, total: "Total nilai", of: "dari", debt: "utang", collateral: "jaminan", health: "faktor kesehatan", noDebt: "Tidak ada utang", earns: "tumbuh", perYear: "setahun", on: "dari", about: "itu sekitar", apy: "disetahunkan", over: "selama", days: "hari", biggest: "Posisi terbesar Anda adalah", ranked: "Peringkat", changedSince: "Sejak blok", before: "sebelum", after: "sesudah", flows: "dari perpindahan saldo", priceMove: "dari perubahan harga/imbal hasil", nothingChanged: "Tidak ada yang berubah", walletTokens: "token dompet", where: "Milik Anda" },
+  en: { netDef: "collateral + supply − debt", supplied: "supplied", borrowedNotHeld: (t: string) => `${t} borrowed, not held`, mayFall: "may fall", beforeLiq: "before liquidation", collateralValue: "collateral", noApy: "I did not compute its supply APY (only the position was read).", nothingEarns: "Nothing here earns: wallet tokens pay no yield, and no vault shares or Morpho supply were found", in: "in", wallet: "wallet", vault: "vault", worth: "worth", none: (t: string) => `You hold no ${t} here`, total: "Total value", of: "of", debt: "debt", collateral: "collateral", health: "health factor", noDebt: "No debt", earns: "grew", perYear: "a year", on: "on", about: "that is about", apy: "annualised", over: "over", days: "days", biggest: "Your biggest position is", ranked: "Ranked", changedSince: "Since block", before: "before", after: "after", flows: "from balance moves", priceMove: "from price/rate moves", nothingChanged: "Nothing changed", walletTokens: "wallet tokens", where: "Your" },
+  id: { netDef: "jaminan + suplai − utang", supplied: "disuplai", borrowedNotHeld: (t: string) => `${t} dipinjam, tidak dipegang`, mayFall: "boleh turun", beforeLiq: "sebelum likuidasi", collateralValue: "jaminan", noApy: "Saya tidak menghitung APY suplainya (hanya posisinya yang dibaca).", nothingEarns: "Tidak ada yang menghasilkan di sini: token dompet tidak memberi imbal hasil, dan tidak ditemukan saham vault atau suplai Morpho", in: "di", wallet: "dompet", vault: "vault", worth: "senilai", none: (t: string) => `Anda tidak punya ${t} di sini`, total: "Total nilai", of: "dari", debt: "utang", collateral: "jaminan", health: "faktor kesehatan", noDebt: "Tidak ada utang", earns: "tumbuh", perYear: "setahun", on: "dari", about: "itu sekitar", apy: "disetahunkan", over: "selama", days: "hari", biggest: "Posisi terbesar Anda adalah", ranked: "Peringkat", changedSince: "Sejak blok", before: "sebelum", after: "sesudah", flows: "dari perpindahan saldo", priceMove: "dari perubahan harga/imbal hasil", nothingChanged: "Tidak ada yang berubah", walletTokens: "token dompet", where: "Milik Anda" },
 } as const;
 
 function unreadableNotes(snaps: Snapshot[], lang: Lang, only?: (u: { protocol: string; what: string }) => boolean): string[] {
@@ -205,9 +205,9 @@ export async function answerQuestion(question: string, reads: Reads, windowDays 
         if (p.kind === "vault" && p.symbol.toUpperCase() === sym) rows.push(`${pre}${amt(p.shares, 4)} ${w.in} ${p.protocol} ${w.vault} ${c.ref(p.shares)}`);
         if (p.kind === "vault" && sym === "USDC") rows.push(`${pre}${amt(p.assets)} ${w.in} ${p.symbol} ${w.vault} (${p.protocol}) ${c.ref(p.assets)}`);
         if (p.kind === "morpho") {
-          if (p.loanSymbol.toUpperCase() === sym && p.supplied.raw > 0n) rows.push(`${pre}${amt(p.supplied)} supplied ${w.in} Morpho Blue ${p.pair} ${c.ref(p.supplied)}`);
+          if (p.loanSymbol.toUpperCase() === sym && p.supplied.raw > 0n) rows.push(`${pre}${amt(p.supplied)} ${w.supplied} ${w.in} Morpho Blue ${p.pair} ${c.ref(p.supplied)}`);
           if (p.collateral.symbol.toUpperCase() === sym && p.collateral.raw > 0n) rows.push(`${pre}${amt(p.collateral, 4)} ${w.collateral} ${w.in} Morpho Blue ${p.pair} ${c.ref(p.collateral)}`);
-          if (p.loanSymbol.toUpperCase() === sym && p.debt.raw > 0n) rows.push(`${pre}${w.debt}: ${amt(p.debt)} ${w.in} Morpho Blue ${p.pair} (${sym} borrowed, not held) ${c.ref(p.debt)}`);
+          if (p.loanSymbol.toUpperCase() === sym && p.debt.raw > 0n) rows.push(`${pre}${w.debt}: ${amt(p.debt)} ${w.in} Morpho Blue ${p.pair} (${w.borrowedNotHeld(sym)}) ${c.ref(p.debt)}`);
         }
       }
       if (!rows.length) out.push(`${w.none(sym)}: ${snaps.flatMap((s) => s.zeros).filter((f) => f.symbol.toUpperCase() === sym).map((f) => `balanceOf ${c.ref(f)}`).join(", ") || "no position read"}`);
@@ -223,7 +223,7 @@ export async function answerQuestion(question: string, reads: Reads, windowDays 
         const pre = who(s);
         if (p.kind === "token") out.push(`${pre}${p.protocol}: ${amt(p.amount, 4)} ${c.ref(p.amount)}`);
         else if (p.kind === "vault") out.push(`${pre}${p.protocol} ${p.symbol}: ${amt(p.shares, 4)} = ${amt(p.assets)} ${c.ref(p.shares, p.assets)}`);
-        else out.push(`${pre}Morpho Blue ${p.pair}: ${w.collateral} ${amt(p.collateral, 4)}, ${w.debt} ${amt(p.debt)}, supplied ${amt(p.supplied)} ${c.ref(p.collateral, p.debt, p.supplied)}`);
+        else out.push(`${pre}Morpho Blue ${p.pair}: ${w.collateral} ${amt(p.collateral, 4)}, ${w.debt} ${amt(p.debt)}, ${w.supplied} ${amt(p.supplied)} ${c.ref(p.collateral, p.debt, p.supplied)}`);
       }
       unreadableNotes(snaps, lang).forEach((n) => out.push(n));
       return finish();
@@ -235,8 +235,8 @@ export async function answerQuestion(question: string, reads: Reads, windowDays 
       const skipped: string[] = [];
       for (const { s, p } of all()) {
         const v = valueOf(p);
-        if (v) valued.push({ label: who(s) + label(p), ...v });
-        else skipped.push(`${who(s)}${label(p)}: ${m.unpriced}`);
+        if (v) valued.push({ label: who(s) + label(p, lang), ...v });
+        else skipped.push(`${who(s)}${label(p, lang)}: ${m.unpriced}`);
       }
       valued.sort((a, b) => b.usd - a.usd);
       if (!valued.length) out.push(`${m.nothing}`);
@@ -260,7 +260,7 @@ export async function answerQuestion(question: string, reads: Reads, windowDays 
         if (p.kind !== "morpho" || p.debt.raw === 0n) continue;
         any = true;
         const hf = p.hf ?? Infinity;
-        out.push(`${who(s)}${p.protocol} ${p.pair}: ${w.debt} ${amt(p.debt)}, ${w.collateral} ${amt(p.collateral, 4)} ${c.ref(p.debt, p.collateral)}; ${w.health} ${fmtHf(hf)} (collateral ${amt(p.collateralValue)} ${c.ref(p.collateralValue)}; may fall ${pct(dropToLiquidation(hf), 1)} before liquidation) ${c.ref(p.debt, p.collateralValue)}`);
+        out.push(`${who(s)}${p.protocol} ${p.pair}: ${w.debt} ${amt(p.debt)}, ${w.collateral} ${amt(p.collateral, 4)} ${c.ref(p.debt, p.collateral)}; ${w.health} ${fmtHf(hf)} (${w.collateralValue} ${amt(p.collateralValue)} ${c.ref(p.collateralValue)}; ${w.mayFall} ${pct(dropToLiquidation(hf), 1)} ${w.beforeLiq}) ${c.ref(p.debt, p.collateralValue)}`);
       }
       if (!any) out.push(`${w.noDebt} ${w.in} Morpho Blue (${snaps.reduce((a, s) => a + s.marketsRead, 0)} position() reads, block ${snaps[0]?.block}) ${c.ref(...snaps.flatMap((s) => s.zeros).slice(0, 1))}`.replace(/ \[\]$/, ""));
       unreadableNotes(snaps, lang, (u) => u.protocol === "Morpho Blue").forEach((n) => out.push(n));
@@ -283,10 +283,10 @@ export async function answerQuestion(question: string, reads: Reads, windowDays 
         }
         for (const p of s.positions) if (p.kind === "morpho" && p.supplied.raw > 0n) {
           any = true;
-          out.push(`${who(s)}Morpho Blue ${p.pair}: supplied ${amt(p.supplied)} ${c.ref(p.supplied)}; I did not compute its supply APY (only the position was read).`);
+          out.push(`${who(s)}Morpho Blue ${p.pair}: ${w.supplied} ${amt(p.supplied)} ${c.ref(p.supplied)}; ${w.noApy}`);
         }
       }
-      if (!any) out.push(`Nothing here earns: wallet tokens pay no yield, and no vault shares or Morpho supply were found ${c.ref(...snaps.flatMap((s) => s.zeros).slice(0, 2))}`.replace(/ \[\]$/, ""));
+      if (!any) out.push(`${w.nothingEarns} ${c.ref(...snaps.flatMap((s) => s.zeros).slice(0, 2))}`.replace(/ \[\]$/, ""));
       unreadableNotes(snaps, lang).forEach((n) => out.push(n));
       return finish();
     }

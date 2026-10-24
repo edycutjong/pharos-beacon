@@ -8,7 +8,8 @@ import type { Lang } from "./ask.js";
 
 export interface ChangeRow {
   key: string;
-  label: string;
+  /** The position the row is about (either snapshot's), for wording in the asker's language. */
+  position: Position;
   /** USD before/after; null when the position has no price source (then only amounts are compared). */
   usdBefore: number | null;
   usdAfter: number | null;
@@ -32,7 +33,7 @@ function keyOf(p: Position): string {
   return p.kind === "token" ? `token:${p.symbol}` : p.kind === "vault" ? `vault:${p.symbol}` : `morpho:${p.market}`;
 }
 
-const nameOf = (p: Position): string => (p.kind === "token" ? `${p.symbol} in wallet` : p.kind === "vault" ? `${p.symbol} (${p.protocol})` : `Morpho Blue ${p.pair}`);
+const nameOf = (p: Position, lang: Lang): string => (p.kind === "token" ? `${p.symbol} ${lang === "id" ? "di dompet" : "in wallet"}` : p.kind === "vault" ? `${p.symbol} (${p.protocol})` : `Morpho Blue ${p.pair}`);
 
 const mainAmount = (p: Position): Fact => (p.kind === "token" ? p.amount : p.kind === "vault" ? p.shares : p.collateral);
 
@@ -56,7 +57,7 @@ export function diffSnapshots(a: Snapshot, b: Snapshot): Diff {
     const pa = A.get(key);
     const pb = B.get(key);
     const ref = (pb ?? pa)!;
-    const row: ChangeRow = { key, label: nameOf(ref), usdBefore: null, usdAfter: null, moves: null, market: null, amountBefore: pa ? mainAmount(pa) : zeroFact(a, ref), amountAfter: pb ? mainAmount(pb) : zeroFact(b, ref), extra: [] };
+    const row: ChangeRow = { key, position: ref, usdBefore: null, usdAfter: null, moves: null, market: null, amountBefore: pa ? mainAmount(pa) : zeroFact(a, ref), amountAfter: pb ? mainAmount(pb) : zeroFact(b, ref), extra: [] };
     if (ref.kind === "morpho") {
       const ma = pa as Extract<Position, { kind: "morpho" }> | undefined;
       const mb = pb as Extract<Position, { kind: "morpho" }> | undefined;
@@ -96,7 +97,7 @@ export function diffSnapshots(a: Snapshot, b: Snapshot): Diff {
   return { rows, before: a, after: b };
 }
 
-const signed = (v: number) => `${v >= 0 ? "+" : "−"}$${Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const signed = (v: number) => `${v >= 0 || Math.abs(v) < 0.005 ? "+" : "−"}$${Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const money = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const T = {
@@ -123,9 +124,9 @@ export function explainChange(d: Diff, lang: Lang, c: Citer): string[] {
       const delta = r.usdAfter - r.usdBefore;
       net += delta;
       facts.push(...cites);
-      lines.push(`  ${r.label}${tag}: ${amounts}; ${money(r.usdBefore)} → ${money(r.usdAfter)} (${signed(delta)}): ${signed(r.moves)} ${r.morpho ? t.morphoFlows : t.flows}, ${signed(r.market)} ${r.morpho ? t.morphoPrice : t.price} ${c.ref(...cites)}`);
+      lines.push(`  ${nameOf(r.position, lang)}${tag}: ${amounts}; ${money(r.usdBefore)} → ${money(r.usdAfter)} (${signed(delta)}): ${signed(r.moves)} ${r.morpho ? t.morphoFlows : t.flows}, ${signed(r.market)} ${r.morpho ? t.morphoPrice : t.price} ${c.ref(...cites)}`);
     } else {
-      lines.push(`  ${r.label}${tag}: ${amounts}${r.note ? ` (${r.note})` : ""} ${c.ref(...cites)}`);
+      lines.push(`  ${nameOf(r.position, lang)}${tag}: ${amounts}${r.note ? ` (${r.note})` : ""} ${c.ref(...cites)}`);
     }
   }
   const priced = d.rows.filter((r) => r.moves !== null);

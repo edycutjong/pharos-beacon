@@ -425,6 +425,32 @@ describe("answers", () => {
     expect(c.a.lang).toBe("id");
   });
 
+  it("Bahasa answers carry no English fragments for debt, where and total", async () => {
+    const w = base();
+    w.collateral = () => 1_200n * 10n ** 18n;
+    w.borrowShares = () => 10n ** 15n;
+    const d = await ask("apakah saya punya utang?", w);
+    expect(d.a.text).toMatch(/utang 1,000\.00 USDC, jaminan 1,200\.0000 syzUSD.*faktor kesehatan 1\.0980 \(jaminan 1,200\.00 USDC.*boleh turun 8\.9% sebelum likuidasi\)/);
+    expect(d.a.text).not.toMatch(/may fall|before liquidation|collateral/);
+    const wh = await ask("di mana USDC saya?", w);
+    expect(wh.a.text).toContain("USDC dipinjam, tidak dipegang");
+    expect(wh.a.text).not.toMatch(/in wallet|borrowed/);
+    const tot = await ask("berapa total nilai portofolio saya?", w);
+    expect(tot.a.text).toContain("USDC di dompet: $1,000.00");
+    expect(tot.a.text).toContain("jaminan + suplai − utang");
+    expect(tot.a.text).not.toMatch(/in wallet|collateral/);
+  });
+
+  it("a change too small to see is shown as +$0.00, never −$0.00", async () => {
+    const w = base();
+    w.native = (b) => (b >= HEAD ? 2n * 10n ** 18n - 1n : 2n * 10n ** 18n);
+    const book = new FactBook();
+    const snap = await readSnapshot(fakeChain(w), ME, book);
+    const a = await answerQuestion("what changed since block 913600?", reads([snap], book, w));
+    expect(a.text).toMatch(/PROS in wallet: 2\.0000 → 2\.0000 PROS/);
+    expect(a.text).not.toContain("−$0.00");
+  });
+
   it("says plainly when it cannot read a source, and does not guess its figure", async () => {
     const w = base();
     w.broken.add(`${JT.share}.balanceOf`);
