@@ -145,6 +145,22 @@ describe("weekly-digest-agent main", () => {
     expect(text).not.toContain("# Weekly digest");
   });
 
+  it("a period that was only written is delivered when delivery is asked for later (a run before the webhook was set up)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "digest-"));
+    const state = join(dir, "s.json");
+    const sent: string[] = [];
+    const args = ["--wallet", W, "--now", NOW, "--state", state, "--baseline", "none"];
+    await main(ctx, [...args, "--deliver", "none"], conn(), () => fakeNotifier(sent));
+    expect(sent).toHaveLength(0);
+    out.length = 0;
+    await main(ctx, [...args, "--deliver", "none"], conn(), () => fakeNotifier(sent));
+    expect(out.join("\n")).toMatch(/already delivered: .*written, not delivered/); // asking for no delivery again: nothing to do
+    out.length = 0;
+    await main(ctx, [...args, "--deliver", "discord"], conn(), () => fakeNotifier(sent));
+    expect(sent).toHaveLength(1);
+    expect(JSON.parse(readFileSync(state, "utf8")).delivered.id).toBe("m1");
+  });
+
   it("--force builds the same period again", async () => {
     const dir = mkdtempSync(join(tmpdir(), "digest-"));
     const base = ["--wallet", W, "--now", NOW, "--state", join(dir, "s.json"), "--baseline", "none"];

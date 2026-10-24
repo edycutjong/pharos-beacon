@@ -78,7 +78,8 @@ export async function main(
   const prevPeriod = periodAt(nowTs, cadence, 1);
   const state = values.state ? readState<DigestState | null>(values.state, null, checkState) : null;
   const same = state && state.wallet === wallet && state.network === network && state.cadence === cadence;
-  if (same && state.periodEnd >= period.toTs && !values.force) {
+  // Built and (if delivery was asked for) delivered already: nothing to do. A period that was only written, with no delivery, is built again when delivery is requested.
+  if (same && state.periodEnd >= period.toTs && !values.force && (state.delivered || deliver === "none")) {
     console.log(`already delivered: the ${cadence} digest for ${state.periodLabel} (${state.delivered ? `message ${state.delivered.id ?? "console"} at ${state.delivered.at}` : "written, not delivered"}); next period ends ${new Date((period.toTs + (period.toTs - period.fromTs)) * 1000).toISOString().slice(0, 10)}. Use --force to build it again.`);
     return 0;
   }
