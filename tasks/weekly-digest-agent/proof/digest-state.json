@@ -2,42 +2,68 @@
   "wallet": "0xe7368221de15a7C5e0a50A95317B06E6d08C3861",
   "network": "pharos",
   "cadence": "weekly",
-  "periodLabel": "2026-10-05 to 2026-10-11",
-  "periodEnd": 1791763200,
+  "periodLabel": "2026-10-12 to 2026-10-18",
+  "periodEnd": 1792368000,
   "metrics": {
-    "period": "2026-10-05 to 2026-10-11",
-    "fromBlock": "19397642",
-    "toBlock": "20009078",
-    "txs": 16,
+    "period": "2026-10-12 to 2026-10-18",
+    "fromBlock": "20009079",
+    "toBlock": "20610966",
+    "txs": 48,
     "transfersIn": 4,
-    "transfersOut": 2,
-    "swaps": 7,
-    "approvals": 2,
-    "contractCalls": 1,
+    "transfersOut": 14,
+    "swaps": 17,
+    "approvals": 8,
+    "contractCalls": 5,
     "failed": 0,
-    "feesWei": "33257213175862922",
+    "feesWei": "105588277797868771",
     "counterparties": [
-      "0x158432eed50e944b4148d46b5e7df5d083706811",
-      "0x15c25ed222fc498f672af5c3adb5ed0a96e1aff1",
+      "0x0000000000000000000000000000000000000000",
+      "0x00000000004159d5b83cec7494917733f08a7629",
       "0x36c800d4472fbb888d034aa74778f481aee01fec",
-      "0x3ef3d8ba38ebe18db133cec108f4d14ce00dd9ae",
-      "0x697322f0bb715fc1e4c1f1283a9f8e546cb4a342",
+      "0x49d789abab297d4427150f0f9b9b6c9ef307eb27",
+      "0x4fd44181839d24e7c8f4d1b9288379109ec25fae",
+      "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0",
+      "0x62ba7ac22f4478890cf95538317f5c4d617b3647",
+      "0x63ffadf944583d8e4fdc30144efdfe3bdc2122f5",
+      "0x649652e92e844e6753d44ff992c5bdc6ede8da38",
       "0xa5ca5fbe34e444f366b373170541ec6902b0f75c",
-      "0xbf105f4ffbd3825f5433d074008b9a76237d849c"
+      "0xafdcf67e34e824071f60918edea05dd70294ef98",
+      "0xb15c484a6e0234af6022118883251f69bebae953",
+      "0xbf105f4ffbd3825f5433d074008b9a76237d849c",
+      "0xd727aec6fe1134020c372bcd202023415d78e6c8",
+      "0xe492912f37c2a4eca45d42dc67548f4c6cd7ce2b",
+      "0xe5142daddb240be4d5efa0f0fa553914956d0bae",
+      "0xee2f76903ac6f0b11fd3a915e76bb78c29373cb2"
     ],
     "tokens": {
-      "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0": {
-        "symbol": "WPROS",
+      "0xb7e89d421ddbc74830abaf88987432ce18cd860d": {
+        "symbol": "CRS",
         "decimals": 18,
-        "inRaw": "5126933415826918775",
+        "inRaw": "10000040000160000640",
         "outRaw": "0",
-        "ins": 3,
+        "ins": 1,
         "outs": 0
       },
-      "0x52acdeb49056518578c7af788ae2c367132e2db5": {
-        "symbol": "pTACO",
+      "0x6c2c5a1ea14674e7fc04881c116b74a12e295ef2": {
+        "symbol": "MUSE",
         "decimals": 18,
-        "inRaw": "525801892226942701518",
+        "inRaw": "10000030000090000270",
+        "outRaw": "0",
+        "ins": 1,
+        "outs": 0
+      },
+      "0xf2619ef01159d6d66632e643c5d173d297254dae": {
+        "symbol": "DOGV",
+        "decimals": 18,
+        "inRaw": "5012079110656682605",
+        "outRaw": "0",
+        "ins": 1,
+        "outs": 0
+      },
+      "0x4b6fee3c329f5e9ec2facfa43c490153c2eb8521": {
+        "symbol": "reTQQQ",
+        "decimals": 18,
+        "inRaw": "5000000000000000000",
         "outRaw": "0",
         "ins": 1,
         "outs": 0
@@ -46,11 +72,40 @@
         "symbol": "USDC",
         "decimals": 6,
         "inRaw": "0",
-        "outRaw": "81500000",
+        "outRaw": "1387196811",
         "ins": 0,
-        "outs": 2
+        "outs": 11
+      },
+      "native": {
+        "symbol": "PROS",
+        "decimals": 18,
+        "inRaw": "0",
+        "outRaw": "107000000000000000000",
+        "ins": 0,
+        "outs": 1
+      },
+      "0xcbe766992ca01e8b927cf092afe806f2d61afad7": {
+        "symbol": "pDOG",
+        "decimals": 18,
+        "inRaw": "0",
+        "outRaw": "2750116590072471524284847",
+        "ins": 0,
+        "outs": 1
+      },
+      "0xc927def5467b85876310f1ef80d1c276b8f8a3aa": {
+        "symbol": "pPeng",
+        "decimals": 18,
+        "inRaw": "0",
+        "outRaw": "91587384024089050739686884",
+        "ins": 0,
+        "outs": 1
       }
     }
   },
-  "file": "tasks/weekly-digest-agent/proof/digests/digest-0xe73682-weekly-2026-10-05.md"
+  "delivered": {
+    "id": "1563413386799091803",
+    "at": "2026-10-24T04:46:38.229000+00:00",
+    "channel": "discord"
+  },
+  "file": "tasks/weekly-digest-agent/proof/digests/digest-0xe73682-weekly-2026-10-12.md"
 }
