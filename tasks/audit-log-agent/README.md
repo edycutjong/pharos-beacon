@@ -4,13 +4,13 @@
 a plain-language activity report for a wallet over a period, the kind a compliance officer or accountant could read.
 **Run:** `npm run audit-log-agent -- --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901 --from 2026-10-23 --to 2026-10-23` (keyless, Pharos mainnet, read-only;
 about 5 minutes for a day: 192 `get_logs` windows for the day, about as many again for the previous-period read that the first-time check needs (`--baseline none` skips it), then the transactions; the client paces itself to 100 calls a minute and the hosted Chain MCP allows 120 per IP). `--from-block N --to-block M` pins blocks instead of dates;
-`--network atlantic` reads the testnet; `--format md|csv|both --out dir` writes files; `--compact` prints a 62-column view; `--baseline none` skips the
+`--network atlantic` reads the testnet; `--format md|csv|both --out dir` writes files; `--compact` prints the report body in at most 62 columns; `--baseline none` skips the
 previous-period read; `--proof label` writes `proof/<label>.json`.
 **Uses:** Chain MCP ✅ (`get_chain_info`, `get_block_number`, `get_block`, `get_logs`, `get_transaction`, `get_transaction_receipt`, `get_code`, `eth_call`,
 `get_transaction_count`) · SkillEngine: not used · Docs MCP: not used. It never sends a transaction. The same engine (`src/activity/`) is reused by the
 Weekly Digest Agent, which lives on the next branch of the stack.
 
-## Try it (about 2 minutes, keyless, read-only)
+## Try it (a couple of minutes, keyless, read-only)
 
 ```text
 npm ci
@@ -24,7 +24,7 @@ It ends with `sent txs: 11 of 11 matched by the chain's nonce`. The date form (a
 The Chain MCP has no "transactions of this address" call, so the engine builds it from what the node can answer:
 
 1. **Date → block.** `--from/--to` are UTC dates (`--to` inclusive). An interpolation search over `get_block` timestamps finds the first block of each
-   day in a few calls (a plain bisection over 21 million blocks takes 25; `test/activity.test.ts` asserts under 16 on a chain with uneven block times).
+   day in far fewer calls than a plain bisection over 21 million blocks (25); `test/activity.test.ts` asserts under 16 `get_block` calls on a synthetic chain with uneven block times, where the search used 13.
 2. **Logs.** `get_logs` with the wallet as the 1st or the 2nd indexed topic, paged by the server's 1,000-block cap: that catches ERC-20/721 `Transfer`
    (from / to), `Approval` (owner) and `Swap` events. `get_transaction` + `get_transaction_receipt` give the sender, the call, the status and the fee.
 3. **What leaves no log** (a plain PROS transfer, a call that emits nothing) is found through the **nonce**: the wallet's nonce rises by one for every
@@ -36,7 +36,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
 
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | "Accepts a wallet address and a date range." | `--wallet` (a malformed address is refused; the address is printed checksummed) and `--from`/`--to` UTC dates, or `--from-block`/`--to-block`; the range is pinned to blocks at the start of the run | [`index.ts`](index.ts) `main`, proof `range` in [`third-party-mainnet.json`](proof/third-party-mainnet.json) (2026-10-23 → blocks 20974946–21070507), tests `refuses bad input` |
+| 1 | "Accepts a wallet address and a date range." | `--wallet` (a string that is not an address is refused; the checksum case is not enforced, the address is printed checksummed) and `--from`/`--to` UTC dates, or `--from-block`/`--to-block`; the range is pinned to blocks at the start of the run | [`index.ts`](index.ts) `main`, proof `range` in [`third-party-mainnet.json`](proof/third-party-mainnet.json) (2026-10-23 → blocks 20974946–21070507), tests `refuses bad input` |
 | 2 | "Groups activity into categories: transfers in and out, swaps, approvals, contract interactions." | Five categories, one section each: transfers in, transfers out, swaps (a Swap event anywhere in the receipt of a transaction the wallet sent, or the wallet giving one token and getting another in one tx; a token sold for the native token is read from the unwrap in the same transaction), approvals (an ERC-20 / NFT `approve`; an allowance merely spent inside a transfer is not counted), contract interactions (a call the wallet sent that is none of the above, incl. reverted ones and payable calls such as a wrap, where the PHRS sent shows next to the call) | Live: third-party wallet = swaps 18 (10 paid in PROS, 8 sold for PROS) · approvals 3 ([`third-party-mainnet.json`](proof/third-party-mainnet.json) `byCategory`); our Atlantic wallet = in 113 ([`atlantic-received.json`](proof/atlantic-received.json)); out 119 + 2 contract calls ([`atlantic-sent.json`](proof/atlantic-sent.json)) |
 | 3 | "Includes totals per category and notable transactions with links." | A totals table (count per category and the token amounts of transfers and swaps), a fees-paid line, the number of failed transactions in the summary sentence when any reverted, and a `Notable transactions` list of up to five (reverted calls first, then one line per spender with an unlimited approval, the two transfers with the biggest share of their token's outflow, then up to two swaps); every row is linked to the explorer | the report excerpt below; [`reports/`](proof/reports/) |
 | 4 | "Exports the report as Markdown, PDF or CSV." | Markdown and CSV (`--format md|csv|both --out dir`); the CSV has one row per item with the explorer link, an `unlimited` allowance written as such, and a `notable` column marking the rows the Markdown lists. No PDF | [`audit-0x28ed4a-2026-10-23_2026-10-23.md`](proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.md) and [`.csv`](proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.csv) (22 lines = header + 21 items) |
@@ -105,7 +105,7 @@ Fees paid: 0.033894 PROS across the transactions this wallet sent. Counts are it
 
 The video (`audit-log-agent.mp4`, kept with the submission and posted on X, not in this repo) is three real terminal recordings, not the proof runs: the `--compact` view on a third party's mainnet wallet over
 blocks 21042000–21082000 (11 of 11 sent transactions matched), our Atlantic wallet over blocks 31804700–31806500 (the logs show 3 of 10 sent transactions, the nonce
-search finds the other 7), and the CSV export. Their output is in [`proof/video-casts.log`](proof/video-casts.log). Waits are trimmed on screen and labelled.
+search finds the other 7), and a read of the CSV that the Atlantic proof run wrote. Their output is in [`proof/video-casts.log`](proof/video-casts.log). Waits are trimmed on screen and labelled.
 
 ## Limits (honest)
 
@@ -117,8 +117,8 @@ search finds the other 7), and the CSV export. Their output is in [`proof/video-
   transaction; a router call that moves nothing the logs show is a contract interaction. When a token is sold for the native token the payout is an unwrap that the Chain MCP shows
   only as a `Withdrawal` event of the wrapped token: exactly one in the swap is read as the native receipt and marked "unwrapped from the wrapped token"; with none the `Got` column is empty. Someone else's swap that pays the wallet stays a transfer in.
 - The transactions read from logs or a block scan are capped by `--max-txs` (default 400, and the report counts what it skipped); the nonce search that finds sends the logs missed is bounded by `--discover-calls` (default 300) and says when it stopped. 
-- A range over 3,000,000 blocks (about a month on mainnet) is refused: run it in pieces. A week is about 600,000 to 670,000 blocks (601,888 and 611,437 for the two weeks in the Weekly Digest proofs): about 1,200 to 1,340 `get_logs` calls, about 14 minutes at the 100 calls a minute the client paces itself to, and about twice that with the default previous-period read.
-- First-time counterparties compare with the one previous period only, not with the wallet's whole history.
+- A range over 3,000,000 blocks (about a month on mainnet) is refused: run it in pieces. A week is about 600,000 to 670,000 blocks (601,888 and 611,437 for the two weeks in the Weekly Digest proofs): about 1,200 to 1,340 `get_logs` calls, about 12 to 14 minutes at the 100 calls a minute the client paces itself to, and about twice that with the default previous-period read.
+- First-time counterparties compare with the one previous period only, not with the wallet's whole history, and that earlier read does not run the nonce search, so the recipient of a plain PROS send in that period can still be flagged as first-time.
 - The zero address is shown as "mint or burn" and is never a first-time counterparty.
 - No PDF export.
 - 29 tests in `test/activity.test.ts` (classification, nonce discovery, date → block, report, CSV, highlights, mints) and 15 in `test/audit-log-agent.test.ts` (CLI, bad input, `--compact`, `--out`); 801 in the repo at this branch tip.
