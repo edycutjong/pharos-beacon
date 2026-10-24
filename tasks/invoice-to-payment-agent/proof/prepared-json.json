@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "task": "invoice-to-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/acme-0042.json --proof prepared-json",
+    "git": {
+      "commit": "5be4e076d5cc",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:30:09.726Z"
+  },
+  "invoice": "tasks/invoice-to-payment-agent/samples/acme-0042.json",
+  "extracted": {
+    "format": "json",
+    "flags": [],
+    "notes": [],
+    "via": "json fields",
+    "number": "INV-2026-0042",
+    "issuer": "Acme Design Studio",
+    "payee": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "currency": "PHRS",
+    "amount": "0.005"
+  },
+  "outcome": "prepared-unsigned",
+  "fingerprint": "91415a4420740ca2",
+  "notes": [],
+  "checks": [
+    {
+      "name": "recipient",
+      "ok": true,
+      "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)"
+    },
+    {
+      "name": "token",
+      "ok": true,
+      "detail": "PHRS, the native coin (18 decimals)"
+    },
+    {
+      "name": "amount",
+      "ok": true,
+      "detail": "0.005 PHRS = 5000000000000000 base units"
+    },
+    {
+      "name": "reference",
+      "ok": true,
+      "detail": "\"INV-2026-0042\" appended to the transaction data (13 bytes)"
+    },
+    {
+      "name": "balance",
+      "ok": true,
+      "detail": "0x317b…2975 holds 14.917193901999979 PHRS, needs 0.0050573 (amount + max fee)"
+    }
+  ],
+  "unsignedTx": {
+    "chainId": 688689,
+    "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "value": "5000000000000000",
+    "data": "0x494e562d323032362d30303432",
+    "nonce": 113,
+    "gas": "28650",
+    "maxFeePerGas": "2000000000",
+    "maxPriorityFeePerGas": "0"
+  },
+  "walletRequest": {
+    "method": "eth_sendTransaction",
+    "params": [
+      {
+        "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "value": "0x11c37937e08000",
+        "data": "0x494e562d323032362d30303432",
+        "gas": "0x6fea",
+        "maxFeePerGas": "0x77359400",
+        "maxPriorityFeePerGas": "0x0",
+        "nonce": "0x71",
+        "chainId": "0xa8231",
+        "type": "0x2"
+      }
+    ]
+  }
+}
