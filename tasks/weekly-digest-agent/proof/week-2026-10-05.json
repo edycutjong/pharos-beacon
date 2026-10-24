@@ -1,0 +1,120 @@
+{
+  "meta": {
+    "task": "weekly-digest-agent",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/weekly-digest-agent/index.ts --wallet 0xe7368221de15a7c5e0a50a95317b06e6d08c3861 --now 2026-10-12T01:00:00Z --baseline none --state tasks/weekly-digest-agent/proof/digest-state.json --out tasks/weekly-digest-agent/proof/digests --deliver none --proof week-2026-10-05",
+    "git": {
+      "commit": "d12812d8aae5",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T06:07:07.831Z"
+  },
+  "wallet": "0xe7368221de15a7C5e0a50A95317B06E6d08C3861",
+  "cadence": "weekly",
+  "clock": "2026-10-12T01:00:00.000Z",
+  "period": {
+    "label": "2026-10-05 to 2026-10-11",
+    "fromTs": 1791158400,
+    "toTs": 1791763200,
+    "fromBlock": "19397642",
+    "toBlock": "20009078",
+    "head": "21094813"
+  },
+  "previousLabel": "2026-09-28 to 2026-10-04",
+  "metrics": {
+    "period": "2026-10-05 to 2026-10-11",
+    "fromBlock": "19397642",
+    "toBlock": "20009078",
+    "txs": 16,
+    "transfersIn": 4,
+    "transfersOut": 2,
+    "swaps": 7,
+    "approvals": 2,
+    "contractCalls": 1,
+    "failed": 0,
+    "feesWei": "33257213175862922",
+    "counterparties": [
+      "0x158432eed50e944b4148d46b5e7df5d083706811",
+      "0x15c25ed222fc498f672af5c3adb5ed0a96e1aff1",
+      "0x36c800d4472fbb888d034aa74778f481aee01fec",
+      "0x3ef3d8ba38ebe18db133cec108f4d14ce00dd9ae",
+      "0x697322f0bb715fc1e4c1f1283a9f8e546cb4a342",
+      "0xa5ca5fbe34e444f366b373170541ec6902b0f75c",
+      "0xbf105f4ffbd3825f5433d074008b9a76237d849c"
+    ],
+    "tokens": {
+      "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0": {
+        "symbol": "WPROS",
+        "decimals": 18,
+        "inRaw": "5126933415826918775",
+        "outRaw": "0",
+        "ins": 3,
+        "outs": 0
+      },
+      "0x52acdeb49056518578c7af788ae2c367132e2db5": {
+        "symbol": "pTACO",
+        "decimals": 18,
+        "inRaw": "525801892226942701518",
+        "outRaw": "0",
+        "ins": 1,
+        "outs": 0
+      },
+      "0xc879c018db60520f4355c26ed1a6d572cdac1815": {
+        "symbol": "USDC",
+        "decimals": 6,
+        "inRaw": "0",
+        "outRaw": "81500000",
+        "ins": 0,
+        "outs": 2
+      }
+    }
+  },
+  "previous": null,
+  "topEvents": [
+    {
+      "tx": "0x41ba58471a79d9e9cceb938fcaf37bac6f194fb97abcbc4acb009868744d1000",
+      "kind": "unlimited approval",
+      "score": 100,
+      "why": "Unlimited approval: 0xBF105f4ffBD3825f5433d074008B9A76237d849c can move pTACO without a cap"
+    },
+    {
+      "tx": "0xee4cdb7ac5926d1fea2e7ab4c274596e8e04eb59e970255148f7f30eb2cdadec",
+      "kind": "large outflow",
+      "score": 86.6,
+      "why": "Sent 65 USDC to 0x36C800D4472fBb888D034Aa74778f481aEE01FEc"
+    },
+    {
+      "tx": "0xb77e780650d83c37e3c9ef8580844d79476b8d73dc355578e1c25ad864e8b1a1",
+      "kind": "large outflow",
+      "score": 81.6,
+      "why": "Sent 16.5 USDC to 0x36C800D4472fBb888D034Aa74778f481aEE01FEc"
+    }
+  ],
+  "coverage": {
+    "logWindows": 1224,
+    "logsRead": 32,
+    "blockScan": {
+      "mode": "off",
+      "scanned": 0,
+      "of": 611437
+    },
+    "sentFound": 16,
+    "sentExpected": 16,
+    "discovery": {
+      "used": false,
+      "nonceCalls": 0,
+      "blocksRead": 0,
+      "truncated": false
+    },
+    "skipped": 0
+  },
+  "delivery": null,
+  "digestMarkdown": "# Weekly digest: `0xe7368221de15a7C5e0a50A95317B06E6d08C3861`\n\nPharos mainnet · 2026-10-05 to 2026-10-11 (UTC) · blocks 19397642–20009078 · generated 2026-10-12T01:00:00Z\n\n## What changed\n\n16 transactions this period (no earlier period to compare with): 4 transfers in, 2 out, 7 swaps, 2 approvals, 1 other contract call.\n\n## Key numbers\n\n| Metric | This period | Previous period | Change |\n|---|---|---|---|\n| Transactions | 16 | n/a | n/a |\n| Transfers in | 4 | n/a | n/a |\n| Transfers out | 2 | n/a | n/a |\n| Swaps | 7 | n/a | n/a |\n| Approvals | 2 | n/a | n/a |\n| Other contract calls | 1 | n/a | n/a |\n| Failed transactions | 0 | n/a | n/a |\n| Fees paid (PROS) | 0.033257 | n/a | n/a |\n| Counterparties | 7 | n/a | n/a |\n\n### Token flow\n\n| Token | In | Out | In (previous) | Out (previous) |\n|---|---|---|---|---|\n| WPROS | 5.1269 WPROS | 0 WPROS | n/a | n/a |\n| pTACO | 525.8018 pTACO | 0 pTACO | n/a | n/a |\n| USDC | 0 USDC | 81.5 USDC | n/a | n/a |\n\n## Top 3 notable events\n\n1. **unlimited approval:** Unlimited approval: 0xBF105f4ffBD3825f5433d074008B9A76237d849c can move pTACO without a cap. [0x41ba5847…](https://www.pharosscan.xyz/tx/0x41ba58471a79d9e9cceb938fcaf37bac6f194fb97abcbc4acb009868744d1000)\n2. **large outflow:** Sent 65 USDC to 0x36C800D4472fBb888D034Aa74778f481aEE01FEc. [0xee4cdb7a…](https://www.pharosscan.xyz/tx/0xee4cdb7ac5926d1fea2e7ab4c274596e8e04eb59e970255148f7f30eb2cdadec)\n3. **large outflow:** Sent 16.5 USDC to 0x36C800D4472fBb888D034Aa74778f481aEE01FEc. [0xb77e7806…](https://www.pharosscan.xyz/tx/0xb77e780650d83c37e3c9ef8580844d79476b8d73dc355578e1c25ad864e8b1a1)\n\n## Coverage\n\n32 matching event logs over 1224 `get_logs` windows; outgoing transactions found 16 of 16 by the chain's nonce; block scan off. Token amounts are units, not money.\n",
+  "discordText": "**weekly digest** · `0xe736…3861` · 2026-10-05 to 2026-10-11 UTC\nTransactions: 16 · in 4 · out 2 · swaps 7 · approvals 2 · fees 0.033257 PROS\nTop events:\n1. unlimited approval: Unlimited approval: 0xBF105f4ffBD3825f5433d074008B9A76237d849c can move pTACO without a cap <https://www.pharosscan.xyz/tx/0x41ba58471a79d9e9cceb938fcaf37bac6f194fb97abcbc4acb009868744d1000>\n2. large outflow: Sent 65 USDC to 0x36C800D4472fBb888D034Aa74778f481aEE01FEc <https://www.pharosscan.xyz/tx/0xee4cdb7ac5926d1fea2e7ab4c274596e8e04eb59e970255148f7f30eb2cdadec>\n3. large outflow: Sent 16.5 USDC to 0x36C800D4472fBb888D034Aa74778f481aEE01FEc <https://www.pharosscan.xyz/tx/0xb77e780650d83c37e3c9ef8580844d79476b8d73dc355578e1c25ad864e8b1a1>"
+}
