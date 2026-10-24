@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts rates --wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 --block 21146194 --proof mainnet-rates",
     "git": {
-      "commit": "38c1437e583a",
+      "commit": "9e24f24926e1",
       "dirty": false
     },
-    "createdAt": "2026-10-24T20:23:56.219Z"
+    "createdAt": "2026-10-24T20:58:03.248Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -268,7 +268,8 @@
           "kind": "centrifuge",
           "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
           "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -440,7 +441,8 @@
           "kind": "centrifuge",
           "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
           "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -641,7 +643,7 @@
           {
             "label": "7d",
             "seconds": 604800,
-            "apr": 0.05469001491698007
+            "apr": 0.05469000815692047
           },
           {
             "label": "30d",
@@ -661,9 +663,9 @@
           {
             "label": "7d",
             "then": {
-              "block": "20482680",
-              "timestamp": "1792242572",
-              "price": 0.0000010087610751137996
+              "block": "20482678",
+              "timestamp": "1792242570",
+              "price": 0.0000010087610717542982
             }
           },
           {
@@ -709,7 +711,7 @@
             "value": "0.000001009",
             "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
             "call": "same call, pinned",
-            "block": "20482680"
+            "block": "20482678"
           },
           {
             "what": "share price 30d ago (USDC per share)",
@@ -744,7 +746,7 @@
           {
             "label": "7d",
             "seconds": 604800,
-            "apr": 0.05469001491698007
+            "apr": 0.05469000815692047
           },
           {
             "label": "30d",
@@ -753,11 +755,11 @@
           }
         ],
         "read": 3,
-        "ref": 0.05469001491698007,
+        "ref": 0.05469000815692047,
         "spread": 0.018233034329507014,
         "jumpy": false,
-        "pessimistic": 0.04557349775222656,
-        "optimistic": 0.06380653208173358,
+        "pessimistic": 0.04557349099216696,
+        "optimistic": 0.06380652532167397,
         "thin": false
       },
       "holding": null
@@ -1100,7 +1102,8 @@
         "kind": "centrifuge",
         "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
         "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "HYB",
@@ -1113,7 +1116,8 @@
         "kind": "centrifuge",
         "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
         "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "morpho-c79579",
@@ -1366,7 +1370,7 @@
       "value": "0.000001009",
       "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
       "call": "same call, pinned",
-      "block": "20482680"
+      "block": "20482678"
     },
     {
       "what": "share price 30d ago (USDC per share)",

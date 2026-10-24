@@ -1,5 +1,5 @@
 Pharos mainnet (chain 1672), block 21146194 (0.912 s/block) · wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673
-Request: rates · horizon 30 d · rates are share-price growth over 1d / 7d / 30d, annualised (APR, simple), median of the windows, "conservative" = median − 0.5 × spread · gas 10000000000 wei × 0.640476 USD per native token (PROS in USDC from the WPROS/USDC pool 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 slot0 at block 21146194)
+Request: rates · horizon 30 d · rates are share-price growth over 1d / 7d / 30d, annualised (APR, simple), median of the windows, "conservative" = median − 0.5 × spread (a deposit is credited with it), "optimistic" = median + 0.5 × spread (the yield a withdrawal gives up) · gas 10000000000 wei × 0.640476 USD per native token (PROS in USDC from the WPROS/USDC pool 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 slot0 at block 21146194)
 
 Protocols behind the one interface:
   RockawayX      UP · 1 of 1 venue answered
@@ -22,5 +22,6 @@ Rates and entry / exit, read from the contracts:
   Morpho Blue APC3M/USDC supply: entry open, fee 0 bps · exit n/a (no position)
   (left out: 0xab78d4ff…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x95bc6fe9…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x4cbedaf6…: only 603840 USDC raw supplied (below 1000000000))
 
+Best conservative rate among venues that can take a deposit: Morpho Blue syzUSD/USDC supply at 4.56%; the highest rate overall: Morpho Blue syzUSD/USDC supply at 4.56%.
 Positions of the wallet:
   RockawayX USDC vault (RockawayX): 19,470.11025 USDC · 19,329.483984 shares
