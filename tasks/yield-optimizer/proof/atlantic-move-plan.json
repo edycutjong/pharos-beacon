@@ -1,0 +1,70 @@
+{
+  "kind": "unsigned-move-plan",
+  "signed": false,
+  "note": "Prepared for the wallet owner's signature. This file holds no key and nothing in it has been signed or sent; the wallet shows each transaction and the owner signs it.",
+  "chainId": 688689,
+  "wallet": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+  "from": {
+    "key": "steady",
+    "name": "Atlantic Steady",
+    "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F"
+  },
+  "to": {
+    "key": "growth",
+    "name": "Atlantic Growth",
+    "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A"
+  },
+  "depositAssets": "2997012",
+  "slippageBps": 10,
+  "transactions": [
+    {
+      "step": 1,
+      "action": "exit",
+      "description": "Redeem all shares of Atlantic Steady",
+      "request": {
+        "from": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "to": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+        "data": "0xba08765200000000000000000000000000000000000000000000000029a223d883b72b9f0000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b0000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b",
+        "value": "0x0",
+        "chainId": "0xa8231"
+      },
+      "gas": {
+        "units": 98634,
+        "basis": "estimated"
+      }
+    },
+    {
+      "step": 2,
+      "action": "approve",
+      "description": "Approve Atlantic Growth to pull 2997012 USDC raw (the exit's previewed proceeds 3000013 less 10 bps)",
+      "request": {
+        "from": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "to": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+        "data": "0x095ea7b300000000000000000000000017bd4943bd17cbaffa6e6ec9cbe72340b314062a00000000000000000000000000000000000000000000000000000000002dbb14",
+        "value": "0x0",
+        "chainId": "0xa8231"
+      },
+      "gas": {
+        "units": 71466,
+        "basis": "estimated"
+      }
+    },
+    {
+      "step": 3,
+      "action": "enter",
+      "description": "Deposit 2997012 USDC raw into Atlantic Growth",
+      "request": {
+        "from": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "to": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+        "data": "0x6e553f6500000000000000000000000000000000000000000000000000000000002dbb140000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b",
+        "value": "0x0",
+        "chainId": "0xa8231"
+      },
+      "gas": {
+        "units": 300000,
+        "basis": "configured"
+      }
+    }
+  ],
+  "planId": "0x89bdebb6a523350e67985c02aab1d5c2d7ed0e8496a24d79c5d804eb73f09805"
+}
