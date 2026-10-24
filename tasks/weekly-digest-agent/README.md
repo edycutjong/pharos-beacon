@@ -16,7 +16,7 @@ npm ci
 npm run weekly-digest-agent -- --wallet 0xe7368221de15a7c5e0a50a95317b06e6d08c3861 --cadence daily --now 2026-10-24T01:00:00Z --baseline none --compact
 ```
 
-It prints the digest of 2026-10-23 and ends with the top three events. `--print-schedule` prints the cron line in a second. The weekly default takes about 14 minutes (see Proof).
+It prints the digest of 2026-10-23 and ends with the top three events (no previous period here: `--baseline none` and no state file; the proofs below use both). `--print-schedule` prints the cron line in a second. The weekly default takes about 14 minutes (see Proof).
 
 ## What a run does
 
@@ -33,7 +33,7 @@ It prints the digest of 2026-10-23 and ends with the top three events. `--print-
 
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
-| 1 | "Runs on a schedule (weekly by default, configurable)." | `--cadence` defaults to `weekly`; `daily`, `monthly` and `Nd` are accepted. [`.github/workflows/weekly-digest.yml`](../../.github/workflows/weekly-digest.yml) runs it on `cron "0 1 * * 1"` (every Monday 01:00 UTC; `--print-schedule` prints the line for daily, weekly and monthly); with `--state`, a repeat trigger in the same period is a no-op | [`index.ts`](index.ts), [`proof/rerun-no-repeat.log`](proof/rerun-no-repeat.log) (the second run of the same week: "already delivered", no chain call, nothing sent), `test/weekly-digest-agent.test.ts` (period maths for every cadence). The workflow itself has not run yet: it only exists on GitHub after the merge, and it needs the repository variable `DIGEST_WALLET` and the secret `DISCORD_WEBHOOK_URL` |
+| 1 | "Runs on a schedule (weekly by default, configurable)." | `--cadence` defaults to `weekly`; `daily`, `monthly` and `Nd` are accepted. [`.github/workflows/weekly-digest.yml`](../../.github/workflows/weekly-digest.yml) runs it on `cron "0 1 * * 1"` (every Monday 01:00 UTC; `--print-schedule` prints the line for daily, weekly and monthly); with `--state`, a repeat trigger in the same period is a no-op | [`index.ts`](index.ts), [`proof/rerun-no-repeat.log`](proof/rerun-no-repeat.log) (a further run in the same week: "already delivered"; the code returns before any chain connection, `index.ts`, and a test asserts no chain call), `test/weekly-digest-agent.test.ts` (period maths for every cadence). The workflow itself has not run yet: it only exists on GitHub after the merge, and it needs the repository variable `DIGEST_WALLET` and the secret `DISCORD_WEBHOOK_URL` |
 | 2 | "Covers key metrics with a comparison to the previous period." | A key-numbers table (transactions, transfers in / out, swaps, approvals, other contract calls, failures, fees, counterparties, new counterparties) with this period, the previous one, and the change in units and percent; plus a token-flow table | the table below; [`proof/week-2026-10-12.json`](proof/week-2026-10-12.json) (`metrics`, `previous`) |
 | 3 | "Highlights the top 3 notable events of the period." | Up to three, each with the reason and an explorer link, ranked as described above (at most two of one kind, so a period whose notable transactions are all one kind lists two) | `Top 3 notable events` below |
 | 4 | "Delivers to a real channel (email, Telegram, Discord) or as a published page." | A real Discord message (id `1563497420917047468`, 2026-10-24T10:20:33.524000+00:00); the Markdown digest is also written to a file and, in the workflow, to the job summary | `delivery` in [`proof/week-2026-10-12.json`](proof/week-2026-10-12.json) |
@@ -51,10 +51,10 @@ The wallet `0xe736…3861` is a third party's (we do not control it; no selectio
 | Run | Result | File |
 |---|---|---|
 | Week 2026-10-05..11, blocks 19397642–20009078, first run (no state, no earlier period) | 16 transactions: 4 in, 2 out, 7 swaps, 2 approvals, 1 contract call (the 4 "in" are transactions the wallet itself sent in which tokens arrived: all 16 were sent by it); 16 of 16 sent transactions matched by the nonce; not delivered | [`proof/week-2026-10-05.json`](proof/week-2026-10-05.json), [`digests/…2026-10-05.md`](proof/digests/digest-0xe73682-weekly-2026-10-05.md) |
-| Week 2026-10-12..18, blocks 20009079–20610966, previous week from the state file | 48 transactions: 4 in, 9 out, 21 swaps, 8 approvals, 6 contract calls; 44 of 44 sent transactions matched; delivered to Discord | [`proof/week-2026-10-12.json`](proof/week-2026-10-12.json), [`digests/…2026-10-12.md`](proof/digests/digest-0xe73682-weekly-2026-10-12.md) |
+| Week 2026-10-12..18, blocks 20009079–20610966, previous week from the state file | 48 transactions: 4 in, 9 out, 21 swaps, 8 approvals, 6 contract calls (the 4 "in" are 4 transactions sent by others: one transfer each of CRS, MUSE, DOGV and reTQQQ); 44 of 44 sent transactions matched; delivered to Discord | [`proof/week-2026-10-12.json`](proof/week-2026-10-12.json), [`digests/…2026-10-12.md`](proof/digests/digest-0xe73682-weekly-2026-10-12.md) |
 | Same week again, same state | `already delivered`, nothing read, nothing sent | [`proof/rerun-no-repeat.log`](proof/rerun-no-repeat.log) |
 
-Both JSON proofs record `dirty: false` (commits aa00814 for the first, 705862d for the second; both ran on the final code, later commits touch comments and README only). The rerun log is the output of a third run: the command of the second run with `--now 2026-10-21T13:00:00Z` and the same `--state`. From the second digest (`proof/digests/digest-0xe73682-weekly-2026-10-12.md`):
+Both JSON proofs record `dirty: false` (commits aa00814 for the first, 705862d for the second; both ran on the final digest code; the only later code changes are two comments and a one-line rule in the shared engine that cannot affect them: all 48 and 16 transactions are accounted for by categories that do not involve it). `proof/rerun-no-repeat.log` is the output of a further run in the same week (its first line is the command: the second run's with `--now 2026-10-21T13:00:00Z`, same `--state`). From the second digest (`proof/digests/digest-0xe73682-weekly-2026-10-12.md`):
 
 ## What changed
 
@@ -110,12 +110,12 @@ Top events:
 ## Video
 
 The video (`weekly-digest-agent.mp4`, kept with the submission and posted on X, not in this repo) is three real terminal recordings, not the proof runs: `--print-schedule`, a daily digest of the same wallet for 2026-10-23
-compared with the day before (from a state file, delivered to Discord, message id in [`proof/video-casts.log`](proof/video-casts.log)), and the same command again ("already delivered"). The daily
+compared with the day before (from a state file, delivered to Discord, message id in [`proof/video-casts.log`](proof/video-casts.log)), and the same command again at 13:00Z ("already delivered"). The daily
 cadence is used so a run takes minutes; the weekly proofs above are the default cadence.
 
 ## Limits (honest)
 
-- Token amounts are units, never money, and there are no prices to compare tokens: "size" is a share of that token's own volume, so a one-off transfer of a low-value token can outrank a larger USDC amount. Internal transfers and a plain PROS transfer the wallet *receives* are invisible (see the Audit-Log README).
+- Token amounts are units, never money, and there are no prices to compare tokens: "size" is a share of that token's own volume, so a one-off transfer of a low-value token can outrank a larger USDC amount. Internal transfers and, by default, a plain PROS transfer the wallet *receives* are invisible (see the Audit-Log README).
 - The size points count approval amounts in a token's volume, so an unlimited approval makes every outflow of that token score close to zero size points.
 - In the workflow the state file lives in the Actions cache, which GitHub evicts after 7 days without access; the next run is 7 days later, so persistence there is unproven.
 - Only finished UTC periods are reported, and only against the one period before; there is no trend over more periods.
