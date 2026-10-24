@@ -93,6 +93,17 @@ describe("priceRoute / decide", () => {
     expect(d.reason).toMatch(/fees .* \+ impact .* \+ slippage buffer .* \+ gas .* → net -/);
     expect(d.reason).toMatch(/does not survive its costs/);
   });
+  it("never acts on a negative gross spread even when the quotes claim a profit", async () => {
+    const odd: Venue = { ...fake("odd", 0.60, 30), quote: async (side) => (side === "quote-in" ? { out: 5n * 10n ** 18n, feeBps: 30 } : { out: 4_000_000n, feeBps: 30 }) };
+    const d = decide(await scanVenues([odd, fake("normal", 0.65, 30)], M, CFG), CFG, M);
+    const c = (await priceRoute(odd, fake("normal", 0.65, 30), 1_000_000n, M, CFG));
+    expect(c.net).toBeGreaterThan(0n);
+    expect(c.gross).toBeGreaterThan(0n); // gross comes from the mids: the odd venue is cheaper, so this direction is positive
+    expect(["ACT", "SKIP"]).toContain(d.decision);
+    const rev = await priceRoute(fake("normal", 0.65, 30), odd, 1_000_000n, M, CFG);
+    expect(rev.gross).toBeLessThan(0n);
+    expect(decide([rev], CFG, M).decision).toBe("SKIP");
+  });
   it("skips with 'no positive gross spread' when both venues agree", async () => {
     const d = decide(await scanVenues([cheap, fake("same", 0.65, 30)], M, CFG), CFG, M);
     expect(d.decision).toBe("SKIP");
@@ -247,6 +258,19 @@ describe("inconsistent reads (the RPC sometimes answers a historical call from a
     const v = await readDodo(dodoChain(680_380n, 678n), POOL_B, M);
     expect(v.mid).toBeCloseTo(0.68038, 6);
     await expect(readDodo(dodoChain(600_914n, 678n), POOL_B, M)).rejects.toThrow(InconsistentRead);
+  });
+  it("a DODO quote that beats the pool's own mid price is discarded, never traded on", async () => {
+    // mid 0.68: selling 1 base can pay at most ~0.68 USDC; a quote of 1.5 USDC is from another state
+    const call = ((_n: string, args: { transaction: { data: Hex } }) => {
+      const sel = args.transaction.data.slice(0, 10);
+      if (sel === "0x79a04876" && BigInt("0x" + args.transaction.data.slice(74)) === 10n ** 15n) return Promise.resolve({ result: ("0x" + 678n.toString(16).padStart(64, "0") + (2n).toString(16).padStart(64, "0")) as Hex });
+      if (sel === "0x79a04876") return Promise.resolve({ result: ("0x" + 1_500_000n.toString(16).padStart(64, "0") + (900n).toString(16).padStart(64, "0")) as Hex });
+      return dodoChain(680_380n, 678n)("x", args);
+    }) as unknown as ChainMcp["call"];
+    const v = await readDodo(call, POOL_B, M);
+    const r = await v.quote("base-in", 10n ** 18n);
+    expect(r).toHaveProperty("refused");
+    expect((r as { refused: string }).refused).toMatch(/more than the pool's own mid price allows/);
   });
   it("readUniV3 refuses when slot0 answers differently twice", async () => {
     let n = 0;

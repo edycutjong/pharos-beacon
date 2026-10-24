@@ -143,15 +143,28 @@ export async function readDodo(call: Call, address: Hex, m: Market, block?: bigi
     raw: { midPrice: u(mid, 0).toString(), lpFeeRate1e18: u(lp, 0).toString() },
     async quote(side, amountIn) {
       if (amountIn <= 0n) return { refused: "amount must be positive" };
-      try {
-        const { out, mtFee } = await q(side === "base-in" ? "0x79a04876" : "0x66410a21", amountIn);
-        if (out === 0n) return { refused: "the pool pays out nothing for this amount" };
-        // querySell* returns the amount after both fees plus the maintainer fee on its own: total fee = lp rate + mt/(out+mt).
-        const mtRate = Number(mtFee) / Number(out + mtFee);
-        return { out, feeBps: (lpRate + mtRate) * 1e4 };
-      } catch (e) {
-        return { refused: `pool refused the quote: ${(e as Error).message.slice(0, 120)}` };
+      // A fee-paying pool never pays more than the mid price allows. A quote that does came from another state than the mid
+      // (seen on the hosted RPC for historical blocks): ask again, and refuse it if it keeps beating the mid.
+      const ceiling = side === "base-in"
+        ? Number(amountIn) * midPrice * 10 ** (m.quote.decimals - m.base.decimals)
+        : (Number(amountIn) / midPrice) * 10 ** (m.base.decimals - m.quote.decimals);
+      let last = "";
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const { out, mtFee } = await q(side === "base-in" ? "0x79a04876" : "0x66410a21", amountIn);
+          if (out === 0n) return { refused: "the pool pays out nothing for this amount" };
+          if (Number(out) > ceiling * 1.01) {
+            last = `quote pays ${(100 * (Number(out) / ceiling - 1)).toFixed(1)}% more than the pool's own mid price allows (read from a different state: discarded)`;
+            continue;
+          }
+          // querySell* returns the amount after both fees plus the maintainer fee on its own: total fee = lp rate + mt/(out+mt).
+          const mtRate = Number(mtFee) / Number(out + mtFee);
+          return { out, feeBps: (lpRate + mtRate) * 1e4 };
+        } catch (e) {
+          return { refused: `pool refused the quote: ${(e as Error).message.slice(0, 120)}` };
+        }
       }
+      return { refused: last };
     },
   };
 }

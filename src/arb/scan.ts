@@ -100,7 +100,7 @@ export function decide(candidates: Candidate[], cfg: ScanConfig, m: Market): { b
   const best = ok.reduce((a, b) => (b.net > a.net ? b : a));
   const costs = best.fees + best.impact + best.slippageBuffer + best.gas;
   const sketch = `best round trip ${best.buyOn} → ${best.sellOn} starting with ${q(best.amountIn)}: gross ${best.grossBps >= 0 ? "+" : ""}${best.grossBps.toFixed(1)} bps (${q(best.gross)}), costs ${q(costs)} (fees ${q(best.fees)} + impact ${q(best.impact)} + slippage buffer ${q(best.slippageBuffer)} + gas ${q(best.gas)}) → net ${q(best.net)}`;
-  if (best.net >= cfg.minProfit && best.net > 0n) return { best, decision: "ACT", reason: `${sketch} ≥ the ${q(cfg.minProfit)} threshold` };
+  if (best.net >= cfg.minProfit && best.net > 0n && best.gross > 0n) return { best, decision: "ACT", reason: `${sketch} ≥ the ${q(cfg.minProfit)} threshold` };
   if (best.gross <= 0n) return { best, decision: "SKIP", reason: `no positive gross spread in either direction: ${sketch}` };
   return { best, decision: "SKIP", reason: `${sketch} < the ${q(cfg.minProfit)} threshold: the spread does not survive its costs` };
 }
