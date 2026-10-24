@@ -329,6 +329,7 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
   const discovery = { used: false, nonceCalls: 0, blocksRead: 0, truncated: false };
   if (sentExpected !== null && sentFound < sentExpected && (opts.discoverSent ?? true)) {
     discovery.used = true;
+    opts.progress?.(`the logs show ${sentFound} of ${sentExpected} sent transactions; bisecting the nonce for the other ${sentExpected - sentFound}`);
     const cap = opts.maxDiscoverCalls ?? 300;
     const knownIn = (lo: bigint, hi: bigint) => {
       let n = 0;
@@ -351,6 +352,7 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
     } catch {
       discovery.truncated = true; // a failed nonce read ends the search; what it found stays
     }
+    opts.progress?.(`nonce search: ${discovery.nonceCalls} reads, ${leaves.length} block${leaves.length === 1 ? "" : "s"} to open`);
     for (const b of leaves) {
       const blk = await call("get_block", { block: b.toString(), includeTransactions: true } as Record<string, unknown>);
       discovery.blocksRead++;
