@@ -1,28 +1,28 @@
 # Invoice-to-Payment Agent — Medium
 
 **Task:** [Invoice-to-Payment Agent](https://pharos-agent-arena.vercel.app/tasks/invoice-to-payment-agent) (Payments · Medium · 100 pts): read an invoice or payment request and prepare the matching on-chain payment.
-**Run** (Atlantic testnet; one-time `npm run setup:mcp`; the sender is `--from 0x…` or the address of `PRIVATE_KEY`, whose key is not used until `--execute`). The samples are already paid on Atlantic, so try them against a scratch ledger:
-`npm run invoice-to-payment-agent -- tasks/invoice-to-payment-agent/samples/acme-0042.json --parser rules --state "$(mktemp)"` · the `bad-*` samples need no state at all · `--pay-in USDC` settles a USD invoice · `--execute` signs and sends.
-**Uses:** Chain MCP ✅ (`get_balance`, `eth_call` `decimals()` / `balanceOf`, `get_transaction_count`, `estimate_gas`, `get_block`, `get_gas_price`, `send_raw_transaction`, `get_transaction_receipt`); SkillEngine `tokens.json`; `pdftotext` (poppler) for PDFs; a free-tier Gemini model only to fill fields the labelled lines did not give (key read from `~/.config/gemini/`, optional).
+**Run** (Atlantic testnet; one-time `npm run setup:mcp`; the sender is `--from 0x…`, or the address derived from `PRIVATE_KEY` (the key is read only to derive that address; it signs nothing until `--execute`)). The three valid samples are already paid on Atlantic, so try them against a scratch ledger:
+`npm run invoice-to-payment-agent -- tasks/invoice-to-payment-agent/samples/acme-0042.json --parser rules --state "$(mktemp)"` · four of the five `bad-*` samples are flagged before any ledger is read (pass `--state "$(mktemp)"` with `bad-payee.txt`, which reads it) · `--pay-in USDC` settles a USD invoice · `--execute` signs and sends.
+**Uses:** Chain MCP ✅ (`get_balance`, `eth_call` `decimals()` / `balanceOf`, `get_transaction_count`, `estimate_gas`, `get_block`, `get_gas_price`, `send_raw_transaction`, `get_transaction_receipt`); SkillEngine `tokens.json`; `pdftotext` (poppler) for PDFs; a Gemini model only to fill fields the labelled lines did not give (key read from `~/.config/gemini/`, optional).
 
 ## How it works
 
 1. **Read three formats** (`src/pay/invoice.ts`): structured **JSON** (field aliases such as `invoice_number`, `pay_to`, `total`), **plain text** (labelled lines in English or Bahasa Indonesia: `Total due:`, `Total tagihan:`, `Bayar ke:`, `Nomor Faktur:`) and **PDF** (text pulled with `pdftotext -layout`, then the same text reader). The reader takes payee, amount, currency and reference. If a field is missing and an LLM key exists, the model may fill the gap, but only with a value that appears verbatim in the document.
-2. **Flag, never guess.** The agent prepares nothing and prints `FLAGGED` when: a field is missing (number/reference, payee, amount, currency); the totals disagree (`20 vs 25 vs 30`); the line items do not add up to the total; the invoice names two payee addresses; the amount is ambiguous (`1.000`); the currency is not a token on Atlantic (`USD`) unless the human passes `--pay-in <token>` (then the 1:1 assumption is printed as a note, not hidden).
+2. **Flag, never guess.** The agent prepares nothing and prints `FLAGGED` when: a field is missing (number/reference, payee, amount, currency); the totals disagree (`25 vs 30`; a `Subtotal` line is not a competing total); the line items of a JSON invoice do not add up to its total; the currency line and the amount's own currency disagree; two JSON fields or two payee addresses name different values; a file holds several invoices; the amount is ambiguous (`1.000`); the currency is not a token on Atlantic (`USD`) unless the human passes `--pay-in <token>` (then the 1:1 assumption is printed as a note, not hidden).
 3. **Same preparer as the Natural-Language Payment Agent** (`src/pay/prepare.ts`): EIP-55 checksum, token from the SkillEngine list, `decimals()` read on chain, balance, then the summary and the **unsigned** transaction plus a wallet signing request.
-4. **The invoice reference travels inside the transaction.** For a native payment the reference is the transaction `data`; for an ERC-20 payment it is appended after the `transfer(...)` calldata (the token ignores the extra bytes; the estimate and the live send both succeed). Anyone can read it back from the explorer's input data.
+4. **The invoice reference travels inside the transaction.** For a native payment the reference is the transaction `data`; for an ERC-20 payment it is appended after the `transfer(...)` calldata (WPHRS ignored the extra bytes: the estimate and the live send both succeed; a token that rejects them would fail the estimate and be refused). Anyone can read it back from the transaction input (`eth_getTransactionByHash`).
 5. **Signs only with `--execute`**, and only the sender the transaction was prepared for.
 
-Extra (U1): a **duplicate-invoice guard**. Each invoice gets a fingerprint (invoice number + issuer + amount + currency, case- and space-insensitive). A paid invoice is recorded in `state/paid.json` with its tx hash; reading it again, with or without `--execute`, is refused and names the first payment. The **PDF** input (an Indonesian *faktur*) is part of the same extra.
+Extra (U1): a **duplicate-invoice guard**. Each invoice gets a fingerprint (invoice number, issuer, amount, currency; case-insensitive, extra spaces ignored, `100` equals `100.00`). A paid invoice is recorded in `state/paid.json` with its tx hash; reading it again, with or without `--execute`, is refused and names the first payment. The **PDF** input (an Indonesian *faktur*) is part of the same extra.
 
 ## Requirements → evidence
 
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
 | 1 | "Extracts payee, amount, token or currency, and reference from at least 2 invoice formats." | Three formats: JSON, text, PDF; each prints number, issuer, payee, amount, currency | [`prepared-json.log`](proof/prepared-json.log) (JSON), [`prepared-text.log`](proof/prepared-text.log) (text), [`prepared-pdf.log`](proof/prepared-pdf.log) (PDF, from [`faktur-bumi.pdf`](samples/faktur-bumi.pdf)) |
-| 2 | "Flags mismatches or missing fields instead of guessing." | `FLAGGED` with one line per problem, nothing prepared | [`flagged-totals.log`](proof/flagged-totals.log), [`flagged-no-reference.log`](proof/flagged-no-reference.log), [`flagged-usd.log`](proof/flagged-usd.log), [`flagged-line-items.log`](proof/flagged-line-items.log), [`refused-payee-checksum.log`](proof/refused-payee-checksum.log) |
+| 2 | "Flags mismatches or missing fields instead of guessing." | `FLAGGED` with one line per problem (a bad payee checksum is `REFUSED` by the preparer), nothing prepared | [`flagged-totals.log`](proof/flagged-totals.log), [`flagged-no-reference.log`](proof/flagged-no-reference.log), [`flagged-usd.log`](proof/flagged-usd.log), [`flagged-line-items.log`](proof/flagged-line-items.log), [`refused-payee-checksum.log`](proof/refused-payee-checksum.log) (a `REFUSED` run from the shared preparer, not `FLAGGED`) |
 | 3 | "Produces a payment summary and an unsigned transaction that includes the invoice reference." | `Send … / reference <number>` summary, then the unsigned transaction whose `data` carries the reference | `unsignedTx.data` in [`prepared-json.json`](proof/prepared-json.json); on chain in every `sent-*` tx input |
-| 4 | "Includes a demo with sample invoices." | Eight sample files (three valid invoices, one of them also as a PDF, and five that must be flagged or refused) in [`samples/`](samples/) and the proofs above, three of them paid live | the live table below |
+| 4 | "Includes a demo with sample invoices." | Nine files in [`samples/`](samples/) (three valid invoices: JSON, text and PDF, with the PDF's text twin `faktur-bumi.txt`; and five that must be flagged or refused) in [`samples/`](samples/) and the proofs above, three of them paid live | the live table below |
 
 ## Output (pasted from `proof/sent-text.log`)
 
@@ -68,7 +68,7 @@ invoice: tasks/invoice-to-payment-agent/samples/bad-totals.txt (text) · read by
   amount    — USDC
 
 FLAGGED: nothing was prepared. The invoice needs a human:
-  ! the invoice states different totals (20 vs 25 vs 30): refusing to pick one
+  ! the invoice states different totals (25 vs 30): refusing to pick one
 ```
 
 The same invoice is never paid twice (`proof/duplicate-refused.log`, the acme invoice run again):
@@ -79,7 +79,7 @@ invoice: tasks/invoice-to-payment-agent/samples/acme-0042.json (json) · read by
   issuer    Acme Design Studio
   payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
   amount    0.005 PHRS
-fingerprint 91415a4420740ca2 (invoice number + issuer + amount + currency)
+fingerprint ee44523cd8494c8b (invoice number + issuer + amount + currency)
 
 DUPLICATE: invoice INV-2026-0042 was already paid (0.005 PHRS) in 0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6
 https://atlantic.pharosscan.xyz/tx/0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6
@@ -100,10 +100,12 @@ Payer wallet 1 `0x317b…2975` → our wallet 2 `0x8D34…D91B` (`PRIVATE_KEY_2`
 
 - Atlantic testnet only. The sample payee is our own second wallet; the invoices are written by us for the demo.
 - Currencies are the six Atlantic symbols (PHRS, USDC, USDT, WBTC, WETH, WPHRS). A fiat invoice needs the human's `--pay-in` choice: there is no price feed and the agent does not guess an exchange rate.
-- The PDF reader needs `pdftotext` and a text PDF (a scanned image has no text and is flagged as missing fields). Layouts it knows are labelled lines; the LLM only fills gaps.
-- The reference is limited to 64 bytes. A token contract that rejects extra calldata would reject the payment at the estimate step, and the agent would refuse it.
+- The PDF reader needs `pdftotext` and a text PDF. Layouts it knows are labelled lines; the LLM only fills gaps. Not tested: scanned PDFs.
+- The duplicate guard is a local file keyed by invoice fingerprint. It records a payment only after a confirmed success, and `--state` points at another ledger; an invoice that is only prepared (unsigned) and signed elsewhere is not recorded.
+- The text reader is label-based and narrow on purpose: an unusual layout is flagged as missing fields rather than guessed.
+- The reference is limited to 64 bytes. A token that rejects the extra calldata would fail `estimate_gas` and the agent would refuse (not tested with such a token).
 - The proofs ran with `--parser auto`; none of the three sample invoices needed the LLM (`read by labelled lines` / `json fields` in the logs).
 
 ## Tests
 
-7 tests in [`test/invoice.test.ts`](../../test/invoice.test.ts) (the three readers, every flag, `--pay-in`, the LLM gap-filler that may not invent, the fingerprint and ledger, the duplicate refusal through the CLI); the shared preparer is covered by the 18 tests in `test/pay.test.ts`. `npm test` and `npm run typecheck` are green.
+8 tests in [`test/invoice.test.ts`](../../test/invoice.test.ts) (the three readers; the main flags: missing reference, totals, line items, ambiguous amount, two payees, bad JSON, non-token currency, field and currency conflicts, several invoices; `--pay-in`; the LLM gap-filler that may not invent; the fingerprint and ledger; the duplicate refusal through the CLI). The shared preparer has its own 8 tests in `test/pay.test.ts`. `npm test` and `npm run typecheck` are green.
