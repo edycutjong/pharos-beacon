@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { blockAtOrAfter, collectActivity, MAX_RANGE_BLOCKS, parseWallet, rangeForTimes, totalsOf } from "../src/activity/engine.js";
+import { blockAtOrAfter, collectActivity, counterparties, MAX_RANGE_BLOCKS, parseWallet, rangeForTimes, totalsOf } from "../src/activity/engine.js";
 import { csvReport, highlights, markdownReport, notableTxs } from "../src/activity/report.js";
-import { B, C, fakeWorld, nativeSwap, OTH, payableCall, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
+import { B, C, fakeWorld, mintTx, nativeSwap, OTH, payableCall, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
 
 const range = { fromBlock: 90n, toBlock: 200n };
 const collect = (scanBlocks = 0, txs = world(), extra: object = { discoverSent: false }) => collectActivity(fakeWorld(txs), "pharos", W, range, { scanBlocks, ...extra });
@@ -36,6 +36,16 @@ describe("collectActivity", () => {
     const md = markdownReport(a, { generatedAt: "x" });
     expect(md).toContain("deposit (wrap) + 0.500000 PROS");
     expect(csvReport(a)).toContain("0.500000 PROS");
+  });
+
+  it("the zero address is a mint, not a counterparty: not first-time, shown as mint or burn", async () => {
+    const a = await collect(0, [...world(), mintTx()]);
+    const mint = a.items.find((i) => i.tx.endsWith("0b"))!;
+    expect(mint).toMatchObject({ category: "transfer-in" });
+    const base = await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 0n, toBlock: 99n });
+    expect(highlights(a, base).filter((h) => h.kind === "first-time-counterparty" && h.text.includes("0x0000000000000000000000000000000000000000"))).toHaveLength(0);
+    expect(counterparties(a.items).has("0x0000000000000000000000000000000000000000")).toBe(false);
+    expect(markdownReport(a, { generatedAt: "x" })).toContain("(mint or burn)");
   });
 
   it("flags an unlimited approval and names the spender", async () => {
