@@ -6,7 +6,7 @@ import { backtest, pinBlocks } from "../src/arb/backtest.js";
 import { executeOnAtlantic, planRoute, withSlippage } from "../src/arb/execute.js";
 import { decide, fmtUnits, gasCost, logLine, makeRecord, priceRoute, scanVenues, type ScanConfig } from "../src/arb/scan.js";
 import { InconsistentRead, Q96, quoteV3, readArbPool, readDodo, readUniV3, withRetries, type Market, type QuoteResult, type Side, type V3Snapshot, type Venue } from "../src/arb/venues.js";
-import { parseAmounts } from "../tasks/arbitrage-scanner/index.js";
+import { exitCodeFor, parseAmounts } from "../tasks/arbitrage-scanner/index.js";
 import { UsageError } from "../src/lib/cli.js";
 
 const BASE = "0x838800b758277CC111B2d48Ab01e5E164f8E9471" as Hex;
@@ -363,6 +363,11 @@ describe("executeOnAtlantic: leg 2 fails after leg 1 landed", () => {
 });
 
 describe("CLI guards", () => {
+  it("exit code: 1 only when an --execute run stopped before completing", () => {
+    expect(exitCodeFor(undefined)).toBe(0);
+    expect(exitCodeFor({ outcome: "completed" })).toBe(0);
+    expect(exitCodeFor({ outcome: "stopped-after-leg-1" })).toBe(1);
+  });
   it("--watch cannot be combined with --execute or --proof", async () => {
     const { main } = await import("../tasks/arbitrage-scanner/index.js");
     const ctx = { onExit: () => {} } as never;

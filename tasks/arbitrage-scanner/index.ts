@@ -53,6 +53,9 @@ export function parseAmounts(text: string, decimals: number, flag: string): bigi
   return out;
 }
 
+/** 0 unless an --execute run did not complete (it stopped after leg 1): the caller must be able to tell. */
+export const exitCodeFor = (execution: { outcome: string } | undefined): number => (execution && execution.outcome !== "completed" ? 1 : 0);
+
 const rateAbi = parseAbi(["function setRate(uint256 num,uint256 den)"]);
 
 export async function main({ onExit }: RunContext, argv = process.argv.slice(2)): Promise<number> {
@@ -177,7 +180,6 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
       const report = await executeOnAtlantic({ mcp, signer, m, cfg, candidate: best, buy: ref(venues[buyIdx]!), sell: ref(venues[1 - buyIdx]!), log: (s) => console.log(s) });
       console.log(`${report.outcome}: USDC ${report.before.quote} → ${report.after.quote} · WPHRS ${report.before.base} → ${report.after.base} · predicted net ${report.predictedNet} · realised net after gas ${report.realisedNet}${report.reason ? ` · ${report.reason}` : ""}`);
       body.execution = report;
-      if (report.outcome !== "completed") process.exitCode = 1;
     } else if (record.best && (acting || values["show-plan"])) {
       showPlan(record.best, venues, cfg, !!acting, body);
     }
@@ -193,12 +195,13 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
     return 0;
   }
   const { line, ...body } = (await scanOnce()) as { line: string } & Record<string, unknown>;
+  const exit = exitCodeFor(body.execution as { outcome: string } | undefined);
   if (values.proof) {
     const dir = join(HERE, "proof");
     writeFileSync(join(dir, `${values.proof}.jsonl`), line + "\n");
     console.log(`proof: ${writeProof(join(dir, `${values.proof}.json`), body, meta!)}`);
   }
-  return 0;
+  return exit;
 }
 
 if (isMain(import.meta.url)) await runCli(main);

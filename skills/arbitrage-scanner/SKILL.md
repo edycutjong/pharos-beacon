@@ -49,7 +49,7 @@ Mainnet scans need no key. The Atlantic trade uses `PRIVATE_KEY` in `~/.config/p
 
 ## How the decision is made
 
-- gross = amount × (sell mid ÷ buy mid − 1); fees = nominal swap fee of each leg; impact = the residual after the fees (price impact of the pool curve plus rounding); slippage buffer = `--slippage-bps` of the amount; gas = `--gas-units` × gas price, priced in USDC at the sell pool's mid.
+- gross = amount × (sell mid ÷ buy mid − 1); fees = nominal swap fee of each leg; impact = the residual after the fees (price impact of the pool curve, the cross-term of the two fees, and rounding); slippage buffer = `--slippage-bps` of the amount; gas = `--gas-units` × gas price, priced in USDC at the sell pool's mid.
 - net = USDC back − USDC in − slippage buffer − gas, from the pools' own quotes. ACT only when the best net is positive and at least `--min-profit`.
 - The Uniswap-style quote is exact inside the current tick range; a size that would leave it is refused, not guessed.
 
