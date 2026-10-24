@@ -30,8 +30,8 @@ export interface AggregateOptions {
   request: Request;
   block?: bigint;
   rate?: RateOptions;
-  /** Protocols to treat as down WITHOUT contacting them (an outage drill, labelled SIMULATED everywhere it shows). */
-  down?: ProtocolId[];
+  /** Protocols (or single venues, by id) to treat as down WITHOUT contacting them (an outage drill, labelled SIMULATED everywhere it shows). */
+  down?: string[];
   /** A venue that has not answered after this many ms counts as down. */
   venueTimeoutMs?: number;
   /** Skip the check that the wallet holds the USDC it is told to deposit (the plan then says so). */
@@ -106,7 +106,7 @@ export async function aggregate(o: AggregateOptions): Promise<Report> {
   for (const v of o.venues) {
     const a = ADAPTERS[v.protocol];
     try {
-      if (simulated.has(v.protocol)) throw new SimulatedOutage(`outage drill (--down ${v.protocol}): ${v.protocolName} was not contacted`);
+      if (simulated.has(v.protocol) || simulated.has(v.id)) throw new SimulatedOutage(simulated.has(v.id) ? `outage drill (--down ${v.id}): this venue was not contacted` : `outage drill (--down ${v.protocol}): ${v.protocolName} was not contacted`);
       const h = await guarded(a.holding(o.call, v, o.wallet, head.block, head.timestamp), timeoutMs, `${v.name} balance`);
       const r = await guarded(a.read(v, { call: o.call, wallet: o.wallet, head: { block: head.block, timestamp: head.timestamp }, samples, amount: sizeFor(h), heldShares: h?.shares, assetDecimals: o.assetDecimals, usdc: o.usdc, amountNote: o.request.kind === "deposit" ? " probe deposit" : undefined }), timeoutMs, v.name);
       views.push({ venue: v, reading: r, rate: rateView(r.windows, rateOpts), holding: h && h.assets > 0n ? h : null });

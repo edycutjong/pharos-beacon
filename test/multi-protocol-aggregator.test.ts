@@ -276,6 +276,15 @@ describe("aggregate (fake chain: RockawayX-shaped vault, async fund vault, Morph
     expect(verifyActionPlan(r.plan!, USDC)).toEqual([]);
     expect(r.plan!.transactions[1]!.request.to).toBe(ROX);
   });
+  it("keeps working when ONE venue is down (drill by venue id): the request goes to the next best of the same protocol", async () => {
+    const two = venuesFromSources([roxSrc, moSrc, { ...moSrc, key: "morpho-cd", name: "Morpho Blue SECOND/USDC supply", marketId: ("0x" + "cd".repeat(32)) as Hex }]);
+    const call = chain({ [ROX]: { price: growth(0.01), shares: 0n } }, { apr: 0.06 });
+    const r = await aggregate(base(call, { kind: "deposit", assets: 100n * 10n ** 6n }, { venues: two, down: ["morpho-ab"] }));
+    expect(r.down.map((d) => [d.venue.id, d.simulated])).toEqual([["morpho-ab", true]]);
+    expect(r.down[0]!.reason).toContain("--down morpho-ab");
+    expect(r.route!.allocations.map((a) => a.venueId)).toEqual(["morpho-cd"]);
+    expect(renderReport(r).join("\n")).toContain("Morpho Blue    PARTLY UP");
+  });
   it("keeps working when a protocol really fails mid-run (an RPC error), not only in a drill", async () => {
     const call = chain({ [ROX]: { price: growth(0.04), shares: SHARES, broken: true }, [CEN]: { price: growth(0.03), async: true } }, { apr: 0.06, supplyShares: 500n * 10n ** 12n });
     const r = await aggregate(base(call, { kind: "withdraw", assets: 100n * 10n ** 6n }));
@@ -436,6 +445,7 @@ describe("CLI input", () => {
     await expect(run(["deposit", "--wallet", W, "--amount", "1.1234567"])).rejects.toThrow("at most 6 decimals");
     await expect(run(["positions", "--wallet", W, "--amount", "5"])).rejects.toThrow("--amount is for deposit and withdraw");
     await expect(run(["positions", "--wallet", W, "--down", "aave"])).rejects.toThrow("--down must be one of rockawayx, morpho, centrifuge");
+    await expect(run(["positions", "--wallet", W, "--down", "morpho,aave"])).rejects.toThrow("--down must be one of");
     await expect(run(["withdraw", "--wallet", W, "--amount", "5", "--assume-funded"])).rejects.toThrow("--assume-funded is for deposit");
     await expect(run(["positions", "--wallet", W, "--windows", "7d"])).rejects.toThrow();
     await expect(run(["positions", "--wallet", W, "--hold-days", "0"])).rejects.toThrow("--hold-days must be a number");

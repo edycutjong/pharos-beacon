@@ -3,7 +3,7 @@
 // unsigned transactions for the owner's wallet), routes each request to the best venue and says why, and keeps working when a
 // protocol is down. It holds no key and sends nothing: src/aggregator/ and this file import no signer.
 //   npm run multi-protocol-aggregator -- positions|rates|deposit|withdraw --wallet 0x… [--amount 500|all] [--hold-days 30]
-//        [--windows 1d,7d,30d] [--haircut 0.5] [--down morpho,rockawayx] [--timeout-ms 120000] [--assume-funded]
+//        [--windows 1d,7d,30d] [--haircut 0.5] [--down morpho,rockawayx,morpho-c79579] [--timeout-ms 120000] [--assume-funded]
 //        [--block N] [--native-usd N] [--plan file.json] [--proof name]
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -16,7 +16,7 @@ import { pharos } from "../../src/lib/networks.js";
 import { PROS_POOL, headerAt, readProsPrice } from "../../src/portfolio/read.js";
 import { DEFAULT_RATE_OPTIONS, parseWindows } from "../../src/yield/model.js";
 import { MAINNET_VAULT_SOURCES, USDC_MAINNET, morphoUsdcSources } from "../../src/yield/sources.js";
-import { venuesFromSources, type ProtocolId } from "../../src/aggregator/adapters.js";
+import { venuesFromSources } from "../../src/aggregator/adapters.js";
 import { renderReport, toJson } from "../../src/aggregator/format.js";
 import { InsufficientFunds, aggregate, type Request } from "../../src/aggregator/run.js";
 
@@ -34,7 +34,7 @@ function num(flag: string, v: string, min: number, max: number): number {
 export async function main({ onExit }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- ${COMMANDS.join("|")} --wallet 0x… [--amount 500|all] [--hold-days 30] [--windows 1d,7d,30d] [--haircut 0.5] [--down morpho,rockawayx,centrifuge] [--timeout-ms 120000] [--assume-funded] [--block N] [--native-usd N] [--plan file.json] [--proof name]`,
+      usage: `npm run ${TASK} -- ${COMMANDS.join("|")} --wallet 0x… [--amount 500|all] [--hold-days 30] [--windows 1d,7d,30d] [--haircut 0.5] [--down protocol-or-venue-id,…] [--timeout-ms 120000] [--assume-funded] [--block N] [--native-usd N] [--plan file.json] [--proof name]`,
       options: {
         wallet: { type: "string" },
         amount: { type: "string" },
@@ -65,7 +65,8 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   const holdDays = num("hold-days", values["hold-days"]!, 0.0001, 3650);
   const haircut = num("haircut", values.haircut!, 0, 1);
   const timeoutMs = num("timeout-ms", values["timeout-ms"]!, 100, 3_600_000);
-  const down = values.down ? values.down.split(",").map((p) => choice("--down", p.trim(), PROTOCOLS) as ProtocolId) : [];
+  // a protocol (every venue of it) or one venue by id, e.g. morpho-c79579 (see the ids printed by `rates`)
+  const down = values.down ? values.down.split(",").map((p) => (/^[a-z]+-[0-9a-f]{6}$/.test(p.trim()) ? p.trim() : (choice("--down", p.trim(), PROTOCOLS) as string))) : [];
   if (values.block !== undefined && !/^\d{1,12}$/.test(values.block)) throw new UsageError("--block must be a block number");
 
   let request: Request;
@@ -100,6 +101,9 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
 
   const m = await morphoUsdcSources(call, USDC_MAINNET, h.block, h.timestamp);
   const venues = venuesFromSources([...MAINNET_VAULT_SOURCES, ...m.sources]);
+
+  const unknown = down.filter((d) => !(PROTOCOLS as readonly string[]).includes(d) && !venues.some((v) => v.id === d));
+  if (unknown.length) throw new UsageError(`--down: no venue ${unknown.join(", ")}; venues: ${venues.map((v) => v.id).join(", ")}`);
 
   let report;
   try {
