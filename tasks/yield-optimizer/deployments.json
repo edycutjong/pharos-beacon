@@ -4,13 +4,61 @@
   "note": "Test vaults owned by this repo (tasks/yield-optimizer/contracts/src/YieldVault.sol), deployed 2026-10-24 ~18:48 UTC. Atlantic has no yield vault, so the testnet move runs between these. They hold the real Atlantic test USDC; the share price grows at the rate the owner set (a linear rate on a funded reserve).",
   "deployer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
   "user": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
-  "asset": { "symbol": "USDC", "address": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B", "decimals": 6 },
-  "vaults": {
-    "steady": { "name": "Atlantic Steady", "address": "0x43C698f3901F5E727305A52635427a2699a8C70F", "deployTx": "0xf68a21983ea716f79e2a393160f30189d031110cc987b5e7962f723517fcbee0", "fundTx": "0xbfa7ad5ff956d45e8d6d0855e59b17da9274935b09aaaebf6aad359c62080e8d", "rateBps": 400, "entryFeeBps": 0, "exitFeeBps": 0, "lockSeconds": 0 },
-    "growth": { "name": "Atlantic Growth", "address": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A", "deployTx": "0x125d0ecf124bfe52c1bc318cbccdc452f25cbcdc57af5e187727f1eff8c280a0", "fundTx": "0x75114f0210f76d0b172f3c95291830d92686e6d2013669d346122efa101a0893", "rateBps": 900, "entryFeeBps": 10, "exitFeeBps": 10, "lockSeconds": 0 },
-    "lockup": { "name": "Atlantic Lockup", "address": "0xf214616884cbF73F37d20468A98C95F22D701d08", "deployTx": "0x9ec96329c5c18f328a15116fdd53d380305a19d3d0572e3053460f9402f3f4b8", "fundTx": "0x28b581c78c51cf6d185fc9d64e011a12daa7f0ad08f1c60897ae4e47015d9de5", "rateBps": 1500, "entryFeeBps": 50, "exitFeeBps": 0, "lockSeconds": 604800 },
-    "spike":  { "name": "Atlantic Spike", "address": "0x31737242239F289b6CD5a4E53A71822f864315EC", "deployTx": "0xc51a37284fe3ccbb9db178d3666c1f15389d00a96ed0003b157ed152bebed656", "fundTx": "0xf6b5414a35bdf111b193f44d2f376cfcaa13ebdccb1b1acaeefe4c86e3b572e1", "rateBps": 200, "entryFeeBps": 0, "exitFeeBps": 0, "lockSeconds": 0 }
+  "asset": {
+    "symbol": "USDC",
+    "address": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+    "decimals": 6
   },
-  "setup": "the user wallet (PRIVATE_KEY_2) holds 3 USDC in Atlantic Steady from the setup deposit below; 0.3 USDC reserve was funded into each vault by the deployer",
-  "rateChanges": []
+  "vaults": {
+    "steady": {
+      "name": "Atlantic Steady",
+      "address": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "deployTx": "0xf68a21983ea716f79e2a393160f30189d031110cc987b5e7962f723517fcbee0",
+      "fundTx": "0xbfa7ad5ff956d45e8d6d0855e59b17da9274935b09aaaebf6aad359c62080e8d",
+      "rateBps": 400,
+      "entryFeeBps": 0,
+      "exitFeeBps": 0,
+      "lockSeconds": 0
+    },
+    "growth": {
+      "name": "Atlantic Growth",
+      "address": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "deployTx": "0x125d0ecf124bfe52c1bc318cbccdc452f25cbcdc57af5e187727f1eff8c280a0",
+      "fundTx": "0x75114f0210f76d0b172f3c95291830d92686e6d2013669d346122efa101a0893",
+      "rateBps": 900,
+      "entryFeeBps": 10,
+      "exitFeeBps": 10,
+      "lockSeconds": 0
+    },
+    "lockup": {
+      "name": "Atlantic Lockup",
+      "address": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "deployTx": "0x9ec96329c5c18f328a15116fdd53d380305a19d3d0572e3053460f9402f3f4b8",
+      "fundTx": "0x28b581c78c51cf6d185fc9d64e011a12daa7f0ad08f1c60897ae4e47015d9de5",
+      "rateBps": 1500,
+      "entryFeeBps": 50,
+      "exitFeeBps": 0,
+      "lockSeconds": 604800
+    },
+    "spike": {
+      "name": "Atlantic Spike",
+      "address": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "deployTx": "0xc51a37284fe3ccbb9db178d3666c1f15389d00a96ed0003b157ed152bebed656",
+      "fundTx": "0xf6b5414a35bdf111b193f44d2f376cfcaa13ebdccb1b1acaeefe4c86e3b572e1",
+      "rateBps": 200,
+      "entryFeeBps": 0,
+      "exitFeeBps": 0,
+      "lockSeconds": 0
+    }
+  },
+  "setup": "the user wallet (PRIVATE_KEY_2, 0x8D34\u2026D91B) holds 3 USDC in Atlantic Steady from the setup deposit (approve 0xc07c76daaf67a0f804f0f8d556d176abf94da973b29f740bc72d43355f86550e, deposit 0xf72ebf5ff540e924fe8fb038d0a6e2e09b530b0dd08c2c78a5041544b7a089fc, block 31833188); 0.3 USDC reserve funded into each vault by the deployer (fundTx per vault); 3 USDC sent to the user wallet by the deployer (0xf19280d40d8f818243c82136a8e6f3af80f07bdc277c7c01cadc89f570d7f980)",
+  "rateChanges": [
+    {
+      "vault": "lockup",
+      "rateBps": 1100,
+      "tx": "0xb6dfbe6fbbb84a798173fca81d73c21640a147f2f08c1761c0d259c88040fe9f",
+      "block": 31833574,
+      "why": "15 % -> 11 %: shows a headline rate that its 0.5 % entry fee and 7-day lock-in cancel"
+    }
+  ]
 }
