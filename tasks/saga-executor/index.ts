@@ -113,10 +113,16 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
       return 0;
     }
     const data = encodeFunctionData({ abi: vaultAbi, functionName: "setStatus", args: [to === "open", 2n ** 256n - 1n] });
+    const meta = values.proof ? proofMeta(TASK, mcp) : undefined;
     const s = await owner.send({ to: DEPLOY.vault.address, data });
     const r = await owner.waitForReceipt(s.hash);
     console.log(`vault ${to} ${r.status} in block ${r.blockNumber}: ${explorerTx("atlantic", s.hash)}`);
-    return r.status === "success" ? 0 : 1;
+    const now = await readVault(mcp);
+    console.log(`vault ${DEPLOY.vault.address} is now ${now.open ? "OPEN" : "CLOSED"} (read back)`);
+    if (values.proof) {
+      console.log(`proof: ${writeProof(join(HERE, "proof", `${values.proof}.json`), { command: `vault ${to}`, vault: DEPLOY.vault.address, owner: owner.address, tx: s.hash, explorer: explorerTx("atlantic", s.hash), receipt: { status: r.status, blockNumber: r.blockNumber.toString(), gasUsed: r.gasUsed.toString() }, openAfter: now.open }, meta!)}`);
+    }
+    return r.status === "success" && now.open === (to === "open") ? 0 : 1;
   }
 
   // The saga's wallet is the second key, so the vault owner (the first) closing the vault is a different party's action.
