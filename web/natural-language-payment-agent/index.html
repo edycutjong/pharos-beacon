@@ -80,7 +80,7 @@ pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
       <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
     </div>
   </div>
-  <p class="foot-note">This page uses the CLI's rule parser; the CLI also uses an LLM when a key is set, and there is none on this server. The default sender is a public funded Atlantic address: only its balance is read.</p>
+  <p class="foot-note">This page uses the CLI's rule parser; the CLI also uses an LLM when a key is set, and there is none on this server. The default sender is a public funded Atlantic address: only public chain data about it is read (balance, nonce, a gas estimate); its key is not on the page.</p>
 
   <section class="block" id="requirements">
     <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
@@ -94,7 +94,7 @@ pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
 
   <section class="block" id="ours">
     <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
-    <div class="ours"><article><h3>Asks, never guesses</h3><p>A missing token or recipient becomes a question, and the answer is a follow-up turn.</p></article><article><h3>Two languages</h3><p>English and Bahasa Indonesia instructions are parsed by the same rules.</p></article><article><h3>Reference on chain</h3><p>The CLI can carry a reference in the transaction data; the checks name its size limit.</p></article></div>
+    <div class="ours"><article><h3>Asks, never guesses</h3><p>A missing token or recipient becomes a question, and the answer is a follow-up turn.</p></article><article><h3>Two languages</h3><p>English and Bahasa Indonesia instructions are parsed by the same rules.</p></article><article><h3>Plain-words refusals</h3><p>A recipient with a bad checksum, or a balance that is too small, is refused by name before any transaction is prepared.</p></article></div>
     <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
   </section>
 

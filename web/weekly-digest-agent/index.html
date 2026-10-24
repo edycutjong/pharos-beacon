@@ -53,7 +53,7 @@ pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
     <div class="reveal">
       <span class="chip tier">MEDIUM · 100 PTS</span>
       <h1>Weekly Digest Agent</h1>
-      <p class="lede">Builds a digest of a wallet's activity for a period and compares it with the period before: key numbers, the top three notable events, who is new. On a schedule the CLI posts it to Discord; this page builds the same digest for the last blocks and sends nothing.</p>
+      <p class="lede">Builds a digest of a wallet's activity for a period and compares it with the period before: key numbers, the top three notable events, who is new. The CLI can post it to Discord on a schedule (a GitHub Actions workflow that has not run yet); this page builds the same digest for two block windows and sends nothing.</p>
     </div>
     <div class="controls reveal" id="controls">
       <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
@@ -94,7 +94,7 @@ pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
 
   <section class="block" id="ours">
     <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
-    <div class="ours"><article><h3>Once per period</h3><p>A state file makes a daily trigger safe: a period already delivered says so and exits.</p></article><article><h3>Fail closed</h3><p>No digest without the previous period's numbers, so the comparison is never silently missing.</p></article><article><h3>Ranked, not listed</h3><p>Notable events are scored: unlimited approvals and failures first, then the biggest moves by their share of the period.</p></article></div>
+    <div class="ours"><article><h3>Once per period</h3><p>A state file makes a daily trigger safe: a period already delivered says so and exits.</p></article><article><h3>Fail closed</h3><p>By default no digest is built when the previous period's numbers cannot be read (--baseline none opts out), so the comparison is never silently missing.</p></article><article><h3>Ranked, not listed</h3><p>Notable events are scored by class: unlimited approvals and failures first, then large outflows, new counterparties, swaps and inflows; within a class the larger share of the token's volume ranks higher.</p></article></div>
     <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
   </section>
 
