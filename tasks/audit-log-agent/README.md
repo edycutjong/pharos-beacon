@@ -121,4 +121,4 @@ search finds the other 7), and a read of the CSV that the Atlantic proof run wro
 - First-time counterparties compare with the one previous period only, not with the wallet's whole history, and that earlier read does not run the nonce search, so the recipient of a plain PROS send in that period can still be flagged as first-time.
 - The zero address is shown as "mint or burn" and is never a first-time counterparty.
 - No PDF export.
-- 29 tests in `test/activity.test.ts` (classification, nonce discovery, date → block, report, CSV, highlights, mints) and 15 in `test/audit-log-agent.test.ts` (CLI, bad input, `--compact`, `--out`); 801 in the repo at this branch tip.
+- 31 tests in `test/activity.test.ts` (classification, nonce discovery, date → block, report, CSV, highlights, mints) and 15 in `test/audit-log-agent.test.ts` (CLI, bad input, `--compact`, `--out`); 803 in the repo at this branch tip.
