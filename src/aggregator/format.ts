@@ -54,7 +54,7 @@ export function renderReport(r: Report, dec = 6): string[] {
   // ---- positions
   const held = r.views.filter((x) => x.holding);
   L.push(held.length ? "Positions of the wallet:" : "Positions of the wallet: none in the venues that answered.");
-  for (const x of held) L.push(`  ${x.venue.name} (${x.venue.protocolName}): ${amount(x.holding!.assets, dec)} USDC · ${amount(x.holding!.shares, x.venue.protocol === "morpho" ? 6 : 18)} shares`);
+  for (const x of held) L.push(`  ${x.venue.name} (${x.venue.protocolName}): ${amount(x.holding!.assets, dec)} USDC · ${amount(x.holding!.shares, x.reading.basis.shareDecimals)} shares`);
   if (r.down.length) L.push(`  (positions in ${[...new Set(r.down.map((d) => d.venue.protocolName))].join(", ")} are UNKNOWN: ${r.down.length === 1 ? "that venue" : "those venues"} did not answer)`);
 
   // ---- route

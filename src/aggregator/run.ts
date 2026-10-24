@@ -103,7 +103,7 @@ export async function aggregate(o: AggregateOptions): Promise<Report> {
     try {
       if (simulated.has(v.protocol)) throw new SimulatedOutage(`outage drill (--down ${v.protocol}): ${v.protocolName} was not contacted`);
       const h = await guarded(a.holding(o.call, v, o.wallet, head.block, head.timestamp), timeoutMs, `${v.name} balance`);
-      const r = await guarded(a.read(v, { call: o.call, wallet: o.wallet, head: { block: head.block, timestamp: head.timestamp }, samples, amount: sizeFor(h), heldShares: h?.shares, assetDecimals: o.assetDecimals, usdc: o.usdc, amountNote: o.request.kind === "deposit" ? " probe deposit (1 USDC; the amount is routed by capacity)" : undefined }), timeoutMs, v.name);
+      const r = await guarded(a.read(v, { call: o.call, wallet: o.wallet, head: { block: head.block, timestamp: head.timestamp }, samples, amount: sizeFor(h), heldShares: h?.shares, assetDecimals: o.assetDecimals, usdc: o.usdc, amountNote: o.request.kind === "deposit" ? " probe deposit" : undefined }), timeoutMs, v.name);
       views.push({ venue: v, reading: r, rate: rateView(r.windows, rateOpts), holding: h && h.assets > 0n ? h : null });
       evidence.push(...r.evidence);
     } catch (e) {
