@@ -8,10 +8,10 @@
     },
     "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-no-reference.json --proof flagged-no-reference",
     "git": {
-      "commit": "d13f9acbf573",
+      "commit": "48977460f4ac",
       "dirty": false
     },
-    "createdAt": "2026-10-24T01:30:14.841Z"
+    "createdAt": "2026-10-24T01:38:29.078Z"
   },
   "invoice": "tasks/invoice-to-payment-agent/samples/bad-no-reference.json",
   "extracted": {
