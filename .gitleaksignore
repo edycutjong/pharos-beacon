@@ -95,3 +95,4 @@ dce49aac980b2479f06353f8d7f8fb7ff3545bd8:tasks/batch-executor/proof/all-success-
 12aaf69e01eeb5fd4de0ff58567886dfcd370d48:tasks/x402-agent-buyer/proof/budget.payments.jsonl:generic-api-key:2
 12aaf69e01eeb5fd4de0ff58567886dfcd370d48:tasks/x402-agent-buyer/proof/budget.json:generic-api-key:77
 12aaf69e01eeb5fd4de0ff58567886dfcd370d48:tasks/x402-agent-buyer/proof/budget.json:generic-api-key:94
+f71bede509f0d116e172f7f1147fee1699a6175a:.gitleaksignore:generic-api-key:91
