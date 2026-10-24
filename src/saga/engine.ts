@@ -76,7 +76,7 @@ export interface ActionRec {
   landed?: boolean;
   attempts: AttemptRec[];
   detail?: string;
-  failure?: { kind: "transient-exhausted" | "revert" | "verify" | "unclassified"; reason: string };
+  failure?: { kind: "transient-exhausted" | "revert" | "rejected" | "verify"; reason: string };
 }
 
 export interface LogEntry {
@@ -105,7 +105,7 @@ export interface Journal {
   actions: ActionRec[];
   log: LogEntry[];
   failedAt?: string;
-  checks?: { name: string; before: string; after: string; ok: boolean }[];
+  checks?: { name: string; expected: string; after: string; ok: boolean }[];
 }
 
 export interface Ctx {
@@ -173,7 +173,7 @@ export type Failure = "transient" | "permanent";
 
 /** Node answers that mean "try again, maybe with more fee": a spike, a dropped or refused-for-now transaction, a throttled RPC. */
 const TRANSIENT =
-  /underpriced|fee cap|max fee|gas price (is )?too low|replacement|already known|mempool|txpool|timed? ?out|timeout|etimedout|econnreset|econnrefused|fetch failed|socket|429|rate.?limit|too many requests|temporar|unavailable|50[0234]\b|dropped|evicted|not found in (the )?pool/i;
+  /underpriced|less than base fee|below (the )?base fee|fee cap|max fee|gas price (is )?too low|replacement|already known|mempool|txpool|timed? ?out|timeout|etimedout|econnreset|econnrefused|fetch failed|socket|429|rate.?limit|too many requests|temporar|unavailable|50[0234]\b|dropped|evicted|not found in (the )?pool/i;
 const REVERT = /revert|execution reverted|invalid opcode|out of gas|insufficient (funds|allowance|balance)|exceeds allowance|exceeds balance/i;
 
 /** A revert (code 3 or its text) is permanent: sending it again fails the same way. Known transient texts are retried. Anything else fails closed (permanent). */
@@ -385,7 +385,7 @@ export class Saga {
           const reason = reasonOf(e);
           rec.attempts.push({ n: attemptNo, hash: "0x", raw: "0x", nonce: -1, gas: "0", maxFeePerGas: "0", maxPriorityFeePerGas: "0", state: "refused", note: `not signed: ${reason}` });
           this.log(rec.id, kind === "permanent" ? "REFUSED" : "TRANSIENT", `attempt ${attemptNo} could not be prepared: ${reason}`);
-          if (kind === "permanent") return this.fail(rec, "revert", reason);
+          if (kind === "permanent") return this.fail(rec, REVERT.test(reason) ? "revert" : "rejected", reason);
           if (attemptNo >= this.policy.maxAttempts) return this.fail(rec, "transient-exhausted", reason);
           await this.backoff(rec, attemptNo);
           continue;
@@ -420,7 +420,7 @@ export class Saga {
             att.note = reason;
             if (kind === "permanent") {
               this.log(rec.id, "REFUSED", `the node refused ${att.hash}: ${reason}`);
-              return this.fail(rec, "revert", reason);
+              return this.fail(rec, REVERT.test(reason) ? "revert" : "rejected", reason);
             }
             this.log(rec.id, "TRANSIENT", `attempt ${attemptNo} refused by the node (${reason})`);
             if (attemptNo >= this.policy.maxAttempts) return this.fail(rec, "transient-exhausted", reason);

@@ -370,7 +370,7 @@ describe("state log + status", () => {
 
 describe("classify + CLI flags", () => {
   it("transient texts are retried, reverts and unknowns fail closed", () => {
-    for (const m of ["transaction underpriced", "replacement transaction underpriced", "fetch failed", "429 Too Many Requests", "timeout: no answer", "503 service unavailable"]) expect(classify(new Error(m))).toBe("transient");
+    for (const m of ["transaction underpriced", "replacement transaction underpriced", "fetch failed", "429 Too Many Requests", "timeout: no answer", "503 service unavailable", "send_raw_transaction: INVALID_PARAMS: effective gas price less than base fee (code -32602)"]) expect(classify(new Error(m))).toBe("transient");
     for (const m of ["reverted: VaultClosed()", "execution reverted", "insufficient funds for gas", "something nobody has seen"]) expect(classify(new Error(m))).toBe("permanent");
     expect(classify(Object.assign(new Error("odd"), { code: 3 }))).toBe("permanent");
   });

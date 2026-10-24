@@ -219,7 +219,7 @@ export function defiSaga(p: SagaParams): SagaDef {
           : { balIn: snap.balIn! - p.amountIn, balOut: snap.balOut!, allowInPool: 0n, allowOutPool: snap.allowOutPool!, allowOutVault: 0n, shares: snap.shares! + out };
       return Object.keys(now).map((k) => ({
         name: LABEL[k]!,
-        before: `${fmt(snap[k]!, unit(k))} (${outcome === "rolled-back" ? "pre-saga" : "expected"} ${fmt(expected[k]!, unit(k))})`,
+        expected: fmt(expected[k]!, unit(k)),
         after: fmt(now[k]!, unit(k)),
         ok: now[k] === expected[k],
       }));
@@ -229,7 +229,7 @@ export function defiSaga(p: SagaParams): SagaDef {
 
 export const checksTable = (checks: NonNullable<Journal["checks"]>): string => {
   const w = Math.max(...checks.map((c) => c.name.length)) + 2;
-  return checks.map((c) => `${c.ok ? "PASS" : "FAIL"}  ${c.name.padEnd(w)}${c.after.padEnd(14)}pre-saga ${c.before}`).join("\n");
+  return checks.map((c) => `${c.ok ? "PASS" : "FAIL"}  ${c.name.padEnd(w)}${c.after.padEnd(10)}expected ${c.expected}`).join("\n");
 };
 
 export { getAddress };
