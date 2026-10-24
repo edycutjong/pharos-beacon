@@ -1,0 +1,10 @@
+FAKTUR TAGIHAN
+
+Nomor Faktur: BM/2026/10/088
+Dari: CV Bumi Digital
+Kepada: Beacon Agent
+Bayar ke: 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+
+Jasa konsultasi smart contract
+Total tagihan: 0,002 PHRS
+Mohon cantumkan nomor faktur pada pembayaran.

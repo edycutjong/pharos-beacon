@@ -1,0 +1,2 @@
+{ "invoice_number": "LI-31", "issuer": "Sum Mismatch Ltd", "pay_to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B", "currency": "PHRS",
+  "line_items": [ { "description": "A", "amount": 0.004 }, { "description": "B", "amount": 0.004 } ], "total": "0.01" }

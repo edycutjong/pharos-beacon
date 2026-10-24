@@ -1,0 +1,12 @@
+{
+  "invoice_number": "INV-2026-0042",
+  "issuer": "Acme Design Studio",
+  "pay_to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+  "currency": "PHRS",
+  "line_items": [
+    { "description": "Logo refresh", "amount": 0.003 },
+    { "description": "Icon set", "amount": 0.002 }
+  ],
+  "total": "0.005",
+  "due": "2026-11-05"
+}
