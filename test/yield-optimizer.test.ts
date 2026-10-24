@@ -516,6 +516,8 @@ describe("CLI", () => {
     await expect(main(ctx, [...w, "--network", "ethereum"])).rejects.toBeInstanceOf(UsageError);
     await expect(main(ctx, [...w, "--windows", "5d"])).rejects.toBeInstanceOf(UsageError);
     await expect(main(ctx, [...w, "--block", "-1"])).rejects.toBeInstanceOf(UsageError);
+    await expect(main(ctx, [...w, "--haircut", "2"])).rejects.toBeInstanceOf(UsageError);
+    await expect(main(ctx, [...w, "--native-usd", "0"])).rejects.toBeInstanceOf(UsageError);
     await expect(main(ctx, ["compare", "--wallet", ME])).rejects.toBeInstanceOf(UsageError);
   });
 });

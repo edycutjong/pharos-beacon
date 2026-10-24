@@ -2,7 +2,7 @@
 // holding period, and recommends a move or "stay put" with the reason. A move is PREPARED for the owner's signature, never signed:
 // this file, src/yield/ and the plan hold no key. (tasks/yield-optimizer/wallet.ts stands in for the owner's wallet on testnet.)
 //   npm run yield-optimizer -- recommend --wallet 0x… [--network pharos|atlantic] [--windows 1d,7d,30d] [--hold-days 30]
-//        [--min-net-usd 1] [--slippage-bps 10] [--block N] [--native-usd N] [--plan file.json] [--proof name]
+//        [--min-net-usd 1] [--slippage-bps 10] [--haircut 0.5] [--block N] [--native-usd N] [--plan file.json] [--proof name]
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +13,7 @@ import { proofMeta, writeProof } from "../../src/lib/proof.js";
 
 import { atlantic, pharos } from "../../src/lib/networks.js";
 import { PROS_POOL, readProsPrice, headerAt } from "../../src/portfolio/read.js";
-import { parseWindows } from "../../src/yield/model.js";
+import { DEFAULT_RATE_OPTIONS, parseWindows } from "../../src/yield/model.js";
 import { renderReport, toJson } from "../../src/yield/format.js";
 import { NoPosition, analyse } from "../../src/yield/run.js";
 import { MAINNET_VAULT_SOURCES, USDC_MAINNET, morphoUsdcSources, type Source } from "../../src/yield/sources.js";
@@ -38,7 +38,7 @@ function num(flag: string, v: string, min: number, max: number): number {
 export async function main({ onExit }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- recommend --wallet 0x… [--network pharos|atlantic] [--windows 1d,7d,30d] [--hold-days 30] [--min-net-usd 1] [--slippage-bps 10] [--block N] [--native-usd N] [--plan file.json] [--proof name]`,
+      usage: `npm run ${TASK} -- recommend --wallet 0x… [--network pharos|atlantic] [--windows 1d,7d,30d] [--hold-days 30] [--min-net-usd 1] [--slippage-bps 10] [--haircut 0.5] [--block N] [--native-usd N] [--plan file.json] [--proof name]`,
       options: {
         wallet: { type: "string" },
         network: { type: "string", default: "pharos" },
@@ -46,6 +46,7 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
         "hold-days": { type: "string", default: "30" },
         "min-net-usd": { type: "string", default: "1" },
         "slippage-bps": { type: "string", default: "10" },
+        haircut: { type: "string", default: "0.5" },
         block: { type: "string" },
         "native-usd": { type: "string" },
         plan: { type: "string" },
@@ -68,6 +69,8 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   const holdDays = num("hold-days", values["hold-days"]!, 0.0001, 3650);
   const minNetUsd = num("min-net-usd", values["min-net-usd"]!, 0, 1e9);
   const slippageBps = num("slippage-bps", values["slippage-bps"]!, 0, 500);
+  const haircut = num("haircut", values.haircut!, 0, 1); // 0 = judge every source by its median rate, 1 = take the whole spread off a destination
+  const rate = { ...DEFAULT_RATE_OPTIONS, haircut };
   if (values.block !== undefined && !/^\d{1,12}$/.test(values.block)) throw new UsageError("--block must be a block number");
 
   const mcp = await chainMcp(network);
@@ -108,7 +111,7 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
 
   let report;
   try {
-    report = await analyse({ call, chainId: network === "pharos" ? pharos.id : atlantic.id, network, wallet, sources, usdc, assetDecimals: 6, windows, holdDays, minNetUsd, slippageBps, nativeUsd, block: pinned, skipped });
+    report = await analyse({ call, chainId: network === "pharos" ? pharos.id : atlantic.id, network, wallet, sources, usdc, assetDecimals: 6, windows, holdDays, minNetUsd, slippageBps, nativeUsd, block: pinned, skipped, rate });
   } catch (e) {
     if (e instanceof NoPosition) {
       console.log(`nothing to optimise: ${e.message}`);

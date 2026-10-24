@@ -36,7 +36,7 @@ export interface Report {
   timestamp: bigint;
   secondsPerBlock: number;
   windows: Window[];
-  params: Params & { slippageBps: number };
+  params: Params & { slippageBps: number; haircut: number };
   gas: { priceWei: bigint; nativeUsd: number; nativeBasis: string };
   held: { source: Source; holding: Holding; others: { source: Source; assets: bigint }[] };
   readings: Reading[];
@@ -161,7 +161,7 @@ export async function analyse(o: AnalyseOptions): Promise<Report> {
     timestamp: head.timestamp,
     secondsPerBlock: spb,
     windows: o.windows,
-    params: { ...params, slippageBps: o.slippageBps },
+    params: { ...params, slippageBps: o.slippageBps, haircut: rateOpts.haircut },
     gas: { priceWei, nativeUsd: o.nativeUsd.value, nativeBasis: o.nativeUsd.basis },
     held: { source: cur.source, holding: cur.holding, others: holdings.slice(1).map((h) => ({ source: h.source, assets: h.holding.assets })) },
     readings,

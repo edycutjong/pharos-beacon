@@ -20,7 +20,7 @@ export function renderReport(r: Report, dec = 6): string[] {
   const chain = r.network === "pharos" ? "Pharos mainnet (chain 1672)" : "Pharos Atlantic testnet (chain 688689)";
   L.push(`${chain}, block ${r.block} (${r.secondsPerBlock.toFixed(3)} s/block) · wallet ${r.wallet}`);
   L.push(`Holds: ${r.held.source.name} worth ${usdc(r.held.holding.assets, dec)} USDC${r.held.others.length ? ` (also: ${r.held.others.map((o) => `${o.source.name} ${usdc(o.assets, dec)}`).join(", ")}; the largest is evaluated)` : ""}`);
-  L.push(`Rules: hold at least ${fmtDays(r.params.holdDays)} after a move · net gain at least ${usd(r.params.minNetUsd)} · windows ${labels.join(" / ")} · gas ${r.gas.priceWei} wei × native price ${r.gas.nativeUsd.toFixed(6)} USD (${r.gas.nativeBasis})`);
+  L.push(`Rules: hold at least ${fmtDays(r.params.holdDays)} after a move · net gain at least ${usd(r.params.minNetUsd)} · destination credited its median rate minus ${r.params.haircut} × the spread of its windows (the held position: plus) · windows ${labels.join(" / ")} · gas ${r.gas.priceWei} wei × native price ${r.gas.nativeUsd.toFixed(6)} USD (${r.gas.nativeBasis})`);
   L.push("");
   L.push("Yield sources, measured as share-price growth over each window, annualised (APR, simple):");
   const w = Math.max(...r.readings.map((x) => x.source.name.length), 10) + 2;
