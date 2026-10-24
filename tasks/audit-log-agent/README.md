@@ -10,6 +10,15 @@ previous-period read; `--proof label` writes `proof/<label>.json`.
 `get_transaction_count`) · SkillEngine: not used · Docs MCP: not used. It never sends a transaction. The same engine (`src/activity/`) is reused by the
 Weekly Digest Agent, which lives on the next branch of the stack.
 
+## Try it (about 2 minutes, keyless, read-only)
+
+```text
+npm ci
+npm run audit-log-agent -- --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901 --from-block 21042000 --to-block 21082000 --baseline none --compact
+```
+
+It ends with `sent txs: 11 of 11 matched by the chain's nonce`. The date form (about 5 minutes for a day): `--from 2026-10-23 --to 2026-10-23`, which prints the full Markdown report.
+
 ## How it finds a wallet's activity
 
 The Chain MCP has no "transactions of this address" call, so the engine builds it from what the node can answer:
@@ -20,7 +29,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
    (from / to), `Approval` (owner) and `Swap` events. `get_transaction` + `get_transaction_receipt` give the sender, the call, the status and the fee.
 3. **What leaves no log** (a plain PROS transfer, a call that emits nothing) is found through the **nonce**: the wallet's nonce rises by one for every
    transaction it sends, so the engine reads `get_transaction_count` at the two ends of the range, and when it is higher than the sends it already
-   saw, it **bisects the nonce** to the exact blocks where the rest were sent (about one nonce read per halving of the range; the Atlantic proof below spent 55 reads for 7 sends) and opens only those blocks.
+   saw, it **bisects the nonce** to the exact blocks where the rest were sent (about one nonce read per halving of the range; the Atlantic proof below spent 55 reads for 7 sends) and opens only those blocks. In plain words: it cross-checks the number of transactions the wallet sent against the chain's own counter for that wallet.
    The report says how many sent transactions it found against how many the nonce counts ("Outgoing transactions found: 21 of 21 …"; `--compact`: "sent txs: 11 of 11 matched by the chain's nonce"), so a gap is visible instead of hidden.
 
 ## Requirements → evidence
@@ -29,8 +38,8 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
 |---|---|---|---|
 | 1 | "Accepts a wallet address and a date range." | `--wallet` (a malformed address is refused; the address is printed checksummed) and `--from`/`--to` UTC dates, or `--from-block`/`--to-block`; the range is pinned to blocks at the start of the run | [`index.ts`](index.ts) `main`, proof `range` in [`third-party-mainnet.json`](proof/third-party-mainnet.json) (2026-10-23 → blocks 20974946–21070507), tests `refuses bad input` |
 | 2 | "Groups activity into categories: transfers in and out, swaps, approvals, contract interactions." | Five categories, one section each: transfers in, transfers out, swaps (a Swap event, or the wallet giving one token and getting another in one tx), approvals (an ERC-20 / NFT `approve`; an allowance merely spent inside a transfer is not counted), contract interactions (a call the wallet sent that is none of the above, incl. reverted ones and payable calls such as a wrap, where the PHRS sent shows next to the call) | Live: third-party wallet = out 8 · swaps 10 · approvals 3 ([`third-party-mainnet.json`](proof/third-party-mainnet.json) `byCategory`); our Atlantic wallet = in 113 ([`atlantic-received.json`](proof/atlantic-received.json)); out 119 + 2 contract calls ([`atlantic-sent.json`](proof/atlantic-sent.json)) |
-| 3 | "Includes totals per category and notable transactions with links." | A totals table (count per category and the token amounts of transfers and swaps), a fees-paid line, the number of failed transactions in the summary sentence when any reverted, and a `Notable transactions` list of up to five (reverted calls first, then unlimited approvals, the two transfers with the biggest share of their token's outflow, then up to two swaps); every row is linked to the explorer | the report excerpt below; [`reports/`](proof/reports/) |
-| 4 | "Exports the report as Markdown, PDF or CSV." | Markdown and CSV (`--format md|csv|both --out dir`); the CSV has one row per item with the explorer link. No PDF | [`audit-0x28ed4a-2026-10-23_2026-10-23.md`](proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.md) and [`.csv`](proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.csv) (22 lines = header + 21 items) |
+| 3 | "Includes totals per category and notable transactions with links." | A totals table (count per category and the token amounts of transfers and swaps), a fees-paid line, the number of failed transactions in the summary sentence when any reverted, and a `Notable transactions` list of up to five (reverted calls first, then one line per spender with an unlimited approval, the two transfers with the biggest share of their token's outflow, then up to two swaps); every row is linked to the explorer | the report excerpt below; [`reports/`](proof/reports/) |
+| 4 | "Exports the report as Markdown, PDF or CSV." | Markdown and CSV (`--format md|csv|both --out dir`); the CSV has one row per item with the explorer link, an `unlimited` allowance written as such, and a `notable` column marking the rows the Markdown lists. No PDF | [`audit-0x28ed4a-2026-10-23_2026-10-23.md`](proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.md) and [`.csv`](proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.csv) (22 lines = header + 21 items) |
 
 ## Beyond the requirements: highlights and the nonce check
 
@@ -114,4 +123,4 @@ search finds the other 7), and the CSV export. Their output is in [`proof/video-
 - First-time counterparties compare with the one previous period only, not with the wallet's whole history.
 - The zero address is shown as "mint or burn" and is never a first-time counterparty.
 - No PDF export.
-- 26 tests in `test/activity.test.ts` (classification, nonce discovery, date → block, report, CSV, highlights, mints) and 15 in `test/audit-log-agent.test.ts` (CLI, bad input, `--compact`, `--out`); 798 in the repo at this branch tip.
+- 29 tests in `test/activity.test.ts` (classification, nonce discovery, date → block, report, CSV, highlights, mints) and 15 in `test/audit-log-agent.test.ts` (CLI, bad input, `--compact`, `--out`); 801 in the repo at this branch tip.

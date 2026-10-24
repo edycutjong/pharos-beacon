@@ -65,7 +65,7 @@ export function markdownReport(a: Activity, info: ReportInfo): string {
   const hl = highlights(a, info.baseline);
   const by = (c: Item["category"]) => a.items.filter((i) => i.category === c);
   const cov = a.coverage;
-  const days = a.range.fromTs !== undefined && a.range.toTs !== undefined ? `${stampUtc(a.range.fromTs)} to ${stampUtc(a.range.toTs)}` : "the given blocks";
+  const days = a.range.fromTs !== undefined && a.range.toTs !== undefined ? `${dayUtc(a.range.fromTs)} to ${dayUtc(a.range.toTs - 1)} UTC (both days included)` : "the given blocks";
   const netName = a.network === "pharos" ? "Pharos mainnet" : "Pharos Atlantic testnet";
   const L: string[] = [];
   L.push(`# Wallet activity report: \`${a.wallet}\``, "", `${netName} · ${days} · blocks ${a.range.fromBlock}–${a.range.toBlock} · generated ${info.generatedAt} · read-only through the Pharos Chain MCP`, "");
@@ -76,7 +76,7 @@ export function markdownReport(a: Activity, info: ReportInfo): string {
   } else {
     const parts = [
       `${t.txs} transaction${t.txs === 1 ? "" : "s"} touched this wallet`,
-      `it received tokens ${t.counts["transfer-in"]} time${t.counts["transfer-in"] === 1 ? "" : "s"} and sent them ${t.counts["transfer-out"]} time${t.counts["transfer-out"] === 1 ? "" : "s"}`,
+      `it received tokens by plain transfer ${t.counts["transfer-in"]} time${t.counts["transfer-in"] === 1 ? "" : "s"} and sent them ${t.counts["transfer-out"]} time${t.counts["transfer-out"] === 1 ? "" : "s"}`,
       `made ${t.counts.swap} swap${t.counts.swap === 1 ? "" : "s"}`,
       `granted ${t.counts.approval} approval${t.counts.approval === 1 ? "" : "s"}${t.unlimitedApprovals ? ` (${t.unlimitedApprovals} unlimited)` : ""}`,
       `and made ${t.counts["contract-call"]} other contract call${t.counts["contract-call"] === 1 ? "" : "s"}`,
@@ -100,7 +100,8 @@ export function markdownReport(a: Activity, info: ReportInfo): string {
   L.push(`Fees paid: ${fmtWei(t.feesWei, a.nativeSymbol)} across the transactions this wallet sent. Counts are items found; one transaction can hold several.`, "");
 
   const row = (it: Item, cols: string[]) => [whenOf(it), ...cols, link(a, it.tx), it.status === "reverted" ? "reverted" : "ok"];
-  L.push("## Transfers in", "", table(["When", "Amount", "From", "Tx", "Status"], by("transfer-in").map((i) => row(i, [legs(i.in), addrLink(a, i.counterparty)]))));
+  const noIn = by("transfer-in").length === 0 && cov.blockScan.mode === "off" ? `_None found in the token event logs. Native ${a.nativeSymbol} received is not checked unless \`--scan-blocks\` is used._\n` : undefined;
+  L.push("## Transfers in", "", noIn ?? table(["When", "Amount", "From", "Tx", "Status"], by("transfer-in").map((i) => row(i, [legs(i.in), addrLink(a, i.counterparty)]))));
   L.push("## Transfers out", "", table(["When", "Amount", "To", "Tx", "Status"], by("transfer-out").map((i) => row(i, [legs(i.out), addrLink(a, i.counterparty)]))));
   L.push("## Swaps", "", table(["When", "Gave", "Got", "Via", "Tx", "Status"], by("swap").map((i) => row(i, [legs(i.out), legs(i.in), addrLink(a, i.counterparty)]))));
   L.push("## Approvals", "", table(["When", "Allowance", "Spender", "Tx", "Status"], by("approval").map((i) => row(i, [allowance(i), addrLink(a, i.counterparty)]))));
@@ -125,23 +126,30 @@ export function notableTxs(a: Activity): { tx: string; why: string }[] {
   const res: { tx: string; why: string }[] = [];
   const add = (tx: string, why: string) => res.some((r) => r.tx === tx) || res.push({ tx, why });
   for (const it of a.items) if (it.status === "reverted") add(it.tx, `reverted ${it.method ?? it.category}`);
-  for (const it of a.items) if (it.unlimited) add(it.tx, `unlimited approval to ${short(it.counterparty)}`);
+  // One entry per spender: three unlimited approvals to the same address are one thing to look at, not three.
+  const spenders = new Map<string, { first: Item; n: number }>();
+  for (const it of a.items) if (it.unlimited && it.counterparty) {
+    const k = lower(it.counterparty);
+    spenders.has(k) ? spenders.get(k)!.n++ : spenders.set(k, { first: it, n: 1 });
+  }
+  for (const { first, n } of spenders.values()) add(first.tx, `unlimited approval to ${short(first.counterparty)}${n > 1 ? ` (${n} approvals to it in all)` : ""}`);
   // Largest = the biggest share of that token's total outflow in the period (raw units are not comparable across tokens).
   const total = new Map<string, bigint>();
   const outsAll = a.items.filter((i) => i.category === "transfer-out" && i.out[0]!.nft === undefined);
   for (const i of outsAll) total.set(String(i.out[0]!.token).toLowerCase(), (total.get(String(i.out[0]!.token).toLowerCase()) ?? 0n) + i.out[0]!.amountRaw);
   const share = (i: Item) => Number((i.out[0]!.amountRaw * 10_000n) / (total.get(String(i.out[0]!.token).toLowerCase()) || 1n));
   const big = [...outsAll].sort((x, y) => share(y) - share(x));
-  for (const it of big.slice(0, 2)) add(it.tx, `large ${it.out[0]!.symbol} transfer out (${fmtLeg(it.out[0]!)})`);
+  for (const it of big.slice(0, 2)) add(it.tx, `${it.out[0]!.symbol} transfer out (${fmtLeg(it.out[0]!)})`);
   for (const it of a.items.filter((i) => i.category === "swap").slice(0, 2)) add(it.tx, `swap ${legs(it.out)} for ${legs(it.in)}`);
   return res.slice(0, 5);
 }
 
 const csvCell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
 export function csvReport(a: Activity): string {
-  const head = ["time_utc", "block", "category", "status", "counterparty", "gave", "got", "method", "fee_native", "tx", "link"];
+  const head = ["time_utc", "block", "category", "status", "counterparty", "gave", "got", "method", "fee_native", "notable", "tx", "link"];
+  const notable = new Set(notableTxs(a).map((n) => n.tx));
   const rows = a.items.map((i) =>
-    [stampUtc(i.timestamp), String(i.block), i.category, i.status, i.counterparty ?? "", i.category === "transfer-in" ? "" : i.category === "contract-call" && i.nativeValueWei ? fmtWei(i.nativeValueWei, a.nativeSymbol) : legs(i.out), i.category === "transfer-in" ? legs(i.in) : i.category === "swap" ? legs(i.in) : "", i.method ?? "", i.feeWei ? fmtWei(i.feeWei, a.nativeSymbol) : "", i.tx, explorerTx(a.network, i.tx)].map(csvCell).join(","),
+    [stampUtc(i.timestamp), String(i.block), i.category, i.status, i.counterparty ?? "", i.category === "transfer-in" ? "" : i.category === "approval" ? allowance(i) : i.category === "contract-call" && i.nativeValueWei ? fmtWei(i.nativeValueWei, a.nativeSymbol) : legs(i.out), i.category === "transfer-in" ? legs(i.in) : i.category === "swap" ? legs(i.in) : "", i.method ?? "", i.feeWei ? fmtWei(i.feeWei, a.nativeSymbol) : "", notable.has(i.tx) ? "yes" : "", i.tx, explorerTx(a.network, i.tx)].map(csvCell).join(","),
   );
   return [head.join(","), ...rows].join("\n") + "\n";
 }
