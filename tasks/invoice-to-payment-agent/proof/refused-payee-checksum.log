@@ -1,0 +1,15 @@
+invoice: tasks/invoice-to-payment-agent/samples/bad-payee.txt (text) · read by labelled lines
+  number    PY-3
+  issuer    Typo Traders
+  payee     0x8d347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    0.001 PHRS
+fingerprint 0aa984fb85d72636 (invoice number + issuer + amount + currency)
+
+checks
+  FAIL  recipient 0x8d347c72431ed6E033d5f43E56c0987E97f5D91B has mixed-case letters that fail the EIP-55 checksum (a typo?): refusing
+  PASS  token     PHRS, the native coin (18 decimals)
+  PASS  amount    0.001 PHRS = 1000000000000000 base units
+  PASS  reference "PY-3" appended to the transaction data (4 bytes)
+
+REFUSED: no transaction was prepared.
+proof: tasks/invoice-to-payment-agent/proof/refused-payee-checksum.json
