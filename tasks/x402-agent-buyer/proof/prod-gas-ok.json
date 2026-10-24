@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run retry --base https://pharos.edycu.dev/ --fresh --proof prod-gas-ok",
     "git": {
-      "commit": "3c08cdb48c92",
+      "commit": "32d4842a0ba8",
       "dirty": false
     },
-    "createdAt": "2026-10-24T00:06:00.545Z"
+    "createdAt": "2026-10-24T00:27:21.083Z"
   },
   "task": "retry",
   "goal": "One purchase, with a network failure after the payment is signed.",
@@ -37,7 +37,7 @@
       "type": "sign",
       "want": "gas",
       "purchase": "retry/gas",
-      "nonce": "0x8c4e9fa807750974a0511718288ecd4073c1936aa475fe529c2a71d8b3f56436",
+      "nonce": "0x8761c9f3185dc3a36b0d0fb3065c5a8db25e669302a68d1efdd04864a71f3c5e",
       "price": "0.001 USDC"
     },
     {
@@ -51,16 +51,16 @@
       "want": "gas",
       "row": {
         "n": 1,
-        "at": "2026-10-24T00:06:11.560Z",
+        "at": "2026-10-24T00:27:33.893Z",
         "task": "retry",
         "purchase": "retry/gas",
         "endpoint": "https://pharos.edycu.dev/api/x402-paywalled-api/gas-snapshot",
         "bought": "Atlantic gas price now",
         "price": "0.001 USDC",
         "amount": "1000",
-        "tx": "0x0f6d881f989c154aa889df3a0f267a30cfdce0bdf7a6a8dca74a2e4133bbf764",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x0f6d881f989c154aa889df3a0f267a30cfdce0bdf7a6a8dca74a2e4133bbf764",
-        "block": 31802190,
+        "tx": "0x5419c3c9a9fb219f9ee2a059ae98db91bc7f97f18b531248ce691d35405780ea",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x5419c3c9a9fb219f9ee2a059ae98db91bc7f97f18b531248ce691d35405780ea",
+        "block": 31802944,
         "runningTotal": "0.001 USDC",
         "runningTotalAtomic": "1000"
       }
@@ -82,7 +82,7 @@
             "want": "gas",
             "status": "paid",
             "price": "0.001 USDC",
-            "tx": "0x0f6d881f989c154aa889df3a0f267a30cfdce0bdf7a6a8dca74a2e4133bbf764"
+            "tx": "0x5419c3c9a9fb219f9ee2a059ae98db91bc7f97f18b531248ce691d35405780ea"
           }
         ]
       }
@@ -103,7 +103,7 @@
         "want": "gas",
         "status": "paid",
         "price": "0.001 USDC",
-        "tx": "0x0f6d881f989c154aa889df3a0f267a30cfdce0bdf7a6a8dca74a2e4133bbf764"
+        "tx": "0x5419c3c9a9fb219f9ee2a059ae98db91bc7f97f18b531248ce691d35405780ea"
       }
     ]
   }
