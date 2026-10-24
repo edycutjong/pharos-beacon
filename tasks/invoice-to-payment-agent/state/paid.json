@@ -18,5 +18,15 @@
     "hash": "0xa4612b1cb1506989f8ff4dfcd1926fddcdb58b52ed9c0aaae4be8474c4c8ee31",
     "url": "https://atlantic.pharosscan.xyz/tx/0xa4612b1cb1506989f8ff4dfcd1926fddcdb58b52ed9c0aaae4be8474c4c8ee31",
     "at": "2026-10-24T01:30:26.702Z"
+  },
+  {
+    "fingerprint": "eb616ef0db613c23",
+    "number": "BM/2026/10/088",
+    "issuer": "CV Bumi Digital",
+    "amount": "0.002",
+    "token": "PHRS",
+    "hash": "0xdafd31be9b3254f061a224c3174612853eac695cb543d983709548173abedd44",
+    "url": "https://atlantic.pharosscan.xyz/tx/0xdafd31be9b3254f061a224c3174612853eac695cb543d983709548173abedd44",
+    "at": "2026-10-24T01:30:30.885Z"
   }
 ]
