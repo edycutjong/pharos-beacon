@@ -300,6 +300,32 @@ describe("readSnapshot", () => {
     expect(valueOf(s.positions.find((p) => p.kind === "token" && p.symbol === "WPROS")!)).toBeNull();
   });
 
+  it("a node that answers slot0 differently twice for one block is asked again; after 4 tries the price is unreadable, not guessed", async () => {
+    const call = fakeChain(base());
+    let slot0Calls = 0;
+    const flaky: Call = (async (tool: string, args: any) => {
+      const r = await (call as any)(tool, args);
+      if (tool === "eth_call" && args.transaction.data === "0x3850c7bd") {
+        slot0Calls++;
+        if (slot0Calls === 1) return { result: (r.result.slice(0, 66 - 4) + "ffff") as Hex }; // attempt 1: the two reads disagree
+      }
+      return r;
+    }) as Call;
+    const s = await readSnapshot(flaky, ME, new FactBook());
+    expect(slot0Calls).toBe(4); // two reads that disagreed, then two that agree
+    expect(s.unreadable.filter((u) => /PROS price/.test(u.what))).toEqual([]);
+    expect(s.positions.find((p) => p.kind === "token" && p.symbol === "WPROS")).toMatchObject({ usd: expect.closeTo(50, 6) });
+    let n = 0;
+    const always: Call = (async (tool: string, args: any) => {
+      const r = await (call as any)(tool, args);
+      if (tool === "eth_call" && args.transaction.data === "0x3850c7bd") return { result: (r.result.slice(0, 62) + String(n++ % 2 ? "aaaa" : "bbbb")) as Hex };
+      return r;
+    }) as Call;
+    const s2 = await readSnapshot(always, ME, new FactBook());
+    expect(s2.unreadable.some((u) => /PROS price/.test(u.what) && /answered differently twice/.test(u.reason))).toBe(true);
+    expect(s2.positions.find((p) => p.kind === "token" && p.symbol === "WPROS")).toMatchObject({ usd: null });
+  });
+
   it("vault yield is the share-price growth over the window, annualised", async () => {
     const book = new FactBook();
     const now = await readSnapshot(fakeChain(base()), ME, book);

@@ -1,5 +1,5 @@
 import { decodeFunctionResult, encodeFunctionData, getAddress, parseAbi, type Hex } from "viem";
-import { readUniV3 } from "../arb/venues.js";
+import { readUniV3, withRetries } from "../arb/venues.js";
 import { MORPHO_BLUE, borrowAssets, evaluate, readPosition, snapshotMarket } from "../liq/morpho.js";
 import type { ChainMcp } from "../lib/mcp.js";
 import { TOKENS } from "../lib/networks.js";
@@ -104,9 +104,12 @@ export async function headerAt(call: Call, block?: bigint): Promise<Header> {
   return { block: b, timestamp: BigInt(blk.timestamp) };
 }
 
-/** USDC per 1 WPROS from the pool's slot0, at `block` (a spot price, not a TWAP). */
+/**
+ * USDC per 1 WPROS from the pool's slot0, at `block` (a spot price, not a TWAP). The hosted node sometimes answers slot0 differently
+ * twice for one pinned block (seen on 2026-10-25); readUniV3 notices, and the read is repeated up to 4 times before it is given up.
+ */
 export async function readProsPrice(call: Call, block: bigint): Promise<{ price: number; pool: Hex }> {
-  const v = await readUniV3(call, PROS_POOL, { base: { symbol: "WPROS", address: WPROS.address, decimals: 18 }, quote: { symbol: "USDC", address: USDC.address, decimals: 6 } }, block);
+  const v = await withRetries(() => readUniV3(call, PROS_POOL, { base: { symbol: "WPROS", address: WPROS.address, decimals: 18 }, quote: { symbol: "USDC", address: USDC.address, decimals: 6 } }, block), 4);
   return { price: v.mid, pool: PROS_POOL };
 }
 
