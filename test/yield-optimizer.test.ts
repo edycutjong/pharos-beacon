@@ -331,6 +331,29 @@ describe("analyse (fake chain, two vaults)", () => {
     expect(renderReport(r).join("\n")).toContain("JUMPY");
   });
 
+  it("does not trust a price its neighbour block contradicts: the anchor moves and the rate stays true", async () => {
+    // the node answers 8 % too high at exactly the block the 1-day window starts from (the real flake, proof/node-flake.txt)
+    const bad = HEAD - 86_400n;
+    const flaky = (t: bigint) => (t === bad ? growth(0.04)(t) * 1.08 : growth(0.04)(t));
+    const call = chain({ [VA]: { price: flaky, shares: ONE_SHARE_MILLION / 1000n }, [VB]: { price: growth(0.09) } });
+    const r = await analyse({ ...base, call, sources });
+    const a = r.readings.find((x) => x.source.key === "a")!;
+    expect(a.windows.find((w) => w.label === "1d")!.apr!).toBeGreaterThan(0.035);
+    expect(a.windows.find((w) => w.label === "1d")!.apr!).toBeLessThan(0.045);
+    const e = a.evidence.find((x) => x.what.startsWith("share price 1d ago"))!;
+    expect(e.block).toBe(bad - 2n); // the anchor moved two blocks
+    expect(r.recommendation.decision).toBe("MOVE");
+  });
+  it("marks a window unreadable when the node never agrees with itself near its block", async () => {
+    const bad = HEAD - 86_400n;
+    const wild = (t: bigint) => (t <= bad && t > bad - 12n ? growth(0.04)(t) * (1 + Number(t % 2n) * 0.2) : growth(0.04)(t)); // alternating 0 / +20 % for 12 blocks
+    const call = chain({ [VA]: { price: wild, shares: ONE_SHARE_MILLION / 1000n }, [VB]: { price: growth(0.09) } });
+    const r = await analyse({ ...base, call, sources });
+    const w = r.readings.find((x) => x.source.key === "a")!.windows.find((x) => x.label === "1d")!;
+    expect(w.apr).toBeNull();
+    expect(w.reason).toContain("disagree between adjacent blocks");
+  });
+
   it("refuses windows longer than the chain's age", async () => {
     const call = chain({ [VA]: { price: growth(0.04), shares: 1n }, [VB]: { price: growth(0.09) } });
     await expect(analyse({ ...base, call, sources, windows: parseWindows("1d,200d") })).rejects.toThrow(/younger than the longest window/);

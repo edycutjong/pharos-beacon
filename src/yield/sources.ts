@@ -116,6 +116,26 @@ export async function priceAt(call: Call, src: Source, basis: Basis, block: bigi
   return { block, timestamp, price: Number(assets) / 10 ** basis.assetDecimals / 1e6 };
 }
 
+/**
+ * A share price that a neighbour confirms. The hosted node has served a wrong price at one height, twice in a row, 7 % away from the
+ * truth (proof/node-flake.txt); asking the same block twice does not catch that. A price is trusted only when the price one block
+ * earlier agrees with it to 0.001 %; otherwise the anchor moves two blocks down and it is tried again (4 anchors, then it is refused).
+ * The returned point carries the block it was actually read at, and rates use the timestamps of the points, so nothing is distorted.
+ */
+export async function confirmedPrice(call: Call, src: Source, basis: Basis, at: { block: bigint; timestamp: bigint }): Promise<PricePoint> {
+  let why = "";
+  for (let k = 0n; k < 4n; k++) {
+    const b = at.block - 2n * k;
+    const here = k === 0n ? at : await headerAt(call, b);
+    const prev = await headerAt(call, b - 1n);
+    const p1 = await priceAt(call, src, basis, here.block, here.timestamp);
+    const p0 = await priceAt(call, src, basis, prev.block, prev.timestamp);
+    if (p0.price > 0 && Math.abs(p1.price / p0.price - 1) <= 1e-5) return p1;
+    why = `block ${here.block} gives ${p1.price.toFixed(9)} but block ${prev.block} gives ${p0.price.toFixed(9)}`;
+  }
+  throw new Error(`the node's prices disagree between adjacent blocks near ${at.block} (${why}); not trusting them`);
+}
+
 // ---------------------------------------------------------------- one source, read in full
 
 export interface WindowSample {
@@ -190,18 +210,18 @@ export async function readSource(src: Source, ctx: ReadCtx): Promise<Reading> {
   const basis: Basis = { assetDecimals: ctx.assetDecimals, shareDecimals };
 
   // ---- price now and in each window
-  const now = await priceAt(call, src, basis, block, timestamp);
-  ev("share price now (USDC per share)", now.price.toFixed(9), src.kind === "morpho" ? MORPHO_BLUE : src.contract, src.kind === "morpho" ? "market(id) accrued with borrowRateView" : `convertToAssets(10^${shareDecimals + 6})`);
+  const now = await confirmedPrice(ctx.call, src, basis, { block, timestamp });
+  ev("share price now (USDC per share)", now.price.toFixed(9), src.kind === "morpho" ? MORPHO_BLUE : src.contract, src.kind === "morpho" ? "market(id) accrued with borrowRateView" : `convertToAssets(10^${shareDecimals + 6})`, now.block);
   const windows: WindowRate[] = [];
   const samples: Reading["samples"] = [];
   for (const s of ctx.samples) {
-    const r = await tryRd(() => priceAt(call, src, basis, s.block, s.timestamp));
+    const r = await tryRd(() => confirmedPrice(ctx.call, src, basis, { block: s.block, timestamp: s.timestamp }));
     if (!r.ok) {
       windows.push({ label: s.window.label, seconds: s.window.seconds, apr: null, reason: `not readable at block ${s.block}: ${r.why}` });
       continue;
     }
     samples.push({ label: s.window.label, then: r.v });
-    ev(`share price ${s.window.label} ago (USDC per share)`, r.v.price.toFixed(9), src.kind === "morpho" ? MORPHO_BLUE : src.contract, "same call, pinned", s.block);
+    ev(`share price ${s.window.label} ago (USDC per share)`, r.v.price.toFixed(9), src.kind === "morpho" ? MORPHO_BLUE : src.contract, "same call, pinned", r.v.block);
     windows.push({ label: s.window.label, seconds: s.window.seconds, apr: aprBetween(r.v, now) });
   }
 
