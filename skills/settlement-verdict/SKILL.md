@@ -22,6 +22,8 @@ the same run.
 
 ## Setup (once)
 
+Installing this skill alone copies only this file. If `package.json` with the `skill-chain-mcp-flow` script is not in the working folder, clone the repo first:
+
 ```bash
 git clone https://github.com/edycutjong/pharos-beacon && cd pharos-beacon && npm ci
 npm run setup:mcp        # only for Atlantic (testnet); mainnet (--network pharos) is keyless
@@ -35,12 +37,12 @@ does it, in this order, and prints the verdict:
 1. **Run it** (from the repo folder):
    ```bash
    npm run skill-chain-mcp-flow -- 0x<txhash> --network pharos
-   npm run skill-chain-mcp-flow -- --latest                       # the newest transaction on the network
+   npm run skill-chain-mcp-flow -- --latest   # first transaction of the newest block that has one (last 60 blocks): a demo convenience
    ```
    Add what the user told you to expect: `--expect-to 0x<recipient>` and `--min-value <coins>`. For "tell me when it is
-   final" add `--follow 60` (asks again every 2 s, at most 60 s). `--network atlantic` for the testnet.
+   final" add `--follow 60` (asks again every 2 s, for about 60 s). `--network atlantic` for the testnet.
 2. **Read the chain** (inside the command): `get_transaction` → `get_block_number` → `get_transaction_receipt` →
-   `get_block` for the head and for head − 20 (the observed block time).
+   `get_block` for the head and for head − 20, sent in parallel (the observed block time).
 3. **Decide** (inside the command), first rule that matches:
    - no transaction for the hash → `NOT_FOUND`
    - no receipt yet → `WAIT` (not mined)
@@ -48,10 +50,10 @@ does it, in this order, and prints the verdict:
    - recipient or value differs from what the user expects → `MISMATCH`
    - confirmations (head − block + 1) below the value tier's requirement → `WAIT n more blocks`
    - otherwise `SETTLED`.
-   The tier defaults to 3 confirmations below 1 coin, 12 below 100, 32 above; `--tiers 1=3,100=12,*=32` changes it and
+   The tier defaults to 3 confirmations below 1 coin, 12 from 1 up to (not including) 100, 32 from 100 up; `--tiers 1=3,100=12,*=32` changes it and
    `--confirmations N` overrides it for this run.
 4. **Report** the verdict line, the `rule` line and the depth line to the user in plain words. Exit code 0 = SETTLED,
-   2 = WAIT, 1 = anything else.
+   2 = WAIT (also bad flags), 1 = FAILED, MISMATCH, NOT_FOUND or an error.
 
 ## Guardrails
 

@@ -77,3 +77,35 @@ Two caveats before you release anything:
 - The skill doesn't read token amounts, so check the amount on the explorer: https://www.pharosscan.xyz/tx/0x2cc1072412e5da0d88cdff086a3d1686527b1a9162f2cce5566f04c530670c64
 
 (total cost reported by the CLI: $0.140; the skill's SKILL.md was loaded by the agent through the Skill tool in step 1.)
+
+## 5. Second run: a named mainnet transaction
+
+(Installed again from the clone at the commit before the round-1 wording fixes to SKILL.md; the commands and rules are the same.)
+
+Prompt: A customer says they paid me with transaction 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0 on Pharos mainnet. Can I treat it as paid? Verdict and rule, in two lines.
+
+1. tool call `Skill`: {"skill": "settlement-verdict", "args": "0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0 on Pharos mainnet"}
+
+2. tool call `Bash`: {"command": "npm run skill-chain-mcp-flow -- 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0 --network pharos 2>&1 | tail -30", "description": "Run settlement verdict for the transaction"}
+
+   result:
+```
+> beacon@0.2.0 skill-chain-mcp-flow
+> tsx tasks/skill-chain-mcp-flow/index.ts 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0 --network pharos
+
+VERDICT SETTLED
+rule    mined with status 0x1 and 1053 confirmations, at least the 3 this tier needs
+tx      0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
+from    0xda12bd94cded64c0927272674df0ed4c0ec1f88c  →  to 0x52acdeb49056518578c7af788ae2c367132e2db5
+value   0 native
+mined   block 21079587, head 21080639, status success, gas used 46040
+depth   1053 confirmations of 3 required (0 native value → tier 1 of 3 (below 1))
+network pharos (chain 1672)
+explorer https://www.pharosscan.xyz/tx/0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
+```
+
+Answer:
+
+**Verdict:** The transaction is mined, succeeded, and has 1053 confirmations against the 3 required. It has not been checked against who or how much you were owed, so I can't call it paid yet.
+
+**Rule:** The check only passed on status and depth. It moved 0 native coins (probably a token transfer, gas used 46040), and I ran it without `--expect-to` or `--min-value`. Before you treat it as paid, confirm the recipient is your address and the token amount is right on [the explorer](https://www.pharosscan.xyz/tx/0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0). The skill doesn't read token amounts. The `to` address is `0x52ac…2db5`.
