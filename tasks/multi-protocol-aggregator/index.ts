@@ -76,7 +76,7 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
       if (command === "deposit") throw new UsageError("--amount all only makes sense for a withdrawal");
       request = { kind: "withdraw", assets: "all" };
     } else {
-      if (!/^\d{1,12}(\.\d{1,6})?$/.test(values.amount) || Number(values.amount) <= 0) throw new UsageError(`--amount must be a positive USDC amount with at most 6 decimals, got ${JSON.stringify(values.amount)}`);
+      if (!/^\d{1,10}(\.\d{1,6})?$/.test(values.amount) || Number(values.amount) <= 0) throw new UsageError(`--amount must be a positive USDC amount (under 10 billion) with at most 6 decimals, got ${JSON.stringify(values.amount)}`);
       request = { kind: command, assets: parseUnits(values.amount, 6) };
     }
   } else {

@@ -133,6 +133,15 @@ describe("routeWithdraw", () => {
     const r = routeWithdraw([view("a", "erc4626", 0.03, { held: 600n * 10n ** 6n })], [{ venue: dv!, reason: "timed out", simulated: false }], 100, P);
     expect(r.explanation.join("\n")).toContain("Unavailable: Venue m (Morpho Blue): timed out. The wallet's position there is UNKNOWN");
   });
+  it("uses a venue whose rate could not be read last, and says so, instead of draining it first as if leaving were free", () => {
+    const blind = view("blind", "erc4626", 0.09, { held: 5n * MILLION });
+    blind.rate = rateView([win("1d", null)]);
+    const r = routeWithdraw([blind, view("known", "erc4626", 0.09, { held: 5n * MILLION })], [], 1_000, P);
+    expect(r.allocations.map((a) => a.venueId)).toEqual(["known"]);
+    const only = routeWithdraw([blind], [], 1_000, P);
+    expect(only.allocations.map((a) => a.venueId)).toEqual(["blind"]);
+    expect(only.explanation.join("\n")).toContain("could not be read, so what leaving it gives up is unknown");
+  });
   it("reports an empty wallet", () => {
     expect(routeWithdraw([view("a", "erc4626", 0.03)], [], 100, P).explanation[0]).toContain("nothing to withdraw");
   });
@@ -371,6 +380,13 @@ describe("aggregate (fake chain: RockawayX-shaped vault, async fund vault, Morph
     expect(r2.plan!.legs.reduce((a, l) => a + BigInt(l.assets), 0n)).toBe(100n * 10n ** 6n);
     expect(verifyActionPlan(r2.plan!, USDC)).toEqual([]);
   });
+  it("says 'all' covers only the venues that answered when one is down", async () => {
+    const r = await aggregate(base(world(), { kind: "withdraw", assets: "all" }, { down: ["morpho"] }));
+    expect(r.plan).not.toBeNull();
+    expect(r.planNote).toContain('"all" covers only the venues that answered');
+    expect(r.planNote).toContain("Morpho Blue TEST/USDC supply");
+    expect((await aggregate(base(world(), { kind: "withdraw", assets: "all" }))).planNote).toBeNull();
+  });
   it("refuses a deposit the wallet cannot fund, unless told to assume it", async () => {
     await expect(aggregate(base(chain({}, { apr: 0.06 }, 5n * 10n ** 6n), { kind: "deposit", assets: 100n * 10n ** 6n }, { venues: [venues[2]!] }))).rejects.toBeInstanceOf(InsufficientFunds);
     const r = await aggregate(base(chain({}, { apr: 0.06 }, 5n * 10n ** 6n), { kind: "deposit", assets: 100n * 10n ** 6n }, { venues: [venues[2]!], assumeFunded: true }));
@@ -462,6 +478,12 @@ describe("verifyActionPlan", () => {
     greedy.transactions[0]!.request.data = encodeFunctionData({ abi: morphoAbi, functionName: "withdraw", args: [d.args![0], 400n * 10n ** 6n, 0n, ME, ME] as never });
     expect(verifyActionPlan(rb(greedy), USDC).join()).toContain("the leg is 100000000 assets");
   });
+  it("catches a deposit that comes before its approve", async () => {
+    const p = await mk();
+    const swapped = edit(p, (q) => q.transactions.reverse());
+    const bad = buildPlan(swapped.request, swapped.chainId, swapped.wallet, swapped.legs, swapped.transactions);
+    expect(verifyActionPlan(bad, USDC).join()).toContain("must come right after its approve");
+  });
   it("catches a withdrawal that pays someone else", async () => {
     const r = await aggregate(base(world(), { kind: "withdraw", assets: 100n * 10n ** 6n }, { down: ["morpho"] }));
     const { encodeFunctionData } = await import("viem");
@@ -489,6 +511,7 @@ describe("CLI input", () => {
     await expect(run(["deposit", "--wallet", W, "--amount", "all"])).rejects.toThrow("only makes sense for a withdrawal");
     await expect(run(["deposit", "--wallet", W, "--amount=-5"])).rejects.toThrow("positive USDC amount");
     await expect(run(["deposit", "--wallet", W, "--amount", "1.1234567"])).rejects.toThrow("at most 6 decimals");
+    await expect(run(["deposit", "--wallet", W, "--amount", "10000000000"])).rejects.toThrow("under 10 billion");
     await expect(run(["positions", "--wallet", W, "--amount", "5"])).rejects.toThrow("--amount is for deposit and withdraw");
     await expect(run(["positions", "--wallet", W, "--down", "aave"])).rejects.toThrow("--down must be one of rockawayx, morpho, centrifuge");
     await expect(run(["positions", "--wallet", W, "--down", "morpho,aave"])).rejects.toThrow("--down must be one of");

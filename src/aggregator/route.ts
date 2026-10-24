@@ -152,6 +152,7 @@ export function routeWithdraw(views: VenueView[], down: Down[], amountUsd: numbe
     if (!eligible && reasons.length === 0) reasons.push("nothing can leave right now");
     const sized = amountUsd === "all" ? cap : Math.min(amountUsd, cap);
     const fee = sized * ((r.exit.feeBps ?? 0) / 10_000);
+    const rateKnown = v.rate.optimistic !== null;
     const forgone = sized * (v.rate.optimistic ?? 0) * (p.holdDays / 365);
     return {
       venueId: v.venue.id,
@@ -161,11 +162,13 @@ export function routeWithdraw(views: VenueView[], down: Down[], amountUsd: numbe
       reasons: eligible ? [] : reasons,
       capacityUsd: eligible ? cap : 0,
       scoreUsd: eligible ? fee + gas + forgone : null,
-      parts: eligible ? { exitFeeUsd: fee, gasUsd: gas, forgoneYieldUsd: forgone, positionUsd: posUsd, atUsd: sized } : {},
+      parts: eligible ? { exitFeeUsd: fee, gasUsd: gas, forgoneYieldUsd: forgone, positionUsd: posUsd, atUsd: sized, rateUnknown: rateKnown ? 0 : 1 } : {},
       ratePct: pct(v.rate.optimistic),
     };
   });
-  const ranked = options.filter((o) => o.eligible).sort((a, b) => a.scoreUsd! / Math.max(a.parts.atUsd!, 1e-9) - b.scoreUsd! / Math.max(b.parts.atUsd!, 1e-9));
+  // a venue whose rate could not be read has an unknown cost of leaving: it is used last, never first
+  const key = (o: Option) => (o.parts.rateUnknown ? 1e12 : 0) + o.scoreUsd! / Math.max(o.parts.atUsd!, 1e-9);
+  const ranked = options.filter((o) => o.eligible).sort((a, b) => key(a) - key(b));
   const total = amountUsd === "all" ? ranked.reduce((a, o) => a + o.capacityUsd, 0) : amountUsd;
   const allocations: Allocation[] = [];
   let left = total;
@@ -184,6 +187,7 @@ export function routeWithdraw(views: VenueView[], down: Down[], amountUsd: numbe
     lines.push(
       `Chose ${top.name} (${top.protocolName})${allocations.length > 1 ? ` first` : ""}: taking ${usd(allocations[0]!.usd)} out costs ${usd(top.scoreUsd!)} over ${p.holdDays} d = exit fee ${usd(top.parts.exitFeeUsd!)} + gas ${usd(top.parts.gasUsd!)} + yield given up ${usd(top.parts.forgoneYieldUsd!)} at its optimistic ${top.ratePct}.`,
     );
+    if (top.parts.rateUnknown) lines.push(`Note: the rate of ${top.name} could not be read, so what leaving it gives up is unknown (counted as $0); venues with a known rate are used before it.`);
     const runner = ranked.find((o) => o.venueId !== top.venueId);
     if (runner) lines.push(`Next cheapest: ${runner.name} would cost ${usd(runner.scoreUsd!)} for ${usd(Math.min(runner.parts.atUsd!, allocations[0]!.usd))}; it keeps earning ${runner.ratePct}.`);
     if (allocations.length > 1) lines.push(`No single venue holds the whole amount, so it is split: ${allocations.map((a) => `${usd(a.usd)} from ${name(a.venueId).name}`).join(", ")}.`);

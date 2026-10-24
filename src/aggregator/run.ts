@@ -171,6 +171,7 @@ export async function aggregate(o: AggregateOptions): Promise<Report> {
         plan = null;
         planNote = e.message;
       }
+      if (plan && req.kind === "withdraw" && req.assets === "all" && down.length) planNote = `"all" covers only the venues that answered: ${[...new Set(down.map((d) => d.venue.name))].join(", ")} did not, so whatever the wallet holds there is not in this plan`;
       if (plan && route.unplacedUsd > 1e-9) planNote = `the plan covers only part of the request: ${route.unplacedUsd.toFixed(2)} USD could not be placed`;
     }
   }
