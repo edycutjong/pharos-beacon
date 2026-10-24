@@ -557,4 +557,41 @@ describe("races and give-up (review round 1)", () => {
     expect(saved.status).toBe("running"); // not rolled back
     expect(saved.actions.some((a) => a.phase === "undo")).toBe(false);
   });
+
+  it("a swap-back that was refused once, bumped and then MINED with status 0 is stuck, and a resume restarts it on a fresh nonce", async () => {
+    const c = new FakeChain();
+    c.vaultOpen = false;
+    let backs = 0;
+    const isBack = (data: Hex) => {
+      const d = decodeFunctionData({ abi: ABI, data });
+      return d.functionName === "swap" && String(d.args![0]).toLowerCase() === USDC.toLowerCase();
+    };
+    c.broadcastError = (_n, _to, data) => (isBack(data) && ++backs === 1 ? "503 service unavailable" : undefined);
+    c.mineRevert = (_to, data) => isBack(data) && backs === 2; // the bumped second send reverts
+    const first = make(c);
+    const j = await first.saga.run();
+    expect(j.status).toBe("stuck");
+    const back = j.actions.find((a) => a.id === "undo-swap")!;
+    expect(back.attempts.map((a) => a.state)).toEqual(["refused", "reverted"]);
+    c.mineRevert = undefined;
+    const done = await make(c, {}, loadJournal(first.file)!).saga.run();
+    expect(done.status).toBe("rolled-back");
+    const after = done.actions.find((a) => a.id === "undo-swap")!;
+    expect(after.earlier).toHaveLength(2);
+    expect(after.attempts).toHaveLength(1);
+    expect(after.attempts[0]!.nonce).not.toBe(back.attempts[1]!.nonce); // the reverted send used its nonce up
+    expect(c.bal[WPHRS]).toBe(5n * 10n ** 15n);
+  });
+
+  it("a transient failure while SIGNING is retried and the second sign succeeds (no crash on the missing previous send)", async () => {
+    const c = new FakeChain();
+    const base = portFor(c);
+    let n = 0;
+    const port: Port = { ...base, sign: async (tx, o) => { if (tx.to === POOL && ++n === 1) throw new Error("timeout: node did not answer"); return base.sign(tx, o); } };
+    const def = defiSaga(P);
+    const journal = newJournal({ id: "t", wallet: ME, params: {} }, def.forward, new Date());
+    const j = await new Saga(def, journal, port, join(dir, "s4.json"), { policy: POLICY }).run();
+    expect(j.status).toBe("completed");
+    expect(j.actions.find((a) => a.id === "swap")!.attempts.map((a) => a.state)).toEqual(["refused", "mined"]);
+  });
 });

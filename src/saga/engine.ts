@@ -283,11 +283,11 @@ export class Saga {
       j.status = j.stuckFrom ?? "compensating";
       for (const a of j.actions) {
         if (a.state === "failed" && (a.phase === "undo" || a.failure?.kind === "pending-unresolved")) {
-          // Start the action afresh (new nonce) only when no send of it can still land: nothing was ever sent, or every send was
-          // MINED with status 0 (which used its nonce up). Otherwise keep the attempts: they are looked at again, and the next
+          // Start the action afresh (new nonce) only when no send of it can still land: nothing was ever sent, or one send was
+          // MINED with status 0 (which used the nonce up, so no other send on it can land). Otherwise keep the attempts: they are looked at again, and the next
           // round of sends reuses their nonce, so at most one of them can have an effect.
           const real = a.attempts.filter((t) => t.raw !== "0x");
-          if (!a.landed && real.every((t) => t.state === "reverted")) {
+          if (!a.landed && (real.length === 0 || real.some((t) => t.state === "reverted"))) {
             a.earlier = [...(a.earlier ?? []), ...a.attempts];
             a.attempts = [];
             a.base = 0;
@@ -476,7 +476,7 @@ export class Saga {
           state: "signed",
         };
         rec.attempts.push(att);
-        this.log(rec.id, "SIGNED", `attempt ${attemptNo}/${this.policy.maxAttempts} nonce ${att.nonce} ${att.hash} maxFee ${att.maxFeePerGas} wei${attemptNo > 1 ? ` (bumped from ${prev!.maxFeePerGas})` : ""}`);
+        this.log(rec.id, "SIGNED", `attempt ${attemptNo - base}/${this.policy.maxAttempts} nonce ${att.nonce} ${att.hash} maxFee ${att.maxFeePerGas} wei${prev ? ` (bumped from ${prev.maxFeePerGas})` : ""}`);
         this.crashAt(rec.id, "signed");
 
         if (this.injected("drop", rec.id, attemptNo)) {
@@ -602,6 +602,7 @@ export class Saga {
   }
 
   private async backoff(rec: ActionRec, afterAttempt: number): Promise<void> {
+    afterAttempt = Math.max(1, afterAttempt);
     const ms = this.policy.backoffMs * 2 ** (afterAttempt - 1);
     this.log(rec.id, "RETRY", `backing off ${ms} ms, then attempt ${afterAttempt + 1}/${this.policy.maxAttempts} on the same nonce with a higher fee`);
     await this.port.sleep(ms);

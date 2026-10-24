@@ -119,4 +119,4 @@ The swap was sent once ([`0x1eb4d4e4…97ab`](https://atlantic.pharosscan.xyz/tx
 
 ## Tests
 
-`npm test`: 32 tests in [`test/saga-executor.test.ts`](../../test/saga-executor.test.ts) (an in-memory chain; success, every retry path, the rollback paths, a stuck rollback, crash-resume at three points and mid-rollback, the retry race, give-up with a send still pending, resume from stuck, a mined revert, CLI usage errors), 879 in the repo. `npm run typecheck` is clean.
+`npm test`: 34 tests in [`test/saga-executor.test.ts`](../../test/saga-executor.test.ts) (an in-memory chain; success, every retry path, the rollback paths, a stuck rollback, crash-resume at three points and mid-rollback, the retry race, give-up with a send still pending, resume from stuck, a mined revert, CLI usage errors), 881 in the repo. `npm run typecheck` is clean.
