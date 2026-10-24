@@ -23,6 +23,8 @@
     "dry-run-executor": "tsx tasks/dry-run-executor/index.ts",
     "gas-fee-optimizer": "tsx tasks/gas-fee-optimizer/index.ts",
     "whale-watching-agent": "tsx tasks/whale-watching-agent/index.ts",
+    "audit-log-agent": "tsx tasks/audit-log-agent/index.ts",
+    "weekly-digest-agent": "tsx tasks/weekly-digest-agent/index.ts",
     "wallet-risk-checker": "tsx tasks/wallet-risk-checker/index.ts",
     "trend-watcher": "tsx tasks/trend-watcher/index.ts",
     "skill-chain-mcp-flow": "tsx tasks/skill-chain-mcp-flow/index.ts",
