@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "task": "portfolio-assistant",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/portfolio-assistant/index.ts ask Do I owe anything? Where is my USDC? --wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b --block 21136550 --proof video-ask",
+    "git": {
+      "commit": "22fbe26cf587",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T23:33:05.059Z"
+  },
+  "block": "21136550",
+  "wallets": [
+    "0x67765eA217d0021e35CA973dBae3b54823081a2b"
+  ],
+  "windowDays": 7,
+  "answers": [
+    {
+      "question": "Do I owe anything?",
+      "lang": "en",
+      "intent": "debt",
+      "refused": null,
+      "text": "Wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b at block 21136550:\nMorpho Blue APT/USDC: debt 900,765.36 USDC, collateral 1,894,576.6198 APT [F12, F11]; health factor 1.8223 (collateral 1,908,657.11 USDC [F13]; may fall 45.1% before liquidation) [F12, F13]\nMorpho Blue APC3M/USDC: debt 1,004,931.82 USDC, collateral 1,500,000.6465 APC3M [F16, F15]; health factor 1.3261 (collateral 1,549,584.67 USDC [F17]; may fall 24.6% before liquidation) [F16, F17]",
+      "cites": [
+        "F12",
+        "F11",
+        "F13",
+        "F16",
+        "F15",
+        "F17"
+      ],
+      "sources": "id | figure | contract | call | block\nF11 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF13 | APT/USDC collateral valued in USDC | 0xd7E33079D91c5fA12798C1e7b28A7877045aa7C3 | price() | block 21136550\nF15 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF17 | APC3M/USDC collateral valued in USDC | 0x4Eb6fcFfc4D1B27eA773EDc062D5AdFC94A81FaE | price() | block 21136550"
+    },
+    {
+      "question": "Where is my USDC?",
+      "lang": "en",
+      "intent": "where",
+      "refused": null,
+      "text": "Wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b at block 21136550:\nUSDC: 431.4804 USDC in wallet [F4]\nUSDC: debt: 900,765.36 USDC in Morpho Blue APT/USDC (USDC borrowed, not held) [F12]\nUSDC: debt: 1,004,931.82 USDC in Morpho Blue APC3M/USDC (USDC borrowed, not held) [F16]",
+      "cites": [
+        "F4",
+        "F12",
+        "F16"
+      ],
+      "sources": "id | figure | contract | call | block\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550"
+    }
+  ],
+  "facts": [
+    {
+      "id": "F4",
+      "label": "USDC in wallet",
+      "raw": "431480392",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "call": "balanceOf(wallet)",
+      "block": "21136550"
+    },
+    {
+      "id": "F11",
+      "label": "APT/USDC collateral (APT)",
+      "raw": "1894576619794796892558442",
+      "decimals": 18,
+      "symbol": "APT",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).collateral",
+      "block": "21136550"
+    },
+    {
+      "id": "F12",
+      "label": "APT/USDC debt (USDC)",
+      "raw": "900765356475",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).borrowShares × market()",
+      "block": "21136550"
+    },
+    {
+      "id": "F13",
+      "label": "APT/USDC collateral valued in USDC",
+      "raw": "1908657113233",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0xd7E33079D91c5fA12798C1e7b28A7877045aa7C3",
+      "call": "price()",
+      "block": "21136550"
+    },
+    {
+      "id": "F15",
+      "label": "APC3M/USDC collateral (APC3M)",
+      "raw": "1500000646489000000000000",
+      "decimals": 18,
+      "symbol": "APC3M",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).collateral",
+      "block": "21136550"
+    },
+    {
+      "id": "F16",
+      "label": "APC3M/USDC debt (USDC)",
+      "raw": "1004931824668",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).borrowShares × market()",
+      "block": "21136550"
+    },
+    {
+      "id": "F17",
+      "label": "APC3M/USDC collateral valued in USDC",
+      "raw": "1549584667859",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x4Eb6fcFfc4D1B27eA773EDc062D5AdFC94A81FaE",
+      "call": "price()",
+      "block": "21136550"
+    }
+  ],
+  "unreadable": [],
+  "readCalls": 87,
+  "seconds": 14
+}
