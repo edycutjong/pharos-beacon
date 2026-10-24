@@ -73,9 +73,13 @@ footer{margin-top:72px;padding-top:18px;border-top:1px solid var(--rule);display
     <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon" rel="noopener">Repo ↗</a></nav>
   </header>
   <h1>Beacon demos</h1>
-  <p class="lede">Eighteen Pharos Agent Arena tasks. Fifteen of them run from this site: press Run live and the page calls the real chain, Pacific mainnet or Atlantic testnet, and links every result to the explorer. Nothing here asks for a wallet. Steps that sign are shown from the recorded runs committed in the repo.</p>
+  <p class="lede">Twenty-four Pharos Agent Arena tasks. Twenty-one of them run from this site: press Run live and the page calls the real chain, Pacific mainnet or Atlantic testnet, and links every result to the explorer. Nothing here asks for a wallet. Steps that sign are shown from the recorded runs committed in the repo.</p>
   <h2 class="tier-head caps">Hard tasks</h2>
   <ol class="demos">
+    <li>
+      <div><span class="chip tier">HARD · 200 PTS</span><h2><a href="/x402-agent-buyer">x402 Agent Buyer</a></h2><p>An agent that buys from x402-paywalled APIs inside a budget and a per-call cap, and never pays twice. This page shows its plan from the live 402 prices; paying is the CLI&#x27;s.</p></div>
+      <a class="go" href="/x402-agent-buyer">Run it live →</a>
+    </li>
     <li>
       <div><span class="chip tier">HARD · 200 PTS</span><h2><a href="/trend-watcher">Trend Watcher</a></h2><p>Keeps a history of a metric across runs and acts only after N moves in a row. A single spike never triggers it.</p></div>
       <a class="go" href="/trend-watcher">Run it live →</a>
@@ -87,6 +91,26 @@ footer{margin-top:72px;padding-top:18px;border-top:1px solid var(--rule);display
   </ol>
   <h2 class="tier-head caps">Medium tasks</h2>
   <ol class="demos">
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/natural-language-payment-agent">Natural-Language Payment Agent</a></h2><p>Turns “send 0.0001 PHRS to 0x…” into an unsigned transaction, asks a follow-up when something is missing, and never signs.</p></div>
+      <a class="go" href="/natural-language-payment-agent">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/invoice-to-payment-agent">Invoice-to-Payment Agent</a></h2><p>Reads an invoice in JSON or plain text, flags what is missing instead of guessing, and prepares an unsigned payment with the invoice reference.</p></div>
+      <a class="go" href="/invoice-to-payment-agent">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/skill-chain-mcp-flow">Skill + Chain MCP Flow</a></h2><p>A SkillEngine skill that answers “can I treat this transaction as paid?” from live Chain MCP reads, with the rule that decided.</p></div>
+      <a class="go" href="/skill-chain-mcp-flow">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/audit-log-agent">Audit-Log Agent</a></h2><p>Groups a wallet&#x27;s activity into transfers, swaps, approvals and contract calls, with totals and notable transactions.</p></div>
+      <a class="go" href="/audit-log-agent">Run it live →</a>
+    </li>
+    <li>
+      <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/weekly-digest-agent">Weekly Digest Agent</a></h2><p>A period digest of a wallet against the period before: key numbers, the top three events, who is new.</p></div>
+      <a class="go" href="/weekly-digest-agent">Run it live →</a>
+    </li>
     <li>
       <div><span class="chip tier">MEDIUM · 100 PTS</span><h2><a href="/x402-paywalled-api">x402 Paywalled API</a></h2><p>An API that charges per request in test USDC: a 402, a signed payment, settled by its own facilitator, then the data with its receipt.</p></div>
       <a class="go" href="/x402-paywalled-api">Run it live →</a>

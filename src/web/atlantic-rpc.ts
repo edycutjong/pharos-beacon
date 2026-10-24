@@ -13,9 +13,10 @@ type Call = ChainMcp["call"];
 const hex = (v: bigint | number) => `0x${v.toString(16)}` as Hex;
 const dec = (h: unknown) => BigInt(String(h ?? "0x0")).toString();
 
-/** "latest" or a decimal block number → the JSON-RPC block tag. */
+/** "latest", "pending" (the pay tasks read the sender's pending nonce) or a decimal block number → the JSON-RPC block tag. */
 export function blockTag(b: unknown): string {
   if (b === undefined || b === null || b === "latest") return "latest";
+  if (b === "pending") return "pending";
   if (typeof b === "string" && /^\d+$/.test(b)) return hex(BigInt(b));
   if (typeof b === "string" && /^0x[0-9a-fA-F]+$/.test(b)) return b;
   throw new ChainToolError("block", `not a block number: ${JSON.stringify(b)}`);
@@ -120,8 +121,11 @@ export function atlanticRpcCall(o: RpcCallOptions = {}): Call & { requests(): nu
         }
         return { gasPriceWei: dec(g), gasPriceGwei: formatGwei(BigInt(g)), gasPriceHex: g, maxPriorityFeePerGasWei: dec(p), maxPriorityFeePerGasGwei: formatGwei(BigInt(p)), maxPriorityFeePerGasHex: p };
       }
+      case "get_chain_info":
+        // The activity engine asks for the coin symbol; the rest of the Chain MCP's answer is not needed here.
+        return { chainId: atlantic.id, name: atlantic.name, nativeSymbol: atlantic.nativeCurrency.symbol, nativeDecimals: atlantic.nativeCurrency.decimals };
       case "get_block":
-        return rpc(name, "eth_getBlockByNumber", [blockTag(args.block), false]);
+        return rpc(name, "eth_getBlockByNumber", [blockTag(args.block), args.includeTransactions === true]);
       case "get_transaction":
         return rpc(name, "eth_getTransactionByHash", [args.hash]);
       case "get_transaction_receipt":

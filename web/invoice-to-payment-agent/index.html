@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Invoice-to-Payment Agent</title>
+<meta name="description" content="Invoice-to-Payment Agent on Pharos: Reads an invoice, in JSON or as plain text, in English or Bahasa Indonesia, pulls out payee, amount, token and reference, and flags what is missing or Run it live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+<style>
+/* page additions: the custom-transaction form, verdict line, links in tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)} .strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+.verdict{margin:0 0 14px;font-weight:700;font-size:17px}
+.verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)} .verdict.bad{color:var(--bad)}
+details.custom{justify-self:stretch;border:1px solid var(--rule);border-radius:4px;background:var(--sheet);padding:8px 12px}
+details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.form input,.form select{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0}
+.form .wide{grid-column:1/-1}
+.form .btn{justify-self:start}
+@media (max-width:520px){.form{grid-template-columns:1fr}}
+#recorded .log td{white-space:normal;vertical-align:top;overflow-wrap:anywhere}
+#recorded .log td a{white-space:nowrap}
+.panel-body{overflow-x:auto}
+</style>
+<style>
+.form textarea{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0;min-height:120px;resize:vertical}
+.data td{vertical-align:top}
+pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Atlantic testnet · eip155:688689 · prepares, never signs</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/invoice-to-payment-agent" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">MEDIUM · 100 PTS</span>
+      <h1>Invoice-to-Payment Agent</h1>
+      <p class="lede">Reads an invoice, in JSON or as plain text, in English or Bahasa Indonesia, pulls out payee, amount, token and reference, and flags what is missing or inconsistent instead of guessing. A clean invoice becomes a payment summary and an unsigned transaction that carries the invoice reference.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Scenario"><button class="btn" type="button" data-s="acme" aria-pressed="true">JSON invoice (Acme, 0.005 PHRS)</button><button class="btn" type="button" data-s="nova" aria-pressed="false">Text invoice (Nova, WPHRS)</button><button class="btn" type="button" data-s="faktur" aria-pressed="false">Bahasa Indonesia invoice (Bumi, 0,002 PHRS)</button><button class="btn" type="button" data-s="totals" aria-pressed="false">Totals that disagree (flagged)</button><button class="btn" type="button" data-s="payee" aria-pressed="false">Payee address with a bad checksum (refused)</button><button class="btn" type="button" data-s="usd" aria-pressed="false">USD invoice, no rate (flagged)</button></div>
+      <details class="custom" id="custom"><summary>Paste your own invoice</summary><form class="form" id="form"><label class="wide">Invoice (JSON or text, up to 4,000 characters)<textarea name="text" required maxlength="4000" placeholder="INVOICE #1&#10;Pay to: 0x…&#10;Total due: 0.001 PHRS"></textarea></label><label>Settle a non-token currency in (optional)<select name="payIn"><option value="">no</option><option>USDC</option><option>USDT</option></select></label><button class="btn" type="submit">Run this</button></form></details>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">JSON invoice (Acme, 0.005 PHRS)</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real step finishes. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live reads the selected sample invoice, flags problems or prepares an unsigned transaction on Atlantic. Nothing is signed or sent.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+  <p class="foot-note">This page uses the CLI's rule extractor; the CLI also fills gaps with an LLM when a key is set, and there is none on this server. The duplicate-payment ledger is a CLI file (a paid invoice is refused a second time there), so it is not shown here.</p>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 4 of 4 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">02</span><h2>Run log</h2><p>Your runs on this visit (kept in this browser only)</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Input</th><th>Result</th><th>Total</th></tr></thead><tbody id="log-body"><tr><td colspan="4" style="color:var(--ink-2)">No runs yet. Press Run live.</td></tr></tbody></table></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours"><article><h3>Flag, don't guess</h3><p>A USD invoice is not paid in USDC unless the caller says so, and then the 1:1 assumption is printed.</p></article><article><h3>Fingerprint</h3><p>Number, issuer, amount and currency make one fingerprint; the CLI's ledger refuses to pay the same one twice.</p></article><article><h3>Three layouts</h3><p>Labelled lines, JSON keys and Indonesian labels (Total tagihan, Bayar ke) are all read by rules.</p></article></div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/invoice-to-payment-agent</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: no key, nothing signed. Keys for the CLI live in a local env file, never in code.</span></footer>
+</div>
+
+<script src="/_shared/demo-kit.js"></script>
+<script src="/_shared/run-kit.js"></script>
+<script>
+RunKit({
+  api: "/api/invoice-to-payment-agent",
+  idleFoot: "Each lamp lights when the real step finishes. Times are measured, not animated.",
+  runningFoot: "Reading the invoice\u2026",
+  steps: () => [{id:'extract',name:'Extract'},{id:'validate',name:'Validate'},{id:'prepare',name:'Prepare on Atlantic'},{id:'sign',name:'Sign'}],
+  scenarios: [{ id: "acme", label: "JSON invoice (Acme, 0.005 PHRS)", request: { body: { text: "{\n  \"invoice_number\": \"INV-2026-0042\",\n  \"issuer\": \"Acme Design Studio\",\n  \"pay_to\": \"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\",\n  \"currency\": \"PHRS\",\n  \"line_items\": [\n    { \"description\": \"Logo refresh\", \"amount\": 0.003 },\n    { \"description\": \"Icon set\", \"amount\": 0.002 }\n  ],\n  \"total\": \"0.005\",\n  \"due\": \"2026-11-05\"\n}" } } }, { id: "nova", label: "Text invoice (Nova, WPHRS)", request: { body: { text: "INVOICE #NV-17\nFrom: Nova Audio Labs\nDate: 2026-10-24\nPay to: 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\n\nMastering, 2 tracks ........ 0.0006 WPHRS\nStems export ............... 0.0004 WPHRS\n\nTotal due: 0.001 WPHRS\nPlease include the invoice number as the payment reference." } } }, { id: "faktur", label: "Bahasa Indonesia invoice (Bumi, 0,002 PHRS)", request: { body: { text: "FAKTUR TAGIHAN\n\nNomor Faktur: BM/2026/10/088\nDari: CV Bumi Digital\nKepada: Beacon Agent\nBayar ke: 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\n\nJasa konsultasi smart contract\nTotal tagihan: 0,002 PHRS\nMohon cantumkan nomor faktur pada pembayaran." } } }, { id: "totals", label: "Totals that disagree (flagged)", request: { body: { text: "INVOICE #QX-9\nFrom: Quick Print Co\nPay to: 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\nSubtotal: 20 USDC\nTotal due: 25 USDC\nAmount due: 30 USDC" } } }, { id: "payee", label: "Payee address with a bad checksum (refused)", request: { body: { text: "INVOICE #PY-3\nFrom: Typo Traders\nPay to: 0x8d347c72431ed6E033d5f43E56c0987E97f5D91B\nTotal due: 0.001 PHRS" } } }, { id: "usd", label: "USD invoice, no rate (flagged)", request: { body: { text: "{ \"invoice_number\": \"US-5521\", \"issuer\": \"Hudson Supply\", \"pay_to\": \"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\", \"currency\": \"USD\", \"total\": \"120.00\" }" } } }, { id: "custom", label: "Your input", request: null }],
+  fromForm: fd => ({ body: { text: fd.get("text"), ...(fd.get("payIn") ? { payIn: fd.get("payIn") } : {}) } }),
+  reqs: [["01", "Extracts payee, amount, token or currency, and reference from at least 2 invoice formats.", "JSON, plain text and a Bahasa Indonesia text invoice are samples above; the CLI also reads PDF.", "met", "output"], ["02", "Flags mismatches or missing fields instead of guessing.", "Try the totals, bad-checksum and USD samples: each is flagged with the reason and nothing is prepared.", "met", "output"], ["03", "Produces a payment summary and an unsigned transaction that includes the invoice reference.", "Output: the summary, then the unsigned transaction whose data carries the invoice number.", "met", "output"], ["04", "Includes a demo with sample invoices.", "The six sample buttons.", "met", "controls"]],
+});
+</script>
+</body>
+</html>

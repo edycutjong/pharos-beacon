@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon x402 Agent Buyer</title>
+<meta name="description" content="x402 Agent Buyer on Pharos: An agent that buys from x402-paywalled APIs inside a budget and a per-call price cap. This page shows its decision plan: it asks the paywalled API for Run it live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+<style>
+/* page additions: the custom-transaction form, verdict line, links in tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)} .strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+.verdict{margin:0 0 14px;font-weight:700;font-size:17px}
+.verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)} .verdict.bad{color:var(--bad)}
+details.custom{justify-self:stretch;border:1px solid var(--rule);border-radius:4px;background:var(--sheet);padding:8px 12px}
+details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.form input,.form select{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0}
+.form .wide{grid-column:1/-1}
+.form .btn{justify-self:start}
+@media (max-width:520px){.form{grid-template-columns:1fr}}
+#recorded .log td{white-space:normal;vertical-align:top;overflow-wrap:anywhere}
+#recorded .log td a{white-space:nowrap}
+.panel-body{overflow-x:auto}
+</style>
+<style>
+.form textarea{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0;min-height:120px;resize:vertical}
+.data td{vertical-align:top}
+pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Atlantic testnet · eip155:688689 · plan only, pays nothing</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/x402-agent-buyer" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">HARD · 200 PTS</span>
+      <h1>x402 Agent Buyer</h1>
+      <p class="lede">An agent that buys from x402-paywalled APIs inside a budget and a per-call price cap. This page shows its decision plan: it asks the paywalled API for each price (an unpaid request, answered 402) and applies the agent's own rules. The paying run, with signing, safe retries and the payment log, is the CLI's.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Scenario"><button class="btn" type="button" data-s="finish" aria-pressed="true">Task that finishes (budget 0.05 USDC)</button><button class="btn" type="button" data-s="budget" aria-pressed="false">Task that stops at its budget (0.02 USDC)</button><button class="btn" type="button" data-s="cap" aria-pressed="false">Task with a per-call cap (0.012 USDC)</button></div>
+      
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">Task that finishes (budget 0.05 USDC)</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights as the agent prices one thing it wants. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live prices every item of the selected task against the paywalled API and shows what the agent would buy, refuse or check first. It pays nothing and holds no key.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+  <p class="foot-note">Prices come from the 402 of the x402 Paywalled API on this same site. “Check first” rows are whale answers the real agent may skip because an answer it already bought covers the question; a plan with no paid data cannot tell. The quoted whale-range route needs the x402 Paywalled API branch deployed.</p>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 5 of 5 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">02</span><h2>Run log</h2><p>Your runs on this visit (kept in this browser only)</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Input</th><th>Result</th><th>Total</th></tr></thead><tbody id="log-body"><tr><td colspan="4" style="color:var(--ink-2)">No runs yet. Press Run live.</td></tr></tbody></table></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours"><article><h3>Value check</h3><p>Before paying for a whale question the agent compares the range of an answer it already bought; a covering answer saves the price. The page marks those rows “check first”.</p></article><article><h3>Idempotent payments</h3><p>One idempotency key per purchase and a journal written before the send mean a crash or a lost response never pays twice.</p></article><article><h3>A plan before the spend</h3><p>Prices are read from the 402 first, so the cap and the budget refuse before anything is signed.</p></article></div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/x402-agent-buyer</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: no key, nothing signed. Keys for the CLI live in a local env file, never in code.</span></footer>
+</div>
+
+<script src="/_shared/demo-kit.js"></script>
+<script src="/_shared/run-kit.js"></script>
+<script>
+RunKit({
+  api: "/api/x402-agent-buyer",
+  idleFoot: "Each lamp lights as the agent prices one thing it wants. Times are measured, not animated.",
+  runningFoot: "Asking the API for its prices\u2026",
+  steps: (id) => ({ finish: [["gas", "gas-snapshot"], ["whales", "whale-brief"], ["whales-1k", "whale-range 1,000"], ["gas-again", "gas-snapshot again"], ["range", "whale-range 2,000"], ["deep-history", "whale-range 3,000"]], budget: [["gas", "gas-snapshot"], ["whales", "whale-brief"], ["history", "whale-range 3,000"], ["summary-gas", "gas-snapshot again"]], cap: [["gas", "gas-snapshot"], ["history", "whale-range 3,000"], ["whales", "whale-brief"]] }[id] || []).map(([i, n]) => ({ id: "w-" + i, name: n })),
+  scenarios: [{ id: "finish", label: "Task that finishes (budget 0.05 USDC)", request: { qs: "task=finish" } }, { id: "budget", label: "Task that stops at its budget (0.02 USDC)", request: { qs: "task=budget" } }, { id: "cap", label: "Task with a per-call cap (0.012 USDC)", request: { qs: "task=cap" } }],
+  fromForm: null,
+  reqs: [["01", "Calls at least 2 different x402 endpoints. They can be your own or another dev's.", "The plan prices three different routes (gas-snapshot, whale-brief, whale-range). The paid calls are recorded by the CLI (proof/finish.json), not made here.", "partly", "output"], ["02", "Enforces a spend budget and a per-call price cap, and refuses calls over either one.", "The same decide() the CLI uses: try the budget and cap tasks and read the Why column.", "met", "output"], ["03", "Logs every payment with the price, what it bought and the tx hash, plus a running total.", "The payment log is the CLI's (log command, proof files); this page pays nothing, so it has no payments to log.", "partly", "evidence"], ["04", "Handles payment failures with retries that are safe: the same payment never counts twice.", "Idempotency key, signed authorization written before the send and a chain check before any retry are in the CLI (README, proof/retry-*.json). Not exercisable here.", "partly", "evidence"], ["05", "Includes a demo task where the agent completes the job, and one where it stops because it hit the budget.", "Scenarios 1 and 2 plan exactly those two tasks.", "met", "controls"]],
+});
+</script>
+</body>
+</html>
