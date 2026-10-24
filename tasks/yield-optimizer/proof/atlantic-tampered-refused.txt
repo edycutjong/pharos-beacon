@@ -2,4 +2,4 @@
 $ npm run yield-wallet -- sign /tmp/p125/tampered.json --execute
 refusing to sign, the calldata does not match a safe move:
   - step 1 redeems to or from someone other than the owner
-exit code: 
+exit code: 2
