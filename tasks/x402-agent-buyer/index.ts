@@ -1,5 +1,5 @@
 // x402 Agent Buyer (Hard · 200 pts): an agent that pays x402-paywalled APIs on Pharos Atlantic, inside a budget.
-//   npm run x402-agent-buyer -- run finish|budget|cap|retry|partner [--base URL] [--partner URL] [--simulate-failure before|after] [--ledger name] [--fresh] [--proof name]
+//   npm run x402-agent-buyer -- run finish|budget|cap|retry|partner [--base URL | --local] [--partner URL] [--simulate-failure before|after] [--ledger name] [--fresh] [--proof name]
 //   npm run x402-agent-buyer -- log [--task finish]        (the payment log of a task, as a table)
 // The API is the x402 Paywalled API (tasks/x402-paywalled-api): default https://pharos.edycu.dev; `whale-range` needs a branch
 // build, so run `npm run x402-paywalled-api -- serve` and pass --base http://localhost:4021.
@@ -17,8 +17,9 @@ import { PARTNER_URL, TASKS, partnerTask, type Task } from "./plan.js";
 const TASK = "x402-agent-buyer";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 const STATE = join(HERE, "state");
-const USAGE = "x402-agent-buyer run finish|budget|cap|retry|partner [--base URL] [--partner URL] [--simulate-failure before|after] [--ledger name] [--fresh] [--proof name] | log [--task id]";
+const USAGE = "x402-agent-buyer run finish|budget|cap|retry|partner [--base URL | --local] [--partner URL] [--simulate-failure before|after] [--ledger name] [--compact] [--fresh] [--proof name] | log [--task id]";
 const DEFAULT_BASE = "https://pharos.edycu.dev";
+const LOCAL_BASE = "http://localhost:4021";
 
 const atlanticBlock = () => createPublicClient({ chain: atlantic, transport: http(undefined, { retryCount: 3 }) }).getBlockNumber();
 const short = (h?: string) => (h ? `${h.slice(0, 10)}…${h.slice(-6)}` : "");
@@ -53,6 +54,53 @@ export function formatEvent(e: AgentEvent): string | undefined {
   }
 }
 
+/**
+ * `--compact`: one line of at most 62 characters per event (what fits a phone-sized terminal or a video frame).
+ * Stateful: a refusal line carries the price from the `ask` line before it.
+ */
+export function compactFormatter(): (e: AgentEvent) => string | undefined {
+  const price = new Map<string, string>();
+  const num = (usdc: string) => usdc.replace(" USDC", "");
+  const w = (id: string) => id.padEnd(9);
+  const line = (e: AgentEvent): string | undefined => {
+    switch (e.type) {
+      case "task":
+        return `task ${e.task} · budget ${num(e.budget)} · cap ${num(e.perCallCap)} USDC`;
+      case "ask":
+        price.set(e.want, num(e.price));
+        return `ask   ${w(e.want)} ${num(e.price)}`;
+      case "sign":
+        return `sign  ${w(e.want)} ${num(e.price)} · nonce ${e.nonce.slice(0, 8)}…`;
+      case "attempt":
+        return `send ${e.n} ${w(e.want)} ${e.error ? `FAILED: ${(e.error.split(": ").pop() ?? e.error).slice(0, 30)}` : `HTTP ${e.status}`}`;
+      case "reconcile":
+        return `check ${e.text.includes("expired") ? "nonce unused, lapsed" : e.nonceUsed ? "nonce used: settled once" : "nonce unused, still valid"}`;
+      case "refused": {
+        const reason = { redundant: `have it, saves ${e.saved ? num(e.saved) : "?"}`, "not-worth": "costs more than it is worth", "over-cap": "over the per-call cap", "over-budget": "over the budget", "wrong-asset": "wrong token" }[e.why];
+        return `NO    ${w(e.want)} ${price.get(e.want) ?? ""}: ${reason}`;
+      }
+      case "paid":
+        return `PAID  ${w(e.want)} ${num(e.row.price)} · total ${num(e.row.runningTotal)}`;
+      case "already-paid":
+        return `have  ${w(e.want)} paid before: no new payment`;
+      case "failed":
+        return `FAIL  ${w(e.want)} ${e.text.slice(0, 44)}`;
+      case "stopped":
+        return `STOP  ${e.want} does not fit the budget`;
+      case "done": {
+        const s = e.summary;
+        return `${s.outcome === "stopped-budget" ? "STOPPED" : s.outcome.toUpperCase()}  ${s.paid} paid · ${num(s.spent)}/${num(s.budget)} USDC${s.saved !== "0 USDC" ? ` · saved ${num(s.saved)}` : ""}`;
+      }
+    }
+  };
+  return (e) => line(e)?.slice(0, 62);
+}
+
+export function formatLogCompact(rows: PaymentRow[]): string {
+  if (!rows.length) return "(no payments)";
+  return rows.map((r) => `${r.n}  ${r.price.replace(" USDC", "").padEnd(6)} total ${r.runningTotal.replace(" USDC", "").padEnd(6)} ${r.bought.slice(0, 26)}${r.note ? " *" : ""}`).join("\n");
+}
+
 export function formatLog(rows: PaymentRow[]): string {
   if (!rows.length) return "(no payments)";
   return rows.map((r) => `${String(r.n).padStart(2)}  ${r.price.padEnd(11)}  total ${r.runningTotal.padEnd(11)}  ${r.bought}\n    ${r.explorer ?? "(settling tx not found in the lookback)"}${r.note ? `\n    note: ${r.note}` : ""}`).join("\n");
@@ -72,7 +120,7 @@ export function failOnce(real: typeof globalThis.fetch, mode: "before" | "after"
 
 export async function main(_ctx: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
-    { usage: USAGE, positionals: [1, 2], options: { base: { type: "string" }, partner: { type: "string" }, ledger: { type: "string" }, "simulate-failure": { type: "string" }, fresh: { type: "boolean", default: false }, proof: { type: "string" }, task: { type: "string" } } },
+    { usage: USAGE, positionals: [1, 2], options: { base: { type: "string" }, partner: { type: "string" }, ledger: { type: "string" }, "simulate-failure": { type: "string" }, fresh: { type: "boolean", default: false }, proof: { type: "string" }, task: { type: "string" }, compact: { type: "boolean", default: false }, local: { type: "boolean", default: false } } },
     argv,
   );
   const [cmd, arg] = positionals;
@@ -89,7 +137,7 @@ export async function main(_ctx: RunContext, argv = process.argv.slice(2)): Prom
     task = partnerTask(values.partner ?? PARTNER_URL, block);
   } else task = TASKS[name]!;
   const mode = values["simulate-failure"] === undefined ? undefined : choice("--simulate-failure", values["simulate-failure"], ["before", "after"] as const);
-  const base = values.base ?? setting("PUBLIC_BASE_URL") ?? DEFAULT_BASE;
+  const base = values.base ?? (values.local ? LOCAL_BASE : undefined) ?? setting("PUBLIC_BASE_URL") ?? DEFAULT_BASE;
   // A ledger is one budget scope: --ledger, else the proof name (each proof starts at zero), else the task id.
   const id = values.ledger ?? values.proof ?? task.id;
   const logFile = join(STATE, `${id}.payments.jsonl`);
@@ -99,18 +147,19 @@ export async function main(_ctx: RunContext, argv = process.argv.slice(2)): Prom
   // Provenance is taken before the run writes anything, so a proof records the tree as it was when the run started.
   const meta = values.proof ? proofMeta(TASK, { network: "atlantic", chainId: atlantic.id, endpoint: `${new URL(base).origin} (x402 API) + Atlantic RPC (receipt and authorization checks)` }) : undefined;
   const events: AgentEvent[] = [];
+  const fmt = values.compact ? compactFormatter() : formatEvent;
   const agent = new Agent({
     task: task.id, base, key: buyerKey(), policy: task.policy, logFile, journalFile,
     ...(mode ? { fetch: failOnce(globalThis.fetch, mode) } : {}),
     emit: (e) => {
       events.push(e);
-      const line = formatEvent(e);
+      const line = fmt(e);
       if (line) console.log(line);
     },
   });
-  console.log(`goal: ${task.goal}`);
+  if (!values.compact) console.log(`goal: ${task.goal}`);
   const summary = await agent.run(task.wants);
-  console.log("payment log:\n" + formatLog(readLog(logFile)));
+  console.log("payment log:\n" + (values.compact ? formatLogCompact(readLog(logFile)) : formatLog(readLog(logFile))));
   if (values.proof && meta) {
     const proofDir = join(HERE, "proof");
     const proofName = values.proof;

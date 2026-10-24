@@ -7,7 +7,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { describe, expect, it } from "vitest";
 import { X402_USDC } from "../src/lib/networks.js";
 import { Agent, covers, decide, readLog, type AgentEvent, type CachedAnswer, type Chain, type Want } from "../tasks/x402-agent-buyer/agent.js";
-import { failOnce, formatLog } from "../tasks/x402-agent-buyer/index.js";
+import { compactFormatter, failOnce, formatLog, formatLogCompact } from "../tasks/x402-agent-buyer/index.js";
 import { PARTNER_URL, TASKS, partnerTask } from "../tasks/x402-agent-buyer/plan.js";
 import { BASE_PATH, NETWORK, quoteFor } from "../tasks/x402-paywalled-api/config.js";
 
@@ -538,5 +538,25 @@ describe("the partner task", () => {
     const t = partnerTask(`${PARTNER_URL}/`, 31801660);
     expect(t.wants.map((x) => x.path)).toEqual(["gas-snapshot", `${PARTNER_URL}/paid/network-snapshot?block=31801660`, `${PARTNER_URL}/paid/activity-summary?block=31801660`]);
     expect(t.wants.reduce((s, x) => s + x.maxWorth, 0n)).toBeLessThanOrEqual(u("0.01"));
+  });
+});
+
+describe("--compact output", () => {
+  it("keeps every line of every committed proof run within 62 characters", () => {
+    for (const name of ["finish", "budget", "cap", "retry-before", "retry-after", "partner-seller", "prod-gas-ok"]) {
+      const proof = JSON.parse(readFileSync(new URL(`../tasks/x402-agent-buyer/proof/${name}.json`, import.meta.url), "utf8")) as { events: AgentEvent[] };
+      const fmt = compactFormatter();
+      for (const e of proof.events) {
+        const line = fmt(e);
+        if (line) expect(line.length, `${name}: ${line}`).toBeLessThanOrEqual(62);
+      }
+      const rows = readLog(new URL(`../tasks/x402-agent-buyer/proof/${name}.payments.jsonl`, import.meta.url).pathname);
+      for (const l of formatLogCompact(rows).split("\n")) expect(l.length, `${name}: ${l}`).toBeLessThanOrEqual(62);
+    }
+  });
+  it("a refusal carries the price asked just before it", () => {
+    const fmt = compactFormatter();
+    fmt({ type: "ask", want: "x", path: "p", price: "0.015 USDC" });
+    expect(fmt({ type: "refused", want: "x", why: "over-cap", text: "…" })).toBe("NO    x         0.015: over the per-call cap");
   });
 });
