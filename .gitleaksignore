@@ -106,3 +106,5 @@ e9c3abe224fbae3f8bdd33b1ebb0728f5c43031c:tasks/saga-executor/proof/success.json:
 063e8c1e0c29829c210ef895cf8694c15268e982:tasks/saga-executor/proof/retry.json:generic-api-key:44
 3ed4edb0836766c24919039ed75262ea0075c134:tasks/saga-executor/proof/forced-failure.json:generic-api-key:34
 3ed4edb0836766c24919039ed75262ea0075c134:tasks/saga-executor/proof/forced-failure.json:generic-api-key:35
+ede929004b88010d09a98da0a420faa21cd45b55:tasks/saga-executor/proof/forced-failure-mined.json:generic-api-key:34
+ede929004b88010d09a98da0a420faa21cd45b55:tasks/saga-executor/proof/forced-failure-mined.json:generic-api-key:35

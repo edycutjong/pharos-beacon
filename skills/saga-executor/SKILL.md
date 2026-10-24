@@ -47,10 +47,11 @@ The saga wallet is `PRIVATE_KEY_2` in `~/.config/pharos/testnet.env`; the vault 
 
 - **Transient** (node refused for a low fee, no receipt in time, throttled RPC): retried up to 3 sends, wait 2 s then 4 s, the SAME nonce with the fee raised 25% so at most one can land.
 - **Permanent** (a revert, a receipt with status 0, a read-back that does not match, anything unrecognised): no retry; every step that landed is undone newest first, each undo verified.
-- A rollback that itself fails permanently leaves the saga STUCK and names the action; do not start a new saga on that wallet until it is resolved.
+- A rollback that itself fails permanently, or a step whose last send may still land, leaves the saga STUCK and names the action. It does not roll back while a send may still land. Fix the cause and run `resume --id <name> --execute`; do not start a new saga on that wallet until it is resolved.
 
 ## Guardrails
 
 - Atlantic testnet only; the signer refuses any other chain. Exit codes: 0 completed · 3 rolled back cleanly (nothing stranded) · 1 stuck or error · 2 bad usage.
 - Fault flags (`--inject drop:swap`, `underpriced:swap`, `crash:swap:sent`) exist to demonstrate recovery; do not use them unless the user asks for a demonstration.
+- `--no-preflight` sends with a fixed gas limit so a failing step is mined with status 0 (for the demonstration of a mined failure).
 - `vault close|open` is the owner's switch used to force the deposit to fail; leave the vault open.
