@@ -1,0 +1,36 @@
+Pharos mainnet (chain 1672), block 1000000 (1.918 s/block) · wallets: 0x67765eA217d0021e35CA973dBae3b54823081a2b
+
+Q: What do I hold?
+A: Wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b at block 1000000:
+A: I could not read Wallet: PROS price (WPROS/USDC pool) for 0x6776…1a2b at block 1000000: no contract at 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 at block 1000000 (the WPROS/USDC pool not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: WPROS balance for 0x6776…1a2b at block 1000000: no contract at 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 at block 1000000 (WPROS not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: USDC balance for 0x6776…1a2b at block 1000000: no contract at 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 at block 1000000 (USDC not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: LINK balance for 0x6776…1a2b at block 1000000: no contract at 0x51e2A24742Db77604B881d6781Ee16B5b8fcBE29 at block 1000000 (LINK not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: WETH balance for 0x6776…1a2b at block 1000000: no contract at 0x1f4b7011Ee3d53969bb67F59428a9ec0477856E9 at block 1000000 (WETH not deployed yet, or not a contract). I will not guess it.
+A: I could not read RockawayX vault: roxUSDC share balance for 0x6776…1a2b at block 1000000: no contract at 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 at block 1000000 (roxUSDC vault not deployed yet, or not a contract). I will not guess it.
+A: I could not read Centrifuge: JTRSY share balance for 0x6776…1a2b at block 1000000: no contract at 0xC18e6f730896971a79D748E8deA61067A9Bc6040 at block 1000000 (JTRSY vault not deployed yet, or not a contract). I will not guess it.
+A: I could not read Centrifuge: HYB share balance for 0x6776…1a2b at block 1000000: no contract at 0x4827C7ecce4f07ADfe44A97165f06A199e7d2505 at block 1000000 (HYB vault not deployed yet, or not a contract). I will not guess it.
+A: I could not read Morpho Blue: the Morpho Blue contract for 0x6776…1a2b at block 1000000: no contract at 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb at block 1000000 (Morpho Blue not deployed yet, or not a contract). I will not guess it.
+
+Q: How much USDC do I have?
+A: Wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b at block 1000000:
+A: I have no successful read of USDC, so I cannot say what you hold
+A: I could not read Wallet: PROS price (WPROS/USDC pool) for 0x6776…1a2b at block 1000000: no contract at 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 at block 1000000 (the WPROS/USDC pool not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: USDC balance for 0x6776…1a2b at block 1000000: no contract at 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 at block 1000000 (USDC not deployed yet, or not a contract). I will not guess it.
+A: I could not read RockawayX vault: roxUSDC share balance for 0x6776…1a2b at block 1000000: no contract at 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 at block 1000000 (roxUSDC vault not deployed yet, or not a contract). I will not guess it.
+
+Q: Do I owe anything?
+A: Wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b at block 1000000:
+A: I could not read Morpho Blue: the Morpho Blue contract for 0x6776…1a2b at block 1000000: no contract at 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb at block 1000000 (Morpho Blue not deployed yet, or not a contract). I will not guess it.
+
+Q: What am I earning?
+A: Wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b at block 1000000:
+A: I could not read Wallet: PROS price (WPROS/USDC pool) for 0x6776…1a2b at block 1000000: no contract at 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 at block 1000000 (the WPROS/USDC pool not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: WPROS balance for 0x6776…1a2b at block 1000000: no contract at 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 at block 1000000 (WPROS not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: USDC balance for 0x6776…1a2b at block 1000000: no contract at 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 at block 1000000 (USDC not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: LINK balance for 0x6776…1a2b at block 1000000: no contract at 0x51e2A24742Db77604B881d6781Ee16B5b8fcBE29 at block 1000000 (LINK not deployed yet, or not a contract). I will not guess it.
+A: I could not read Wallet: WETH balance for 0x6776…1a2b at block 1000000: no contract at 0x1f4b7011Ee3d53969bb67F59428a9ec0477856E9 at block 1000000 (WETH not deployed yet, or not a contract). I will not guess it.
+A: I could not read RockawayX vault: roxUSDC share balance for 0x6776…1a2b at block 1000000: no contract at 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 at block 1000000 (roxUSDC vault not deployed yet, or not a contract). I will not guess it.
+A: I could not read Centrifuge: JTRSY share balance for 0x6776…1a2b at block 1000000: no contract at 0xC18e6f730896971a79D748E8deA61067A9Bc6040 at block 1000000 (JTRSY vault not deployed yet, or not a contract). I will not guess it.
+A: I could not read Centrifuge: HYB share balance for 0x6776…1a2b at block 1000000: no contract at 0x4827C7ecce4f07ADfe44A97165f06A199e7d2505 at block 1000000 (HYB vault not deployed yet, or not a contract). I will not guess it.
+A: I could not read Morpho Blue: the Morpho Blue contract for 0x6776…1a2b at block 1000000: no contract at 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb at block 1000000 (Morpho Blue not deployed yet, or not a contract). I will not guess it.
