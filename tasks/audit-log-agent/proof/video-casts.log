@@ -1,0 +1,75 @@
+# Output of the three terminal recordings used in assets/demo/audit-log-agent (asciinema, real runs, not the proof runs; the third reads the CSV the Atlantic proof run wrote).
+
+=== c1 mainnet
+$ npm run audit-log-agent -- --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901 --from-block 21042000 --to-block 21082000 --baseline none --compact
+
+> beacon@0.2.0 audit-log-agent
+> tsx tasks/audit-log-agent/index.ts --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901 --from-block 21042000 --to-block 21082000 --baseline none --compact
+
+audit log for 0x28Ed4A97a21C2264CA352EbBcc6CaffF60e89901 on pharos (chain 1672) via https://mcp.pharos.xyz/mcp
+period blocks 21042000–21082000 (40001 blocks, pinned at head 21096611)
+read 11 items
+
+wallet 0x28Ed…9901 · pharos mainnet
+blocks 21042000–21082000
+11 txs · fees 0.018487 PROS · 0 failed
+
+transfers in       0
+transfers out      3
+swaps              7
+approvals          1  (1 unlimited)
+contract calls     0
+
+highlights
+ ! largest: pTACO out: 11,688.7 pTACO to 0xAf2b…E7B8.
+   0xe925a190…14f4
+ ! largest: pTier out: 27,565.6223 pTier to 0x9615…01E2.
+   0x7bee9c1b…d9c3
+ ! largest: pCARR out: 19,738.4299 pCARR to 0x3fa4…e558.
+   0xc2579c59…7312
+ ! unlimited: 0xBF10…849c can move pTier without a cap.
+   0x566b75a6…4edf
+
+sent txs: 11 of 11 matched by the chain's nonce
+⠙$ 
+=== c2 atlantic
+$ npm run audit-log-agent -- --wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 --network atlantic --from-block 31804700 --to-block 31806500 --baseline none --compact
+
+> beacon@0.2.0 audit-log-agent
+> tsx tasks/audit-log-agent/index.ts --wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 --network atlantic --from-block 31804700 --to-block 31806500 --baseline none --compact
+
+audit log for 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 on atlantic (chain 688689) via local stdio PharosNetwork/pharos-mcp@9a3750c
+period blocks 31804700–31806500 (1801 blocks, pinned at head 31813118)
+the logs show 3 of 10 sent transactions; bisecting the nonce for the other 7
+nonce search: 54 reads, 7 blocks to open
+read 10 items
+
+wallet 0x317b…2975 · atlantic testnet
+blocks 31804700–31806500
+10 txs · fees 0.000249 PHRS · 1 failed
+
+transfers in       0
+transfers out      8
+swaps              0
+approvals          0
+contract calls     2
+
+highlights
+ ! largest: PHRS out: 1 PHRS to 0x8d34…d91b.
+   0x62dd81a1…534b
+ ! largest: WPHRS out: 0.001 WPHRS to 0x8D34…D91B.
+   0xa4612b1c…ee31
+
+sent txs: 10 of 10 matched by the chain's nonce
+⠙$ 
+=== c3 csv
+$ cut -d, -f3,8 tasks/audit-log-agent/proof/reports/audit-0x317*.csv | sort | uniq -c | sort -rn
+ 111 transfer-out,call 0xe3ee160e
+   4 transfer-out,plain transfer
+   2 transfer-out,transfer
+   1 transfer-out,call 0x494e562d
+   1 transfer-out,call 0x424d2f32
+   1 contract-call,withdraw (unwrap)
+   1 contract-call,deposit (wrap)
+   1 category,method
+$ 
