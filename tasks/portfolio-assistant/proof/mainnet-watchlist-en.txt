@@ -86,7 +86,7 @@ Q: What am I earning?
 A: Wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b at block 21136550:
 A: Wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 at block 21136550:
 A: Wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 at block 21136550:
-A: 0x62A0…0673 · roxUSDC (RockawayX vault): 1 share grew 0.084% over 7.3 days (1.006414 USDC → 1.007258 USDC) [F40, F26]; 4.29% APY annualised [F40, F26]; on $19,469.79 [F25] that is about $835.36 a year [F25, F40, F26]
+A: 0x62A0…0673 · roxUSDC (RockawayX vault): 1 share grew -0.258% over 7.3 days (1.006414 USDC → 1.003821 USDC) [F40, F26]; -12.13% APY annualised [F40, F26]; on $19,469.79 [F25] that is about $-2,361.29 a year [F25, F40, F26]
 A: 0x0665…4bE3 · JTRSY (Centrifuge): 1 share grew 0.071% over 7.3 days (1.119288 USDC → 1.120079 USDC) [F41, F38]; 3.60% APY annualised [F41, F38]; on $34,510.28 [F37] that is about $1,243.70 a year [F37, F41, F38]
 sources:
   id | figure | contract | call | block
