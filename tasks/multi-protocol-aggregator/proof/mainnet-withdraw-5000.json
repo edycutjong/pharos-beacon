@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts withdraw --wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 --amount 5000 --block 21146194 --proof mainnet-withdraw-5000",
     "git": {
-      "commit": "ab0ebdb90512",
+      "commit": "6f348a3594f7",
       "dirty": false
     },
-    "createdAt": "2026-10-24T20:30:05.966Z"
+    "createdAt": "2026-10-24T20:36:50.274Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -127,9 +127,9 @@
           "feeBps": 0,
           "maxDeposit": "0",
           "blockers": [
-            "maxDeposit(wallet) = 0 USDC raw, below the 19470110250 being moved (the vault is full, paused or restricted)"
+            "maxDeposit(wallet) = 0 USDC raw, below the 5000000000 being moved (the vault is full, paused or restricted)"
           ],
-          "note": "entry fee = 1 − previewDeposit(19470110250) / convertToShares(19470110250) = 0 bps"
+          "note": "entry fee = 1 − previewDeposit(5000000000) / convertToShares(5000000000) = 0 bps"
         },
         "exit": {
           "feeBps": 0,
@@ -191,16 +191,16 @@
           },
           {
             "what": "previewDeposit(amount) (shares raw)",
-            "value": "19329483983208977315342",
+            "value": "4963886628019730220927",
             "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
-            "call": "previewDeposit(19470110250)",
+            "call": "previewDeposit(5000000000)",
             "block": "21146194"
           },
           {
             "what": "convertToShares(amount) (shares raw)",
-            "value": "19329483983208977315342",
+            "value": "4963886628019730220927",
             "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
-            "call": "convertToShares(19470110250)",
+            "call": "convertToShares(5000000000)",
             "block": "21146194"
           },
           {
@@ -1287,16 +1287,16 @@
     },
     {
       "what": "previewDeposit(amount) (shares raw)",
-      "value": "19329483983208977315342",
+      "value": "4963886628019730220927",
       "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
-      "call": "previewDeposit(19470110250)",
+      "call": "previewDeposit(5000000000)",
       "block": "21146194"
     },
     {
       "what": "convertToShares(amount) (shares raw)",
-      "value": "19329483983208977315342",
+      "value": "4963886628019730220927",
       "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
-      "call": "convertToShares(19470110250)",
+      "call": "convertToShares(5000000000)",
       "block": "21146194"
     },
     {

@@ -14,7 +14,7 @@ Rates and entry / exit, read from the contracts:
   RockawayX USDC vault                4.77%    4.23%    3.99%    4.23%         3.84%  TVL 11,123,205.672192 · YOU HOLD 19,470.11025
   Janus Henderson Treasury Fund       0.00%    3.56%    3.47%    3.47%         1.70%  JUMPY (spread 3.56%) · TVL 1,765,778.147055
   NYLIM US High Yield Bond Fund       0.00%   -0.20%  -10.66%   -0.20%        -5.53%  JUMPY (spread 10.66%) · TVL 98,398.088663
-  RockawayX USDC vault: entry BLOCKED (maxDeposit(wallet) = 0 USDC raw, below the 19470110250 being moved (the vault is full, paused or restricted)) · exit open, fee 0 bps
+  RockawayX USDC vault: entry BLOCKED (maxDeposit(wallet) = 0 USDC raw, below the 5000000000 being moved (the vault is full, paused or restricted)) · exit open, fee 0 bps
   Janus Henderson Treasury Fund: entry BLOCKED (maxDeposit(wallet) = 0 USDC raw, below the 1000000000 being moved (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move) · exit n/a (no position)
   NYLIM US High Yield Bond Fund: entry BLOCKED (maxDeposit(wallet) = 0 USDC raw, below the 1000000000 being moved (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move) · exit n/a (no position)
   Morpho Blue syzUSD/USDC supply: entry open, fee 0 bps · exit n/a (no position)
