@@ -1,5 +1,5 @@
 import { explorerTx } from "../lib/networks.js";
-import { counterparties, dayUtc, fmtLeg, fmtWei, totalsOf, type Activity, type Item, type Leg, type TokenTotal } from "./engine.js";
+import { counterparties, dayUtc, isZero, fmtLeg, fmtWei, totalsOf, type Activity, type Item, type Leg, type TokenTotal } from "./engine.js";
 
 // The Weekly Digest: the activity engine on a period schedule. It turns one period (and the one before it) into key numbers with a
 // comparison, the top three notable events, who is new, and a short text for a chat channel. A period is a whole UTC day / week / month
@@ -134,12 +134,12 @@ export function topEvents(a: Activity, prev?: Metrics, limit = 3): Notable[] {
     if (it.unlimited) put(it, "unlimited approval", SCORE.unlimited, `Unlimited approval: ${it.counterparty} can move ${it.out[0]!.symbol} without a cap`);
     if (it.status === "reverted") put(it, "failed transaction", SCORE.failed, `A ${it.method ?? it.category} transaction failed (reverted)`);
     const cp = it.counterparty?.toLowerCase();
-    if (known && cp && !known.has(cp) && !firstSeen.has(cp)) {
+    if (known && cp && !isZero(cp) && !known.has(cp) && !firstSeen.has(cp)) {
       firstSeen.add(cp);
       put(it, "new counterparty", SCORE.newCounterparty + (leg ? share(leg) : 0), `First time dealing with ${it.counterparty}${leg ? ` (${it.category === "transfer-in" ? "received" : "sent"} ${fmtLeg(leg)})` : ` (${it.method ?? it.category})`}`);
     }
     if (it.category === "transfer-out" && leg && leg.nft === undefined) put(it, "large outflow", SCORE.largestOut + share(leg), `Sent ${fmtLeg(leg)} to ${it.counterparty}`);
-    if (it.category === "transfer-in" && leg && leg.nft === undefined) put(it, "large inflow", SCORE.largestIn + share(leg), `Received ${fmtLeg(leg)} from ${it.counterparty}`);
+    if (it.category === "transfer-in" && leg && leg.nft === undefined) put(it, "large inflow", SCORE.largestIn + share(leg), it.counterparty && isZero(it.counterparty) ? `Received ${fmtLeg(leg)} minted to the wallet (sent from the zero address)` : `Received ${fmtLeg(leg)} from ${it.counterparty}`);
     if (it.category === "swap") put(it, "swap", SCORE.swap + (it.out[0] ? share(it.out[0]) : 0), `Swapped ${it.out.map(fmtLeg).join(" + ")} for ${it.in.map(fmtLeg).join(" + ")}`);
   }
   // One entry per transaction (its best-scoring reading), then the top N.

@@ -6,7 +6,7 @@ import { collectActivity } from "../src/activity/engine.js";
 import { compare, digestChat, digestMarkdown, metricsOf, parseCadence, periodAt, topEvents } from "../src/activity/digest.js";
 import { main } from "../tasks/weekly-digest-agent/index.js";
 import type { Notifier } from "../src/watch/discord.js";
-import { fakeWorld, T0, W, world } from "./helpers/fake-activity.js";
+import { fakeWorld, mintTx, T0, W, world } from "./helpers/fake-activity.js";
 
 const ctx = { onExit: () => {}, signal: new AbortController().signal };
 const conn = (spy: { tool: string; args: any }[] = []) => async () => ({ call: fakeWorld(world(), 400, spy), close: async () => {}, endpoint: "fake://chain", network: "pharos" as const, chainId: 1672, server: undefined });
@@ -67,6 +67,14 @@ describe("metrics, comparison and top events", () => {
     expect(ev[0]).toMatchObject({ kind: "unlimited approval" });
     expect(new Set(ev.map((e) => e.tx)).size).toBe(3);
     expect(topEvents(all, undefined, 10).length).toBeGreaterThan(3);
+  });
+
+  it("a mint from the zero address is described as a mint and is never a new counterparty", async () => {
+    const a = await collectActivity(fakeWorld([...world(), mintTx()]), "pharos", W, { fromBlock: 90n, toBlock: 200n }, { scanBlocks: 0 });
+    const p = await prev();
+    const ev = topEvents(a, p, 20);
+    expect(ev.some((e) => e.kind === "new counterparty" && e.why.includes("0x0000000000000000000000000000000000000000"))).toBe(false);
+    expect(ev.find((e) => e.kind === "large inflow" && /minted/.test(e.why))).toBeTruthy();
   });
 
   it("with a previous period, a first-time counterparty is a candidate; with none it is not claimed", async () => {
