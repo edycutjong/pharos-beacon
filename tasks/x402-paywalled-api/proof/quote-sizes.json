@@ -1,0 +1,53 @@
+{
+  "note": "Free GET /quote answers from a local `serve` of this branch (no payment, nothing settled). The price depends on the request: 0.005 USDC per started 1,000 blocks.",
+  "answers": {
+    "1000": {
+      "status": 200,
+      "body": {
+        "route": "GET /api/x402-paywalled-api/whale-range?blocks=1000",
+        "blocks": 1000,
+        "windows": 1,
+        "perWindow": "0.005 USDC",
+        "price": "0.005 USDC",
+        "amount": "5000",
+        "rule": "0.005 USDC per started 1000 blocks, 1 to 3 windows"
+      }
+    },
+    "2500": {
+      "status": 200,
+      "body": {
+        "route": "GET /api/x402-paywalled-api/whale-range?blocks=2500",
+        "blocks": 2500,
+        "windows": 3,
+        "perWindow": "0.005 USDC",
+        "price": "0.015 USDC",
+        "amount": "15000",
+        "rule": "0.005 USDC per started 1000 blocks, 1 to 3 windows"
+      }
+    },
+    "3000": {
+      "status": 200,
+      "body": {
+        "route": "GET /api/x402-paywalled-api/whale-range?blocks=3000",
+        "blocks": 3000,
+        "windows": 3,
+        "perWindow": "0.005 USDC",
+        "price": "0.015 USDC",
+        "amount": "15000",
+        "rule": "0.005 USDC per started 1000 blocks, 1 to 3 windows"
+      }
+    },
+    "3001": {
+      "status": 400,
+      "body": {
+        "error": "blocks must be a whole number from 1 to 3000, got \"3001\""
+      }
+    },
+    "0": {
+      "status": 400,
+      "body": {
+        "error": "blocks must be a whole number from 1 to 3000, got \"0\""
+      }
+    }
+  }
+}

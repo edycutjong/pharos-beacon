@@ -330,3 +330,13 @@ describe("plumbing", () => {
     expect(r.payments[0]!.explorer).toMatch(/^https:\/\/atlantic\.pharosscan\.xyz\/tx\/0x/);
   });
 });
+
+describe("terminal output", () => {
+  it("a paid run names the PAYMENT-RESPONSE header and its tx hash after the 200; a refused one does not", async () => {
+    const { formatEvent } = await import("../tasks/x402-paywalled-api/index.js");
+    const tx = `0x${"ab".repeat(32)}`;
+    const paid = formatEvent({ type: "done", outcome: "paid", summary: "ok", totalMs: 1, tx, explorer: `https://atlantic.pharosscan.xyz/tx/${tx}`, block: 5 } as never);
+    expect(paid).toContain(`200 OK · PAYMENT-RESPONSE: success, tx ${tx}`);
+    expect(formatEvent({ type: "done", outcome: "refused", summary: "no", totalMs: 1 } as never)).not.toContain("PAYMENT-RESPONSE");
+  });
+});

@@ -124,4 +124,4 @@ cadence is used so a run takes minutes; the weekly proofs above are the default 
 - The Discord message is cut to 1,891 characters with an ellipsis when longer than 1,900 (Discord's own limit is 2,000) and shows the top events as links, not tables.
 - The first run for a wallet has no previous period unless `--baseline auto` (the default) reads it, which doubles the time.
 - The schedule is a GitHub Actions workflow; until it is merged and configured it has not run, and the digests in `proof/` were produced by manual runs with an injected clock.
-- 23 tests in `test/weekly-digest-agent.test.ts` (periods, comparison, top events and their ranking, Discord text, the CLI with state, delivery and idempotence) on top of the 31 engine and report tests in `test/activity.test.ts`.
+- 24 tests in `test/weekly-digest-agent.test.ts` (periods, comparison, top events and their ranking, Discord text, the CLI with state, delivery and idempotence, and a previous-period read that fails: no digest, nothing delivered) on top of the 31 engine and report tests in `test/activity.test.ts`.
