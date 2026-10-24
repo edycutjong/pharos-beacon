@@ -1,0 +1,54 @@
+starting saga saga-retry · wallet 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B · 0.001 WPHRS → USDC → vault · retries 3, backoff 1000 ms ×2, receipt timeout 15 s
+fault injection: underpriced swap (attempt 1), drop approve-out (attempt 1)
+13:32:08  saga              STARTED        saga saga-retry: approve-in → swap → approve-out → deposit
+13:32:08  approve-in        RUNNING        step 1/4 approve-in: approve the pool to pull 0.001 WPHRS
+13:32:08  approve-in        SIGNED         attempt 1/3 nonce 42 0x6390b7dcfe27384df320bb79b2f5fe5578bb5dbba1dc9ffeea9eb4f4afdd2145 maxFee 2000000000 wei
+13:32:08  approve-in        SENT           0x6390b7dcfe27384df320bb79b2f5fe5578bb5dbba1dc9ffeea9eb4f4afdd2145
+13:32:11  approve-in        MINED          0x6390b7dcfe27384df320bb79b2f5fe5578bb5dbba1dc9ffeea9eb4f4afdd2145 block 31824351 status 1 gas 46710
+13:32:11  approve-in        VERIFIED       allowance(WPHRS → pool) read back = 0.001 WPHRS
+13:32:11  swap              RUNNING        step 2/4 swap: swap 0.001 WPHRS for USDC in the pool
+13:32:12  swap              SIGNED         attempt 1/3 nonce 43 0xc63d103b1dd1a598160c2c56cb8907368e79b2fd64740ad411beb8d7d4fdefdb maxFee 1 wei
+13:32:15  swap              TRANSIENT      attempt 1 refused by the node (send_raw_transaction: INVALID_PARAMS: effective gas price less than base fee (code -32602))
+13:32:15  swap              RETRY          backing off 1000 ms, then attempt 2/3 on the same nonce with a higher fee
+13:32:16  swap              SIGNED         attempt 2/3 nonce 43 0xebd6b21529a70f4e0460318722fde327e8ba9783767fbe0073b6f44fd9254a7e maxFee 2000000000 wei (bumped from 1)
+13:32:16  swap              SENT           0xebd6b21529a70f4e0460318722fde327e8ba9783767fbe0073b6f44fd9254a7e
+13:32:19  swap              MINED          0xebd6b21529a70f4e0460318722fde327e8ba9783767fbe0073b6f44fd9254a7e block 31824357 status 1 gas 70289
+13:32:19  swap              VERIFIED       Swap event: 0.001 WPHRS → 0.1 USDC (quote 0.1, floor 0.0995); balances read back: WPHRS 0.0668, USDC 0.679
+13:32:19  approve-out       RUNNING        step 3/4 approve-out: approve the vault to pull the swap output (USDC)
+13:32:20  approve-out       SIGNED         attempt 1/3 nonce 44 0x1a086d0d4412a4df46e792158bf1ae923709fd6a73ca74a5ad476a66bc85508e maxFee 2000000000 wei
+13:32:20  approve-out       INJECTED-DROP  signed but never sent: the receipt wait must time out and the retry recover
+13:32:33  approve-out       TRANSIENT      attempt 1: no receipt for 0x1a086d0d4412a4df46e792158bf1ae923709fd6a73ca74a5ad476a66bc85508e within 15 s (dropped, or the fee was too low)
+13:32:33  approve-out       RETRY          backing off 1000 ms, then attempt 2/3 on the same nonce with a higher fee
+13:32:34  approve-out       SIGNED         attempt 2/3 nonce 44 0x455d593e7f11d92f810500dc6a090a0df7a8b6f66dbacae11d93818d210662be maxFee 2500000000 wei (bumped from 2000000000)
+13:32:34  approve-out       SENT           0x455d593e7f11d92f810500dc6a090a0df7a8b6f66dbacae11d93818d210662be
+13:32:36  approve-out       MINED          0x455d593e7f11d92f810500dc6a090a0df7a8b6f66dbacae11d93818d210662be block 31824369 status 1 gas 55437
+13:32:37  approve-out       VERIFIED       allowance(USDC → vault) read back = 0.1 USDC
+13:32:37  deposit           RUNNING        step 4/4 deposit: deposit the swap output (USDC) into the vault
+13:32:37  deposit           SIGNED         attempt 1/3 nonce 45 0xa9e25b82ae711b60e1ff08a04fcd2e4f242fcff713fa29d313cf7ea7a536da5c maxFee 2000000000 wei
+13:33:06  deposit           SENT           0xa9e25b82ae711b60e1ff08a04fcd2e4f242fcff713fa29d313cf7ea7a536da5c
+13:33:09  deposit           MINED          0xa9e25b82ae711b60e1ff08a04fcd2e4f242fcff713fa29d313cf7ea7a536da5c block 31824385 status 1 gas 65791
+13:33:09  deposit           VERIFIED       Deposit event present; vault shares read back = 0.5 (was 0.4)
+13:33:09  saga              COMPLETED      every step verified
+
+saga saga-retry: COMPLETED
+action                    state     tries       tx
+approve-in                verified  1 attempt   0x6390b7dcfe27384df320bb79b2f5fe5578bb5dbba1dc9ffeea9eb4f4afdd2145
+swap                      verified  2 attempts  0xebd6b21529a70f4e0460318722fde327e8ba9783767fbe0073b6f44fd9254a7e
+approve-out               verified  2 attempts  0x455d593e7f11d92f810500dc6a090a0df7a8b6f66dbacae11d93818d210662be
+deposit                   verified  1 attempt   0xa9e25b82ae711b60e1ff08a04fcd2e4f242fcff713fa29d313cf7ea7a536da5c
+
+balance invariant (expected end state):
+PASS  WPHRS balance            0.0668    expected 0.0668
+PASS  USDC balance             0.579     expected 0.579
+PASS  WPHRS allowance to pool  0         expected 0
+PASS  USDC allowance to pool   0         expected 0
+PASS  USDC allowance to vault  0         expected 0
+PASS  vault shares             0.5       expected 0.5
+
+PHRS spent on gas this saga: 0.000238227 (not refundable)
+transactions:
+  approve-in        https://atlantic.pharosscan.xyz/tx/0x6390b7dcfe27384df320bb79b2f5fe5578bb5dbba1dc9ffeea9eb4f4afdd2145
+  swap              https://atlantic.pharosscan.xyz/tx/0xebd6b21529a70f4e0460318722fde327e8ba9783767fbe0073b6f44fd9254a7e
+  approve-out       https://atlantic.pharosscan.xyz/tx/0x455d593e7f11d92f810500dc6a090a0df7a8b6f66dbacae11d93818d210662be
+  deposit           https://atlantic.pharosscan.xyz/tx/0xa9e25b82ae711b60e1ff08a04fcd2e4f242fcff713fa29d313cf7ea7a536da5c
+proof: tasks/saga-executor/proof/retry.json
