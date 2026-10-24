@@ -115,37 +115,57 @@ export function tokenFlow(cur: Metrics, prev: Metrics | undefined): { token: str
 
 export interface Notable { tx: string; kind: string; score: number; why: string }
 
-const SCORE = { unlimited: 100, failed: 40, newCounterparty: 60, largestOut: 50, largestIn: 35, swap: 30 } as const;
+// Importance classes first (what a wallet's owner would want to read first), then the size of the event up to 9.9 points: its share of that token's
+// volume in the same direction during the period. A mint (a transfer in from the zero address) is the least interesting kind.
+const SCORE = { unlimited: 100, failed: 95, largestOut: 80, newCounterparty: 70, swap: 60, largestIn: 50, mint: 30 } as const;
 
-/** The three events to read first. Fixed weights per kind, plus up to 30 points for the share of that token's period volume. Ties go to the earlier block. */
+/** The three events to read first, at most two of one kind so the list is not three of the same. Ties go to the earlier block. */
 export function topEvents(a: Activity, prev?: Metrics, limit = 3): Notable[] {
   const known = prev ? new Set(prev.counterparties) : undefined;
-  const volume = new Map<string, bigint>();
-  for (const it of a.items) for (const l of [...it.out, ...it.in]) if (l.nft === undefined) volume.set(String(l.token).toLowerCase(), (volume.get(String(l.token).toLowerCase()) ?? 0n) + l.amountRaw);
-  const share = (l: Leg) => {
-    const v = volume.get(String(l.token).toLowerCase()) ?? 0n;
-    return v === 0n ? 0 : Number((l.amountRaw * 30n) / v);
+  const volume = new Map<string, bigint>(); // `${direction}:${token}` → total raw units in the period
+  const key = (dir: string, l: Leg) => `${dir}:${String(l.token).toLowerCase()}`;
+  for (const it of a.items) {
+    for (const l of it.out) if (l.nft === undefined) volume.set(key("out", l), (volume.get(key("out", l)) ?? 0n) + l.amountRaw);
+    for (const l of it.in) if (l.nft === undefined) volume.set(key("in", l), (volume.get(key("in", l)) ?? 0n) + l.amountRaw);
+  }
+  const share = (dir: string, l: Leg) => {
+    const v = volume.get(key(dir, l)) ?? 0n;
+    return v === 0n ? 0 : Number((l.amountRaw * 99n) / v) / 10;
   };
   const cand: (Notable & { block: bigint })[] = [];
   const put = (it: Item, kind: string, score: number, why: string) => cand.push({ tx: it.tx, kind, score, why, block: it.block });
   const firstSeen = new Set<string>();
   for (const it of a.items) {
-    const leg = (it.category === "transfer-out" ? it.out[0] : it.category === "transfer-in" ? it.in[0] : undefined);
+    const out = it.category === "transfer-out" ? it.out[0] : undefined;
+    const inn = it.category === "transfer-in" ? it.in[0] : undefined;
+    const leg = out ?? inn;
     if (it.unlimited) put(it, "unlimited approval", SCORE.unlimited, `Unlimited approval: ${it.counterparty} can move ${it.out[0]!.symbol} without a cap`);
     if (it.status === "reverted") put(it, "failed transaction", SCORE.failed, `A ${it.method ?? it.category} transaction failed (reverted)`);
     const cp = it.counterparty?.toLowerCase();
     if (known && cp && !isZero(cp) && !known.has(cp) && !firstSeen.has(cp)) {
       firstSeen.add(cp);
-      put(it, "new counterparty", SCORE.newCounterparty + (leg ? share(leg) : 0), `First time dealing with ${it.counterparty}${leg ? ` (${it.category === "transfer-in" ? "received" : "sent"} ${fmtLeg(leg)})` : ` (${it.method ?? it.category})`}`);
+      put(it, "new counterparty", SCORE.newCounterparty + (leg && leg.nft === undefined ? share(out ? "out" : "in", leg) : 0), `First time dealing with ${it.counterparty}${leg ? ` (${inn ? "received" : "sent"} ${fmtLeg(leg)})` : ` (${it.method ?? it.category})`}`);
     }
-    if (it.category === "transfer-out" && leg && leg.nft === undefined) put(it, "large outflow", SCORE.largestOut + share(leg), `Sent ${fmtLeg(leg)} to ${it.counterparty}`);
-    if (it.category === "transfer-in" && leg && leg.nft === undefined) put(it, "large inflow", SCORE.largestIn + share(leg), it.counterparty && isZero(it.counterparty) ? `Received ${fmtLeg(leg)} minted to the wallet (sent from the zero address)` : `Received ${fmtLeg(leg)} from ${it.counterparty}`);
-    if (it.category === "swap") put(it, "swap", SCORE.swap + (it.out[0] ? share(it.out[0]) : 0), `Swapped ${it.out.map(fmtLeg).join(" + ")} for ${it.in.map(fmtLeg).join(" + ")}`);
+    if (out && out.nft === undefined) put(it, "large outflow", SCORE.largestOut + share("out", out), `Sent ${fmtLeg(out)} to ${it.counterparty}`);
+    if (inn && inn.nft === undefined) {
+      if (it.counterparty && isZero(it.counterparty)) put(it, "mint", SCORE.mint + share("in", inn), `Received ${fmtLeg(inn)} minted to the wallet (sent from the zero address)`);
+      else put(it, "large inflow", SCORE.largestIn + share("in", inn), `Received ${fmtLeg(inn)} from ${it.counterparty}`);
+    }
+    if (it.category === "swap") put(it, "swap", SCORE.swap + (it.out[0] ? share("out", it.out[0]) : 0), `Swapped ${it.out.map(fmtLeg).join(" + ")} for ${it.in.map(fmtLeg).join(" + ")}`);
   }
-  // One entry per transaction (its best-scoring reading), then the top N.
+  // One entry per transaction (its best-scoring reading), best first, at most two of a kind.
   const best = new Map<string, Notable & { block: bigint }>();
   for (const c of cand) if (!best.has(c.tx) || best.get(c.tx)!.score < c.score) best.set(c.tx, c);
-  return [...best.values()].sort((x, y) => y.score - x.score || (x.block < y.block ? -1 : 1)).slice(0, limit).map(({ block: _b, ...n }) => n);
+  const sorted = [...best.values()].sort((x, y) => y.score - x.score || (x.block < y.block ? -1 : 1));
+  const perKind = new Map<string, number>();
+  const picked: (Notable & { block: bigint })[] = [];
+  for (const c of sorted) {
+    if ((perKind.get(c.kind) ?? 0) >= 2) continue;
+    perKind.set(c.kind, (perKind.get(c.kind) ?? 0) + 1);
+    picked.push(c);
+    if (picked.length === limit) break;
+  }
+  return picked.map(({ block: _b, ...n }) => n);
 }
 
 // ---------- the digest text ----------

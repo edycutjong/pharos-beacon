@@ -74,7 +74,17 @@ describe("metrics, comparison and top events", () => {
     const p = await prev();
     const ev = topEvents(a, p, 20);
     expect(ev.some((e) => e.kind === "new counterparty" && e.why.includes("0x0000000000000000000000000000000000000000"))).toBe(false);
-    expect(ev.find((e) => e.kind === "large inflow" && /minted/.test(e.why))).toBeTruthy();
+    expect(ev.find((e) => e.kind === "mint" && /minted/.test(e.why))).toBeTruthy();
+    expect(ev[ev.length - 1]!.kind).toBe("mint"); // the least interesting kind comes last
+    expect(topEvents(a, p).some((e) => e.kind === "mint")).toBe(false); // and does not make the top three while other events exist
+  });
+
+  it("never more than two events of one kind in the top three", async () => {
+    const a = await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 90n, toBlock: 200n }, { scanBlocks: 111 });
+    const ev = topEvents(a);
+    const kinds = ev.map((e) => e.kind);
+    for (const k of new Set(kinds)) expect(kinds.filter((x) => x === k).length).toBeLessThanOrEqual(2);
+    expect(ev.map((e) => e.kind)).toEqual(["unlimited approval", "failed transaction", "large outflow"]);
   });
 
   it("with a previous period, a first-time counterparty is a candidate; with none it is not claimed", async () => {
