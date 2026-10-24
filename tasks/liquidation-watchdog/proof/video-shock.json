@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "task": "liquidation-watchdog",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/liquidation-watchdog/index.ts scan --shock 0.05 --top 6 --proof video-shock",
+    "git": {
+      "commit": "73287d334a61",
+      "dirty": true
+    },
+    "createdAt": "2026-10-24T23:17:35.319Z"
+  },
+  "block": "21161595",
+  "lookbackDays": 7,
+  "discovery": {
+    "from": "20501931",
+    "to": "21161595",
+    "scannedBlocks": "237",
+    "borrowersPerMarket": {
+      "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86": 4,
+      "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea": 2,
+      "0xab78d4ff6d4f39a7d05a822d787e33d61c68e398fd7aec5a8bca4ab296985c69": 3,
+      "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc": 3,
+      "0x95bc6fe971db18703f2747ea9c8000e1525ea1c49b8c12f75c889e916a6b442c": 1,
+      "0x4cbedaf680d648926bafbce7d874ce717a1b3232ea7084c7c3593aa42bb429cd": 1
+    }
+  },
+  "thresholds": {
+    "warn": 1.3,
+    "critical": 1.1,
+    "rearm": 0.02
+  },
+  "shock": 0.05,
+  "openPositions": 13,
+  "markets": [
+    {
+      "id": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+      "label": "syzUSD/USDC",
+      "lltv": "915000000000000000",
+      "oraclePrice": "1090651839338445813000000",
+      "interestAccrued": true
+    },
+    {
+      "id": "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea",
+      "label": "APT/USDC",
+      "lltv": "860000000000000000",
+      "oraclePrice": "1007432000000000000000000",
+      "interestAccrued": true
+    },
+    {
+      "id": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc",
+      "label": "APC3M/USDC",
+      "lltv": "860000000000000000",
+      "oraclePrice": "1033056000000000000000000",
+      "interestAccrued": true
+    },
+    {
+      "id": "0xab78d4ff6d4f39a7d05a822d787e33d61c68e398fd7aec5a8bca4ab296985c69",
+      "label": "ETHVP/WPROS",
+      "lltv": "385000000000000000",
+      "oraclePrice": "3587485264629549615543155965222558737428",
+      "interestAccrued": true
+    },
+    {
+      "id": "0x4cbedaf680d648926bafbce7d874ce717a1b3232ea7084c7c3593aa42bb429cd",
+      "label": "strUSD/USDC",
+      "lltv": "860000000000000000",
+      "oraclePrice": "1033537091680190915000000",
+      "interestAccrued": true
+    }
+  ],
+  "positions": [
+    {
+      "market": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+      "user": "0xA4A57DcF7B15456b7053f10A377Bdb437C073DCc",
+      "hf": "1013358468353560543",
+      "hfNumber": 1.0133584683535606,
+      "dropToLiquidation": 0.01318237205365691,
+      "debt": "1523935620252",
+      "collateral": "1547470901193805025792539",
+      "level": "critical"
+    },
+    {
+      "market": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+      "user": "0x743D7B30661d65B41960Bf6b5d1bB93CF7972A73",
+      "hf": "1020062549751564983",
+      "hfNumber": 1.020062549751565,
+      "dropToLiquidation": 0.01966796031915019,
+      "debt": "22012174398",
+      "collateral": "22500000000000000000000",
+      "level": "critical"
+    },
+    {
+      "market": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+      "user": "0xE6a4771284342462f4d2BfbFB86DB12c8f19fe7C",
+      "hf": "1033251379052454922",
+      "hfNumber": 1.033251379052455,
+      "dropToLiquidation": 0.032181306240256946,
+      "debt": "1343873257783",
+      "collateral": "1391416263406571443904879",
+      "level": "critical"
+    },
+    {
+      "market": "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea",
+      "user": "0x966B9dCE3d091c0214Ada42CEDF51400df4fB257",
+      "hf": "1034999412331212375",
+      "hfNumber": 1.0349994123312125,
+      "dropToLiquidation": 0.03381587652536011,
+      "debt": "70045042151",
+      "collateral": "83676462420000000000000",
+      "level": "critical"
+    },
+    {
+      "market": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc",
+      "user": "0xF06aF1C5c2e34875Bc190e2cC14efe9Af810AA89",
+      "hf": "1069295323047314797",
+      "hfNumber": 1.0692953230473148,
+      "dropToLiquidation": 0.0648046629904212,
+      "debt": "1661707745",
+      "collateral": "2000000000000000000000",
+      "level": "critical"
+    },
+    {
+      "market": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc",
+      "user": "0x67765eA217d0021e35CA973dBae3b54823081a2b",
+      "hf": "1326061403877051218",
+      "hfNumber": 1.326061403877051,
+      "dropToLiquidation": 0.2458871081864944,
+      "debt": "1004963126490",
+      "collateral": "1500000646489000000000000",
+      "level": "ok"
+    },
+    {
+      "market": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc",
+      "user": "0xD7E318FB639ac35749Ea5370DD696c323F89c230",
+      "hf": "1343838442546464271",
+      "hfNumber": 1.3438384425464642,
+      "dropToLiquidation": 0.25586293088544065,
+      "debt": "64252164",
+      "collateral": "97187969000000000000",
+      "level": "ok"
+    },
+    {
+      "market": "0xab78d4ff6d4f39a7d05a822d787e33d61c68e398fd7aec5a8bca4ab296985c69",
+      "user": "0x1F735797c030e7780F803706c5ed8E2B269a528c",
+      "hf": "1381097189503366501",
+      "hfNumber": 1.3810971895033664,
+      "dropToLiquidation": 0.275937995095339,
+      "debt": "100006128271033592",
+      "collateral": "100000000000000",
+      "level": "ok"
+    },
+    {
+      "market": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+      "user": "0xF8B4036D88Dd71A7783AA97e9a4e14FBaa78B127",
+      "hf": "1526550745914244451",
+      "hfNumber": 1.5265507459142444,
+      "dropToLiquidation": 0.3449284259455755,
+      "debt": "90019504319",
+      "collateral": "137702122000000000000000",
+      "level": "ok"
+    },
+    {
+      "market": "0x4cbedaf680d648926bafbce7d874ce717a1b3232ea7084c7c3593aa42bb429cd",
+      "user": "0xE8bA2cca3126385d7309c69FdD21e20694edC701",
+      "hf": "1604782710744398505",
+      "hfNumber": 1.6047827107443986,
+      "dropToLiquidation": 0.376862678476803,
+      "debt": "553870",
+      "collateral": "1000000000000000000",
+      "level": "ok"
+    },
+    {
+      "market": "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea",
+      "user": "0x67765eA217d0021e35CA973dBae3b54823081a2b",
+      "hf": "1822143192713130013",
+      "hfNumber": 1.82214319271313,
+      "dropToLiquidation": 0.451195710634013,
+      "debt": "900832121177",
+      "collateral": "1894576619794796892558442",
+      "level": "ok"
+    },
+    {
+      "market": "0xab78d4ff6d4f39a7d05a822d787e33d61c68e398fd7aec5a8bca4ab296985c69",
+      "user": "0x10751f022A6e6765a39ac615aD25A4f78F563B4d",
+      "hf": "685038514099892279658457",
+      "hfNumber": 685038.5140998923,
+      "dropToLiquidation": 0.999998540228061,
+      "debt": "5000201974291933605",
+      "collateral": "2480000000000000000000",
+      "level": "ok"
+    },
+    {
+      "market": "0xab78d4ff6d4f39a7d05a822d787e33d61c68e398fd7aec5a8bca4ab296985c69",
+      "user": "0x44E96401BA547b25719D233daEe87cB90CA649Dc",
+      "hf": "1132523248838913350911681",
+      "hfNumber": 1132523.2488389134,
+      "dropToLiquidation": 0.999999117015919,
+      "debt": "10000404841178160963",
+      "collateral": "8200000000000000000000",
+      "level": "ok"
+    }
+  ],
+  "table": "# | market | account | health | drop to liquidation | health at −5.0% | debt | collateral | level now (unshocked)\n1 | syzUSD/USDC | 0xA4A5…3DCc | 1.0134 | 1.32% | 0.9627 | 1,523,935.62 USDC | 1,547,470.90 syzUSD | critical\n2 | syzUSD/USDC | 0x743D…2A73 | 1.0201 | 1.97% | 0.9691 | 22,012.17 USDC | 22,500.00 syzUSD | critical\n3 | syzUSD/USDC | 0xE6a4…fe7C | 1.0333 | 3.22% | 0.9816 | 1,343,873.26 USDC | 1,391,416.26 syzUSD | critical\n4 | APT/USDC | 0x966B…B257 | 1.0350 | 3.38% | 0.9832 | 70,045.04 USDC | 83,676.46 APT | critical\n5 | APC3M/USDC | 0xF06a…AA89 | 1.0693 | 6.48% | 1.0158 | 1,661.71 USDC | 2,000.00 APC3M | critical\n6 | APC3M/USDC | 0x6776…1a2b | 1.3261 | 24.59% | 1.2598 | 1,004,963.13 USDC | 1,500,000.65 APC3M | ok",
+  "alerts": [
+    "[2026-10-24T23:17:47.218Z] LIQUIDATABLE Morpho syzUSD/USDC 0xA4A5…3DCc [scenario: syzUSD price −5.0%]: health factor 0.9627 (debt 1,523,935.62 USDC, collateral 1,547,470.90 syzUSD). Liquidatable now. Act now: repay 395,413.76 USDC or add 542,205.98 syzUSD collateral to get back to 1.30.",
+    "[2026-10-24T23:17:47.218Z] LIQUIDATABLE Morpho syzUSD/USDC 0x743D…2A73 [scenario: syzUSD price −5.0%]: health factor 0.9691 (debt 22,012.17 USDC, collateral 22,500.00 syzUSD). Liquidatable now. Act now: repay 5,603.63 USDC or add 7,683.91 syzUSD collateral to get back to 1.30.",
+    "[2026-10-24T23:17:47.218Z] LIQUIDATABLE Morpho syzUSD/USDC 0xE6a4…fe7C [scenario: syzUSD price −5.0%]: health factor 0.9816 (debt 1,343,873.26 USDC, collateral 1,391,416.26 syzUSD). Liquidatable now. Act now: repay 329,157.14 USDC or add 451,352.44 syzUSD collateral to get back to 1.30.",
+    "[2026-10-24T23:17:47.218Z] LIQUIDATABLE Morpho APT/USDC 0x966B…B257 [scenario: APT price −5.0%]: health factor 0.9832 (debt 70,045.04 USDC, collateral 83,676.46 APT). Liquidatable now. Act now: repay 17,066.77 USDC or add 26,956.10 APT collateral to get back to 1.30.",
+    "[2026-10-24T23:17:47.218Z] CRITICAL Morpho APC3M/USDC 0xF06a…AA89 [scenario: APC3M price −5.0%]: health factor 1.0158 (debt 1,661.71 USDC, collateral 2,000.00 APC3M). Liquidated if APC3M falls 1.56% further. Act now: repay 363.24 USDC or add 559.48 APC3M collateral to get back to 1.30.",
+    "[2026-10-24T23:17:47.218Z] WARN Morpho APC3M/USDC 0x6776…1a2b [scenario: APC3M price −5.0%]: health factor 1.2598 (debt 1,004,963.13 USDC, collateral 1,500,000.65 APC3M). Liquidated if APC3M falls 20.62% further. Act now: repay 31,108.76 USDC or add 47,915.96 APC3M collateral to get back to 1.30.",
+    "[2026-10-24T23:17:47.218Z] WARN Morpho APC3M/USDC 0xD7E3…c230 [scenario: APC3M price −5.0%]: health factor 1.2766 (debt 64.25 USDC, collateral 97.19 APC3M). Liquidated if APC3M falls 21.67% further. Act now: repay 1.15 USDC or add 1.78 APC3M collateral to get back to 1.30."
+  ],
+  "delivered": []
+}
