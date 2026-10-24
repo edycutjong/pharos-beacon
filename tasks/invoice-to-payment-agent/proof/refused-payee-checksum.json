@@ -8,12 +8,12 @@
       "server": "pharos-mcp-server",
       "version": "0.1.0"
     },
-    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-payee.txt --proof refused-payee-checksum",
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-payee.txt --state /var/folders/hy/h4_prwdj11d1p_gf5kr77k5r0000gn/T/tmp.iWLbb0nXTc --proof refused-payee-checksum",
     "git": {
-      "commit": "88b1debcab59",
+      "commit": "3e7bf48ccc9c",
       "dirty": false
     },
-    "createdAt": "2026-10-24T01:30:17.356Z"
+    "createdAt": "2026-10-24T01:38:31.665Z"
   },
   "invoice": "tasks/invoice-to-payment-agent/samples/bad-payee.txt",
   "extracted": {
@@ -28,7 +28,7 @@
     "currency": "PHRS"
   },
   "outcome": "refused",
-  "fingerprint": "0aa984fb85d72636",
+  "fingerprint": "e494d6d970dbf97f",
   "notes": [],
   "checks": [
     {

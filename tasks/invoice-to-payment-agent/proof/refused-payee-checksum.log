@@ -3,7 +3,7 @@ invoice: tasks/invoice-to-payment-agent/samples/bad-payee.txt (text) · read by 
   issuer    Typo Traders
   payee     0x8d347c72431ed6E033d5f43E56c0987E97f5D91B
   amount    0.001 PHRS
-fingerprint 0aa984fb85d72636 (invoice number + issuer + amount + currency)
+fingerprint e494d6d970dbf97f (invoice number + issuer + amount + currency)
 
 checks
   FAIL  recipient 0x8d347c72431ed6E033d5f43E56c0987E97f5D91B has mixed-case letters that fail the EIP-55 checksum (a typo?): refusing
