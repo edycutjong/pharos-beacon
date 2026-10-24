@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts deposit --wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 --amount 250 --down morpho --block 21146194 --proof mainnet-deposit-250-morpho-down",
     "git": {
-      "commit": "ff07fe82cf52",
+      "commit": "d42bfb0d80d8",
       "dirty": false
     },
-    "createdAt": "2026-10-24T20:28:29.285Z"
+    "createdAt": "2026-10-24T21:10:53.566Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -245,7 +245,8 @@
           "kind": "centrifuge",
           "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
           "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -429,7 +430,8 @@
           "kind": "centrifuge",
           "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
           "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -668,7 +670,8 @@
         "kind": "centrifuge",
         "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
         "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "HYB",
@@ -681,7 +684,8 @@
         "kind": "centrifuge",
         "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
         "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "morpho-c79579",
@@ -752,6 +756,7 @@
         "protocolName": "Centrifuge",
         "eligible": false,
         "reasons": [
+          "Janus Henderson Treasury Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
           "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
           "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
         ],
@@ -766,6 +771,7 @@
         "protocolName": "Centrifuge",
         "eligible": false,
         "reasons": [
+          "NYLIM US High Yield Bond Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
           "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
           "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
         ],
@@ -776,10 +782,7 @@
       }
     ],
     "explanation": [
-      "No venue can take $250.00 today: RockawayX USDC vault: maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted); Janus Henderson Treasury Fund: maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors) / deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move; NYLIM US High Yield Bond Fund: maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors) / deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move",
-      "Not eligible: RockawayX USDC vault (RockawayX): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted).",
-      "Not eligible: Janus Henderson Treasury Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
-      "Not eligible: NYLIM US High Yield Bond Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
+      "No venue can take $250.00 today: RockawayX USDC vault: maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted); Janus Henderson Treasury Fund: Janus Henderson Treasury Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists / maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors) / deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move; NYLIM US High Yield Bond Fund: NYLIM US High Yield Bond Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists / maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors) / deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move",
       "SIMULATED OUTAGE: Morpho Blue syzUSD/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it.",
       "SIMULATED OUTAGE: Morpho Blue APT/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it.",
       "SIMULATED OUTAGE: Morpho Blue APC3M/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it."
