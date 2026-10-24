@@ -8,10 +8,10 @@
     },
     "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-usd.json --proof flagged-usd",
     "git": {
-      "commit": "83359689e9ac",
+      "commit": "72b5047a1212",
       "dirty": false
     },
-    "createdAt": "2026-10-24T01:30:15.486Z"
+    "createdAt": "2026-10-24T01:38:29.877Z"
   },
   "invoice": "tasks/invoice-to-payment-agent/samples/bad-usd.json",
   "extracted": {
