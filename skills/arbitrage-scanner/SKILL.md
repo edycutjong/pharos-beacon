@@ -45,16 +45,17 @@ Mainnet scans need no key. The Atlantic trade uses `PRIVATE_KEY` in `~/.config/p
    npm run arbitrage-scanner -- scan --network atlantic            # prepares the plan, sends nothing
    npm run arbitrage-scanner -- scan --network atlantic --execute  # leg 1, a fresh read of leg 2, leg 2 only if still profitable
    ```
-   Report the explorer links, the USDC and WPHRS before and after, and predicted against realised net.
+   Report the explorer links, the USDC and WPHRS before and after, and predicted against realised net. Say plainly that the pools and their inventory are ours: the USDC gain is a transfer from our own pool, not a market profit.
 
 ## How the decision is made
 
-- gross = amount × (sell mid ÷ buy mid − 1); fees = nominal swap fee of each leg; impact = what the pool curves took beyond the fees; slippage buffer = `--slippage-bps` of the amount; gas = `--gas-units` × gas price, priced in USDC at the sell pool's mid.
+- gross = amount × (sell mid ÷ buy mid − 1); fees = nominal swap fee of each leg; impact = the residual after the fees (price impact of the pool curve plus rounding); slippage buffer = `--slippage-bps` of the amount; gas = `--gas-units` × gas price, priced in USDC at the sell pool's mid.
 - net = USDC back − USDC in − slippage buffer − gas, from the pools' own quotes. ACT only when the best net is positive and at least `--min-profit`.
 - The Uniswap-style quote is exact inside the current tick range; a size that would leave it is refused, not guessed.
 
 ## Guardrails
 
-- Mainnet (chain 1672) is read-only by construction; only the Atlantic signer exists, and it refuses other chains.
+- Mainnet (chain 1672) is read-only by construction: the scanner signs only through the Atlantic-bound `testnetSigner`, which refuses any other chain.
 - `move-rate` moves the price of our own Atlantic test pool (the demonstration of a market move); do not use it unless the user asks.
-- If a quote is refused or a read fails, the scan says so and skips: it never prices from a stale or guessed number.
+- If a quote is refused the scan says so and skips; if a read stays inconsistent after 3 tries the scan stops with an error and prices nothing. It never prices from a stale or guessed number.
+- Exit codes: 0 scanned (ACT or SKIP) · 1 an `--execute` run that did not complete (leg 2 not sent, or a send failed) · 2 bad usage. Skip reasons: no positive gross spread · the spread does not survive its costs · the spread survives its costs but the profit is under the threshold · no route could be quoted.

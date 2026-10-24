@@ -152,6 +152,7 @@ describe("planRoute", () => {
     expect(plan.legs[0]!.calls.map((x) => x.step)).toEqual(["approve", "swap"]);
     expect(plan.legs[1]!.calls.map((x) => x.step)).toEqual(["transfer in", "sellBase"]);
     expect(withSlippage(1_000_000n, 10)).toBe(999_000n);
+    expect(withSlippage(1_000_000n, 0.4)).toBe(999_960n); // fractional bps count, as in the scan's slippage buffer
   });
 });
 
@@ -337,6 +338,37 @@ describe("executeOnAtlantic", () => {
     expect(r.outcome).toBe("stopped-after-leg-1");
     expect(r.reason).toMatch(/below the 0\.001000 USDC threshold: leg 2 not sent/);
     expect(chain.sent).toEqual(["approve", "swap@A"]);
+  });
+});
+
+describe("executeOnAtlantic: leg 2 fails after leg 1 landed", () => {
+  it("returns a report with the transactions so far instead of throwing it away", async () => {
+    const chain = fakeChain({ [POOL_A]: 650_000n, [POOL_B]: 665_000n });
+    const call = chain.mcp.call.bind(chain.mcp);
+    const [a, b] = await Promise.all([readArbPool(call, POOL_A, M), readArbPool(call, POOL_B, M)]);
+    const cfg: ScanConfig = { ...CFG, sizes: [2_000_000n] };
+    const d = decide(await scanVenues([a, b], M, cfg), cfg, M);
+    const realSend = chain.signer.send.bind(chain.signer);
+    let n = 0;
+    (chain.signer as { send: unknown }).send = async (i: { to: Hex; data: Hex }) => {
+      if (++n === 4) throw new Error("node refused the swap");
+      return realSend(i);
+    };
+    const r = await executeOnAtlantic({ mcp: chain.mcp, signer: chain.signer, m: M, cfg, candidate: d.best!, buy: { kind: "arb-pool", address: POOL_A }, sell: { kind: "arb-pool", address: POOL_B }, log: () => {} });
+    expect(r.outcome).toBe("stopped-after-leg-1");
+    expect(r.reason).toMatch(/leg 2 failed \(node refused the swap\): WBASE is held/);
+    expect(r.txs).toHaveLength(3); // approve, swap on A, approve on B
+    expect(Number(r.after.base)).toBeGreaterThan(0);
+  });
+});
+
+describe("CLI guards", () => {
+  it("--watch cannot be combined with --execute or --proof", async () => {
+    const { main } = await import("../tasks/arbitrage-scanner/index.js");
+    const ctx = { onExit: () => {} } as never;
+    await expect(main(ctx, ["scan", "--watch", "--execute"])).rejects.toThrow(/cannot be combined/);
+    await expect(main(ctx, ["scan", "--watch", "--proof", "x"])).rejects.toThrow(/cannot be combined/);
+    await expect(main(ctx, ["scan", "--slippage-bps", "10000"])).rejects.toThrow(/below 10000/);
   });
 });
 

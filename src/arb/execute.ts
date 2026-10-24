@@ -20,7 +20,7 @@ const MAX_SQRT_RATIO_MINUS_1 = 1461446703485210103287273052203988822378723970341
 export interface PlannedTx { step: string; to: Hex; data: Hex; note?: string }
 
 /** minOut with the slippage allowance taken off the quote. */
-export const withSlippage = (out: bigint, slippageBps: number): bigint => (out * BigInt(10_000 - Math.round(slippageBps))) / 10_000n;
+export const withSlippage = (out: bigint, slippageBps: number): bigint => (out * BigInt(1_000_000 - Math.round(slippageBps * 100))) / 1_000_000n;
 
 type VenueRef = { kind: "uniswap-v3-style" | "dodo-v2-pmm" | "arb-pool"; address: Hex };
 
@@ -127,8 +127,14 @@ export async function executeOnAtlantic(o: {
   // Leg 2: sell the base where it is dear.
   const minBack = withSlippage(q2.out, cfg.slippageBps);
   o.log(`leg 2: ${fmtUnits(got, m.base.decimals, 8)} ${m.base.symbol} → ${m.quote.symbol} on ${c.sellOn} (min out ${fmtUnits(minBack, d)})`);
-  if ((await allowance(m.base.address, o.sell.address)) < got) await send("approve base → sell pool", m.base.address, encodeFunctionData({ abi: erc20, functionName: "approve", args: [o.sell.address, got] }));
-  await send("swap on the dear pool", o.sell.address, encodeFunctionData({ abi: arbPool, functionName: "swap", args: [m.base.address, got, minBack] }));
+  try {
+    if ((await allowance(m.base.address, o.sell.address)) < got) await send("approve base → sell pool", m.base.address, encodeFunctionData({ abi: erc20, functionName: "approve", args: [o.sell.address, got] }));
+    await send("swap on the dear pool", o.sell.address, encodeFunctionData({ abi: arbPool, functionName: "swap", args: [m.base.address, got, minBack] }));
+  } catch (e) {
+    // Leg 1 has landed: say so, with the transactions so far and the balances as they are, instead of throwing the report away.
+    const now = { quote: await bal(mcp, m.quote.address, who), base: await bal(mcp, m.base.address, who) };
+    return report("stopped-after-leg-1", now, `leg 2 failed (${(e as Error).message.slice(0, 160)}): ${m.base.symbol} is held`);
+  }
   const after = { quote: await bal(mcp, m.quote.address, who), base: await bal(mcp, m.base.address, who) };
   return report("completed", after);
 }
