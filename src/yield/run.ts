@@ -41,6 +41,8 @@ export interface Report {
   held: { source: Source; holding: Holding; others: { source: Source; assets: bigint }[] };
   readings: Reading[];
   unreadable: { source: Source; reason: string }[];
+  /** Sources whose balance for the wallet could not be read: a position there is NOT considered. */
+  holdingErrors: { source: Source; reason: string }[];
   skipped: string[];
   heldView: Held;
   targets: (Target & { reading: Reading; gasUnits: number; gasBasis: string })[];
@@ -66,14 +68,16 @@ export async function analyse(o: AnalyseOptions): Promise<Report> {
 
   // 1. what does the wallet hold?
   const holdings: { source: Source; holding: Holding }[] = [];
+  const holdingErrors: Report["holdingErrors"] = [];
   for (const s of o.sources) {
     try {
       const h = await holdingOf(o.call, s, o.wallet, head.block, head.timestamp, evidence);
       if (h && h.assets > 0n) holdings.push({ source: s, holding: h });
-    } catch {
-      // a source that cannot be read for holdings is reported by readSource below
+    } catch (e) {
+      holdingErrors.push({ source: s, reason: ((e as Error).message ?? String(e)).split("\n")[0]!.slice(0, 160) });
     }
   }
+  if (!holdings.length && holdingErrors.length) throw new Error(`could not read the wallet's balance in ${holdingErrors.map((h) => `${h.source.name} (${h.reason})`).join("; ")}, so it cannot be said what the wallet holds`);
   if (!holdings.length) throw new NoPosition(`wallet ${o.wallet} holds nothing in any of the ${o.sources.length} sources (${o.sources.map((s) => s.name).join(", ")}) at block ${head.block}`);
   holdings.sort((a, b) => (b.holding.assets > a.holding.assets ? 1 : -1));
   const cur = holdings[0]!;
@@ -132,10 +136,15 @@ export async function analyse(o: AnalyseOptions): Promise<Report> {
         if (!(e instanceof NotPlannable)) throw e;
       }
     }
-    targets.push({ key: r.source.key, name: r.source.name, rate: rateView(r.windows, rateOpts), entryFeeBps: r.entry.feeBps, lockSeconds: r.lockSeconds, entryBlockers: r.entry.blockers, gasUsd: usdOfGas(units), reading: r, gasUnits: units, gasBasis: basis });
+    // a Morpho market pays its suppliers the borrowers' interest: our deposit shares it out, so the rate we would earn is lower
+    const dilution = r.source.kind === "morpho" && r.tvl !== null && r.tvl > 0n ? Number(r.tvl) / (Number(r.tvl) + Number(proceeds)) : 1;
+    targets.push({ key: r.source.key, name: r.source.name, rate: rateView(r.windows, rateOpts), entryFeeBps: r.entry.feeBps, lockSeconds: r.lockSeconds, entryBlockers: r.entry.blockers, gasUsd: usdOfGas(units), dilution, reading: r, gasUnits: units, gasBasis: basis });
   }
   const params: Params = { holdDays: o.holdDays, minNetUsd: o.minNetUsd };
   const recommendation = recommend(heldView, targets, params);
+  // what the decision did NOT see
+  const unseen = [...unreadable.map((u) => `${u.source.name} (${u.reason})`), ...holdingErrors.map((h) => `a position in ${h.source.name} (balance unreadable: ${h.reason})`)];
+  if (unseen.length) recommendation.reason += `; NOT CONSIDERED because it could not be read: ${unseen.join("; ")}`;
   let plan: MovePlan | null = null;
   let planNote: string | null = null;
   if (recommendation.decision === "MOVE") {
@@ -157,6 +166,7 @@ export async function analyse(o: AnalyseOptions): Promise<Report> {
     held: { source: cur.source, holding: cur.holding, others: holdings.slice(1).map((h) => ({ source: h.source, assets: h.holding.assets })) },
     readings,
     unreadable,
+    holdingErrors,
     skipped: o.skipped ?? [],
     heldView,
     targets,

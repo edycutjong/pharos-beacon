@@ -5,7 +5,7 @@ import { decodeFunctionData, encodeFunctionResult, getAddress, parseAbi, type He
 import { UsageError } from "../src/lib/cli.js";
 import { renderReport } from "../src/yield/format.js";
 import { aprBetween, evaluateMove, fmtDays, parseWindows, rateView, recommend, usd, type Held, type Target, type WindowRate } from "../src/yield/model.js";
-import { NotPlannable, planFingerprint, planMove } from "../src/yield/plan.js";
+import { NotPlannable, planFingerprint, planMove, verifyPlan } from "../src/yield/plan.js";
 import { NoPosition, analyse } from "../src/yield/run.js";
 import { holdingOf, rd, type Source } from "../src/yield/sources.js";
 import { main } from "../tasks/yield-optimizer/index.js";
@@ -46,8 +46,8 @@ describe("windows and rates", () => {
     expect(jumpy.pessimistic).toBeCloseTo(0.0347 - 0.5 * 0.0355, 10);
     expect(jumpy.optimistic).toBeCloseTo(0.0347 + 0.5 * 0.0355, 10);
   });
-  it("never credits a negative conservative rate and flags thin history", () => {
-    expect(view([-0.1, -0.002, -0.0106]).pessimistic).toBe(0);
+  it("does not flatter a source that loses value, and flags thin history", () => {
+    expect(view([-0.1, -0.002, -0.0106]).pessimistic!).toBeLessThan(-0.002);
     const thin = view([0.04, null, null]);
     expect(thin.thin).toBe(true);
     expect(thin.read).toBe(1);
@@ -63,7 +63,7 @@ describe("windows and rates", () => {
 });
 
 const held = (over: Partial<Held> = {}): Held => ({ key: "a", name: "Vault A", usd: 1000, rate: view([0.04, 0.04, 0.04]), exitFeeBps: 0, exitBlockers: [], ...over });
-const target = (over: Partial<Target> = {}): Target => ({ key: "b", name: "Vault B", rate: view([0.09, 0.09, 0.09]), entryFeeBps: 10, lockSeconds: 0, entryBlockers: [], gasUsd: 1, ...over });
+const target = (over: Partial<Target> = {}): Target => ({ key: "b", name: "Vault B", rate: view([0.09, 0.09, 0.09]), entryFeeBps: 10, lockSeconds: 0, entryBlockers: [], gasUsd: 1, dilution: 1, ...over });
 const P = { holdDays: 30, minNetUsd: 1 };
 
 describe("evaluateMove: costs, break-even and the holding period", () => {
@@ -116,6 +116,22 @@ describe("evaluateMove: costs, break-even and the holding period", () => {
     const e = evaluateMove(held(), target({ rate: view([0.09, null, null]) }), P);
     expect(e.entryBlockers.join()).toContain("rate history too short");
     expect(e.verdict).toBe("no");
+  });
+});
+
+describe("dilution and the two nets", () => {
+  it("scales a destination's rate by dilution, and prints the net at median rates beside the conservative one", () => {
+    const plain = evaluateMove(held(), target({ entryFeeBps: 0, rate: view([0.1, 0.1, 0.1]) }), P);
+    const diluted = evaluateMove(held(), target({ entryFeeBps: 0, rate: view([0.1, 0.1, 0.1]), dilution: 0.5 }), P);
+    expect(diluted.destRate).toBeCloseTo(0.05, 10);
+    expect(diluted.netUsd!).toBeLessThan(plain.netUsd!);
+    expect(diluted.notes.join()).toContain("dilute");
+    expect(plain.netAtMedianUsd).toBeCloseTo(plain.netUsd!, 8); // a steady source: the two nets agree
+    const jumpy = evaluateMove(held(), target({ entryFeeBps: 0, rate: view([0.0, 0.12, 0.12]) }), P);
+    expect(jumpy.netAtMedianUsd!).toBeGreaterThan(jumpy.netUsd!);
+  });
+  it("a MOVE says the net is conservative and gives the median figure", () => {
+    expect(recommend(held(), [target({ entryFeeBps: 0 })], P).reason).toMatch(/net gain \$[\d.,]+ at conservative rates \(\$[\d.,]+ at median rates\)/);
   });
 });
 
@@ -181,6 +197,7 @@ interface FakeVault {
   shares?: bigint;
   redeemReverts?: boolean;
   broken?: boolean;
+  maxDepositBroken?: boolean;
 }
 
 function chain(vaults: Record<string, FakeVault>, calls: string[] = []) {
@@ -209,7 +226,7 @@ function chain(vaults: Record<string, FakeVault>, calls: string[] = []) {
         case "convertToShares": return enc("convertToShares", sharesOf(d.args![0] as bigint));
         case "previewDeposit": return enc("previewDeposit", (sharesOf(d.args![0] as bigint) * BigInt(10_000 - (v.entryBps ?? 0))) / 10_000n);
         case "previewRedeem": return enc("previewRedeem", (toAssets(d.args![0] as bigint) * BigInt(10_000 - (v.exitBps ?? 0))) / 10_000n);
-        case "maxDeposit": return enc("maxDeposit", v.maxDeposit ?? 10n ** 18n);
+        case "maxDeposit": if (v.maxDepositBroken) throw new Error("eth_call: execution reverted: (code 3)"); return enc("maxDeposit", v.maxDeposit ?? 10n ** 18n);
         case "maxRedeem": return enc("maxRedeem", v.shares ?? 0n);
         case "lockSeconds": return enc("lockSeconds", v.lock ?? 0n);
         case "lockedUntil": return enc("lockedUntil", v.lockedUntil ?? 0n);
@@ -312,7 +329,22 @@ describe("analyse (fake chain, two vaults)", () => {
     const call = chain({ [VA]: { price: growth(0.04), shares: ONE_SHARE_MILLION / 1000n }, [VB]: { price: growth(0.09), broken: true } });
     const r = await analyse({ ...base, call, sources });
     expect(r.unreadable.map((u) => u.source.key)).toEqual(["b"]);
+    expect(r.holdingErrors.map((u) => u.source.key)).toEqual(["b"]);
     expect(r.recommendation.reason).toContain("no other source to compare");
+    expect(r.recommendation.reason).toContain("NOT CONSIDERED because it could not be read: Vault B");
+    expect(renderReport(r).join("\n")).toContain("BALANCE UNREADABLE");
+  });
+
+  it("refuses to say what a wallet holds when its balances could not be read", async () => {
+    const call = chain({ [VA]: { price: growth(0.04), broken: true }, [VB]: { price: growth(0.09), broken: true } });
+    await expect(analyse({ ...base, call, sources })).rejects.toThrow(/could not read the wallet's balance/);
+  });
+
+  it("treats a maxDeposit that cannot be read as a blocker, not as open", async () => {
+    const call = chain({ [VA]: { price: growth(0.04), shares: ONE_SHARE_MILLION / 1000n }, [VB]: { price: growth(0.09), maxDepositBroken: true } });
+    const r = await analyse({ ...base, call, sources });
+    expect(r.recommendation.decision).toBe("STAY");
+    expect(r.targets[0]!.entryBlockers.join()).toContain("maxDeposit(wallet) cannot be read");
   });
 
   it("says so when the wallet holds nothing in any source", async () => {
@@ -381,6 +413,42 @@ describe("analyse (fake chain, two vaults)", () => {
 });
 
 // ---------------------------------------------------------------- planning
+
+describe("verifyPlan: what a wallet checks before it signs", () => {
+  const A = SRC("a", VA);
+  const B = SRC("b", VB);
+  const mk = () => planMove({ call: chain({}), chainId: 688689, wallet: ME, usdc: USDC, from: A, to: B, shares: 10n ** 18n, proceeds: 1_000_000n, slippageBps: 10, block: HEAD, estimate: async () => null });
+  it("accepts a plan the optimizer made", async () => {
+    expect(verifyPlan(await mk())).toEqual([]);
+  });
+  it("rejects a plan whose redeem pays someone else, even with a recomputed fingerprint", async () => {
+    const p = await mk();
+    const evil = "0x00000000000000000000000000000000000000ee" as Hex;
+    p.transactions[0]!.request.data = p.transactions[0]!.request.data.replace(ME.slice(2).toLowerCase().padStart(64, "0"), evil.slice(2).padStart(64, "0")) as Hex;
+    p.planId = planFingerprint(p.transactions);
+    expect(verifyPlan(p).join()).toContain("redeems to or from someone other than the owner");
+  });
+  it("rejects an approval to a different contract than the deposit goes to, a foreign sender and value", async () => {
+    const p = await mk();
+    p.transactions[2]!.request.to = VC;
+    expect(verifyPlan(p).join()).toMatch(/approves .* but step 3 is sent to|step 3 goes to/);
+    const q = await mk();
+    q.transactions[1]!.request.from = VC;
+    q.transactions[1]!.request.value = "0x1";
+    const msg = verifyPlan(q).join();
+    expect(msg).toContain("not the owner");
+    expect(msg).toContain("carries value");
+  });
+  it("rejects an approval of a different amount and garbage calldata", async () => {
+    const p = await mk();
+    p.depositAssets = "5";
+    expect(verifyPlan(p).join()).toContain("the plan deposits 5");
+    const q = await mk();
+    q.transactions[0]!.request.data = "0xdeadbeef";
+    expect(verifyPlan(q).join()).toContain("calldata is not what a move uses");
+    expect(verifyPlan({ ...q, transactions: [] } as never)).toEqual(["a move is exactly three transactions: exit, approve, enter"]);
+  });
+});
 
 describe("planMove", () => {
   const A = SRC("a", VA);

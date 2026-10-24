@@ -1,7 +1,9 @@
 // The owner's wallet, as a stand-in for MetaMask on Atlantic testnet. The Yield Optimizer (index.ts, src/yield/) only PREPARES
 // transactions; this is the separate step where the owner looks at a prepared plan and signs it. It is the only file of this task
 // that reads a key (PRIVATE_KEY_2 from ~/.config/pharos/testnet.env, the user's own testnet wallet), it refuses a plan that was
-// not made for that wallet or that was altered after it was prepared, and it signs nothing without --execute.
+// not made for that wallet, whose fingerprint does not match, or whose calldata does not decode to a redeem/withdraw → approve →
+// deposit/supply that brings the money back to the owner (the fingerprint alone proves nothing: whoever edits a plan can recompute
+// it), and it signs nothing without --execute.
 //   npm run yield-wallet -- sign plan.json [--execute] [--proof name]
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -12,7 +14,7 @@ import { chainMcp } from "../../src/lib/mcp.js";
 import { atlantic, explorerTx } from "../../src/lib/networks.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { testnetSigner } from "../../src/lib/signer.js";
-import { planFingerprint, type MovePlan } from "../../src/yield/plan.js";
+import { planFingerprint, verifyPlan, type MovePlan } from "../../src/yield/plan.js";
 import { rd } from "../../src/yield/sources.js";
 
 const TASK = "yield-optimizer";
@@ -28,6 +30,8 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   if (plan.kind !== "unsigned-move-plan" || plan.signed !== false) throw new UsageError("not an unsigned move plan");
   if (plan.chainId !== atlantic.id) throw new UsageError(`this wallet signs for Atlantic (${atlantic.id}) only; the plan is for chain ${plan.chainId}`);
   if (planFingerprint(plan.transactions) !== plan.planId) throw new UsageError("the plan was changed after it was prepared (its fingerprint does not match): refusing to sign");
+  const problems = verifyPlan(plan);
+  if (problems.length) throw new UsageError(`refusing to sign, the calldata does not match a safe move:\n  - ${problems.join("\n  - ")}`);
 
   const mcp = await chainMcp("atlantic", { broadcast: values.execute });
   onExit(() => mcp.close());

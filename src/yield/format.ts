@@ -25,20 +25,23 @@ export function renderReport(r: Report, dec = 6): string[] {
   L.push("Yield sources, measured as share-price growth over each window, annualised (APR, simple):");
   const w = Math.max(...r.readings.map((x) => x.source.name.length), 10) + 2;
   L.push(`  ${pad("source", w)}${labels.map((l) => padL(l, 9)).join("")}${padL("median", 9)}${padL("conservative", 14)}  notes`);
-  const ranked = [...r.readings].sort((a, b) => (rateView(b.windows).pessimistic ?? -1) - (rateView(a.windows).pessimistic ?? -1));
+  const viewOf = (key: string): RateView => (key === r.held.source.key ? r.heldView.rate : r.targets.find((t) => t.key === key)!.rate);
+  const ranked = [...r.readings].sort((a, b) => (viewOf(b.source.key).pessimistic ?? -Infinity) - (viewOf(a.source.key).pessimistic ?? -Infinity));
   for (const x of ranked) {
-    const v = rateView(x.windows);
+    const v = viewOf(x.source.key);
     const flags = [x.source.key === r.held.source.key ? "HELD" : "", v.jumpy ? `JUMPY (spread ${pct(v.spread)}: ranked down)` : "", v.thin ? "thin history" : "", x.tvl !== null ? `TVL ${usdc(x.tvl, dec)}` : ""].filter(Boolean).join(" · ");
     L.push(rateRow(x.source.name, v, labels, flags, w));
   }
   for (const u of r.unreadable) L.push(`  ${pad(u.source.name, w)} UNREADABLE: ${u.reason}`);
+  for (const h of r.holdingErrors) L.push(`  ${pad(h.source.name, w)} BALANCE UNREADABLE: ${h.reason}`);
+  for (const x of r.readings) for (const win of x.windows) if (win.apr === null && win.reason) L.push(`  (${x.source.name}, ${win.label}: ${win.reason})`);
   if (r.skipped.length) L.push(`  (left out: ${r.skipped.join("; ")})`);
   L.push("");
   const dest = r.readings.filter((x) => x.source.key !== r.held.source.key);
   L.push("Entry / exit, read from the contracts:");
   const h = r.readings.find((x) => x.source.key === r.held.source.key)!;
   L.push(`  exit ${r.held.source.name}: ${h.exit.note}${h.exit.blockers.length ? ` → BLOCKED: ${h.exit.blockers.join("; ")}` : " → open"}`);
-  for (const x of dest) L.push(`  entry ${x.source.name}: ${x.entry.note}${x.lockSeconds ? `; lock-in ${fmtDays(x.lockSeconds / 86_400)}` : ""}${x.entry.blockers.length ? ` → BLOCKED: ${x.entry.blockers.join("; ")}` : " → open"}`);
+  for (const x of dest) L.push(`  entry ${x.source.name}: ${x.entry.note}${x.lockSeconds ? `; lock-in ${fmtDays(x.lockSeconds / 86_400)}` : ""}${x.entry.blockers.length ? ` → BLOCKED: ${x.entry.blockers.join("; ")}` : " → no blocker found (read-only check: the deposit itself is only simulated once the wallet has approved it)"}`);
   L.push("");
   L.push(`Moving ${usd(r.heldView.usd)} out of ${r.heldView.name} (credited at its optimistic ${pct(r.heldView.rate.optimistic)}; destinations at their conservative rate):`);
   for (const e of r.recommendation.evaluations) L.push(...renderEvaluation(e, r));
@@ -56,7 +59,7 @@ function renderEvaluation(e: Evaluation, r: Report): string[] {
   const head = `  → ${e.name}: `;
   if (e.netUsd === null) return [`${head}cannot be valued${e.entryBlockers.length ? ` (${e.entryBlockers.join("; ")})` : ""}`];
   const L = [
-    `${head}${pct(e.rateGap)} better${e.rateGap! <= 0 ? " (not better)" : ""} · over ${fmtDays(e.horizonDays)}: gross ${usd(e.grossUsd!)} − costs ${usd(e.costUsd!)} (gas ${usd(e.gasUsd)} [${t.gasUnits} units], exit fee ${usd(e.exitFeeUsd!)}, entry fee ${usd(e.entryFeeUsd!)}) = net ${usd(e.netUsd)} · break-even ${e.breakEvenDays === null ? "never" : fmtDays(e.breakEvenDays)} · ${e.verdict === "move" ? "WORTH IT" : "not worth it"}`,
+    `${head}${pct(e.rateGap)} better${e.rateGap! <= 0 ? " (not better)" : ""} · over ${fmtDays(e.horizonDays)}: gross ${usd(e.grossUsd!)} − costs ${usd(e.costUsd!)} (gas ${usd(e.gasUsd)} [${t.gasUnits} units: ${t.gasBasis}], exit fee ${usd(e.exitFeeUsd!)}, entry fee ${usd(e.entryFeeUsd!)}) = net ${usd(e.netUsd)} at conservative rates, ${usd(e.netAtMedianUsd!)} at median rates · break-even ${e.breakEvenDays === null ? "never" : fmtDays(e.breakEvenDays)} · ${e.verdict === "move" ? "WORTH IT" : "not worth it"}`,
   ];
   for (const b of e.entryBlockers) L.push(`      blocker (entry): ${b}`);
   for (const b of e.notes) L.push(`      note: ${b}`);

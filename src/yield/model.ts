@@ -67,7 +67,7 @@ export interface RateView {
   ref: number | null;
   spread: number;
   jumpy: boolean;
-  /** ref − haircut × spread, never below zero: the rate a destination is credited with. */
+  /** ref − haircut × spread (it may be negative: a source that loses value is not flattered): the rate a destination is credited with. */
   pessimistic: number | null;
   /** ref + haircut × spread: the rate the position we already hold is credited with. */
   optimistic: number | null;
@@ -89,7 +89,7 @@ export function rateView(windows: WindowRate[], o: RateOptions = DEFAULT_RATE_OP
     ref,
     spread,
     jumpy,
-    pessimistic: Math.max(0, ref - o.haircut * spread),
+    pessimistic: ref - o.haircut * spread,
     optimistic: ref + o.haircut * spread,
     thin: aprs.length < o.minWindows,
   };
@@ -119,6 +119,11 @@ export interface Target {
   entryBlockers: string[];
   /** Gas for the whole move to this destination (exit + approve + deposit), in USD. */
   gasUsd: number;
+  /**
+   * What your deposit does to the destination's rate: 1 = nothing. A Morpho market pays its suppliers the borrowers' interest, so
+   * adding `amount` to a market with `supply` already in it scales the supply rate by supply / (supply + amount).
+   */
+  dilution: number;
 }
 
 export interface Params {
@@ -140,6 +145,11 @@ export interface Evaluation {
   entryFeeUsd: number | null;
   costUsd: number | null;
   netUsd: number | null;
+  /** The same net gain with both sides at their MEDIAN rate (no haircut or credit for jumpiness): the "expected" figure beside the conservative one. */
+  netAtMedianUsd: number | null;
+  /** The destination's rate after your deposit dilutes it (conservative rate × dilution). */
+  destRate: number | null;
+  dilution: number;
   /** Days until the extra yield has paid back the costs; null = never (no positive gap). */
   breakEvenDays: number | null;
   /** Why the position cannot be exited (applies to every destination). */
@@ -159,20 +169,23 @@ export function evaluateMove(held: Held, t: Target, p: Params): Evaluation {
   if (held.rate.thin) exitBlockers.push(`the rate of ${held.name} cannot be judged (${held.rate.read} of ${held.rate.windows.length} windows readable)`);
   const horizonDays = Math.max(p.holdDays, t.lockSeconds / 86_400);
   if (t.lockSeconds / 86_400 > p.holdDays) notes.push(`${t.name} locks deposits for ${fmtDays(t.lockSeconds / 86_400)}, longer than the ${fmtDays(p.holdDays)} holding period: the horizon is extended to the lock-in`);
-  const base = { key: t.key, name: t.name, horizonDays, gasUsd: t.gasUsd, exitBlockers, entryBlockers, notes };
-  if (held.rate.optimistic === null || t.rate.pessimistic === null || held.exitFeeBps === null || t.entryFeeBps === null) {
-    return { ...base, rateGap: null, grossUsd: null, exitFeeUsd: null, entryFeeUsd: null, costUsd: null, netUsd: null, breakEvenDays: null, verdict: "no" };
+  const base = { key: t.key, name: t.name, horizonDays, gasUsd: t.gasUsd, exitBlockers, entryBlockers, notes, dilution: t.dilution };
+  if (held.rate.optimistic === null || t.rate.pessimistic === null || held.exitFeeBps === null || t.entryFeeBps === null || held.rate.ref === null || t.rate.ref === null) {
+    return { ...base, rateGap: null, grossUsd: null, exitFeeUsd: null, entryFeeUsd: null, costUsd: null, netUsd: null, netAtMedianUsd: null, destRate: null, breakEvenDays: null, verdict: "no" };
   }
-  const rateGap = t.rate.pessimistic - held.rate.optimistic;
+  if (t.dilution < 1) notes.push(`your deposit would dilute ${t.name}'s rate to ${(t.dilution * 100).toFixed(2)}% of what it pays today`);
+  const destRate = t.rate.pessimistic * t.dilution;
+  const rateGap = destRate - held.rate.optimistic;
   const grossUsd = (held.usd * rateGap * horizonDays) / 365;
   const exitFeeUsd = (held.usd * held.exitFeeBps) / 10_000;
   const entryFeeUsd = ((held.usd - exitFeeUsd) * t.entryFeeBps) / 10_000;
   const costUsd = t.gasUsd + exitFeeUsd + entryFeeUsd;
   const netUsd = grossUsd - costUsd;
+  const netAtMedianUsd = (held.usd * (t.rate.ref * t.dilution - held.rate.ref) * horizonDays) / 365 - costUsd;
   const perDay = (held.usd * rateGap) / 365;
   const breakEvenDays = perDay > 0 ? costUsd / perDay : null;
   const move = exitBlockers.length === 0 && entryBlockers.length === 0 && netUsd >= p.minNetUsd && breakEvenDays !== null && breakEvenDays <= p.holdDays;
-  return { ...base, rateGap, grossUsd, exitFeeUsd, entryFeeUsd, costUsd, netUsd, breakEvenDays, verdict: move ? "move" : "no" };
+  return { ...base, rateGap, grossUsd, exitFeeUsd, entryFeeUsd, costUsd, netUsd, netAtMedianUsd, destRate, breakEvenDays, verdict: move ? "move" : "no" };
 }
 
 export interface Recommendation {
@@ -192,7 +205,7 @@ export function recommend(held: Held, targets: Target[], p: Params): Recommendat
       decision: "MOVE",
       best: b,
       evaluations,
-      reason: `move to ${b.name}: expected net ${usd(b.netUsd!)} over ${fmtDays(b.horizonDays)} after ${usd(b.costUsd!)} of costs; the costs are earned back in ${fmtDays(b.breakEvenDays!)} (holding period ${fmtDays(p.holdDays)})`,
+      reason: `move to ${b.name}: net gain ${usd(b.netUsd!)} at conservative rates (${usd(b.netAtMedianUsd!)} at median rates) over ${fmtDays(b.horizonDays)}, after ${usd(b.costUsd!)} of costs; the costs are earned back in ${fmtDays(b.breakEvenDays!)} (holding period ${fmtDays(p.holdDays)})`,
     };
   }
   // stay put: say what stops each alternative, then explain with the best one that could be entered
@@ -205,7 +218,7 @@ export function recommend(held: Held, targets: Target[], p: Params): Recommendat
   else {
     const c = open[0]!;
     parts.push(
-      `the best alternative that could be entered, ${c.name}, would net ${usd(c.netUsd!)} over ${fmtDays(c.horizonDays)} after ${usd(c.costUsd!)} of costs${c.breakEvenDays === null ? " (its conservative rate is not above the current one, so the costs are never earned back)" : `, earned back only in ${fmtDays(c.breakEvenDays)}`}; a move must net at least ${usd(p.minNetUsd)} and pay back within the ${fmtDays(p.holdDays)} holding period`,
+      `the best alternative that could be entered, ${c.name}, would net ${usd(c.netUsd!)} at conservative rates (${usd(c.netAtMedianUsd!)} at median rates) over ${fmtDays(c.horizonDays)} after ${usd(c.costUsd!)} of costs${c.breakEvenDays === null ? " (its conservative rate is not above the current one, so the costs are never earned back)" : `, earned back only in ${fmtDays(c.breakEvenDays)}`}; a move must net at least ${usd(p.minNetUsd)} and pay back within the ${fmtDays(p.holdDays)} holding period`,
     );
     if (shut.length) parts.push(`${shut.length} other source${shut.length > 1 ? "s" : ""} cannot be entered (${shut.map((e) => e.name).join(", ")})`);
   }

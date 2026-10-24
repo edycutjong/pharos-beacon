@@ -1,4 +1,4 @@
-import { encodeFunctionData, getAddress, keccak256, parseAbi, toHex, type Hex } from "viem";
+import { decodeFunctionData, encodeFunctionData, getAddress, keccak256, parseAbi, toHex, type Hex } from "viem";
 import { MORPHO_BLUE, readMarketParams, type MarketParams } from "../liq/morpho.js";
 import type { Call } from "../portfolio/read.js";
 import type { Source } from "./sources.js";
@@ -121,3 +121,58 @@ export async function planMove(i: PlanInput): Promise<MovePlan> {
 export const planFingerprint = (txs: UnsignedTx[]): Hex => keccak256(toHex(JSON.stringify(txs.map((t) => t.request))));
 
 export const totalGas = (p: MovePlan): number => p.transactions.reduce((a, t) => a + t.gas.units, 0);
+
+/**
+ * What a wallet checks before it signs a plan, by decoding the calldata itself rather than trusting the descriptions or the
+ * fingerprint (anyone who edits a plan can recompute a fingerprint): the transactions come from the owner, funds can only come back
+ * to the owner, the approval goes to the contract that then takes the deposit, and the amounts agree. Returns the problems found.
+ */
+export function verifyPlan(plan: MovePlan): string[] {
+  const bad: string[] = [];
+  const me = plan.wallet.toLowerCase();
+  const same = (a: unknown, b: string) => String(a).toLowerCase() === b.toLowerCase();
+  const [exit, approve, enter] = plan.transactions;
+  if (plan.transactions.length !== 3 || exit?.action !== "exit" || approve?.action !== "approve" || enter?.action !== "enter") return ["a move is exactly three transactions: exit, approve, enter"];
+  for (const t of plan.transactions) {
+    if (!same(t.request.from, me)) bad.push(`step ${t.step}: sent from ${t.request.from}, not the owner ${plan.wallet}`);
+    if (t.request.value !== "0x0") bad.push(`step ${t.step}: carries value ${t.request.value}`);
+    if (t.request.chainId !== toHex(plan.chainId)) bad.push(`step ${t.step}: chain id ${t.request.chainId}`);
+  }
+  try {
+    if (same(exit.request.to, MORPHO_BLUE)) {
+      const d = decodeFunctionData({ abi: morpho, data: exit.request.data });
+      if (d.functionName !== "withdraw") bad.push(`step 1 calls ${d.functionName}, not withdraw`);
+      else if (!same(d.args![3], me) || !same(d.args![4], me)) bad.push("step 1 withdraws to or on behalf of someone other than the owner");
+    } else {
+      const d = decodeFunctionData({ abi: erc4626, data: exit.request.data });
+      if (d.functionName !== "redeem") bad.push(`step 1 calls ${d.functionName}, not redeem`);
+      else if (!same(d.args![1], me) || !same(d.args![2], me)) bad.push("step 1 redeems to or from someone other than the owner");
+      if (!same(exit.request.to, plan.from.contract)) bad.push(`step 1 goes to ${exit.request.to}, not ${plan.from.name} (${plan.from.contract})`);
+    }
+    const a = decodeFunctionData({ abi: erc20, data: approve.request.data });
+    if (a.functionName !== "approve") bad.push(`step 2 calls ${a.functionName}, not approve`);
+    else {
+      if (!same(a.args![0], enter.request.to)) bad.push(`step 2 approves ${a.args![0]}, but step 3 is sent to ${enter.request.to}`);
+      if (String(a.args![1]) !== plan.depositAssets) bad.push(`step 2 approves ${a.args![1]}, the plan deposits ${plan.depositAssets}`);
+    }
+    if (!same(enter.request.to, plan.to.contract) && !same(enter.request.to, MORPHO_BLUE)) bad.push(`step 3 goes to ${enter.request.to}, not ${plan.to.name} (${plan.to.contract})`);
+    if (same(enter.request.to, MORPHO_BLUE)) {
+      const d = decodeFunctionData({ abi: morpho, data: enter.request.data });
+      if (d.functionName !== "supply") bad.push(`step 3 calls ${d.functionName}, not supply`);
+      else {
+        if (!same(d.args![3], me)) bad.push("step 3 supplies on behalf of someone other than the owner");
+        if (String(d.args![1]) !== plan.depositAssets) bad.push(`step 3 supplies ${d.args![1]}, the plan deposits ${plan.depositAssets}`);
+      }
+    } else {
+      const d = decodeFunctionData({ abi: erc4626, data: enter.request.data });
+      if (d.functionName !== "deposit") bad.push(`step 3 calls ${d.functionName}, not deposit`);
+      else {
+        if (!same(d.args![1], me)) bad.push("step 3 deposits for someone other than the owner");
+        if (String(d.args![0]) !== plan.depositAssets) bad.push(`step 3 deposits ${d.args![0]}, the plan deposits ${plan.depositAssets}`);
+      }
+    }
+  } catch (e) {
+    bad.push(`a transaction's calldata is not what a move uses (${((e as Error).message ?? "").split("\n")[0]})`);
+  }
+  return bad;
+}

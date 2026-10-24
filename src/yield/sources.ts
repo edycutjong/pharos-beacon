@@ -91,7 +91,9 @@ async function accruedState(call: Call, id: Hex, block: bigint, timestamp: bigin
   const raw = await readMarketState(call, id, block);
   const params = await readMarketParams(call, id, block);
   const rate = await readBorrowRate(call, params, raw, block);
-  return rate === undefined ? raw : accrue(raw, rate, timestamp - raw.lastUpdate);
+  // Interest that has not been booked yet is part of the price. Without the IRM's answer the price would be stale, so it is refused.
+  if (rate === undefined) throw new Error(`the interest rate model ${params.irm} did not answer borrowRateView at block ${block}: the market's price cannot be accrued`);
+  return accrue(raw, rate, timestamp - raw.lastUpdate);
 }
 
 // ---------------------------------------------------------------- price of a share at a block
@@ -250,6 +252,7 @@ export async function readSource(src: Source, ctx: ReadCtx): Promise<Reading> {
     ev("totalAssets (USDC raw)", tvl.toString(), src.contract, "totalAssets()");
     const maxDep = await tryRd(() => big(call, src.contract, "maxDeposit(address) view returns (uint256)", [ctx.wallet], block));
     entry.maxDeposit = maxDep.ok ? maxDep.v : null;
+    if (!maxDep.ok) entry.blockers.push(`maxDeposit(wallet) cannot be read (${maxDep.why}), so whether this vault takes the deposit is unknown`);
     if (maxDep.ok) ev("maxDeposit(wallet) (USDC raw)", maxDep.v.toString(), src.contract, "maxDeposit(wallet)");
     const amount = ctx.amount;
     // entry fee = what previewDeposit gives against what a fee-free conversion would give
