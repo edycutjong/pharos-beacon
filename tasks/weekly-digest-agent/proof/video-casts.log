@@ -1,0 +1,40 @@
+# Output of the three terminal recordings used in assets/demo/weekly-digest-agent (asciinema, real runs, not the proof runs). The daily cadence is used so a run takes minutes.
+
+=== d1 schedule
+$ npm run -s weekly-digest-agent -- --wallet 0xe7368221de15a7c5e0a50a95317b06e6d08c3861 --print-schedule
+cadence weekly: cron "0 1 * * 1" (UTC)
+run: npm run weekly-digest-agent -- --wallet 0xe7368221de15a7C5e0a50A95317B06E6d08C3861 --cadence weekly --state <file> --deliver discord
+a run only builds a digest once per finished period; the rest say "already delivered" and exit 0, so a daily trigger is safe.
+$ 
+=== d2 digest
+$ npm run -s weekly-digest-agent -- --wallet 0xe7368221de15a7c5e0a50a95317b06e6d08c3861 --cadence daily --now 2026-10-24T01:00:00Z --state /tmp/dgv/state.json --deliver discord --compact
+daily digest for 0xe7368221de15a7C5e0a50A95317B06E6d08C3861 on pharos (chain 1672) via https://mcp.pharos.xyz/mcp
+clock 2026-10-24T01:00:00.000Z · period 2026-10-23 to 2026-10-23 UTC · previous 2026-10-22 to 2026-10-22
+blocks 20974946–21070507 (95562 blocks, pinned at head 21111675)
+previous period's numbers: from the state file (2026-10-22 to 2026-10-22), no re-read
+
+daily digest · 0xe736…3861 · pharos
+2026-10-23 to 2026-10-23 UTC
+
+transactions      22   was   35  -37%
+transfers in       2   was    0  new
+transfers out      0   was    1  -100%
+swaps             16   was   24  -33%
+approvals          4   was   10  -60%
+failed             0   was    0  0%
+fees           0.034359 PROS  (was 0.066302 PROS)
+new parties        3
+
+top 3 events
+1. new counterparty
+   First time dealing with 0xE47E…d7d1 (received 88.5651 USD…
+2. new counterparty
+   First time dealing with 0x62ba…3647 (received 9.9989 USDC)
+3. swap
+   Swapped 58,516.066 pTACO for 492.4225 PROS (unwrapped fro…
+delivered to discord (message id 1563499585064804463)
+$ 
+=== d3 rerun
+$ npm run -s weekly-digest-agent -- --wallet 0xe7368221de15a7c5e0a50a95317b06e6d08c3861 --cadence daily --now 2026-10-24T13:00:00Z --state /tmp/dgv/state.json --deliver discord --compact
+already delivered: the daily digest for 2026-10-23 to 2026-10-23 (message 1563499585064804463 at 2026-10-24T10:29:09.497000+00:00); the next period ends on 2026-10-24. Use --force to build it again.
+$ 
