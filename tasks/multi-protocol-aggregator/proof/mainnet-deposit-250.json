@@ -1,0 +1,1611 @@
+{
+  "meta": {
+    "task": "multi-protocol-aggregator",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/multi-protocol-aggregator/index.ts deposit --wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 --amount 250 --block 21146194 --proof mainnet-deposit-250",
+    "git": {
+      "commit": "70f6c0d4e3c4",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T20:26:12.033Z"
+  },
+  "network": "pharos",
+  "chainId": 1672,
+  "wallet": "0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3",
+  "block": "21146194",
+  "timestamp": "1792869882",
+  "secondsPerBlock": 0.91151,
+  "windows": [
+    {
+      "label": "1d",
+      "seconds": 86400
+    },
+    {
+      "label": "7d",
+      "seconds": 604800
+    },
+    {
+      "label": "30d",
+      "seconds": 2592000
+    }
+  ],
+  "holdDays": 30,
+  "haircut": 0.5,
+  "gas": {
+    "priceWei": "10000000000",
+    "nativeUsd": 0.6404761162665599,
+    "nativeBasis": "PROS in USDC from the WPROS/USDC pool 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 slot0 at block 21146194"
+  },
+  "request": {
+    "kind": "deposit",
+    "assets": "250000000"
+  },
+  "referenceAssets": "1000000000",
+  "views": [
+    {
+      "venue": {
+        "id": "roxUSDC",
+        "protocol": "rockawayx",
+        "protocolName": "RockawayX",
+        "name": "RockawayX USDC vault",
+        "source": {
+          "key": "roxUSDC",
+          "name": "RockawayX USDC vault",
+          "kind": "erc4626",
+          "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+          "share": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5"
+        }
+      },
+      "reading": {
+        "source": {
+          "key": "roxUSDC",
+          "name": "RockawayX USDC vault",
+          "kind": "erc4626",
+          "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+          "share": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 18
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 1.007275220948
+        },
+        "tvl": "11123205672192",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.047671169146071175
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.042287841872115095
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.039919306616567715
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 1.0071434445279999
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 1.00642862905
+            }
+          },
+          {
+            "label": "30d",
+            "then": {
+              "block": "18302561",
+              "timestamp": "1790116424",
+              "price": 1.0037766400300001
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": 0,
+          "maxDeposit": "0",
+          "blockers": [
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted)"
+          ],
+          "note": "entry fee = 1 − previewDeposit(1000000) / convertToShares(1000000) = 0 bps"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": null,
+          "lockedUntil": null,
+          "blockers": [],
+          "note": ""
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "asset()",
+            "block": "21146194"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "1.007275221",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "convertToAssets(10^24)",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "1.007143445",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "1.006428629",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "share price 30d ago (USDC per share)",
+            "value": "1.003776640",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "same call, pinned",
+            "block": "18302561"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "11123205672192",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "totalAssets()",
+            "block": "21146194"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "0",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "maxDeposit(wallet)",
+            "block": "21146194"
+          },
+          {
+            "what": "previewDeposit(amount) (shares raw)",
+            "value": "992777325603946044",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "previewDeposit(1000000)",
+            "block": "21146194"
+          },
+          {
+            "what": "convertToShares(amount) (shares raw)",
+            "value": "992777325603946044",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "convertToShares(1000000)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.047671169146071175
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.042287841872115095
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.039919306616567715
+          }
+        ],
+        "read": 3,
+        "ref": 0.042287841872115095,
+        "spread": 0.00775186252950346,
+        "jumpy": false,
+        "pessimistic": 0.03841191060736336,
+        "optimistic": 0.04616377313686683,
+        "thin": false
+      },
+      "holding": null
+    },
+    {
+      "venue": {
+        "id": "JTRSY",
+        "protocol": "centrifuge",
+        "protocolName": "Centrifuge",
+        "name": "Janus Henderson Treasury Fund",
+        "source": {
+          "key": "JTRSY",
+          "name": "Janus Henderson Treasury Fund",
+          "kind": "centrifuge",
+          "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+          "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
+        }
+      },
+      "reading": {
+        "source": {
+          "key": "JTRSY",
+          "name": "Janus Henderson Treasury Fund",
+          "kind": "centrifuge",
+          "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+          "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 6
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 1.120079969208
+        },
+        "tvl": "1765778147055",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.03555267571587697
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.03474527768916172
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 1.120079969208
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 1.1192883981669999
+            }
+          },
+          {
+            "label": "30d",
+            "then": {
+              "block": "18302561",
+              "timestamp": "1790116424",
+              "price": 1.116692298746
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": null,
+          "maxDeposit": "0",
+          "blockers": [
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
+            "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
+          ],
+          "note": "previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": "0",
+          "lockedUntil": null,
+          "blockers": [
+            "redeem is an asynchronous request (previewRedeem reverts): it settles in a later epoch, not in one transaction"
+          ],
+          "note": "previewRedeem reverts (eth_call: execution reverted: (code 3)): the redeem is an asynchronous request, so its fee and delay cannot be read"
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "asset()",
+            "block": "21146194"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "1.120079969",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "convertToAssets(10^12)",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "1.120079969",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "1.119288398",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "share price 30d ago (USDC per share)",
+            "value": "1.116692299",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "same call, pinned",
+            "block": "18302561"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "1765778147055",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "totalAssets()",
+            "block": "21146194"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "0",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "maxDeposit(wallet)",
+            "block": "21146194"
+          },
+          {
+            "what": "maxRedeem(wallet) (share raw)",
+            "value": "0",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "maxRedeem(wallet)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.03555267571587697
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.03474527768916172
+          }
+        ],
+        "read": 3,
+        "ref": 0.03474527768916172,
+        "spread": 0.03555267571587697,
+        "jumpy": true,
+        "pessimistic": 0.016968939831223235,
+        "optimistic": 0.052521615547100206,
+        "thin": false
+      },
+      "holding": {
+        "shares": "30810551610",
+        "assets": "34510281698"
+      }
+    },
+    {
+      "venue": {
+        "id": "HYB",
+        "protocol": "centrifuge",
+        "protocolName": "Centrifuge",
+        "name": "NYLIM US High Yield Bond Fund",
+        "source": {
+          "key": "HYB",
+          "name": "NYLIM US High Yield Bond Fund",
+          "kind": "centrifuge",
+          "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+          "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
+        }
+      },
+      "reading": {
+        "source": {
+          "key": "HYB",
+          "name": "NYLIM US High Yield Bond Fund",
+          "kind": "centrifuge",
+          "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+          "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 18
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 0.988080644327
+        },
+        "tvl": "98398088663",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": -0.002022572782257938
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": -0.10660285293783545
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 0.988080644327
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 0.988120399132
+            }
+          },
+          {
+            "label": "30d",
+            "then": {
+              "block": "18302561",
+              "timestamp": "1790116424",
+              "price": 0.997363770759
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": null,
+          "maxDeposit": "0",
+          "blockers": [
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
+            "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
+          ],
+          "note": "previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": null,
+          "lockedUntil": null,
+          "blockers": [],
+          "note": ""
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "asset()",
+            "block": "21146194"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "0.988080644",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "convertToAssets(10^24)",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "0.988080644",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "0.988120399",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "share price 30d ago (USDC per share)",
+            "value": "0.997363771",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "same call, pinned",
+            "block": "18302561"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "98398088663",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "totalAssets()",
+            "block": "21146194"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "0",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "maxDeposit(wallet)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": -0.002022572782257938
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": -0.10660285293783545
+          }
+        ],
+        "read": 3,
+        "ref": -0.002022572782257938,
+        "spread": 0.10660285293783545,
+        "jumpy": true,
+        "pessimistic": -0.05532399925117566,
+        "optimistic": 0.051278853686659784,
+        "thin": false
+      },
+      "holding": null
+    },
+    {
+      "venue": {
+        "id": "morpho-c79579",
+        "protocol": "morpho",
+        "protocolName": "Morpho Blue",
+        "name": "Morpho Blue syzUSD/USDC supply",
+        "source": {
+          "key": "morpho-c79579",
+          "name": "Morpho Blue syzUSD/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86"
+        }
+      },
+      "reading": {
+        "source": {
+          "key": "morpho-c79579",
+          "name": "Morpho Blue syzUSD/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 6
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 0.0000010098584928160788
+        },
+        "tvl": "3912148440506",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.07102103668543039
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.05469001491698007
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.052788002355923375
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 0.0000010096616799651727
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 0.0000010087610751137996
+            }
+          },
+          {
+            "label": "30d",
+            "then": {
+              "block": "18302561",
+              "timestamp": "1790116424",
+              "price": 0.0000010052254049913275
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": 0,
+          "maxDeposit": null,
+          "blockers": [],
+          "note": "Morpho Blue supply charges no entry fee (supply() has no fee parameter)"
+        },
+        "exit": {
+          "feeBps": 0,
+          "depth": "301218741321",
+          "lockedUntil": null,
+          "blockers": [],
+          "note": "Morpho Blue withdraw charges no exit fee; what can leave is the market's idle liquidity (supply − borrow) = 301218741321"
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "share price now (USDC per share)",
+            "value": "0.000001010",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id) accrued with borrowRateView",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "0.000001010",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "0.000001009",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "share price 30d ago (USDC per share)",
+            "value": "0.000001005",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "same call, pinned",
+            "block": "18302561"
+          },
+          {
+            "what": "market supply (USDC raw)",
+            "value": "3912148440506",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id).totalSupplyAssets (accrued)",
+            "block": "21146194"
+          },
+          {
+            "what": "market borrow (USDC raw)",
+            "value": "3610929699185",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id).totalBorrowAssets (accrued)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.07102103668543039
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.05469001491698007
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.052788002355923375
+          }
+        ],
+        "read": 3,
+        "ref": 0.05469001491698007,
+        "spread": 0.018233034329507014,
+        "jumpy": false,
+        "pessimistic": 0.04557349775222656,
+        "optimistic": 0.06380653208173358,
+        "thin": false
+      },
+      "holding": null
+    },
+    {
+      "venue": {
+        "id": "morpho-d83401",
+        "protocol": "morpho",
+        "protocolName": "Morpho Blue",
+        "name": "Morpho Blue APT/USDC supply",
+        "source": {
+          "key": "morpho-d83401",
+          "name": "Morpho Blue APT/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea"
+        }
+      },
+      "reading": {
+        "source": {
+          "key": "morpho-d83401",
+          "name": "Morpho Blue APT/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 6
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 0.0000010008721986772454
+        },
+        "tvl": "1000634097499",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.09403738183517162
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.043846993489048434
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": null,
+            "reason": "not readable at block 18302561: market 0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea does not exist on Morpho Blue 0x18573fA18fd17dDfD790B4a5B5b2977aad"
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 0.0000010006139383787507
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 0.000001
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": 0,
+          "maxDeposit": null,
+          "blockers": [],
+          "note": "Morpho Blue supply charges no entry fee (supply() has no fee parameter)"
+        },
+        "exit": {
+          "feeBps": 0,
+          "depth": "29801000000",
+          "lockedUntil": null,
+          "blockers": [],
+          "note": "Morpho Blue withdraw charges no exit fee; what can leave is the market's idle liquidity (supply − borrow) = 29801000000"
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "share price now (USDC per share)",
+            "value": "0.000001001",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id) accrued with borrowRateView",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "0.000001001",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "0.000001000",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "market supply (USDC raw)",
+            "value": "1000634097499",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id).totalSupplyAssets (accrued)",
+            "block": "21146194"
+          },
+          {
+            "what": "market borrow (USDC raw)",
+            "value": "970833097499",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id).totalBorrowAssets (accrued)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.09403738183517162
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.043846993489048434
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": null,
+            "reason": "not readable at block 18302561: market 0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea does not exist on Morpho Blue 0x18573fA18fd17dDfD790B4a5B5b2977aad"
+          }
+        ],
+        "read": 2,
+        "ref": 0.06894218766211002,
+        "spread": 0.05019038834612318,
+        "jumpy": true,
+        "pessimistic": 0.04384699348904843,
+        "optimistic": 0.09403738183517162,
+        "thin": false
+      },
+      "holding": null
+    },
+    {
+      "venue": {
+        "id": "morpho-ba0d26",
+        "protocol": "morpho",
+        "protocolName": "Morpho Blue",
+        "name": "Morpho Blue APC3M/USDC supply",
+        "source": {
+          "key": "morpho-ba0d26",
+          "name": "Morpho Blue APC3M/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc"
+        }
+      },
+      "reading": {
+        "source": {
+          "key": "morpho-ba0d26",
+          "name": "Morpho Blue APC3M/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 6
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 0.0000010046203847312587
+        },
+        "tvl": "1209566754175",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.0358542671283
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.053284368391679354
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.0529183495390067
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 0.0000010045215315452062
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 0.0000010035566891966797
+            }
+          },
+          {
+            "label": "30d",
+            "then": {
+              "block": "18302561",
+              "timestamp": "1790116424",
+              "price": 0.000001
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": 0,
+          "maxDeposit": null,
+          "blockers": [],
+          "note": "Morpho Blue supply charges no entry fee (supply() has no fee parameter)"
+        },
+        "exit": {
+          "feeBps": 0,
+          "depth": "202896764204",
+          "lockedUntil": null,
+          "blockers": [],
+          "note": "Morpho Blue withdraw charges no exit fee; what can leave is the market's idle liquidity (supply − borrow) = 202896764204"
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "share price now (USDC per share)",
+            "value": "0.000001005",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id) accrued with borrowRateView",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "0.000001005",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "0.000001004",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "share price 30d ago (USDC per share)",
+            "value": "0.000001000",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "same call, pinned",
+            "block": "18302561"
+          },
+          {
+            "what": "market supply (USDC raw)",
+            "value": "1209566754175",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id).totalSupplyAssets (accrued)",
+            "block": "21146194"
+          },
+          {
+            "what": "market borrow (USDC raw)",
+            "value": "1006669989971",
+            "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+            "call": "market(id).totalBorrowAssets (accrued)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.0358542671283
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.053284368391679354
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.0529183495390067
+          }
+        ],
+        "read": 3,
+        "ref": 0.0529183495390067,
+        "spread": 0.017430101263379356,
+        "jumpy": false,
+        "pessimistic": 0.044203298907317015,
+        "optimistic": 0.06163340017069638,
+        "thin": false
+      },
+      "holding": null
+    }
+  ],
+  "down": [],
+  "venues": [
+    {
+      "id": "roxUSDC",
+      "protocol": "rockawayx",
+      "protocolName": "RockawayX",
+      "name": "RockawayX USDC vault",
+      "source": {
+        "key": "roxUSDC",
+        "name": "RockawayX USDC vault",
+        "kind": "erc4626",
+        "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+        "share": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5"
+      }
+    },
+    {
+      "id": "JTRSY",
+      "protocol": "centrifuge",
+      "protocolName": "Centrifuge",
+      "name": "Janus Henderson Treasury Fund",
+      "source": {
+        "key": "JTRSY",
+        "name": "Janus Henderson Treasury Fund",
+        "kind": "centrifuge",
+        "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+        "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
+      }
+    },
+    {
+      "id": "HYB",
+      "protocol": "centrifuge",
+      "protocolName": "Centrifuge",
+      "name": "NYLIM US High Yield Bond Fund",
+      "source": {
+        "key": "HYB",
+        "name": "NYLIM US High Yield Bond Fund",
+        "kind": "centrifuge",
+        "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+        "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
+      }
+    },
+    {
+      "id": "morpho-c79579",
+      "protocol": "morpho",
+      "protocolName": "Morpho Blue",
+      "name": "Morpho Blue syzUSD/USDC supply",
+      "source": {
+        "key": "morpho-c79579",
+        "name": "Morpho Blue syzUSD/USDC supply",
+        "kind": "morpho",
+        "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "marketId": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86"
+      }
+    },
+    {
+      "id": "morpho-d83401",
+      "protocol": "morpho",
+      "protocolName": "Morpho Blue",
+      "name": "Morpho Blue APT/USDC supply",
+      "source": {
+        "key": "morpho-d83401",
+        "name": "Morpho Blue APT/USDC supply",
+        "kind": "morpho",
+        "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "marketId": "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea"
+      }
+    },
+    {
+      "id": "morpho-ba0d26",
+      "protocol": "morpho",
+      "protocolName": "Morpho Blue",
+      "name": "Morpho Blue APC3M/USDC supply",
+      "source": {
+        "key": "morpho-ba0d26",
+        "name": "Morpho Blue APC3M/USDC supply",
+        "kind": "morpho",
+        "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "marketId": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc"
+      }
+    }
+  ],
+  "skipped": [
+    "0xab78d4ff…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC",
+    "0x95bc6fe9…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC",
+    "0x4cbedaf6…: only 603840 USDC raw supplied (below 1000000000)"
+  ],
+  "route": {
+    "request": "deposit",
+    "amountUsd": 250,
+    "allocations": [
+      {
+        "venueId": "morpho-c79579",
+        "usd": 250,
+        "all": false
+      }
+    ],
+    "options": [
+      {
+        "venueId": "roxUSDC",
+        "name": "RockawayX USDC vault",
+        "protocolName": "RockawayX",
+        "eligible": false,
+        "reasons": [
+          "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted)"
+        ],
+        "capacityUsd": 0,
+        "scoreUsd": null,
+        "parts": {},
+        "ratePct": "3.84%"
+      },
+      {
+        "venueId": "JTRSY",
+        "name": "Janus Henderson Treasury Fund",
+        "protocolName": "Centrifuge",
+        "eligible": false,
+        "reasons": [
+          "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
+          "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
+        ],
+        "capacityUsd": 0,
+        "scoreUsd": null,
+        "parts": {},
+        "ratePct": "1.70%"
+      },
+      {
+        "venueId": "HYB",
+        "name": "NYLIM US High Yield Bond Fund",
+        "protocolName": "Centrifuge",
+        "eligible": false,
+        "reasons": [
+          "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
+          "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
+        ],
+        "capacityUsd": 0,
+        "scoreUsd": null,
+        "parts": {},
+        "ratePct": "-5.53%"
+      },
+      {
+        "venueId": "morpho-c79579",
+        "name": "Morpho Blue syzUSD/USDC supply",
+        "protocolName": "Morpho Blue",
+        "eligible": true,
+        "reasons": [],
+        "capacityUsd": null,
+        "scoreUsd": 0.9340761825304094,
+        "parts": {
+          "grossUsd": 0.936381896548969,
+          "entryFeeUsd": 0,
+          "gasUsd": 0.0023057140185596156,
+          "dilution": 0.9999361005777399
+        },
+        "ratePct": "4.56%"
+      },
+      {
+        "venueId": "morpho-d83401",
+        "name": "Morpho Blue APT/USDC supply",
+        "protocolName": "Morpho Blue",
+        "eligible": true,
+        "reasons": [],
+        "capacityUsd": null,
+        "scoreUsd": 0.8984348631739755,
+        "parts": {
+          "grossUsd": 0.9007405771925351,
+          "entryFeeUsd": 0,
+          "gasUsd": 0.0023057140185596156,
+          "dilution": 0.9997502208291402
+        },
+        "ratePct": "4.38%"
+      },
+      {
+        "venueId": "morpho-ba0d26",
+        "name": "Morpho Blue APC3M/USDC supply",
+        "protocolName": "Morpho Blue",
+        "eligible": true,
+        "reasons": [],
+        "capacityUsd": null,
+        "scoreUsd": 0.905793558810124,
+        "parts": {
+          "grossUsd": 0.9080992728286836,
+          "entryFeeUsd": 0,
+          "gasUsd": 0.0023057140185596156,
+          "dilution": 0.9997933571351717
+        },
+        "ratePct": "4.42%"
+      }
+    ],
+    "explanation": [
+      "Chose Morpho Blue syzUSD/USDC supply (Morpho Blue): over 30 d it nets $0.9341 = yield $0.9364 at its conservative 4.56% − entry fee $0.000000 − gas $0.002306.",
+      "Next best: Morpho Blue APC3M/USDC supply nets $0.9058 (conservative 4.42%); Morpho Blue syzUSD/USDC supply is $0.0283 ahead.",
+      "Not eligible: RockawayX USDC vault (RockawayX): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted).",
+      "Not eligible: Janus Henderson Treasury Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
+      "Not eligible: NYLIM US High Yield Bond Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move."
+    ],
+    "unplacedUsd": 0
+  },
+  "plan": {
+    "kind": "unsigned-action-plan",
+    "signed": false,
+    "note": "Prepared for the wallet owner's signature. This file holds no key and nothing in it has been signed or sent; the wallet shows each transaction and the owner signs it.",
+    "request": "deposit",
+    "chainId": 1672,
+    "wallet": "0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3",
+    "legs": [
+      {
+        "venue": "morpho-c79579",
+        "name": "Morpho Blue syzUSD/USDC supply",
+        "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "protocol": "morpho",
+        "assets": "250000000",
+        "all": false
+      }
+    ],
+    "transactions": [
+      {
+        "step": 1,
+        "action": "approve",
+        "venue": "morpho-c79579",
+        "description": "Approve Morpho Blue to pull 250000000 USDC raw",
+        "request": {
+          "from": "0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3",
+          "to": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+          "data": "0x095ea7b300000000000000000000000018573fa18fd17ddfd790b4a5b5b2977aad3b4efb000000000000000000000000000000000000000000000000000000000ee6b280",
+          "value": "0x0",
+          "chainId": "0x688"
+        },
+        "gas": {
+          "units": 71481,
+          "basis": "estimated"
+        }
+      },
+      {
+        "step": 2,
+        "action": "deposit",
+        "venue": "morpho-c79579",
+        "description": "Supply 250000000 USDC raw to Morpho Blue syzUSD/USDC supply",
+        "request": {
+          "from": "0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3",
+          "to": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "data": "0xa99aad89000000000000000000000000c879c018db60520f4355c26ed1a6d572cdac181500000000000000000000000054df79d8edf36d15cd83fbedbdd90807fc8289340000000000000000000000004eefc4c6e7216aedd5e809e4fc74fb8859b3fa46000000000000000000000000d5e02889c13230458506cc842347c4e62f8cdf3a0000000000000000000000000000000000000000000000000cb2bba6f17b8000000000000000000000000000000000000000000000000000000000000ee6b28000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000665fde254598e307b63f3aae3ccd881a62d4be300000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000000",
+          "value": "0x0",
+          "chainId": "0x688"
+        },
+        "gas": {
+          "units": 300000,
+          "basis": "configured"
+        }
+      }
+    ],
+    "planId": "0x1665df76400280de0721f0503e1fbbaaae333741a35f3acea9e232552c285868"
+  },
+  "planNote": null,
+  "funded": {
+    "balance": "305708431",
+    "assumed": false
+  },
+  "evidence": [
+    {
+      "what": "vault asset",
+      "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "asset()",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "1.007275221",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "convertToAssets(10^24)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "1.007143445",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "1.006428629",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "share price 30d ago (USDC per share)",
+      "value": "1.003776640",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "same call, pinned",
+      "block": "18302561"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "11123205672192",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "totalAssets()",
+      "block": "21146194"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "0",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "maxDeposit(wallet)",
+      "block": "21146194"
+    },
+    {
+      "what": "previewDeposit(amount) (shares raw)",
+      "value": "992777325603946044",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "previewDeposit(1000000)",
+      "block": "21146194"
+    },
+    {
+      "what": "convertToShares(amount) (shares raw)",
+      "value": "992777325603946044",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "convertToShares(1000000)",
+      "block": "21146194"
+    },
+    {
+      "what": "vault asset",
+      "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "asset()",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "1.120079969",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "convertToAssets(10^12)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "1.120079969",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "1.119288398",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "share price 30d ago (USDC per share)",
+      "value": "1.116692299",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "same call, pinned",
+      "block": "18302561"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "1765778147055",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "totalAssets()",
+      "block": "21146194"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "0",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "maxDeposit(wallet)",
+      "block": "21146194"
+    },
+    {
+      "what": "maxRedeem(wallet) (share raw)",
+      "value": "0",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "maxRedeem(wallet)",
+      "block": "21146194"
+    },
+    {
+      "what": "vault asset",
+      "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "asset()",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "0.988080644",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "convertToAssets(10^24)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "0.988080644",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "0.988120399",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "share price 30d ago (USDC per share)",
+      "value": "0.997363771",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "same call, pinned",
+      "block": "18302561"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "98398088663",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "totalAssets()",
+      "block": "21146194"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "0",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "maxDeposit(wallet)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "0.000001010",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id) accrued with borrowRateView",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "0.000001010",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "0.000001009",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "share price 30d ago (USDC per share)",
+      "value": "0.000001005",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "same call, pinned",
+      "block": "18302561"
+    },
+    {
+      "what": "market supply (USDC raw)",
+      "value": "3912148440506",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id).totalSupplyAssets (accrued)",
+      "block": "21146194"
+    },
+    {
+      "what": "market borrow (USDC raw)",
+      "value": "3610929699185",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id).totalBorrowAssets (accrued)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "0.000001001",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id) accrued with borrowRateView",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "0.000001001",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "0.000001000",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "market supply (USDC raw)",
+      "value": "1000634097499",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id).totalSupplyAssets (accrued)",
+      "block": "21146194"
+    },
+    {
+      "what": "market borrow (USDC raw)",
+      "value": "970833097499",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id).totalBorrowAssets (accrued)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "0.000001005",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id) accrued with borrowRateView",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "0.000001005",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "0.000001004",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "share price 30d ago (USDC per share)",
+      "value": "0.000001000",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "same call, pinned",
+      "block": "18302561"
+    },
+    {
+      "what": "market supply (USDC raw)",
+      "value": "1209566754175",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id).totalSupplyAssets (accrued)",
+      "block": "21146194"
+    },
+    {
+      "what": "market borrow (USDC raw)",
+      "value": "1006669989971",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "market(id).totalBorrowAssets (accrued)",
+      "block": "21146194"
+    }
+  ]
+}
