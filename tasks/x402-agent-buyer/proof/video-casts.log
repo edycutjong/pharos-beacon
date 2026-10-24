@@ -1,9 +1,9 @@
-# Transactions of the four recorded casts in the video (assets/demo/x402-agent-buyer/casts): separate runs of the same commands as the proofs, with --compact. The nonce is the EIP-3009 authorization the cast shows shortened.
-video cast finish: 0.001 USDC total 0.001 USDC nonce 0x95482953576ba0462e311928308d3a305d969b5fd3738b000fb3e98e15e49aec tx 0x7f432c1cc8decc09ee2e8f0754ebd9081fb94aba1620085a68952e97e4bbc4da
-video cast finish: 0.01 USDC total 0.011 USDC nonce 0x3e2d5c2162458b7ae1a5bc4f3c8b5aabb8b09bf15502a770aa6b254a7b161ca7 tx 0xebe0896194c46993fcf28d24b358041269d0242cb91a7c3fbf861913dff3b4bf
-video cast finish: 0.01 USDC total 0.021 USDC nonce 0x69f386739dc8720ea1fd25bc07bb87aaf88ab161d750e8444e72ee48f9bac495 tx 0x368a90157b818570e6e04e64d342a95ed1874ff697766a4a2f4dbabde7917c54
-video cast budget: 0.001 USDC total 0.001 USDC nonce 0x3e41e36540dfe28a4341a48b9a096f8619345d0696430d93240f018f7f9ac599 tx 0xe6b5a6c22f0414682cd0142a3788d526a5298d2d97c7486faad1e291299cc52c
-video cast budget: 0.01 USDC total 0.011 USDC nonce 0x1e6d4edc5390aa45a87239fd973f702b6faca4cb02d708fe1127356de77c92ac tx 0xff17cb9a9af5829b0c14222b6aa178d5e904e86939e2fd91799c7c12e90cf2c2
-video cast cap: 0.001 USDC total 0.001 USDC nonce 0x5bb90571ae3be00efd5a11ecee3b1c17b803f18d62749b433d142d490b8515a5 tx 0xffddb48be82fd1c2803163574720310cf75bb9d6962a207a49c2b85bec1ce205
-video cast cap: 0.01 USDC total 0.011 USDC nonce 0xaeb4d8a4179bbac569e410525f885e86c9ff28766e916f34c733715804a0f130 tx 0xa3691639de5b55dcdf3b8bfb0c719c66251ca084b9cde8af5d0be2056322ec8e
+# Transactions of the four recorded casts in the video (assets/demo/x402-agent-buyer/casts): separate runs of the same commands as the proofs, with --compact. Only the retry cast shows a nonce on screen (shortened); it is given here.
+video cast finish: 0.001 USDC total 0.001 USDC Atlantic gas price now, to cost the transfer tx 0x417e14546843f912c49d62045666836852e79282d20f7ceac03d2b3e5b1c9a3d
+video cast finish: 0.01 USDC total 0.011 USDC largest USDC transfers on Pharos mainnet, last ~1,000 blocks tx 0x36703adfbfb252e600d0eb99238e0ae49bf6a9067738fe97caf210e70ae1cefb
+video cast finish: 0.01 USDC total 0.021 USDC twice the history: the largest USDC transfers over 2,000 blocks tx 0xcdd2e5ad8893642afbe92b14ce0cacc50a77772f1d3be78a60ab4cab3b770dc7
+video cast budget: 0.001 USDC total 0.001 USDC Atlantic gas price now tx 0x9f7a316d9bf1c53a674afce2373a5cb1d61e85d268969e3c1d2a24ee1913642b
+video cast budget: 0.01 USDC total 0.011 USDC largest USDC transfers on Pharos mainnet, last ~1,000 blocks tx 0xa724de667d0b9399081a5bd708e0d10d8933a471673eeadf820a776b5ed0efa5
+video cast cap: 0.001 USDC total 0.001 USDC Atlantic gas price now tx 0x9a596a60ea10024430053e84536c65f05ca2d2cd8b8e9070457916fa568c09b4
+video cast cap: 0.01 USDC total 0.011 USDC largest USDC transfers on Pharos mainnet, last ~1,000 blocks tx 0x9c1a86c0e7e6d91b1121faba9478e1733c8cb66a4073d262830f78cdd222eb63
 video cast retry: 0.001 USDC total 0.001 USDC nonce 0x04e4e7fccc32a8edb96a2aade460244dd981bce70b15f0ff68374320eba29f83 tx 0x2ee526ff45ab824f49be71dbae51db12b52e2558c621ea714c9a36b120718814
