@@ -1,9 +1,0 @@
-VERDICT MISMATCH
-rule    expected recipient 0x000000000000000000000000000000000000dEaD but the transaction went to 0x52acdeb49056518578c7af788ae2c367132e2db5
-tx      0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
-from    0xda12bd94cded64c0927272674df0ed4c0ec1f88c  →  to 0x52acdeb49056518578c7af788ae2c367132e2db5
-value   0 native
-mined   block 21079587, head 21079680, status success, gas used 46040
-network pharos (chain 1672)
-explorer https://www.pharosscan.xyz/tx/0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
-proof: tasks/skill-chain-mcp-flow/proof/mainnet-mismatch.json

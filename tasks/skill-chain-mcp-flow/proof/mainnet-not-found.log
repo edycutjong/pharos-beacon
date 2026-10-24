@@ -1,7 +1,0 @@
-VERDICT NOT_FOUND
-rule    the node returns no transaction for this hash: it was never broadcast to this network, or was dropped
-tx      0xdededededededededededededededededededededededededededededededede
-head    block 21079681
-network pharos (chain 1672)
-explorer https://www.pharosscan.xyz/tx/0xdededededededededededededededededededededededededededededededede
-proof: tasks/skill-chain-mcp-flow/proof/mainnet-not-found.json
