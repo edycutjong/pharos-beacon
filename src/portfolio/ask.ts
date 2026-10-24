@@ -183,9 +183,9 @@ export async function answerQuestion(question: string, reads: Reads, windowDays 
       header();
       const sym = intent.token;
       let found = false;
-      for (const { p } of all()) {
-        if (p.kind === "token" && p.symbol.toLowerCase() === sym.toLowerCase()) { out.push(`${amt(p.amount, 4)} ${w.in} ${w.wallet} ${c.ref(p.amount)}`); found = true; }
-        if (p.kind === "vault" && p.symbol.toLowerCase() === sym.toLowerCase()) { out.push(`${amt(p.shares, 4)} (${w.worth} ${amt(p.assets)}) ${c.ref(p.shares, p.assets)}`); found = true; }
+      for (const { s, p } of all()) {
+        if (p.kind === "token" && p.symbol.toLowerCase() === sym.toLowerCase()) { out.push(`${who(s)}${amt(p.amount, 4)} ${w.in} ${w.wallet} ${c.ref(p.amount)}`); found = true; }
+        if (p.kind === "vault" && p.symbol.toLowerCase() === sym.toLowerCase()) { out.push(`${who(s)}${amt(p.shares, 4)} (${w.worth} ${amt(p.assets)}) ${c.ref(p.shares, p.assets)}`); found = true; }
       }
       if (!found) {
         const z = snaps.flatMap((s) => s.zeros).filter((f) => f.symbol.toLowerCase() === sym.toLowerCase());
