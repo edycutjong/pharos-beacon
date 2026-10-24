@@ -1,0 +1,38 @@
+Pharos mainnet (chain 1672), block 21146194 (0.912 s/block) · wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3
+Request: deposit 250 USDC · horizon 30 d · rates are share-price growth over 1d / 7d / 30d, annualised (APR, simple), median of the windows, "conservative" = median − 0.5 × spread · gas 10000000000 wei × 0.640476 USD per native token (PROS in USDC from the WPROS/USDC pool 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 slot0 at block 21146194)
+
+Protocols behind the one interface:
+  RockawayX      UP · 1 of 1 venue answered
+  Centrifuge     UP · 2 of 2 venues answered
+  Morpho Blue    DOWN (simulated outage drill) · 0 of 3 venues answered
+      SIMULATED unavailable: Morpho Blue syzUSD/USDC supply: outage drill (--down morpho): Morpho Blue was not contacted
+      SIMULATED unavailable: Morpho Blue APT/USDC supply: outage drill (--down morpho): Morpho Blue was not contacted
+      SIMULATED unavailable: Morpho Blue APC3M/USDC supply: outage drill (--down morpho): Morpho Blue was not contacted
+
+Rates and entry / exit, read from the contracts:
+  venue                                 1d       7d      30d   median  conservative  notes
+  RockawayX USDC vault               4.77%    4.23%    3.99%    4.23%         3.84%  TVL 11,123,205.672192
+  Janus Henderson Treasury Fund      0.00%    3.56%    3.47%    3.47%         1.70%  JUMPY (spread 3.56%) · TVL 1,765,778.147055 · YOU HOLD 34,510.281698
+  NYLIM US High Yield Bond Fund      0.00%   -0.20%  -10.66%   -0.20%        -5.53%  JUMPY (spread 10.66%) · TVL 98,398.088663
+  Morpho Blue syzUSD/USDC supply  SIMULATED OUTAGE: outage drill (--down morpho): Morpho Blue was not contacted
+  Morpho Blue APT/USDC supply     SIMULATED OUTAGE: outage drill (--down morpho): Morpho Blue was not contacted
+  Morpho Blue APC3M/USDC supply   SIMULATED OUTAGE: outage drill (--down morpho): Morpho Blue was not contacted
+  RockawayX USDC vault: entry BLOCKED (maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted)) · exit n/a (no position)
+  Janus Henderson Treasury Fund: entry BLOCKED (maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move) · exit BLOCKED (redeem is an asynchronous request (previewRedeem reverts): it settles in a later epoch, not in one transaction)
+  NYLIM US High Yield Bond Fund: entry BLOCKED (maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move) · exit n/a (no position)
+  (left out: 0xab78d4ff…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x95bc6fe9…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x4cbedaf6…: only 603840 USDC raw supplied (below 1000000000))
+
+Positions of the wallet:
+  Janus Henderson Treasury Fund (Centrifuge): 34,510.281698 USDC · 30,810.55161 shares
+  (positions in Morpho Blue are UNKNOWN: those venues did not answer)
+
+ROUTE (deposit):
+  No venue can take $250.00 today: RockawayX USDC vault: maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted); Janus Henderson Treasury Fund: maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors) / deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move; NYLIM US High Yield Bond Fund: maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors) / deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move
+  Not eligible: RockawayX USDC vault (RockawayX): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted).
+  Not eligible: Janus Henderson Treasury Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.
+  Not eligible: NYLIM US High Yield Bond Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.
+  SIMULATED OUTAGE: Morpho Blue syzUSD/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it.
+  SIMULATED OUTAGE: Morpho Blue APT/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it.
+  SIMULATED OUTAGE: Morpho Blue APC3M/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it.
+Funding: the wallet holds 305.708431 USDC, enough for the deposit.
+no transactions prepared: no venue can take the request.
