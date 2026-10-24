@@ -64,6 +64,8 @@ export async function main(
   onExit(() => mcp.close());
   const call: Call = mcp.call;
   const head = BigInt((await call("get_block_number")).blockNumber);
+  // Taken now, before any report file is written: the proof records whether the tree was clean when the run started.
+  const meta = values.proof !== undefined ? proofMeta(TASK, mcp) : undefined;
   let range: Range;
   let prior: Range | undefined;
   if (byDate) {
@@ -112,7 +114,7 @@ export async function main(
       transactions: t.map((i) => ({ tx: i.tx, block: i.block.toString(), category: i.category, status: i.status, counterparty: i.counterparty, method: i.method ?? null })),
       reportMarkdown: md,
     };
-    console.log(`proof: ${writeProof(new URL(`proof/${values.proof}.json`, import.meta.url), body, proofMeta(TASK, mcp))}`);
+    console.log(`proof: ${writeProof(new URL(`proof/${values.proof}.json`, import.meta.url), body, meta!)}`);
   }
   return 0;
 }
