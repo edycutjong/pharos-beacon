@@ -2,7 +2,7 @@
 
 **Task:** [x402 Agent Buyer](https://pharos-agent-arena.vercel.app/tasks/x402-agent-buyer) (Payments · Hard · 200 pts): an agent that pays x402-paywalled APIs on Pharos Atlantic for what it uses, inside a budget.
 **Run** (Atlantic testnet only; keys in `~/.config/pharos/x402.env` and `testnet.env`, never printed):
-`npm run x402-agent-buyer -- run finish|budget|cap|retry|partner [--base URL] [--partner URL] [--simulate-failure before|after] [--ledger name] [--fresh] [--proof name]` · `npm run x402-agent-buyer -- log [--task finish]`.
+`npm run x402-agent-buyer -- run finish|budget|cap|retry|partner [--base URL | --local] [--partner URL] [--simulate-failure before|after] [--ledger name] [--compact] [--fresh] [--proof name]` (`--local` = `--base http://localhost:4021`; `--compact` prints one line of at most 62 characters per event, which is what the video shows) · `npm run x402-agent-buyer -- log [--task finish]`.
 It buys from the [x402 Paywalled API](../x402-paywalled-api/README.md) (default `https://pharos.edycu.dev`). The `finish`, `budget` and `cap` tasks use the quoted `whale-range` route, which is on branch `task/x402-paywalled-api` (and on this branch, which is built on it) but not yet on the deployed API, so start the same API locally first: `npm run x402-paywalled-api -- serve` and add `--base http://localhost:4021`. `retry` and `partner` work against the deployed API.
 **Uses:** x402 SDK 2.28 (`@x402/core` 402 header decoding, `@x402/evm` exact scheme, EIP-3009 signing), viem (the token's `authorizationState` and `AuthorizationUsed` log, the settle receipt).
 
@@ -44,6 +44,8 @@ Each run was committed before the next, so every file records `"dirty": false`, 
 | 8 | `run partner` | our gas route paid; another developer's two routes: 402 read, authorization signed, 502 ×3, authorization unused on chain, nothing charged, task ends unfinished | [`proof/partner-seller.json`](proof/partner-seller.json) · tx [0x1d891d5d…2fc5](https://atlantic.pharosscan.xyz/tx/0x1d891d5d8de3c907d16399ab4a8fff8cc31cc84ce96bd4f7ba4faf9865c12fc5) (ours) |
 
 Run 6 is not staged. The deployed API answered the paid request with 402 after the transfer had gone through; the response body was not recorded in that run, so the cause is not proven (the API's settle step answers 402 `invalid_exact_evm_transaction_failed` when it cannot confirm the transaction, and the Atlantic RPC fails intermittently, as the re-runs of `finish` and `budget` show). It is the failure the reconcile step exists for: an agent that read that 402 as "refused, nothing charged" could have signed a second payment. Since then the agent records the response body of every failed attempt (the 502 bodies in run 8).
+
+The demo video ([`assets`](https://github.com/edycutjong/pharos-beacon) not in this repo; recorded casts of `run … --local --compact`) uses separate runs of the same commands; their transactions are in [`proof/video-casts.log`](proof/video-casts.log).
 
 Sample output of `run finish`, rendered from `proof/finish.json` (the explorer base URL is cut from the tx hashes):
 
