@@ -42,6 +42,7 @@ export async function preparePayment(draft: Draft, o: { call: Call; from: Hex })
   else if (!/^0x[0-9a-fA-F]{40}$/.test(raw)) add("recipient", false, `"${raw}" is not a 42-character address`);
   else if (!isAddress(raw, { strict: true })) add("recipient", false, `${raw} has mixed-case letters that fail the EIP-55 checksum (a typo?): refusing`);
   else if (raw.toLowerCase() === zeroAddress) add("recipient", false, "the zero address burns funds: refusing");
+  else if (Object.values(TOKENS.atlantic).some((t) => t.address.toLowerCase() === raw.toLowerCase())) add("recipient", false, "the recipient is a token contract: funds sent there are stuck; refusing");
   else if (raw.toLowerCase() === o.from.toLowerCase()) add("recipient", false, "the recipient is the sender: a self-transfer pays nothing");
   else {
     recipient = getAddress(raw);

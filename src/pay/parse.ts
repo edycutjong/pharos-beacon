@@ -67,6 +67,8 @@ function readRules(text: string): Fields {
   const pairs = [...text.matchAll(PAIR)].filter((m) => !/^0x/i.test(m[0]) && (SYMBOLS.includes(m[2].toUpperCase() as never) || FIAT.test(m[2])));
   const distinct = new Set(pairs.map((m) => `${m[1]}|${m[2].toUpperCase()}`));
   if (distinct.size > 1) f.several = true;
+  // A number glued to digits, a minus sign or an exponent ("1 500", "-5", "1e3") is not read: ask instead of misreading it.
+  if (pairs.some((m) => /(?:\d[.,]?\s?|-|\de)$/i.test(text.slice(Math.max(0, m.index! - 2), m.index!)))) f.several = true;
   if (pairs[0]) {
     f.amount = parseAmount(pairs[0][1]);
     const w = pairs[0][2];
@@ -139,12 +141,16 @@ export async function parseWithLlm(turns: string[], llm: LlmJson): Promise<Parse
   const lastRules = readRules(text); // the whole conversation, for the ambiguity check
   const ruleAmount = rules.draft.amount;
   if (lastRules.amount && "ask" in lastRules.amount && !ruleAmount) merged.amount = lastRules.amount;
-  else if (amountRaw && /^\d+(\.\d+)?$/.test(amountRaw)) {
+  else if (ruleAmount && amountRaw && /^\d+(\.\d+)?$/.test(amountRaw)) {
     // The LLM may not turn "1.000" into 1000 on its own: when the rules read a different number, ask.
-    merged.amount = ruleAmount && Number(ruleAmount) !== Number(amountRaw) ? { ask: "thousands-or-decimal", raw: amountRaw } : { value: amountRaw };
-  }
+    merged.amount = Number(ruleAmount) !== Number(amountRaw) ? { ask: "thousands-or-decimal", raw: amountRaw } : { value: amountRaw };
+  } // no amount the rules can find in the text: whatever number the model offers is dropped and the user is asked
   const tok = str(j.token);
-  if (tok && SYMBOLS.includes(tok.toUpperCase() as never) && new RegExp(`\\b${tok}\\b`, "i").test(text)) merged.token = tok.toUpperCase();
+  if (tok && SYMBOLS.includes(tok.toUpperCase() as never) && new RegExp(`\\b${tok}\\b`, "i").test(text)) {
+    // The rules saw a different token next to the amount: do not let the model swap it.
+    if (rules.draft.token && rules.draft.token !== tok.toUpperCase()) merged.token = rules.draft.token;
+    else merged.token = tok.toUpperCase();
+  }
   else if (tok && FIAT.test(tok)) merged.fiat = tok;
   else if (tok && text.toLowerCase().includes(tok.toLowerCase())) merged.token = tok.toUpperCase(); // unknown symbol: validation names it
   const rec = str(j.recipient);

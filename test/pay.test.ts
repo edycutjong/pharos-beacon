@@ -60,6 +60,9 @@ describe("parseRules", () => {
     expect(parseRules([`send 1,000 USDC to ${TO}`]).questions[0]).toMatch(/one thousand or one point zero/);
     expect(parseRules([`send 5 USDC to ${TO} and 7 USDT to ${FROM}`]).questions.join()).toMatch(/more than one payment/);
   });
+  it("asks instead of misreading glued or signed numbers", () => {
+    for (const x of ["1e3 PHRS", "1 500 PHRS", "-5 PHRS"]) expect(parseRules([`send ${x} to ${TO}`]).questions.length, x).toBeGreaterThan(0);
+  });
   it("fills the gap from a follow-up turn", () => {
     expect(parseRules([`send 100 to ${TO}`, "USDC"])).toMatchObject({ draft: { amount: "100", token: "USDC", recipient: TO }, questions: [] });
   });
@@ -80,6 +83,13 @@ describe("parseWithLlm: the model proposes, code disposes", () => {
     const p = await parseWithLlm([`send 1.000 USDC to ${TO}`], llm({ amount: "1000", token: "USDC", recipient: TO }));
     expect(p.draft.amount).toBeUndefined();
     expect(p.questions.join()).toMatch(/1\.000/);
+  });
+  it("drops an amount the rules cannot find in the text, and will not swap the token", async () => {
+    const a = await parseWithLlm([`send some PHRS to ${TO}`], llm({ amount: "100", token: "PHRS", recipient: TO }));
+    expect(a.draft.amount).toBeUndefined();
+    expect(a.questions.join()).toMatch(/How much/);
+    const b = await parseWithLlm([`send 5 USDC to ${TO}, I hold PHRS`], llm({ amount: "5", token: "PHRS", recipient: TO }));
+    expect(b.draft.token).toBe("USDC");
   });
   it("keeps an unknown token so validation can name it", async () => {
     const p = await parseWithLlm([`send 3 DOGE to ${TO}`], llm({ amount: "3", token: "DOGE", recipient: TO }));
@@ -125,6 +135,7 @@ describe("preparePayment", () => {
     expect(await refuse({ amount: "1", token: "PHRS", recipient: "0x1234" })).toMatch(/42-character/);
     expect(await refuse({ amount: "1", token: "PHRS", recipient: TO.toLowerCase().replace("8d34", "8D34") })).toMatch(/checksum/);
     expect(await refuse({ amount: "1", token: "PHRS", recipient: FROM })).toMatch(/self-transfer/);
+    expect(await refuse({ amount: "1", token: "PHRS", recipient: WPHRS })).toMatch(/token contract/);
     expect(await refuse({ amount: "1", token: "PHRS", recipient: "0x0000000000000000000000000000000000000000" })).toMatch(/zero address/);
   });
   it("refuses unknown tokens, too many decimals and zero", async () => {
