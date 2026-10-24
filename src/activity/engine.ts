@@ -102,7 +102,7 @@ const num = (h: string | null | undefined) => (h == null ? 0n : BigInt(h));
 /**
  * The first block whose timestamp is >= ts (or head + 1 when ts is in the future). Interpolation search over get_block: block times are
  * nearly even, so a guess from the two known ends lands within a few blocks and the search needs about 5 calls instead of 25 (the hosted
- * server allows 100 calls a minute). It falls back to bisection whenever a guess does not shrink the bracket enough.
+ * server allows 120 a minute per IP and the client paces itself to 100). It falls back to bisection whenever a guess does not shrink the bracket enough.
  */
 export async function blockAtOrAfter(call: Call, ts: number, head: bigint): Promise<bigint> {
   const stamp = async (n: bigint) => {
@@ -330,7 +330,7 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
 
 
   // Nonce-guided discovery of what the logs missed. The wallet's nonce rises by one for every transaction it sends, so bisecting the nonce over the
-  // range finds the exact blocks of the missing ones (about 2 x log2(range) calls each) without walking every block. Ranges whose nonce rise is
+  // range finds the exact blocks of the missing ones (about log2(range) nonce reads for each missing send) without walking every block. Ranges whose nonce rise is
   // already explained by transactions we read are skipped, so a wallet whose sends all left events costs two calls.
   const nonceCache = new Map<string, Promise<number>>();
   const nonceAt = (b: bigint) => {
