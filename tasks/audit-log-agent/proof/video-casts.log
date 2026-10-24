@@ -63,11 +63,7 @@ highlights
 sent txs: 10 of 10 matched by the chain's nonce
 ⠙$ 
 === c3 csv
-$ ls tasks/audit-log-agent/proof/reports
-audit-0x28ed4a-2026-10-23_2026-10-23.csv	audit-0x317bca-31798000-31808000.md
-audit-0x28ed4a-2026-10-23_2026-10-23.md		audit-0x8d347c-31760575-31807814.csv
-audit-0x317bca-31798000-31808000.csv		audit-0x8d347c-31760575-31807814.md
-$ cut -d, -f3,8 tasks/audit-log-agent/proof/reports/audit-0x317bca-31798000-31808000.csv | sort | uniq -c | sort -rn
+$ cut -d, -f3,8 tasks/audit-log-agent/proof/reports/audit-0x317*.csv | sort | uniq -c | sort -rn
  111 transfer-out,call 0xe3ee160e
    4 transfer-out,plain transfer
    2 transfer-out,transfer
