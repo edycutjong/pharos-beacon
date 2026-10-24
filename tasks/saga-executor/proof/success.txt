@@ -1,0 +1,46 @@
+starting saga saga-ok · wallet 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B · 0.001 WPHRS → USDC → vault · retries 3, backoff 2000 ms ×2, receipt timeout 30 s
+13:31:43  saga              STARTED        saga saga-ok: approve-in → swap → approve-out → deposit
+13:31:43  approve-in        RUNNING        step 1/4 approve-in: approve the pool to pull 0.001 WPHRS
+13:31:44  approve-in        SIGNED         attempt 1/3 nonce 38 0xc8e50c97d5d587d9900be127e85a1082979bf7ac6339c5fcb956b5f0204bf251 maxFee 2000000000 wei
+13:31:44  approve-in        SENT           0xc8e50c97d5d587d9900be127e85a1082979bf7ac6339c5fcb956b5f0204bf251
+13:31:47  approve-in        MINED          0xc8e50c97d5d587d9900be127e85a1082979bf7ac6339c5fcb956b5f0204bf251 block 31824328 status 1 gas 46710
+13:31:47  approve-in        VERIFIED       allowance(WPHRS → pool) read back = 0.001 WPHRS
+13:31:47  swap              RUNNING        step 2/4 swap: swap 0.001 WPHRS for USDC in the pool
+13:31:48  swap              SIGNED         attempt 1/3 nonce 39 0xbb3d6df12d1b4335b88ae5d027ba0788745d28435aeaa5392e1b9d73cecfc0a7 maxFee 2000000000 wei
+13:31:48  swap              SENT           0xbb3d6df12d1b4335b88ae5d027ba0788745d28435aeaa5392e1b9d73cecfc0a7
+13:31:51  swap              MINED          0xbb3d6df12d1b4335b88ae5d027ba0788745d28435aeaa5392e1b9d73cecfc0a7 block 31824332 status 1 gas 70289
+13:31:51  swap              VERIFIED       Swap event: 0.001 WPHRS → 0.1 USDC (quote 0.1, floor 0.0995); balances read back: WPHRS 0.0678, USDC 0.679
+13:31:51  approve-out       RUNNING        step 3/4 approve-out: approve the vault to pull the swap output (USDC)
+13:31:52  approve-out       SIGNED         attempt 1/3 nonce 40 0x63c0acd75e2cfa15f1c46c3001276e5535b4f498d1ef0cb78938d53870db064b maxFee 2000000000 wei
+13:31:52  approve-out       SENT           0x63c0acd75e2cfa15f1c46c3001276e5535b4f498d1ef0cb78938d53870db064b
+13:31:54  approve-out       MINED          0x63c0acd75e2cfa15f1c46c3001276e5535b4f498d1ef0cb78938d53870db064b block 31824336 status 1 gas 55437
+13:31:55  approve-out       VERIFIED       allowance(USDC → vault) read back = 0.1 USDC
+13:31:55  deposit           RUNNING        step 4/4 deposit: deposit the swap output (USDC) into the vault
+13:31:55  deposit           SIGNED         attempt 1/3 nonce 41 0x5d0cef391669db86b04bca8cd4ef44355ab97537033e8ba9f1d34dc8b1e41de8 maxFee 2000000000 wei
+13:31:55  deposit           SENT           0x5d0cef391669db86b04bca8cd4ef44355ab97537033e8ba9f1d34dc8b1e41de8
+13:31:58  deposit           MINED          0x5d0cef391669db86b04bca8cd4ef44355ab97537033e8ba9f1d34dc8b1e41de8 block 31824341 status 1 gas 65791
+13:31:58  deposit           VERIFIED       Deposit event present; vault shares read back = 0.4 (was 0.3)
+13:31:58  saga              COMPLETED      every step verified
+
+saga saga-ok: COMPLETED
+action                    state     tries       tx
+approve-in                verified  1 attempt   0xc8e50c97d5d587d9900be127e85a1082979bf7ac6339c5fcb956b5f0204bf251
+swap                      verified  1 attempt   0xbb3d6df12d1b4335b88ae5d027ba0788745d28435aeaa5392e1b9d73cecfc0a7
+approve-out               verified  1 attempt   0x63c0acd75e2cfa15f1c46c3001276e5535b4f498d1ef0cb78938d53870db064b
+deposit                   verified  1 attempt   0x5d0cef391669db86b04bca8cd4ef44355ab97537033e8ba9f1d34dc8b1e41de8
+
+balance invariant (expected end state):
+PASS  WPHRS balance            0.0678    expected 0.0678
+PASS  USDC balance             0.579     expected 0.579
+PASS  WPHRS allowance to pool  0         expected 0
+PASS  USDC allowance to pool   0         expected 0
+PASS  USDC allowance to vault  0         expected 0
+PASS  vault shares             0.4       expected 0.4
+
+PHRS spent on gas this saga: 0.000238227 (not refundable)
+transactions:
+  approve-in        https://atlantic.pharosscan.xyz/tx/0xc8e50c97d5d587d9900be127e85a1082979bf7ac6339c5fcb956b5f0204bf251
+  swap              https://atlantic.pharosscan.xyz/tx/0xbb3d6df12d1b4335b88ae5d027ba0788745d28435aeaa5392e1b9d73cecfc0a7
+  approve-out       https://atlantic.pharosscan.xyz/tx/0x63c0acd75e2cfa15f1c46c3001276e5535b4f498d1ef0cb78938d53870db064b
+  deposit           https://atlantic.pharosscan.xyz/tx/0x5d0cef391669db86b04bca8cd4ef44355ab97537033e8ba9f1d34dc8b1e41de8
+proof: tasks/saga-executor/proof/success.json
