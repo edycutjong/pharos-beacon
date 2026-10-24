@@ -12,7 +12,7 @@ A: 0x6776…1a2b · Morpho Blue APC3M/USDC: collateral 1,500,000.6465 APC3M, deb
 A: 0x62A0…0673 · Wallet: 0.443016 PROS [F19]
 A: 0x62A0…0673 · RockawayX vault roxUSDC: 19,329.4840 roxUSDC = 19,469.79 USDC [F24, F25]
 A: 0x0665…4bE3 · Wallet: 305.7084 USDC [F32]
-A: 0x0665…4bE3 · Centrifuge JTRSY: 30,810.5516 JTRSY = 34,510.28 USDC [F36, F37]
+A: 0x0665…4bE3 · Fund vault JTRSY: 30,810.5516 JTRSY = 34,510.28 USDC [F36, F37]
 sources:
   id | figure | contract | call | block
   F2 | PROS in wallet | native balance | get_balance | block 21136550
@@ -51,7 +51,7 @@ A: USDC: 0x6776…1a2b · debt: 900,765.36 USDC in Morpho Blue APT/USDC (USDC bo
 A: USDC: 0x6776…1a2b · debt: 1,004,931.82 USDC in Morpho Blue APC3M/USDC (USDC borrowed, not held) [F16]
 A: USDC: 0x62A0…0673 · 19,469.79 USDC in roxUSDC vault (RockawayX vault) [F25]
 A: USDC: 0x0665…4bE3 · 305.7084 USDC in wallet [F32]
-A: USDC: 0x0665…4bE3 · 34,510.28 USDC in JTRSY vault (Centrifuge) [F37]
+A: USDC: 0x0665…4bE3 · 34,510.28 USDC in JTRSY vault (Fund vault) [F37]
 sources:
   id | figure | contract | call | block
   F4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550
@@ -67,7 +67,7 @@ A: Wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 at block 21136550:
 A: Wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 at block 21136550:
 A: The biggest position across these wallets is 0x6776…1a2b · Morpho Blue APT/USDC (collateral + supply − debt): $1,007,891.76 = 1,908,657.11 USDC collateral + 0.00 USDC supplied − 900,765.36 USDC debt [F10, F13, F12]
 A: Ranked #2: 0x6776…1a2b · Morpho Blue APC3M/USDC (collateral + supply − debt) $544,652.84 = 1,549,584.67 USDC collateral + 0.00 USDC supplied − 1,004,931.82 USDC debt [F14, F17, F16]
-A: Ranked #3: 0x0665…4bE3 · JTRSY (Centrifuge) $34,510.28 [F37]
+A: Ranked #3: 0x0665…4bE3 · JTRSY (Fund vault) $34,510.28 [F37]
 A: Ranked #4: 0x62A0…0673 · roxUSDC (RockawayX vault) $19,469.79 [F25]
 A: Ranked #5: 0x6776…1a2b · USDC in wallet $431.48 [F4]
 sources:
@@ -86,8 +86,8 @@ Q: What am I earning?
 A: Wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b at block 21136550:
 A: Wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 at block 21136550:
 A: Wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 at block 21136550:
-A: 0x62A0…0673 · roxUSDC (RockawayX vault): 1 share grew -0.258% over 7.3 days (1.006414 USDC → 1.003821 USDC) [F40, F26]; -12.13% APY annualised [F40, F26]; on $19,469.79 [F25] that is about $-2,361.29 a year [F25, F40, F26]
-A: 0x0665…4bE3 · JTRSY (Centrifuge): 1 share grew 0.071% over 7.3 days (1.119288 USDC → 1.120079 USDC) [F41, F38]; 3.60% APY annualised [F41, F38]; on $34,510.28 [F37] that is about $1,243.70 a year [F37, F41, F38]
+A: 0x62A0…0673 · roxUSDC (RockawayX vault): 1 share grew 0.084% over 7.3 days (1.006414 USDC → 1.007258 USDC) [F40, F26]; 4.29% APY annualised [F40, F26]; on $19,469.79 [F25] that is about $835.36 a year [F25, F40, F26]
+A: 0x0665…4bE3 · JTRSY (Fund vault): 1 share grew 0.071% over 7.3 days (1.119288 USDC → 1.120079 USDC) [F41, F38]; 3.60% APY annualised [F41, F38]; on $34,510.28 [F37] that is about $1,243.70 a year [F37, F41, F38]
 sources:
   id | figure | contract | call | block
   F25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550
@@ -119,7 +119,7 @@ A: Wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 at block 21136550:
 A: Total value: $1,607,423.18 [F10, F13, F12, F14, F17, F16, F37, F25, F4, F32, F3, F1, F2, F19, F18]
 A:   0x6776…1a2b · Morpho Blue APT/USDC (collateral + supply − debt): $1,007,891.76 = 1,908,657.11 USDC collateral + 0.00 USDC supplied − 900,765.36 USDC debt [F10, F13, F12]
 A:   0x6776…1a2b · Morpho Blue APC3M/USDC (collateral + supply − debt): $544,652.84 = 1,549,584.67 USDC collateral + 0.00 USDC supplied − 1,004,931.82 USDC debt [F14, F17, F16]
-A:   0x0665…4bE3 · JTRSY (Centrifuge): $34,510.28 [F37]
+A:   0x0665…4bE3 · JTRSY (Fund vault): $34,510.28 [F37]
 A:   0x62A0…0673 · roxUSDC (RockawayX vault): $19,469.79 [F25]
 A:   0x6776…1a2b · USDC in wallet: $431.48 [F4]
 A:   0x0665…4bE3 · USDC in wallet: $305.71 [F32]
@@ -158,7 +158,7 @@ A:   PROS in wallet: 0.449998 → 0.443016 PROS; $0.27 → $0.29 (+$0.02): +$0.0
 A: Net change in valued positions: +$42.13 [F65, F24, F67, F26, F60, F19, F59, F18]
 A: Since block 20851696 → 21136550 (0x0665…4bE3):
 A:   USDC in wallet: 4,382,642.66 → 305.71 USDC; $4,382,642.66 → $305.71 (−$4,382,336.95): −$4,382,336.95 from balances moving, +$0.00 from prices/rates moving [F73, F32]
-A:   JTRSY (Centrifuge): 30,810.55 → 30,810.55 JTRSY; $34,501.33 → $34,510.28 (+$8.95): +$0.00 from balances moving, +$8.95 from prices/rates moving [F77, F36, F79, F38]
+A:   JTRSY (Fund vault): 30,810.55 → 30,810.55 JTRSY; $34,501.33 → $34,510.28 (+$8.95): +$0.00 from balances moving, +$8.95 from prices/rates moving [F77, F36, F79, F38]
 A: Net change in valued positions: −$4,382,328.00 [F73, F32, F77, F36, F79, F38]
 sources:
   id | figure | contract | call | block
@@ -198,10 +198,10 @@ sources:
   F79 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 20851696
 
 Q: What's my Harbor position?
-A: I can't answer that: I don't read Harbor. I only read wallet token balances (SkillEngine list + PROS), the RockawayX and Centrifuge (JTRSY, HYB) vaults, and Morpho Blue markets on Pharos mainnet.
+A: I can't answer that: I don't read Harbor. I only read wallet token balances (SkillEngine list + PROS), the RockawayX and JTRSY/HYB fund vaults, and Morpho Blue markets on Pharos mainnet.
 
 Q: Will PROS go up next week?
-A: I can't answer that: I only report what I read on chain; I don't predict prices or give advice. I only read wallet token balances (SkillEngine list + PROS), the RockawayX and Centrifuge (JTRSY, HYB) vaults, and Morpho Blue markets on Pharos mainnet.
+A: I can't answer that: I only report what I read on chain; I don't predict prices or give advice. I only read wallet token balances (SkillEngine list + PROS), the RockawayX and JTRSY/HYB fund vaults, and Morpho Blue markets on Pharos mainnet.
 
 Q: How much DOGE do I have?
-A: I can't answer that: I don't read the token "DOGE" (it is not in the SkillEngine token list or the vault list). I only read wallet token balances (SkillEngine list + PROS), the RockawayX and Centrifuge (JTRSY, HYB) vaults, and Morpho Blue markets on Pharos mainnet.
+A: I can't answer that: I don't read the token "DOGE" (it is not in the SkillEngine token list or the vault list). I only read wallet token balances (SkillEngine list + PROS), the RockawayX and JTRSY/HYB fund vaults, and Morpho Blue markets on Pharos mainnet.
