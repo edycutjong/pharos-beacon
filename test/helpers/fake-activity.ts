@@ -78,3 +78,8 @@ export const world = (): FakeTx[] => [
 
 /** An allowance being used up inside a transfer the wallet sends: an Approval log, but not a new approval. */
 export const spentAllowance = (): FakeTx => ({ n: 8, block: 105, from: W, to: TKN, input: "0x23b872dd", logs: [transfer(8, 105, TKN, W, B, 1_000_000n), approval(8, 105, TKN, W, S, 99n)] });
+
+/** Value sent into a contract with calldata (a wrap): a payable call, not a transfer. */
+export const payableCall = (): FakeTx => ({ n: 9, block: 112, from: W, to: C, value: 5n * 10n ** 17n, input: "0xd0e30db0" });
+/** A swap paid in the native token: value to the pool, a token back. */
+export const nativeSwap = (): FakeTx => ({ n: 10, block: 114, from: W, to: POOL, value: 10n ** 18n, input: "0x7ff36ab5", logs: [transfer(10, 114, OTH, POOL, W, 7n * 10n ** 18n)] });

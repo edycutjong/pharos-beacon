@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { blockAtOrAfter, collectActivity, MAX_RANGE_BLOCKS, parseWallet, rangeForTimes, totalsOf } from "../src/activity/engine.js";
 import { csvReport, highlights, markdownReport, notableTxs } from "../src/activity/report.js";
-import { B, C, fakeWorld, OTH, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
+import { B, C, fakeWorld, nativeSwap, OTH, payableCall, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
 
 const range = { fromBlock: 90n, toBlock: 200n };
 const collect = (scanBlocks = 0, txs = world(), extra: object = { discoverSent: false }) => collectActivity(fakeWorld(txs), "pharos", W, range, { scanBlocks, ...extra });
@@ -22,6 +22,20 @@ describe("collectActivity", () => {
     const a = await collect(0, [...world(), spentAllowance()]);
     const t8 = a.items.filter((i) => i.tx.endsWith("08"));
     expect(t8.map((i) => i.category)).toEqual(["transfer-out"]);
+  });
+
+  it("value sent into a contract with calldata is a contract interaction, not a transfer out; a native-paid swap stays a swap", async () => {
+    const a = await collect(111, [payableCall(), nativeSwap()], { discoverSent: false });
+    const wrap = a.items.find((i) => i.tx.endsWith("09"))!;
+    expect(wrap).toMatchObject({ category: "contract-call", method: "deposit (wrap)", nativeValueWei: 5n * 10n ** 17n });
+    expect(a.items.some((i) => i.tx.endsWith("09") && i.category === "transfer-out")).toBe(false);
+    const sw = a.items.find((i) => i.tx.endsWith("0a"))!;
+    expect(sw.category).toBe("swap");
+    expect(sw.out[0]).toMatchObject({ symbol: "PROS", amountRaw: 10n ** 18n });
+    expect(sw.in[0]).toMatchObject({ symbol: "OTH" });
+    const md = markdownReport(a, { generatedAt: "x" });
+    expect(md).toContain("deposit (wrap) + 0.500000 PROS");
+    expect(csvReport(a)).toContain("0.500000 PROS");
   });
 
   it("flags an unlimited approval and names the spender", async () => {
