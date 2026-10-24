@@ -20,6 +20,8 @@ export interface ChangeRow {
   amountAfter: Fact | null;
   extra: Fact[];
   note?: string;
+  /** Morpho rows: the "moves" part includes interest accrued on the debt, so it is worded differently. */
+  morpho?: boolean;
 }
 
 export interface Diff { rows: ChangeRow[]; before: Snapshot; after: Snapshot }
@@ -40,6 +42,12 @@ function unitPrice(p: Position): number | null {
   return null;
 }
 
+/** The zero read behind a position that did not exist in `snap` (so "0 →" cites its source), if the wallet token/vault was read as zero. */
+function zeroFact(snap: Snapshot, p: Position): Fact | null {
+  if (p.kind === "morpho") return null;
+  return snap.zeros.find((f) => f.symbol === p.symbol) ?? null;
+}
+
 export function diffSnapshots(a: Snapshot, b: Snapshot): Diff {
   const A = new Map(a.positions.map((p) => [keyOf(p), p]));
   const B = new Map(b.positions.map((p) => [keyOf(p), p]));
@@ -48,10 +56,11 @@ export function diffSnapshots(a: Snapshot, b: Snapshot): Diff {
     const pa = A.get(key);
     const pb = B.get(key);
     const ref = (pb ?? pa)!;
-    const row: ChangeRow = { key, label: nameOf(ref), usdBefore: null, usdAfter: null, moves: null, market: null, amountBefore: pa ? mainAmount(pa) : null, amountAfter: pb ? mainAmount(pb) : null, extra: [] };
+    const row: ChangeRow = { key, label: nameOf(ref), usdBefore: null, usdAfter: null, moves: null, market: null, amountBefore: pa ? mainAmount(pa) : zeroFact(a, ref), amountAfter: pb ? mainAmount(pb) : zeroFact(b, ref), extra: [] };
     if (ref.kind === "morpho") {
       const ma = pa as Extract<Position, { kind: "morpho" }> | undefined;
       const mb = pb as Extract<Position, { kind: "morpho" }> | undefined;
+      row.morpho = true;
       row.extra = [ma?.debt, mb?.debt, ma?.supplied, mb?.supplied].filter((f): f is Fact => !!f);
       if (ref.usdPegged) {
         row.usdBefore = ma?.netUsd ?? 0;
@@ -91,8 +100,8 @@ const signed = (v: number) => `${v >= 0 ? "+" : "−"}$${Math.abs(v).toLocaleStr
 const money = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const T = {
-  en: { flows: "from balances moving", price: "from prices/rates moving", new: "new position", gone: "position closed", total: "Net change in valued positions" },
-  id: { flows: "dari perpindahan saldo", price: "dari perubahan harga/imbal hasil", new: "posisi baru", gone: "posisi ditutup", total: "Perubahan bersih posisi yang dinilai" },
+  en: { flows: "from balances moving", price: "from prices/rates moving", morphoFlows: "from amounts changing (including interest accrued on the debt)", morphoPrice: "from the collateral price moving", new: "new position", gone: "position closed", total: "Net change in valued positions" },
+  id: { flows: "dari perpindahan saldo", price: "dari perubahan harga/imbal hasil", morphoFlows: "dari perubahan jumlah (termasuk bunga yang bertambah pada utang)", morphoPrice: "dari pergerakan harga jaminan", new: "posisi baru", gone: "posisi ditutup", total: "Perubahan bersih posisi yang dinilai" },
 } as const;
 
 interface Citer { ref(...f: Fact[]): string }
@@ -109,12 +118,12 @@ export function explainChange(d: Diff, lang: Lang, c: Citer): string[] {
     const dp = (fb ?? fa)!.decimals >= 18 ? 4 : 2;
     const amounts = `${fa ? fmtToken(fa.raw, fa.decimals, dp) : "0"} → ${fb ? fmtToken(fb.raw, fb.decimals, dp) : "0"} ${unit}`;
     const cites = [fa, fb, ...r.extra].filter((f): f is Fact => !!f);
-    const tag = !fa ? ` (${t.new})` : !fb ? ` (${t.gone})` : "";
+    const tag = !fa || fa.raw === 0n ? ` (${t.new})` : !fb || fb.raw === 0n ? ` (${t.gone})` : "";
     if (r.usdBefore !== null && r.usdAfter !== null && r.moves !== null && r.market !== null) {
       const delta = r.usdAfter - r.usdBefore;
       net += delta;
       facts.push(...cites);
-      lines.push(`  ${r.label}${tag}: ${amounts}; ${money(r.usdBefore)} → ${money(r.usdAfter)} (${signed(delta)}): ${signed(r.moves)} ${t.flows}, ${signed(r.market)} ${t.price} ${c.ref(...cites)}`);
+      lines.push(`  ${r.label}${tag}: ${amounts}; ${money(r.usdBefore)} → ${money(r.usdAfter)} (${signed(delta)}): ${signed(r.moves)} ${r.morpho ? t.morphoFlows : t.flows}, ${signed(r.market)} ${r.morpho ? t.morphoPrice : t.price} ${c.ref(...cites)}`);
     } else {
       lines.push(`  ${r.label}${tag}: ${amounts}${r.note ? ` (${r.note})` : ""} ${c.ref(...cites)}`);
     }

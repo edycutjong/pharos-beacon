@@ -386,8 +386,21 @@ describe("answers", () => {
     const d = diffSnapshots(before, after);
     expect(d.rows.map((r) => r.key)).toContain("vault:JTRSY");
     const row = d.rows.find((r) => r.key === "vault:JTRSY")!;
-    expect(row.amountBefore).toBeNull();
+    expect(row.amountBefore?.raw).toBe(0n); // the zero read is cited, not a bare 0
+    expect(row.amountBefore?.source.block).toBe(EARLIER);
     expect(row.moves).toBeCloseTo(1.12, 6);
+  });
+
+  it("a Morpho row words its 'moves' part as amounts incl. accrued interest, not as balances moving", async () => {
+    const w = base();
+    w.collateral = (b) => (b >= HEAD ? 2_000n * 10n ** 18n : 1_500n * 10n ** 18n);
+    w.borrowShares = () => 5n * 10n ** 14n;
+    const book = new FactBook();
+    const snap = await readSnapshot(fakeChain(w), ME, book);
+    const a = await answerQuestion("what changed since block 913600?", reads([snap], book, w));
+    expect(a.text).toMatch(/Morpho Blue syzUSD\/USDC: 1,500\.0000 → 2,000\.0000 syzUSD;.*from amounts changing \(including interest accrued on the debt\).*from the collateral price moving/);
+    const id = await answerQuestion("apa yang berubah sejak blok 913600?", reads([snap], book, w));
+    expect(id.text).toContain("termasuk bunga yang bertambah pada utang");
   });
 
   it("nothing changed → says so", async () => {
