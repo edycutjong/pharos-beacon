@@ -3,12 +3,12 @@
 // Read-only (Chain MCP); the only thing it can send is the Discord message. It describes the last FINISHED period, so a second run in
 // the same week returns the same digest and delivers nothing twice (the state file remembers the period and the previous numbers).
 //   npm run weekly-digest-agent -- --wallet 0x… [--cadence weekly|daily|monthly|Nd] [--now ISO] [--state f] [--out dir]
-//     [--deliver discord|console|none] [--baseline auto|none] [--force] [--scan-blocks N] [--max-txs N] [--network pharos|atlantic]
+//     [--deliver discord|console|none] [--baseline auto|none] [--force] [--compact] [--scan-blocks N] [--max-txs N] [--network pharos|atlantic]
 //     [--print-schedule] [--proof label]
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { collectActivity, parseWallet, rangeForTimes, type Call } from "../../src/activity/engine.js";
-import { CRON, digestChat, digestMarkdown, metricsOf, parseCadence, periodAt, topEvents, type Metrics } from "../../src/activity/digest.js";
+import { CRON, digestChat, digestCompact, digestMarkdown, metricsOf, parseCadence, periodAt, topEvents, type Metrics } from "../../src/activity/digest.js";
 import { choice, isMain, parseCli, runCli, UsageError, type RunContext } from "../../src/lib/cli.js";
 import { chainMcp, type ChainMcp, type Network } from "../../src/lib/mcp.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
@@ -34,11 +34,11 @@ export async function main(
 ): Promise<number> {
   const { values } = parseCli(
     {
-      usage: `npm run ${TASK} -- --wallet 0x… [--cadence weekly|daily|monthly|Nd] [--now ISO] [--state f] [--out dir] [--deliver discord|console|none] [--baseline auto|none] [--force] [--scan-blocks N] [--max-txs N] [--network pharos|atlantic] [--print-schedule] [--proof label]`,
+      usage: `npm run ${TASK} -- --wallet 0x… [--cadence weekly|daily|monthly|Nd] [--now ISO] [--state f] [--out dir] [--deliver discord|console|none] [--baseline auto|none] [--force] [--compact] [--scan-blocks N] [--max-txs N] [--network pharos|atlantic] [--print-schedule] [--proof label]`,
       options: {
         wallet: { type: "string" }, cadence: { type: "string", default: "weekly" }, now: { type: "string" }, state: { type: "string" }, out: { type: "string" },
         deliver: { type: "string", default: "none" }, baseline: { type: "string", default: "auto" }, force: { type: "boolean", default: false }, "scan-blocks": { type: "string", default: "0" },
-        "max-txs": { type: "string", default: "400" }, network: { type: "string", default: "pharos" }, "print-schedule": { type: "boolean", default: false }, proof: { type: "string" },
+        "max-txs": { type: "string", default: "400" }, compact: { type: "boolean", default: false }, network: { type: "string", default: "pharos" }, "print-schedule": { type: "boolean", default: false }, proof: { type: "string" },
       },
     },
     argv,
@@ -87,6 +87,7 @@ export async function main(
   onExit(() => mcp.close());
   const call: Call = mcp.call;
   const head = BigInt((await call("get_block_number")).blockNumber);
+  const meta = values.proof !== undefined ? proofMeta(TASK, mcp) : undefined; // before any file is written: the proof records a clean tree
   console.log(`${cadence} digest for ${wallet} on ${network} (chain ${mcp.chainId}) via ${mcp.endpoint}`);
   console.log(`clock ${nowDate.toISOString()} · period ${period.label} UTC · previous ${prevPeriod.label}`);
   const range = await rangeForTimes(call, period.fromTs, period.toTs, head);
@@ -116,7 +117,7 @@ export async function main(
     writeFileSync(file, md);
     console.log(`wrote ${file}`);
   }
-  console.log(`\n${md}`);
+  console.log(`\n${values.compact ? digestCompact(input) : md}`);
 
   let delivered: { id?: string; at: string; channel: string } | undefined;
   if (deliver !== "none") {
@@ -132,7 +133,7 @@ export async function main(
       wallet, cadence, clock: nowDate.toISOString(), period: { label: period.label, fromTs: period.fromTs, toTs: period.toTs, fromBlock: range.fromBlock.toString(), toBlock: range.toBlock.toString(), head: head.toString() },
       previousLabel: prevPeriod.label, metrics, previous: previous ?? null, topEvents: events, coverage: activity.coverage, delivery: delivered ?? null, digestMarkdown: md, discordText: digestChat(input),
     };
-    console.log(`proof: ${writeProof(new URL(`proof/${values.proof}.json`, import.meta.url), body, proofMeta(TASK, mcp))}`);
+    console.log(`proof: ${writeProof(new URL(`proof/${values.proof}.json`, import.meta.url), body, meta!)}`);
   }
   return 0;
 }

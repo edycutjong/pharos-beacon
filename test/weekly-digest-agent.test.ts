@@ -116,6 +116,17 @@ describe("weekly-digest-agent main", () => {
     expect(spy).toHaveLength(0); // not even a connection's worth of reads
   });
 
+  it("--compact prints a narrow view: every line fits 62 columns, with the comparison and the three events", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "digest-"));
+    const state = join(dir, "s.json");
+    await main(ctx, ["--wallet", W, "--now", NOW, "--compact", "--baseline", "none", "--state", state], conn(), undefined);
+    const lines = out.join("\n").split("\n").slice(3);
+    expect(Math.max(...lines.map((l) => [...l].length))).toBeLessThanOrEqual(62);
+    const text = lines.join("\n");
+    for (const k of ["transactions", "transfers in", "swaps", "approvals", "fees", "top 3 events", "1. "]) expect(text).toContain(k);
+    expect(text).not.toContain("# Weekly digest");
+  });
+
   it("--force builds the same period again", async () => {
     const dir = mkdtempSync(join(tmpdir(), "digest-"));
     const base = ["--wallet", W, "--now", NOW, "--state", join(dir, "s.json"), "--baseline", "none"];
@@ -134,6 +145,10 @@ describe("weekly-digest-agent main", () => {
     await main(ctx, ["--wallet", W, "--now", "2023-11-27T01:00:00Z", "--state", state], conn(spy), undefined).catch((e) => e);
     // The week after holds no blocks yet in this fake chain (head is in the earlier week): the period start is past the head.
     expect(out.join("\n")).toContain("period 2023-11-20 to 2023-11-26 UTC");
+  });
+
+  it("a period before the chain's first block is refused with a clear message", async () => {
+    await expect(main(ctx, ["--wallet", W, "--now", "2023-11-13T01:00:00Z", "--baseline", "none"], conn(), undefined)).rejects.toThrow(/holds no blocks/);
   });
 
   it("--print-schedule shows the cron expression and reads nothing", async () => {

@@ -187,7 +187,7 @@ export function digestMarkdown(d: DigestInput): string {
     L.push("## Who is new", "", fresh.length ? `New this period (${fresh.length}): ${fresh.slice(0, 8).map((c) => `\`${c}\``).join(", ")}${fresh.length > 8 ? `, and ${fresh.length - 8} more` : ""}.` : "No new counterparties.", gone.length ? `Seen last period but not this one: ${gone.length}.` : "", "");
   }
   const c = a.coverage;
-  L.push("## Coverage", "", `${c.logsRead} matching event logs over ${c.logWindows} \`get_logs\` windows; ${c.sentExpected === null ? "the chain's nonce for the range could not be read" : `outgoing transactions found ${c.sentFound} of ${c.sentExpected} by the chain's nonce`}; block scan ${c.blockScan.mode}${c.blockScan.mode === "off" ? "" : ` (${c.blockScan.scanned} of ${c.blockScan.of} blocks)`}. Token amounts are units, not money.`, "");
+  L.push("## Coverage", "", `${c.logsRead} matching event logs over ${c.logWindows} \`get_logs\` windows; ${c.sentExpected === null ? "the chain's nonce for the range could not be read" : `outgoing transactions found ${c.sentFound} of ${c.sentExpected} by the chain's nonce`}${c.discovery.used ? `; the nonce search read ${c.discovery.nonceCalls} nonces and opened ${c.discovery.blocksRead} block${c.discovery.blocksRead === 1 ? "" : "s"} to find sends without events${c.discovery.truncated ? " (stopped at its limit)" : ""}` : ""}; block scan ${c.blockScan.mode}${c.blockScan.mode === "off" ? "" : ` (${c.blockScan.scanned} of ${c.blockScan.of} blocks)`}. Token amounts are units, not money.`, "");
   return L.join("\n");
 }
 
@@ -206,4 +206,26 @@ export function digestChat(d: DigestInput): string {
   let text = lines.join("\n");
   if (text.length > 1900) text = `${text.slice(0, 1890)}…`;
   return text;
+}
+
+/** A narrow plain-text view (62 columns) of the digest for a terminal or a video. */
+export function digestCompact(d: DigestInput): string {
+  const m = d.metrics;
+  const p = d.previous;
+  const w = d.activity.wallet;
+  const row = (label: string, cur: number, prev: number | undefined) => `${label.padEnd(15)}${String(cur).padStart(5)}${prev === undefined ? "" : `   was ${String(prev).padStart(4)}  ${pct(cur, prev)}`}`;
+  const L = [
+    `${d.cadence} digest · ${w.slice(0, 6)}…${w.slice(-4)} · ${d.activity.network === "pharos" ? "pharos" : "atlantic"}`,
+    `${d.period.label} UTC`,
+    "",
+    row("transactions", m.txs, p?.txs), row("transfers in", m.transfersIn, p?.transfersIn), row("transfers out", m.transfersOut, p?.transfersOut), row("swaps", m.swaps, p?.swaps), row("approvals", m.approvals, p?.approvals),
+    row("failed", m.failed, p?.failed),
+    `${"fees".padEnd(15)}${fmtWei(BigInt(m.feesWei), d.activity.nativeSymbol)}${p ? `  (was ${fmtWei(BigInt(p.feesWei), d.activity.nativeSymbol)})` : ""}`,
+    ...(p ? [`${"new parties".padEnd(15)}${String(m.counterparties.filter((c) => !p.counterparties.includes(c)).length).padStart(5)}`] : []),
+    "",
+    "top 3 events",
+  ];
+  for (const [i, e] of d.events.entries()) L.push(`${i + 1}. ${e.kind}`, `   ${e.why.replace(/0x([0-9a-fA-F]{4})[0-9a-fA-F]{32}([0-9a-fA-F]{4})/g, "0x$1…$2").slice(0, 58)}`);
+  if (d.events.length === 0) L.push("none");
+  return L.join("\n");
 }
