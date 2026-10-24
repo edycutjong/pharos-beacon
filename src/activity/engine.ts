@@ -268,6 +268,12 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
       else if (tx.to && lower(tx.to) === me) ins.push(nativeLeg());
     }
 
+    // An ERC-20 Approval log is also emitted when a spender USES an allowance (transferFrom lowers it): that is not a new approval. Drop an
+    // approval of a token the wallet also sent in this very transaction; a real approve() tx moves nothing.
+    for (let i = made.length - 1; i >= 0; i--) {
+      const m = made[i]!;
+      if (m.category === "approval" && m.out[0]!.nft === undefined && m.method === "approve" && outs.some((o) => o.token === m.out[0]!.token)) made.splice(i, 1);
+    }
     const swap = swapPool !== null || (outs.length > 0 && ins.length > 0 && new Set([...outs, ...ins].map((x) => String(x.token))).size > 1 && outs.some((o) => ins.some((i) => i.token !== o.token)));
     if (swap && (outs.length || ins.length)) {
       made.push({ ...base, category: "swap", counterparty: swapPool ?? ((tx.to as Hex | null) ?? null), out: outs, in: ins, feeWei, method: selectorName(tx.input), nativeValueWei: value });

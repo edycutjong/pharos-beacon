@@ -75,3 +75,6 @@ export const world = (): FakeTx[] => [
   { n: 6, block: 150, from: W, to: B, value: 10n ** 18n },
   { n: 7, block: 160, from: B, to: W, value: 2n * 10n ** 18n },
 ];
+
+/** An allowance being used up inside a transfer the wallet sends: an Approval log, but not a new approval. */
+export const spentAllowance = (): FakeTx => ({ n: 8, block: 105, from: W, to: TKN, input: "0x23b872dd", logs: [transfer(8, 105, TKN, W, B, 1_000_000n), approval(8, 105, TKN, W, S, 99n)] });
