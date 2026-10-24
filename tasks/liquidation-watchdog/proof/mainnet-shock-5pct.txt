@@ -1,27 +1,28 @@
-block 21132731 (0.913 s/block): looking for Morpho Blue borrowers in blocks 18293956…21132731 (30 days)
-  discovery 100% (15 of 15 blocks)
-discovery: 15 new blocks scanned (earlier ranges reused from the index); borrowers ever seen per market: 0xc79579a0…: 4, 0xd834016e…: 2, 0xab78d4ff…: 3, 0xba0d2638…: 3, 0x95bc6fe9…: 1, 0x4cbedaf6…: 1
-block 21132731: 13 open positions across 5 market(s) (scenario: collateral price −5.0% applied to the health column and the alerts)
-# | market | account | health | drop to liquidation | health at −5.0% | debt | collateral | level
-1 | syzUSD/USDC | 0xA4A5…3DCc | 1.0134 | 1.32% | 0.9627 | 1,523,810.55 USDC | 1,547,470.90 syzUSD | critical
-2 | syzUSD/USDC | 0x743D…2A73 | 1.0201 | 1.97% | 0.9691 | 22,010.37 USDC | 22,500.00 syzUSD | critical
-3 | syzUSD/USDC | 0xE6a4…fe7C | 1.0333 | 3.22% | 0.9816 | 1,343,762.96 USDC | 1,391,416.26 syzUSD | critical
-4 | APT/USDC | 0x966B…B257 | 1.0351 | 3.39% | 0.9833 | 70,039.08 USDC | 83,676.46 APT | critical
-5 | syzUSD/USDC | 0xF8B4…B127 | 1.0569 | 5.38% | 1.0041 | 130,011.11 USDC | 137,702.12 syzUSD | critical
+block 21134223 (0.912 s/block): looking for Morpho Blue borrowers in blocks 18292024…21134223 (30 days)
+  discovery 50% (61 of 109 blocks)
+  discovery 100% (109 of 109 blocks)
+discovery: 109 new blocks scanned (earlier ranges reused from the index); borrowers ever seen per market: 0xc79579a0…: 4, 0xd834016e…: 2, 0xab78d4ff…: 3, 0xba0d2638…: 3, 0x95bc6fe9…: 1, 0x4cbedaf6…: 1
+block 21134223: 13 open positions across 5 market(s) (scenario: collateral price −5.0% applied to the health column and the alerts)
+# | market | account | health | drop to liquidation | health at −5.0% | debt | collateral | level now (unshocked)
+1 | syzUSD/USDC | 0xA4A5…3DCc | 1.0134 | 1.32% | 0.9627 | 1,523,817.52 USDC | 1,547,470.90 syzUSD | critical
+2 | syzUSD/USDC | 0x743D…2A73 | 1.0201 | 1.97% | 0.9691 | 22,010.47 USDC | 22,500.00 syzUSD | critical
+3 | syzUSD/USDC | 0xE6a4…fe7C | 1.0333 | 3.22% | 0.9816 | 1,343,769.11 USDC | 1,391,416.26 syzUSD | critical
+4 | APT/USDC | 0x966B…B257 | 1.0351 | 3.39% | 0.9833 | 70,039.37 USDC | 83,676.46 APT | critical
+5 | syzUSD/USDC | 0xF8B4…B127 | 1.0569 | 5.38% | 1.0041 | 130,011.70 USDC | 137,702.12 syzUSD | critical
 6 | APC3M/USDC | 0xF06a…AA89 | 1.0693 | 6.48% | 1.0159 | 1,661.65 USDC | 2,000.00 APC3M | critical
-7 | APC3M/USDC | 0x6776…1a2b | 1.3261 | 24.59% | 1.2598 | 1,004,927.11 USDC | 1,500,000.65 APC3M | ok
+7 | APC3M/USDC | 0x6776…1a2b | 1.3261 | 24.59% | 1.2598 | 1,004,928.91 USDC | 1,500,000.65 APC3M | ok
 8 | APC3M/USDC | 0xD7E3…c230 | 1.3439 | 25.59% | 1.2767 | 64.25 USDC | 97.19 APC3M | ok
-9 | ETHVP/WPROS | 0x1F73…528c | 1.3650 | 26.74% | 1.2968 | 0.100006 WPROS | 0.000100 ETHVP | ok (dust, no alert)
-10 | strUSD/USDC | 0xE8bA…C701 | 1.6048 | 37.69% | 1.5246 | 0.553814 USDC | 1.00 strUSD | ok (dust, no alert)
-11 | APT/USDC | 0x6776…1a2b | 1.8223 | 45.12% | 1.7312 | 900,755.47 USDC | 1,894,576.62 APT | ok
+9 | ETHVP/WPROS | 0x1F73…528c | 1.3721 | 27.12% | 1.3035 | 0.100006 WPROS | 0.000100 ETHVP | ok (dust, no alert)
+10 | strUSD/USDC | 0xE8bA…C701 | 1.6048 | 37.69% | 1.5246 | 0.553817 USDC | 1.00 strUSD | ok (dust, no alert)
+11 | APT/USDC | 0x6776…1a2b | 1.8223 | 45.12% | 1.7312 | 900,759.24 USDC | 1,894,576.62 APT | ok
 12 | ETHVP/WPROS | 0x1075…3B4d | > 1000 | 100.00% | > 1000 | 5.00 WPROS | 2,480.00 ETHVP | ok
 13 | ETHVP/WPROS | 0x44E9…49Dc | > 1000 | 100.00% | > 1000 | 10.00 WPROS | 8,200.00 ETHVP | ok
-[2026-10-24T15:58:16.723Z] LIQUIDATABLE Morpho syzUSD/USDC 0xA4A5…3DCc [scenario: syzUSD price −5.0%]: health factor 0.9627 (debt 1,523,810.55 USDC, collateral 1,547,470.90 syzUSD). Liquidatable now. Act now: repay 395,364.70 USDC or add 542,175.22 syzUSD collateral to get back to 1.30.
-[2026-10-24T15:58:16.723Z] LIQUIDATABLE Morpho syzUSD/USDC 0x743D…2A73 [scenario: syzUSD price −5.0%]: health factor 0.9691 (debt 22,010.37 USDC, collateral 22,500.00 syzUSD). Liquidatable now. Act now: repay 5,602.93 USDC or add 7,683.46 syzUSD collateral to get back to 1.30.
-[2026-10-24T15:58:16.723Z] LIQUIDATABLE Morpho syzUSD/USDC 0xE6a4…fe7C [scenario: syzUSD price −5.0%]: health factor 0.9816 (debt 1,343,762.96 USDC, collateral 1,391,416.26 syzUSD). Liquidatable now. Act now: repay 329,115.19 USDC or add 451,325.32 syzUSD collateral to get back to 1.30.
-[2026-10-24T15:58:16.723Z] LIQUIDATABLE Morpho APT/USDC 0x966B…B257 [scenario: APT price −5.0%]: health factor 0.9833 (debt 70,039.08 USDC, collateral 83,676.46 APT). Liquidatable now. Act now: repay 17,060.81 USDC or add 26,946.68 APT collateral to get back to 1.30.
-[2026-10-24T15:58:16.723Z] CRITICAL Morpho syzUSD/USDC 0xF8B4…B127 [scenario: syzUSD price −5.0%]: health factor 1.0041 (debt 130,011.11 USDC, collateral 137,702.12 syzUSD). Liquidated if syzUSD falls 0.40% further. Act now: repay 29,596.04 USDC or add 40,585.92 syzUSD collateral to get back to 1.30.
-[2026-10-24T15:58:16.723Z] CRITICAL Morpho APC3M/USDC 0xF06a…AA89 [scenario: APC3M price −5.0%]: health factor 1.0159 (debt 1,661.65 USDC, collateral 2,000.00 APC3M). Liquidated if APC3M falls 1.56% further. Act now: repay 363.18 USDC or add 559.39 APC3M collateral to get back to 1.30.
-[2026-10-24T15:58:16.723Z] WARN Morpho APC3M/USDC 0x6776…1a2b [scenario: APC3M price −5.0%]: health factor 1.2598 (debt 1,004,927.11 USDC, collateral 1,500,000.65 APC3M). Liquidated if APC3M falls 20.62% further. Act now: repay 31,072.75 USDC or add 47,860.49 APC3M collateral to get back to 1.30.
-[2026-10-24T15:58:16.723Z] WARN Morpho APC3M/USDC 0xD7E3…c230 [scenario: APC3M price −5.0%]: health factor 1.2767 (debt 64.25 USDC, collateral 97.19 APC3M). Liquidated if APC3M falls 21.67% further. Act now: repay 1.15 USDC or add 1.77 APC3M collateral to get back to 1.30.
+[2026-10-24T16:20:10.519Z] LIQUIDATABLE Morpho syzUSD/USDC 0xA4A5…3DCc [scenario: syzUSD price −5.0%]: health factor 0.9627 (debt 1,523,817.52 USDC, collateral 1,547,470.90 syzUSD). Liquidatable now. Act now: repay 395,362.48 USDC or add 542,167.75 syzUSD collateral to get back to 1.30.
+[2026-10-24T16:20:10.519Z] LIQUIDATABLE Morpho syzUSD/USDC 0x743D…2A73 [scenario: syzUSD price −5.0%]: health factor 0.9691 (debt 22,010.47 USDC, collateral 22,500.00 syzUSD). Liquidatable now. Act now: repay 5,602.90 USDC or add 7,683.36 syzUSD collateral to get back to 1.30.
+[2026-10-24T16:20:10.519Z] LIQUIDATABLE Morpho syzUSD/USDC 0xE6a4…fe7C [scenario: syzUSD price −5.0%]: health factor 0.9816 (debt 1,343,769.11 USDC, collateral 1,391,416.26 syzUSD). Liquidatable now. Act now: repay 329,113.07 USDC or add 451,318.74 syzUSD collateral to get back to 1.30.
+[2026-10-24T16:20:10.519Z] LIQUIDATABLE Morpho APT/USDC 0x966B…B257 [scenario: APT price −5.0%]: health factor 0.9833 (debt 70,039.37 USDC, collateral 83,676.46 APT). Liquidatable now. Act now: repay 17,061.11 USDC or add 26,947.14 APT collateral to get back to 1.30.
+[2026-10-24T16:20:10.519Z] CRITICAL Morpho syzUSD/USDC 0xF8B4…B127 [scenario: syzUSD price −5.0%]: health factor 1.0041 (debt 130,011.70 USDC, collateral 137,702.12 syzUSD). Liquidated if syzUSD falls 0.41% further. Act now: repay 29,595.82 USDC or add 40,585.28 syzUSD collateral to get back to 1.30.
+[2026-10-24T16:20:10.519Z] CRITICAL Morpho APC3M/USDC 0xF06a…AA89 [scenario: APC3M price −5.0%]: health factor 1.0159 (debt 1,661.65 USDC, collateral 2,000.00 APC3M). Liquidated if APC3M falls 1.56% further. Act now: repay 363.18 USDC or add 559.39 APC3M collateral to get back to 1.30.
+[2026-10-24T16:20:10.519Z] WARN Morpho APC3M/USDC 0x6776…1a2b [scenario: APC3M price −5.0%]: health factor 1.2598 (debt 1,004,928.91 USDC, collateral 1,500,000.65 APC3M). Liquidated if APC3M falls 20.62% further. Act now: repay 31,074.54 USDC or add 47,863.25 APC3M collateral to get back to 1.30.
+[2026-10-24T16:20:10.519Z] WARN Morpho APC3M/USDC 0xD7E3…c230 [scenario: APC3M price −5.0%]: health factor 1.2767 (debt 64.25 USDC, collateral 97.19 APC3M). Liquidated if APC3M falls 21.67% further. Act now: repay 1.15 USDC or add 1.77 APC3M collateral to get back to 1.30.
 proof: tasks/liquidation-watchdog/proof/mainnet-shock-5pct.json
