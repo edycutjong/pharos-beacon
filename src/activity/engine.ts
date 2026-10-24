@@ -248,7 +248,7 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
     let inCounter: Hex | null = null;
     for (const l of txLogs) {
       const t0 = l.topics[0]!.toLowerCase();
-      if (SWAP_TOPICS.has(t0)) swapPool ??= l.address as Hex;
+      if (SWAP_TOPICS.has(t0) && sentByMe) swapPool ??= l.address as Hex; // only a swap the wallet sent: one that merely pays the wallet is a transfer in
       if (t0 === TRANSFER_TOPIC && (l.topics.length === 3 || l.topics.length === 4)) {
         const from = topicAddress(l.topics[1]!);
         const to = topicAddress(l.topics[2]!);
