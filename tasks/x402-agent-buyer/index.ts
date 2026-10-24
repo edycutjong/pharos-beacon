@@ -89,7 +89,7 @@ export function compactFormatter(): (e: AgentEvent) => string | undefined {
         return `STOP  ${e.want} does not fit the budget`;
       case "done": {
         const s = e.summary;
-        return `${s.outcome === "stopped-budget" ? "STOPPED" : s.outcome.toUpperCase()}  ${s.paid} paid · ${num(s.spent)}/${num(s.budget)} USDC${s.saved !== "0 USDC" ? ` · saved ${num(s.saved)}` : ""}`;
+        return `${s.outcome === "stopped-budget" ? "STOPPED" : s.outcome.toUpperCase()}  ${s.paid} paid · ${num(s.spent)} of ${num(s.budget)} USDC${s.saved !== "0 USDC" ? ` · saved ${num(s.saved)}` : ""}`;
       }
     }
   };
