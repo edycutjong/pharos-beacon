@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts deposit --wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 --amount 250 --down morpho-c79579 --block 21146194 --proof mainnet-deposit-250-best-market-down",
     "git": {
-      "commit": "bc8d6e484c9d",
+      "commit": "48217ce4c2a2",
       "dirty": false
     },
-    "createdAt": "2026-10-24T20:43:09.268Z"
+    "createdAt": "2026-10-24T21:06:55.064Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -245,7 +245,8 @@
           "kind": "centrifuge",
           "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
           "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -429,7 +430,8 @@
           "kind": "centrifuge",
           "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
           "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -779,7 +781,7 @@
           {
             "label": "7d",
             "seconds": 604800,
-            "apr": 0.053284368391679354
+            "apr": 0.05328452365614128
           },
           {
             "label": "30d",
@@ -799,9 +801,9 @@
           {
             "label": "7d",
             "then": {
-              "block": "20482680",
-              "timestamp": "1792242572",
-              "price": 0.0000010035566891966797
+              "block": "20482678",
+              "timestamp": "1792242570",
+              "price": 0.0000010035566827127657
             }
           },
           {
@@ -847,7 +849,7 @@
             "value": "0.000001004",
             "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
             "call": "same call, pinned",
-            "block": "20482680"
+            "block": "20482678"
           },
           {
             "what": "share price 30d ago (USDC per share)",
@@ -882,7 +884,7 @@
           {
             "label": "7d",
             "seconds": 604800,
-            "apr": 0.053284368391679354
+            "apr": 0.05328452365614128
           },
           {
             "label": "30d",
@@ -892,10 +894,10 @@
         ],
         "read": 3,
         "ref": 0.0529183495390067,
-        "spread": 0.017430101263379356,
+        "spread": 0.017430256527841283,
         "jumpy": false,
-        "pessimistic": 0.044203298907317015,
-        "optimistic": 0.06163340017069638,
+        "pessimistic": 0.04420322127508605,
+        "optimistic": 0.06163347780292734,
         "thin": false
       },
       "holding": null
@@ -945,7 +947,8 @@
         "kind": "centrifuge",
         "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
         "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "HYB",
@@ -958,7 +961,8 @@
         "kind": "centrifuge",
         "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
         "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "morpho-c79579",
@@ -1035,6 +1039,7 @@
         "protocolName": "Centrifuge",
         "eligible": false,
         "reasons": [
+          "Janus Henderson Treasury Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
           "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
           "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
         ],
@@ -1049,6 +1054,7 @@
         "protocolName": "Centrifuge",
         "eligible": false,
         "reasons": [
+          "NYLIM US High Yield Bond Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
           "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
           "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
         ],
@@ -1080,9 +1086,9 @@
         "eligible": true,
         "reasons": [],
         "capacityUsd": null,
-        "scoreUsd": 0.905793558810124,
+        "scoreUsd": 0.9057919639569293,
         "parts": {
-          "grossUsd": 0.9080992728286836,
+          "grossUsd": 0.9080976779754889,
           "entryFeeUsd": 0,
           "gasUsd": 0.0023057140185596156,
           "dilution": 0.9997933571351717
@@ -1092,10 +1098,10 @@
     ],
     "explanation": [
       "Chose Morpho Blue APC3M/USDC supply (Morpho Blue): over 30 d it nets $0.9058 = yield $0.9081 at its conservative 4.42% × 99.98% for the dilution our deposit causes − entry fee $0.000000 − gas $0.002306.",
-      "Next best: Morpho Blue APT/USDC supply nets $0.8984 (conservative 4.38%); Morpho Blue APC3M/USDC supply is $0.007359 ahead.",
+      "Next best: Morpho Blue APT/USDC supply nets $0.8984 (conservative 4.38%); Morpho Blue APC3M/USDC supply is $0.007357 ahead.",
       "Not eligible: RockawayX USDC vault (RockawayX): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted).",
-      "Not eligible: Janus Henderson Treasury Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
-      "Not eligible: NYLIM US High Yield Bond Fund (Centrifuge): maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
+      "Not eligible: Janus Henderson Treasury Fund (Centrifuge): Janus Henderson Treasury Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists; maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
+      "Not eligible: NYLIM US High Yield Bond Fund (Centrifuge): NYLIM US High Yield Bond Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists; maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move.",
       "SIMULATED OUTAGE: Morpho Blue syzUSD/USDC supply (Morpho Blue): outage drill (--down morpho-c79579): this venue was not contacted. Routed without it."
     ],
     "unplacedUsd": 0
@@ -1114,7 +1120,8 @@
         "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
         "protocol": "morpho",
         "assets": "250000000",
-        "all": false
+        "all": false,
+        "market": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc"
       }
     ],
     "transactions": [
@@ -1383,7 +1390,7 @@
       "value": "0.000001004",
       "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
       "call": "same call, pinned",
-      "block": "20482680"
+      "block": "20482678"
     },
     {
       "what": "share price 30d ago (USDC per share)",
