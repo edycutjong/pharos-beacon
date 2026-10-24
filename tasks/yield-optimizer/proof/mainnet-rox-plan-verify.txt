@@ -1,0 +1,6 @@
+plan 0x6c8598f158cd46b5d22ae9c3170cf15e3e8eac23bc3a18bb0f31a6ecaf41753f wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 chain 1672
+fingerprint matches: true
+verifyPlan problems: none
+1 exit to 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 selector 0xba087652 gas 417771 (estimated)
+2 approve to 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 selector 0x095ea7b3 gas 71496 (estimated)
+3 enter to 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb selector 0xa99aad89 gas 300000 (configured)

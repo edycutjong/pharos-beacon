@@ -1,0 +1,70 @@
+{
+  "kind": "unsigned-move-plan",
+  "signed": false,
+  "note": "Prepared for the wallet owner's signature. This file holds no key and nothing in it has been signed or sent; the wallet shows each transaction and the owner signs it.",
+  "chainId": 1672,
+  "wallet": "0x62A0e4b7fD967fab5be1a733c09b22eBC4510673",
+  "from": {
+    "key": "roxUSDC",
+    "name": "RockawayX USDC vault",
+    "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5"
+  },
+  "to": {
+    "key": "morpho-d83401",
+    "name": "Morpho Blue APT/USDC supply",
+    "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb"
+  },
+  "depositAssets": "19450640071",
+  "slippageBps": 10,
+  "transactions": [
+    {
+      "step": 1,
+      "action": "exit",
+      "description": "Redeem all shares of RockawayX USDC vault",
+      "request": {
+        "from": "0x62A0e4b7fD967fab5be1a733c09b22eBC4510673",
+        "to": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+        "data": "0xba087652000000000000000000000000000000000000000000000417da7a276abc5cd1c300000000000000000000000062a0e4b7fd967fab5be1a733c09b22ebc451067300000000000000000000000062a0e4b7fd967fab5be1a733c09b22ebc4510673",
+        "value": "0x0",
+        "chainId": "0x688"
+      },
+      "gas": {
+        "units": 417771,
+        "basis": "estimated"
+      }
+    },
+    {
+      "step": 2,
+      "action": "approve",
+      "description": "Approve Morpho Blue APT/USDC supply to pull 19450640071 USDC raw (the exit's previewed proceeds 19470110182 less 10 bps)",
+      "request": {
+        "from": "0x62A0e4b7fD967fab5be1a733c09b22eBC4510673",
+        "to": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+        "data": "0x095ea7b300000000000000000000000018573fa18fd17ddfd790b4a5b5b2977aad3b4efb00000000000000000000000000000000000000000000000000000004875936c7",
+        "value": "0x0",
+        "chainId": "0x688"
+      },
+      "gas": {
+        "units": 71496,
+        "basis": "estimated"
+      }
+    },
+    {
+      "step": 3,
+      "action": "enter",
+      "description": "Supply 19450640071 USDC raw into Morpho Blue APT/USDC supply",
+      "request": {
+        "from": "0x62A0e4b7fD967fab5be1a733c09b22eBC4510673",
+        "to": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "data": "0xa99aad89000000000000000000000000c879c018db60520f4355c26ed1a6d572cdac181500000000000000000000000013282289b8b241cf16eb5b8bad401c7c2fdab0f8000000000000000000000000d7e33079d91c5fa12798c1e7b28a7877045aa7c3000000000000000000000000d5e02889c13230458506cc842347c4e62f8cdf3a0000000000000000000000000000000000000000000000000bef55718ad6000000000000000000000000000000000000000000000000000000000004875936c7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000062a0e4b7fd967fab5be1a733c09b22ebc451067300000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000000",
+        "value": "0x0",
+        "chainId": "0x688"
+      },
+      "gas": {
+        "units": 300000,
+        "basis": "configured"
+      }
+    }
+  ],
+  "planId": "0x6c8598f158cd46b5d22ae9c3170cf15e3e8eac23bc3a18bb0f31a6ecaf41753f"
+}
