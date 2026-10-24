@@ -45,7 +45,7 @@ Each run was committed before the next, so every file records `"dirty": false`, 
 
 Run 6 is not staged. The deployed API answered the paid request with 402 after the transfer had gone through; the response body was not recorded in that run, so the cause is not proven (the API's settle step answers 402 `invalid_exact_evm_transaction_failed` when it cannot confirm the transaction, and the Atlantic RPC fails intermittently, as the re-runs of `finish` and `budget` show). It is the failure the reconcile step exists for: an agent that read that 402 as "refused, nothing charged" could have signed a second payment. Since then the agent records the response body of every failed attempt (the 502 bodies in run 8).
 
-The demo video ([`assets`](https://github.com/edycutjong/pharos-beacon) not in this repo; recorded casts of `run … --local --compact`) uses separate runs of the same commands; their transactions are in [`proof/video-casts.log`](proof/video-casts.log).
+The demo video is made of recorded casts of `run … --local --compact`: separate runs of the same commands as the proofs. Their transactions are in [`proof/video-casts.log`](proof/video-casts.log).
 
 Sample output of `run finish`, rendered from `proof/finish.json` (the explorer base URL is cut from the tx hashes):
 
