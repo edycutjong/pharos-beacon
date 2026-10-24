@@ -385,7 +385,7 @@ export class Agent {
     if (p?.state === "signed" || p?.state === "rejected") {
       const r = await this.reconcile(p, want.id, j).catch(() => "unknown" as const);
       if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
-      if (r === "open" && p.state === "rejected") return fail(`the API refused the earlier payment for this purchase and its authorization is still valid until ${new Date(p.validBefore * 1000).toISOString()}; not signing a second one before it lapses`);
+      if (p.state === "rejected" && r !== "lapsed") return fail(r === "unknown" ? "the API refused the earlier payment for this purchase and the token could not be checked; not signing a second one until it can be" : `the API refused the earlier payment for this purchase and its authorization is still valid until ${new Date(p.validBefore * 1000).toISOString()}; not signing a second one before it lapses`);
     }
 
     // 1. Ask. A 402 is free, and tells the price, the asset and the payee.
@@ -445,7 +445,17 @@ export class Agent {
         if (r === "lapsed") break;
         continue;
       }
-      const text = await res.text();
+      let text: string;
+      try {
+        text = await res.text();
+      } catch (e) {
+        ev({ type: "attempt", want: want.id, n, error: `the response body was cut: ${(e as Error).message}` });
+        await this.sleep(2 ** n * 250);
+        const r = await this.reconcile(p, want.id, j).catch(() => "unknown" as const);
+        if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
+        if (r === "lapsed") break;
+        continue;
+      }
       ev({ type: "attempt", want: want.id, n, status: res.status, ...(res.status === 200 ? {} : { body: text.slice(0, 240) }) });
       let body: unknown = text;
       try {
@@ -469,11 +479,11 @@ export class Agent {
         if (!verdict.ok || (real && real.tx.toLowerCase() !== tx.toLowerCase())) {
           // Our authorization IS used, so the money moved: it is counted once, with the transaction the token names, and the data is not accepted.
           const why = !verdict.ok ? `receipt check failed (${verdict.reason})` : `the API named another transaction (${tx})`;
-          p.tx = real?.tx ?? tx;
+          p.tx = real?.tx ?? (verdict.ok ? tx : undefined);
           this.log(p, p.tx, real?.block ?? verdict.block, `${why}; counted once, data not accepted`);
           p.state = "paid-data-lost";
           this.save(j);
-          return fail(`the API answered 200 but ${why}; the data is not accepted and the payment is counted once`, { tx: p.tx });
+          return fail(`the API answered 200 but ${why}; the data is not accepted and the payment is counted once`, p.tx ? { tx: p.tx } : {});
         }
         p.state = "paid";
         p.tx = tx;

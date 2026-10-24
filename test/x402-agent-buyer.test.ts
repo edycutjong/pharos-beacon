@@ -341,6 +341,39 @@ describe("safe retries: the same payment never counts twice", () => {
     expect(w.settles()).toBe(1);
   });
 
+  it("a refused purchase is not signed again while the token cannot be read", async () => {
+    const w = world();
+    let refuse = true;
+    const api = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (refuse && new Headers(init?.headers).has("PAYMENT-SIGNATURE")) {
+        const bare = await w.api(input, {});
+        return new Response(JSON.stringify({ reason: "invalid_exact_evm_transaction_failed" }), { status: 402, headers: bare.headers });
+      }
+      return w.api(input, init);
+    }) as typeof fetch;
+    const { agent, events } = agentFor("retry", w, { fetch: api });
+    expect((await agent.buy(gas)).status).toBe("failed"); // rejected: the token said unused
+    refuse = false;
+    const down = new Agent({ ...agent.o, chain: { ...w.chain, nonceUsed: async () => { throw new Error("rpc down"); } } });
+    const r = await down.buy(gas);
+    expect(r.status).toBe("failed");
+    expect(events.filter((e) => e.type === "sign")).toHaveLength(1);
+    expect(w.settles()).toBe(0);
+  });
+
+  it("a response body that is cut after the API settled is reconciled at once", async () => {
+    const w = world();
+    const cut = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await w.api(input, init);
+      if (!new Headers(init?.headers).has("PAYMENT-SIGNATURE")) return res;
+      return { status: 200, headers: res.headers, text: async () => { throw new Error("socket hang up"); } } as unknown as Response;
+    }) as typeof fetch;
+    const { agent } = agentFor("retry", w, { fetch: cut });
+    expect((await agent.buy(gas)).status).toBe("paid-data-lost");
+    expect(readLog(agent.o.logFile)).toHaveLength(1);
+    expect(w.settles()).toBe(1);
+  });
+
   it("exhausted retries still ask the token: a payment that did settle is logged once", async () => {
     const w = world();
     // The API settles, then answers 503 every time.
