@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts withdraw --wallet 0xBa3b260596D8412318Ee6ef5476291F6C8E3b68a --amount 1000 --block 21146194 --proof mainnet-withdraw-morpho-supplier",
     "git": {
-      "commit": "00dab6c5c40d",
+      "commit": "7c53b2ae37e6",
       "dirty": false
     },
-    "createdAt": "2026-10-24T20:32:23.176Z"
+    "createdAt": "2026-10-24T20:40:19.497Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -662,9 +662,7 @@
           "feeBps": 0,
           "depth": "301218741321",
           "lockedUntil": null,
-          "blockers": [
-            "only 301218741321 USDC raw of idle liquidity, less than the 3912147530623 being withdrawn (the market is lent out)"
-          ],
+          "blockers": [],
           "note": "Morpho Blue withdraw charges no exit fee; what can leave is the market's idle liquidity (supply − borrow) = 301218741321"
         },
         "lockSeconds": 0,
@@ -1145,30 +1143,76 @@
   "route": {
     "request": "withdraw",
     "amountUsd": 1000,
-    "allocations": [],
+    "allocations": [
+      {
+        "venueId": "morpho-c79579",
+        "usd": 1000,
+        "all": false
+      }
+    ],
     "options": [
       {
         "venueId": "morpho-c79579",
         "name": "Morpho Blue syzUSD/USDC supply",
         "protocolName": "Morpho Blue",
-        "eligible": false,
-        "reasons": [
-          "only 301218741321 USDC raw of idle liquidity, less than the 3912147530623 being withdrawn (the market is lent out)"
-        ],
-        "capacityUsd": 0,
-        "scoreUsd": null,
-        "parts": {},
+        "eligible": true,
+        "reasons": [],
+        "capacityUsd": 301218.741321,
+        "scoreUsd": 5.24597369015918,
+        "parts": {
+          "exitFeeUsd": 0,
+          "gasUsd": 0.0016011902906663995,
+          "forgoneYieldUsd": 5.244372499868513,
+          "positionUsd": 3912147.530623,
+          "atUsd": 1000
+        },
         "ratePct": "6.38%"
       }
     ],
     "explanation": [
-      "Nothing can be withdrawn today: Morpho Blue syzUSD/USDC supply: only 301218741321 USDC raw of idle liquidity, less than the 3912147530623 being withdrawn (the market is lent out)",
-      "Cannot withdraw from Morpho Blue syzUSD/USDC supply (Morpho Blue), position $3,912,147.53: only 301218741321 USDC raw of idle liquidity, less than the 3912147530623 being withdrawn (the market is lent out)."
+      "Chose Morpho Blue syzUSD/USDC supply (Morpho Blue): taking $1,000.00 out costs $5.25 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $5.24 at its optimistic 6.38%."
     ],
-    "unplacedUsd": 1000
+    "unplacedUsd": 0
   },
-  "plan": null,
-  "planNote": "no transactions prepared: no venue can take the request",
+  "plan": {
+    "kind": "unsigned-action-plan",
+    "signed": false,
+    "note": "Prepared for the wallet owner's signature. This file holds no key and nothing in it has been signed or sent; the wallet shows each transaction and the owner signs it.",
+    "request": "withdraw",
+    "chainId": 1672,
+    "wallet": "0xBa3b260596D8412318Ee6ef5476291F6C8E3b68a",
+    "legs": [
+      {
+        "venue": "morpho-c79579",
+        "name": "Morpho Blue syzUSD/USDC supply",
+        "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "protocol": "morpho",
+        "assets": "1000000000",
+        "all": false
+      }
+    ],
+    "transactions": [
+      {
+        "step": 1,
+        "action": "withdraw",
+        "venue": "morpho-c79579",
+        "description": "Withdraw 1000000000 USDC raw from Morpho Blue syzUSD/USDC supply",
+        "request": {
+          "from": "0xBa3b260596D8412318Ee6ef5476291F6C8E3b68a",
+          "to": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "data": "0x5c2bea49000000000000000000000000c879c018db60520f4355c26ed1a6d572cdac181500000000000000000000000054df79d8edf36d15cd83fbedbdd90807fc8289340000000000000000000000004eefc4c6e7216aedd5e809e4fc74fb8859b3fa46000000000000000000000000d5e02889c13230458506cc842347c4e62f8cdf3a0000000000000000000000000000000000000000000000000cb2bba6f17b8000000000000000000000000000000000000000000000000000000000003b9aca000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ba3b260596d8412318ee6ef5476291f6c8e3b68a000000000000000000000000ba3b260596d8412318ee6ef5476291f6c8e3b68a",
+          "value": "0x0",
+          "chainId": "0x688"
+        },
+        "gas": {
+          "units": 145475,
+          "basis": "estimated"
+        }
+      }
+    ],
+    "planId": "0x1a22faa8cb99db1205c5feed96f4e8293899c449ac2f0ed5e4ac50de43c704cd"
+  },
+  "planNote": null,
   "funded": null,
   "evidence": [
     {
