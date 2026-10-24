@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "task": "natural-language-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/natural-language-payment-agent/index.ts send 0.002 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --execute --proof sent-native",
+    "git": {
+      "commit": "927df75c6322",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:28:59.947Z"
+  },
+  "turns": [
+    "send 0.002 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+  ],
+  "parsed": {
+    "draft": {
+      "amount": "0.002",
+      "token": "PHRS",
+      "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+    },
+    "questions": [],
+    "lang": "en",
+    "parser": "gemini-3.5-flash"
+  },
+  "outcome": "sent",
+  "checks": [
+    {
+      "name": "recipient",
+      "ok": true,
+      "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)"
+    },
+    {
+      "name": "token",
+      "ok": true,
+      "detail": "PHRS, the native coin (18 decimals)"
+    },
+    {
+      "name": "amount",
+      "ok": true,
+      "detail": "0.002 PHRS = 2000000000000000 base units"
+    },
+    {
+      "name": "balance",
+      "ok": true,
+      "detail": "0x317b…2975 holds 14.919250289999979 PHRS, needs 0.002042 (amount + max fee)"
+    }
+  ],
+  "unsignedTx": {
+    "chainId": 688689,
+    "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "value": "2000000000000000",
+    "nonce": 111,
+    "gas": "21000",
+    "maxFeePerGas": "2000000000",
+    "maxPriorityFeePerGas": "0"
+  },
+  "walletRequest": {
+    "method": "eth_sendTransaction",
+    "params": [
+      {
+        "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+        "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "value": "0x71afd498d0000",
+        "gas": "0x5208",
+        "maxFeePerGas": "0x77359400",
+        "maxPriorityFeePerGas": "0x0",
+        "nonce": "0x6f",
+        "chainId": "0xa8231",
+        "type": "0x2"
+      }
+    ]
+  },
+  "sent": {
+    "hash": "0x5584496d21f7dafbd6e79aa5046a0415c443bcedae49ac589bd231f1fb7e84f5",
+    "status": "success",
+    "block": "31804775",
+    "url": "https://atlantic.pharosscan.xyz/tx/0x5584496d21f7dafbd6e79aa5046a0415c443bcedae49ac589bd231f1fb7e84f5"
+  }
+}
