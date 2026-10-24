@@ -33,6 +33,8 @@ export async function run(p: RunParams, emit: Emit, deps: Deps = {}): Promise<vo
   if (parsed.questions.length) {
     s.begin("prepare");
     s.end("prepare", "skip", "waiting for your answer");
+    s.begin("sign");
+    s.end("sign", "skip", "never on this page");
     const view: View = {
       tone: "warn", verdict: "NEEDS ONE MORE THING",
       note: "Nothing was prepared. Answer the question below and run again with the answer as a follow-up.",

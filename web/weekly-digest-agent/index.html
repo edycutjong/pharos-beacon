@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beacon Weekly Digest Agent</title>
-<meta name="description" content="Weekly Digest Agent on Pharos: Builds a digest of a wallet's activity for a period and compares it with the period before: key numbers, the top three notable events, who is new. On  Run it live.">
+<meta name="description" content="Weekly Digest Agent on Pharos: a wallet's activity compared with the period before, with the top three events. Run it live.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/_shared/beacon.css">
@@ -34,6 +34,7 @@ details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
 <style>
 .form textarea{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0;min-height:120px;resize:vertical}
 .data td{vertical-align:top}
+@media (max-width:820px){.title{grid-template-columns:1fr}}
 pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
 </style>
 </head>
@@ -110,7 +111,7 @@ RunKit({
   steps: () => [{id:'head',name:'Chain head'},{id:'logs',name:'get_logs'},{id:'txs',name:'Transactions'},{id:'nonce',name:'Nonce check'},{id:'tokens',name:'Token reads'},{id:'digest',name:'Digest'}],
   scenarios: [{ id: "mainnet", label: "Mainnet wallet, 30,000 blocks up to 2026-10-23 vs the 30,000 before (pinned)", request: { qs: "wallet=0x28Ed4A97a21C2264CA352EbBcc6CaffF60e89901&network=pharos&blocks=30000&toBlock=21070507" } }, { id: "atlantic", label: "Atlantic wallet, last 10,000 blocks vs the 10,000 before", request: { qs: "wallet=0x317bca01Bb101C0F1E86C21576a4e14D92B02975&network=atlantic&blocks=10000" } }, { id: "custom", label: "Your input", request: null }],
   fromForm: fd => ({ qs: new URLSearchParams({ wallet: fd.get("wallet").trim(), network: fd.get("network"), blocks: fd.get("blocks") }).toString() }),
-  reqs: [["01", "Runs on a schedule (weekly by default, configurable).", "The CLI's --cadence defaults to weekly (daily, monthly and Nd also work) with cron 0 1 * * 1 UTC for weekly; the Evidence lists the crons. A scheduled run on GitHub Actions has not fired yet: see the README. This page runs it on demand.", "partly", "evidence"], ["02", "Covers key metrics with a comparison to the previous period.", "Output: every metric this period, the previous one and the change.", "met", "output"], ["03", "Highlights the top 3 notable events of the period.", "Output: the top notable events, each with its reason and a link; at most two of one kind while other kinds exist.", "met", "output"], ["04", "Delivers to a real channel (email, Telegram, Discord) or as a published page.", "The CLI posts to a Discord channel and the recorded proof has the message id. This page is itself a published view but sends nothing.", "partly", "output"]],
+  reqs: [["01", "Runs on a schedule (weekly by default, configurable).", "The CLI's --cadence defaults to weekly (daily, monthly and Nd also work) with cron 0 1 * * 1 UTC for weekly; the Evidence lists the crons. A scheduled run on GitHub Actions has not fired yet: see the README. This page runs it on demand.", "partly", "evidence"], ["02", "Covers key metrics with a comparison to the previous period.", "Output: every metric this period, the previous one and the change.", "met", "output"], ["03", "Highlights the top 3 notable events of the period.", "Output: the top notable events, each with its reason and a link; at most two of one kind while other kinds exist. A quiet window has fewer than three.", "met", "output"], ["04", "Delivers to a real channel (email, Telegram, Discord) or as a published page.", "The CLI posts to a Discord channel and the recorded proof has the message id. This page is itself a published view but sends nothing.", "partly", "output"]],
 });
 </script>
 </body>

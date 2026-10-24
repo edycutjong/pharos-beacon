@@ -67,6 +67,7 @@ describe("audit-log-agent and weekly-digest-agent web", () => {
     expect(d.view.tables[0].head).toEqual(["Category", "Items"]);
     expect(d.view.tables[0].rows.map((r: string[]) => r[0])).toEqual(["transfer-in", "transfer-out", "swap", "approval", "contract-call"]);
     expect(d.view.text).toContain("# Wallet activity report");
+    expect(d.view.download).toMatchObject({ name: expect.stringMatching(/^audit-0x317bca-\d+-\d+\.md$/), text: d.view.text });
     expect(d.view.evidence.find((e: string[]) => e[0] === "Wallet")[1]).toBe(W);
   });
   it("audit: a pinned toBlock ends the window there", async () => {
@@ -109,7 +110,9 @@ describe("pay web endpoints never sign", () => {
   });
   it("NL: a missing token asks a question and prepares nothing; the follow-up completes it", async () => {
     const q = `text=${encodeURIComponent(`pay 0.0001 to ${YOU}`)}`;
-    const asked = await done(await nl(req(`action=run&${q}`), { call }));
+    const askedEvents = await events(await nl(req(`action=run&${q}`), { call }));
+    expect(askedEvents.find((e) => e.id === "sign" && e.state === "skip")).toBeTruthy();
+    const asked = askedEvents.at(-1)!;
     expect(asked.view.verdict).toBe("NEEDS ONE MORE THING");
     expect(asked.view.tables[0].rows.length).toBe(1);
     expect((await done(await nl(req(`action=run&${q}&followup=PHRS`), { call }))).view.verdict).toBe("PREPARED, NOT SIGNED");
@@ -152,6 +155,7 @@ describe("x402-agent-buyer web plan", () => {
     const dec = Object.fromEntries(d.view.tables[0].rows.map((r: string[]) => [r[0], r[3]]));
     expect(dec["gas-again"]).toBe("REFUSED");
     expect(dec["whales-1k"]).toBe("CHECK FIRST");
+    expect(d.view.verdict).toMatch(/^PLAN COMPLETES/);
   });
   it("a bad task is a 400", async () => {
     expect((await buyer(req("action=run&task=partner"))).status).toBe(400);

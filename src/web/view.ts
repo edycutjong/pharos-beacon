@@ -7,6 +7,8 @@ export interface View {
   note?: string;
   tables: { head: string[]; rows: Cell[][] }[];
   text?: string;
+  /** A file the page offers for download (the Markdown report). */
+  download?: { name: string; text: string };
   evidence: [string, Cell][];
   /** One line under the Sequence strip. */
   summary: string;

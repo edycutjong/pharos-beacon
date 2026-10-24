@@ -50,7 +50,7 @@ export async function run(p: WindowParams, emit: Emit, deps: Deps = defaultDeps)
         ["Previous", `blocks ${prev.fromBlock}–${prev.toBlock}`],
         ["Schedule (CLI)", `weekly = cron "${CRON.weekly}" (UTC); daily "${CRON.daily}"; monthly "${CRON.monthly}"`],
       ],
-      summary: `${events.length} highlight${events.length === 1 ? "" : "s"}; ${metrics.txs} transactions against ${previous.txs} in the window before.`,
+      summary: `${events.length} highlight${events.length === 1 ? "" : "s"} (the count depends on the window); ${metrics.txs} transaction${metrics.txs === 1 ? "" : "s"} against ${previous.txs} in the window before.`,
     };
     emit({ type: "done", totalMs: Date.now() - t0, reads: t.total(), view });
   } catch (e) {

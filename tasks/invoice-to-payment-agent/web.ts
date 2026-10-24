@@ -43,6 +43,7 @@ export async function run(p: RunParams, emit: Emit, deps: Deps = {}): Promise<vo
   s.end("validate", draft ? "ok" : "refused", draft ? "complete" : `${flags.length} flag${flags.length === 1 ? "" : "s"}`);
   if (!draft) {
     s.begin("prepare"); s.end("prepare", "skip", "nothing to prepare");
+    s.begin("sign"); s.end("sign", "skip", "never on this page");
     const view: View = {
       tone: "bad", verdict: "FLAGGED: needs a human",
       note: "Nothing was prepared. The invoice has problems a payment must not guess around.",

@@ -62,7 +62,7 @@ export function viewOf(r: Report, calls: string[]): View {
     text: render(r, "Pharos mainnet"),
     evidence: [
       ["Chain MCP calls", calls.join(" → ")],
-      ...(f.block !== undefined || r.verdict !== "NOT_FOUND" ? ([["Explorer", { t: "open the transaction ↗", href: explorerTx("pharos", f.hash) }]] as View["evidence"]) : []),
+      ...(f.block !== undefined || r.verdict !== "NOT_FOUND" ? ([["Explorer", { t: "open the transaction", href: explorerTx("pharos", f.hash) }]] as View["evidence"]) : []),
       ["Tiers", DEFAULT_TIERS.map((t) => `${t.below === null ? "above" : `below ${t.below}`}: ${t.confirmations}`).join(" · ")],
     ],
     summary: `${r.verdict}: ${r.rule}`,

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beacon x402 Agent Buyer</title>
-<meta name="description" content="x402 Agent Buyer on Pharos: An agent that buys from x402-paywalled APIs inside a budget and a per-call price cap. This page shows its decision plan: it asks the paywalled API for Run it live.">
+<meta name="description" content="x402 Agent Buyer on Pharos Atlantic: the plan of an agent that buys paywalled APIs inside a budget and a per-call cap. Run it live.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/_shared/beacon.css">
@@ -34,6 +34,7 @@ details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
 <style>
 .form textarea{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0;min-height:120px;resize:vertical}
 .data td{vertical-align:top}
+@media (max-width:820px){.title{grid-template-columns:1fr}}
 pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
 </style>
 </head>
@@ -79,7 +80,7 @@ pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
       <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
     </div>
   </div>
-  <p class="foot-note">Prices come from the 402 of the x402 Paywalled API on this same site. “Check first” rows are whale answers the real agent may skip because an answer it already bought covers the question; a plan with no paid data cannot tell. The quoted whale-range route needs the x402 Paywalled API branch deployed.</p>
+  <p class="foot-note">Prices come from the 402 of the x402 Paywalled API on this same site. “Check first” rows are whale answers the real agent may skip because an answer it already bought covers the question; a plan with no paid data cannot tell.</p>
 
   <section class="block" id="requirements">
     <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 5 of 5 shown on this page</p></div>
@@ -110,7 +111,7 @@ RunKit({
   steps: (id) => ({ finish: [["gas", "gas-snapshot"], ["whales", "whale-brief"], ["whales-1k", "whale-range 1,000"], ["gas-again", "gas-snapshot again"], ["range", "whale-range 2,000"], ["deep-history", "whale-range 3,000"]], budget: [["gas", "gas-snapshot"], ["whales", "whale-brief"], ["history", "whale-range 3,000"], ["summary-gas", "gas-snapshot again"]], cap: [["gas", "gas-snapshot"], ["history", "whale-range 3,000"], ["whales", "whale-brief"]] }[id] || []).map(([i, n]) => ({ id: "w-" + i, name: n })),
   scenarios: [{ id: "finish", label: "Task that finishes (budget 0.05 USDC)", request: { qs: "task=finish" } }, { id: "budget", label: "Task that stops at its budget (0.02 USDC)", request: { qs: "task=budget" } }, { id: "cap", label: "Task with a per-call cap (0.012 USDC)", request: { qs: "task=cap" } }],
   fromForm: null,
-  reqs: [["01", "Calls at least 2 different x402 endpoints. They can be your own or another dev's.", "The plan prices three different routes (gas-snapshot, whale-brief, whale-range). The paid calls are recorded by the CLI (proof/finish.json), not made here.", "partly", "output"], ["02", "Enforces a spend budget and a per-call price cap, and refuses calls over either one.", "The same decide() the CLI uses: try the budget and cap tasks and read the Why column.", "met", "output"], ["03", "Logs every payment with the price, what it bought and the tx hash, plus a running total.", "The payment log is the CLI's (log command, proof files); this page pays nothing, so it has no payments to log.", "partly", "evidence"], ["04", "Handles payment failures with retries that are safe: the same payment never counts twice.", "Idempotency key, signed authorization written before the send and a chain check before any retry are in the CLI (README, proof/retry-*.json). Not exercisable here.", "partly", "evidence"], ["05", "Includes a demo task where the agent completes the job, and one where it stops because it hit the budget.", "Scenarios 1 and 2 plan exactly those two tasks.", "met", "controls"]],
+  reqs: [["01", "Calls at least 2 different x402 endpoints. They can be your own or another dev's.", "The plan prices three different routes (gas-snapshot, whale-brief, whale-range). The paid calls are recorded by the CLI (proof/finish.json), not made here.", "partly", "output"], ["02", "Enforces a spend budget and a per-call price cap, and refuses calls over either one.", "The same decide() the CLI uses: try the budget and cap tasks and read the Why column.", "met", "output"], ["03", "Logs every payment with the price, what it bought and the tx hash, plus a running total.", "The payment log is the CLI's (log command, proof files); this page pays nothing, so it has no payments to log.", "partly", "evidence"], ["04", "Handles payment failures with retries that are safe: the same payment never counts twice.", "Idempotency key, signed authorization written before the send and a chain check before any retry are in the CLI (README, proof/retry-*.json). Not exercisable here.", "partly", "evidence"], ["05", "Includes a demo task where the agent completes the job, and one where it stops because it hit the budget.", "Scenarios 1 and 2 plan exactly those two tasks; the recorded runs that complete and stop, with payments, are the CLI's (proof/finish.json, proof/budget.json).", "partly", "controls"]],
 });
 </script>
 </body>

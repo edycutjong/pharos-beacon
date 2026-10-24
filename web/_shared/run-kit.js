@@ -35,8 +35,11 @@
         h += `<table class="data" style="margin-bottom:14px"><tr>${t.head.map((x) => `<th>${esc(x)}</th>`).join("")}</tr>` +
           t.rows.map((row) => `<tr>${row.map((c) => `<td>${cell(c)}</td>`).join("")}</tr>`).join("") + `</table>`;
       }
+      if (v.download) h += `<p class="foot-note" style="margin:0 0 10px"><button class="btn" type="button" id="dl">Download ${esc(v.download.name)}</button></p>`;
       if (v.text) h += `<pre class="raw">${esc(v.text)}</pre>`;
       b.innerHTML = h;
+      const dl = $("dl");
+      if (dl) dl.addEventListener("click", () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([v.download.text], { type: "text/markdown" })); a.download = v.download.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); });
     }
     function renderEv() {
       const r = last;
@@ -72,7 +75,7 @@
         }, ctrl.signal, req.body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(req.body) } : undefined);
       } catch (e) { error = e.name === "AbortError" ? "Cancelled." : e.message; }
       ctrl = null;
-      await new Promise((r) => setTimeout(r, 200));
+      await K.settled();
       if (done) {
         runN++; last = { ...done, lines, scen, id: "run-" + String(runN).padStart(3, "0"), at: new Date() };
         $("total").innerHTML = `<b>${K.num(done.totalMs)} ms</b> total`;
@@ -81,6 +84,7 @@
       } else {
         document.querySelectorAll(".lamp.state-running").forEach((l) => (l.className = "lamp reached state-failed"));
         $("total").textContent = "stopped"; K.setFoot(error || "The run ended without a result.", "bad");
+        runN++; const fb = $("log-body"); if (runN === 1) fb.innerHTML = ""; fb.insertAdjacentHTML("afterbegin", `<tr><td class="mono">${new Date().toISOString().slice(11, 19)}</td><td>${esc(scenOf(scen).label)}</td><td>${esc(error || "stopped")}</td><td class="mono">—</td></tr>`);
       }
       btns.forEach((b) => (b.disabled = false)); $("run-label").textContent = "Run again "; running = false;
     }

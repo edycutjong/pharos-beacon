@@ -75,7 +75,7 @@ export async function run(name: WebTask, origin: string, emit: Emit, deps: Deps 
   const upper = spent + maybe;
   const view: View = {
     tone: stoppedBy ? "warn" : "ok",
-    verdict: stoppedBy ? `STOPS at "${stoppedBy}": over budget` : `${bought} to buy, ${skipped} refused${check ? `, ${check} to check first` : ""}`,
+    verdict: stoppedBy ? `STOPS at "${stoppedBy}": over budget` : `PLAN COMPLETES: ${bought} to buy, ${skipped} refused${check ? `, ${check} to check first` : ""}`,
     note: `${task.goal} Planned spend ${usdc(spent)}${maybe ? ` (up to ${usdc(upper)} if every check-first answer is paid)` : ""} of a ${usdc(task.policy.budget)} budget, ${usdc(task.policy.perCallCap)} cap per call. Nothing was signed or paid: this is a plan from the live 402 prices.`,
     tables: [{ head: ["Want", "Route", "Asked price", "Decision", "Why"], rows }],
     evidence: [
@@ -83,7 +83,7 @@ export async function run(name: WebTask, origin: string, emit: Emit, deps: Deps 
       ["Prices from", "the paywalled API's own 402 (PAYMENT-REQUIRED header), asked without a payment"],
       ["Signing", "never on this page: no key exists here"],
     ],
-    summary: stoppedBy ? `Stops at "${stoppedBy}": the next answer would go over the budget.` : `Plan: ${bought} purchases for ${usdc(spent)}, ${skipped} refused.`,
+    summary: stoppedBy ? `Stops at "${stoppedBy}": the next answer would go over the budget.` : `The plan completes: ${bought} purchases for ${usdc(spent)}, ${skipped} refused${check ? `, ${check} to check first` : ""}.`,
   };
   emit({ type: "done", totalMs: Date.now() - t0, view });
 }

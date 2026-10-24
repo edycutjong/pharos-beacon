@@ -29,6 +29,7 @@ export function viewOf(a: Activity, p: WindowParams, md: string): View {
       ...(a.items.length ? [{ head: ["Transaction", "Category", "Status", "What"], rows: a.items.slice(0, 15).map((i) => [{ t: `${i.tx.slice(0, 10)}…`, href: explorerTx(p.network, i.tx) }, i.category, i.status, [...i.out, ...i.in].map(fmtLeg).join(" · ") || i.method || "—"]) }] : []),
     ],
     text: md,
+    download: { name: `audit-${p.wallet.slice(0, 8).toLowerCase()}-${a.range.fromBlock}-${a.range.toBlock}.md`, text: md },
     evidence: [
       ["Wallet", p.wallet],
       ["Window", `${p.blocks.toLocaleString()} blocks ending at block ${a.range.toBlock}${p.toBlock !== undefined ? " (a pinned sample)" : " (the head read first)"}`],

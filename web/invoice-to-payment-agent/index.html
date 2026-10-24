@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Beacon Invoice-to-Payment Agent</title>
-<meta name="description" content="Invoice-to-Payment Agent on Pharos: Reads an invoice, in JSON or as plain text, in English or Bahasa Indonesia, pulls out payee, amount, token and reference, and flags what is missing or Run it live.">
+<meta name="description" content="Invoice-to-Payment Agent on Pharos Atlantic: reads an invoice, flags what is missing, prepares an unsigned payment. Run it live.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/_shared/beacon.css">
@@ -34,6 +34,7 @@ details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
 <style>
 .form textarea{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0;min-height:120px;resize:vertical}
 .data td{vertical-align:top}
+@media (max-width:820px){.title{grid-template-columns:1fr}}
 pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
 </style>
 </head>
@@ -110,7 +111,7 @@ RunKit({
   steps: () => [{id:'extract',name:'Extract'},{id:'validate',name:'Validate'},{id:'prepare',name:'Prepare on Atlantic'},{id:'sign',name:'Sign'}],
   scenarios: [{ id: "acme", label: "JSON invoice (Acme, 0.005 PHRS)", request: { body: { text: "{\n  \"invoice_number\": \"INV-2026-0042\",\n  \"issuer\": \"Acme Design Studio\",\n  \"pay_to\": \"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\",\n  \"currency\": \"PHRS\",\n  \"line_items\": [\n    { \"description\": \"Logo refresh\", \"amount\": 0.003 },\n    { \"description\": \"Icon set\", \"amount\": 0.002 }\n  ],\n  \"total\": \"0.005\",\n  \"due\": \"2026-11-05\"\n}" } } }, { id: "nova", label: "Text invoice (Nova, WPHRS)", request: { body: { text: "INVOICE #NV-17\nFrom: Nova Audio Labs\nDate: 2026-10-24\nPay to: 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\n\nMastering, 2 tracks ........ 0.0006 WPHRS\nStems export ............... 0.0004 WPHRS\n\nTotal due: 0.001 WPHRS\nPlease include the invoice number as the payment reference." } } }, { id: "faktur", label: "Bahasa Indonesia invoice (Bumi, 0,002 PHRS)", request: { body: { text: "FAKTUR TAGIHAN\n\nNomor Faktur: BM/2026/10/088\nDari: CV Bumi Digital\nKepada: Beacon Agent\nBayar ke: 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\n\nJasa konsultasi smart contract\nTotal tagihan: 0,002 PHRS\nMohon cantumkan nomor faktur pada pembayaran." } } }, { id: "totals", label: "Totals that disagree (flagged)", request: { body: { text: "INVOICE #QX-9\nFrom: Quick Print Co\nPay to: 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\nSubtotal: 20 USDC\nTotal due: 25 USDC\nAmount due: 30 USDC" } } }, { id: "payee", label: "Payee address with a bad checksum (refused)", request: { body: { text: "INVOICE #PY-3\nFrom: Typo Traders\nPay to: 0x8d347c72431ed6E033d5f43E56c0987E97f5D91B\nTotal due: 0.001 PHRS" } } }, { id: "usd", label: "USD invoice, no rate (flagged)", request: { body: { text: "{ \"invoice_number\": \"US-5521\", \"issuer\": \"Hudson Supply\", \"pay_to\": \"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\", \"currency\": \"USD\", \"total\": \"120.00\" }" } } }, { id: "custom", label: "Your input", request: null }],
   fromForm: fd => ({ body: { text: fd.get("text"), ...(fd.get("payIn") ? { payIn: fd.get("payIn") } : {}) } }),
-  reqs: [["01", "Extracts payee, amount, token or currency, and reference from at least 2 invoice formats.", "JSON, plain text and a Bahasa Indonesia text invoice are samples above; the CLI also reads PDF.", "met", "output"], ["02", "Flags mismatches or missing fields instead of guessing.", "Try the totals, bad-checksum and USD samples: each is flagged with the reason and nothing is prepared.", "met", "output"], ["03", "Produces a payment summary and an unsigned transaction that includes the invoice reference.", "Output: the summary, then the unsigned transaction whose data carries the invoice number.", "met", "output"], ["04", "Includes a demo with sample invoices.", "The six sample buttons.", "met", "controls"]],
+  reqs: [["01", "Extracts payee, amount, token or currency, and reference from at least 2 invoice formats.", "JSON, plain text and a Bahasa Indonesia text invoice are samples above; the CLI also reads PDF.", "met", "output"], ["02", "Flags mismatches or missing fields instead of guessing.", "Totals that disagree and the USD invoice are flagged with the reason; the bad-checksum payee passes extraction and is refused by the preparer. Nothing is prepared in any of the three.", "met", "output"], ["03", "Produces a payment summary and an unsigned transaction that includes the invoice reference.", "Output: the summary, then the unsigned transaction whose data carries the invoice number.", "met", "output"], ["04", "Includes a demo with sample invoices.", "The six sample buttons.", "met", "controls"]],
 });
 </script>
 </body>
