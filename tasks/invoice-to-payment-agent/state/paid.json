@@ -1,6 +1,6 @@
 [
   {
-    "fingerprint": "91415a4420740ca2",
+    "fingerprint": "ee44523cd8494c8b",
     "number": "INV-2026-0042",
     "issuer": "Acme Design Studio",
     "amount": "0.005",
@@ -10,7 +10,7 @@
     "at": "2026-10-24T01:30:21.466Z"
   },
   {
-    "fingerprint": "a874a23658eb412d",
+    "fingerprint": "2bb1f1848f73d34f",
     "number": "NV-17",
     "issuer": "Nova Audio Labs",
     "amount": "0.001",
@@ -20,7 +20,7 @@
     "at": "2026-10-24T01:30:26.702Z"
   },
   {
-    "fingerprint": "eb616ef0db613c23",
+    "fingerprint": "b9e62b05657d0bc6",
     "number": "BM/2026/10/088",
     "issuer": "CV Bumi Digital",
     "amount": "0.002",
