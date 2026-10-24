@@ -135,7 +135,8 @@ describe("report", () => {
     expect(md).toContain("https://www.pharosscan.xyz/tx/0x");
     expect(md).toContain("5 TKN");
     expect(md).toContain("Outgoing transactions found: 5 of 5");
-    expect(md).toContain("unlimited");
+    expect(md).toContain("TKN (unlimited)");
+    expect(md).not.toMatch(/\d{1,3}(,\d{3}){8,}/); // never a 78-digit allowance
   });
   it("an empty period says it saw nothing and points at the coverage", async () => {
     const a = await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 300n, toBlock: 310n });

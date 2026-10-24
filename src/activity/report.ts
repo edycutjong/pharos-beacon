@@ -9,6 +9,8 @@ const short = (a: string | null) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "
 const link = (a: Activity, tx: string) => `[${tx.slice(0, 10)}…](${explorerTx(a.network, tx)})`;
 const sum = (rows: TokenTotal[]) => rows.map((r) => `${fmtLeg({ token: r.token as `0x${string}`, symbol: r.symbol, decimals: r.decimals, amountRaw: r.raw })} (${r.count})`).join(", ") || "none";
 const legs = (ls: Leg[]) => ls.map(fmtLeg).join(" + ") || "—";
+/** An allowance, with "unlimited" instead of a 78-digit number when the approval has no cap. */
+const allowance = (it: Item) => (it.unlimited ? `${it.out[0]!.symbol} (unlimited)` : legs(it.out));
 const addrLink = (a: Activity, addr: string | null) => (addr ? `\`${short(addr)}\`` : "(contract creation)");
 const whenOf = (it: Item) => stampUtc(it.timestamp).replace("T", " ").replace("Z", " UTC");
 
@@ -44,7 +46,7 @@ export function highlights(a: Activity, baseline?: Activity): Highlight[] {
   for (const it of a.items) if (it.category === "transfer-out") for (const l of it.out) sent.set(String(l.token).toLowerCase(), (sent.get(String(l.token).toLowerCase()) ?? 0) + 1);
   const outs = [...best.entries()].sort((x, y) => (sent.get(y[0]) ?? 0) - (sent.get(x[0]) ?? 0)).map(([, v]) => v);
   for (const { it, leg } of outs.slice(0, 3)) out.push({ kind: "largest-outflow", tx: it.tx, text: `Largest ${leg.symbol} sent out: ${fmtLeg(leg)} to \`${it.counterparty}\`.` });
-  for (const it of a.items) if (it.category === "approval" && it.unlimited) out.push({ kind: "unlimited-approval", tx: it.tx, text: `Unlimited approval: \`${it.counterparty}\` can move ${legs(it.out)} without a cap.` });
+  for (const it of a.items) if (it.category === "approval" && it.unlimited) out.push({ kind: "unlimited-approval", tx: it.tx, text: `Unlimited approval: \`${it.counterparty}\` can move ${it.out[0]!.symbol} without a cap.` });
   return out;
 }
 
@@ -101,7 +103,7 @@ export function markdownReport(a: Activity, info: ReportInfo): string {
   L.push("## Transfers in", "", table(["When", "Amount", "From", "Tx", "Status"], by("transfer-in").map((i) => row(i, [legs(i.in), addrLink(a, i.counterparty)]))));
   L.push("## Transfers out", "", table(["When", "Amount", "To", "Tx", "Status"], by("transfer-out").map((i) => row(i, [legs(i.out), addrLink(a, i.counterparty)]))));
   L.push("## Swaps", "", table(["When", "Gave", "Got", "Via", "Tx", "Status"], by("swap").map((i) => row(i, [legs(i.out), legs(i.in), addrLink(a, i.counterparty)]))));
-  L.push("## Approvals", "", table(["When", "Allowance", "Spender", "Tx", "Status"], by("approval").map((i) => row(i, [i.unlimited ? `${legs(i.out)} (unlimited)` : legs(i.out), addrLink(a, i.counterparty)]))));
+  L.push("## Approvals", "", table(["When", "Allowance", "Spender", "Tx", "Status"], by("approval").map((i) => row(i, [allowance(i), addrLink(a, i.counterparty)]))));
   L.push("## Contract interactions", "", table(["When", "Call", "Contract", "Tx", "Status"], by("contract-call").map((i) => row(i, [i.method ?? "call", addrLink(a, i.counterparty)]))));
 
   const notable = notableTxs(a);
