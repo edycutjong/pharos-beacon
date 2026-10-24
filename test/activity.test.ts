@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { blockAtOrAfter, collectActivity, counterparties, MAX_RANGE_BLOCKS, parseWallet, rangeForTimes, totalsOf } from "../src/activity/engine.js";
 import { csvReport, highlights, markdownReport, notableTxs } from "../src/activity/report.js";
-import { approval, B, C, fakeWorld, mintTx, nativeSwap, OTH, payableCall, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
+import { approval, B, C, fakeWorld, sellForNative, sellNoPayout, swapByOther, mintTx, nativeSwap, OTH, payableCall, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
 
 const range = { fromBlock: 90n, toBlock: 200n };
 const collect = (scanBlocks = 0, txs = world(), extra: object = { discoverSent: false }) => collectActivity(fakeWorld(txs), "pharos", W, range, { scanBlocks, ...extra });
@@ -36,6 +36,24 @@ describe("collectActivity", () => {
     const md = markdownReport(a, { generatedAt: "x" });
     expect(md).toContain("deposit (wrap) + 0.500000 PROS");
     expect(csvReport(a)).toContain("0.500000 PROS");
+  });
+
+  it("a token sold for the native token through a router is a swap (the Swap event is in the receipt, the payout is an unwrap), not a transfer out", async () => {
+    const a = await collect(0, [sellForNative()], { discoverSent: false });
+    expect(a.items.map((i) => i.category)).toEqual(["swap"]);
+    const sw = a.items[0]!;
+    expect(sw.out[0]).toMatchObject({ symbol: "TKN", amountRaw: 4_000_000n });
+    expect(sw.in[0]).toMatchObject({ symbol: "PROS", amountRaw: 2n * 10n ** 18n, note: "unwrapped from the wrapped token" });
+    expect(sw.counterparty?.toLowerCase()).toBe(POOL.toLowerCase());
+    expect(markdownReport(a, { generatedAt: "x" })).toContain("2 PROS (unwrapped from the wrapped token)");
+  });
+
+  it("a swap with no unwrap is still a swap, with nothing shown as received; someone else's swap that pays the wallet stays a transfer in", async () => {
+    const a = await collect(0, [sellNoPayout(), swapByOther()], { discoverSent: false });
+    const sold = a.items.find((i) => i.tx.endsWith("0e"))!;
+    expect(sold.category).toBe("swap");
+    expect(sold.in).toHaveLength(0);
+    expect(a.items.find((i) => i.tx.endsWith("0f"))!.category).toBe("transfer-in");
   });
 
   it("the zero address is a mint, not a counterparty: not first-time, shown as mint or burn", async () => {

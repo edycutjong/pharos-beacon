@@ -11,9 +11,9 @@ export const OTH = "0x5555555555555555555555555555555555555555" as Hex;
 export const T0 = 1_700_000_000; // block n has timestamp T0 + n (1 s blocks)
 const hex = (n: number | bigint) => `0x${BigInt(n).toString(16)}` as Hex;
 export const th = (n: number) => pad(hex(n), { size: 32 });
-const swapAbi = parseAbi(["event Swap(address indexed sender, uint256 a, address indexed to)"]);
+const swapAbi = parseAbi(["event Swap(address indexed sender, uint256 amount0In, uint256 amount1In, uint256 amount0Out, uint256 amount1Out, address indexed to)"]); // the Uniswap V2 signature
 
-export interface FakeTx { n: number; block: number; from: Hex; to: Hex | null; value?: bigint; input?: Hex; status?: 0 | 1; logs?: RpcLog[] }
+export interface FakeTx { n: number; block: number; from: Hex; to: Hex | null; value?: bigint; input?: Hex; status?: 0 | 1; logs?: RpcLog[]; /** logs that are in the receipt but that the wallet's own topic queries do not match */ receiptOnly?: RpcLog[] }
 
 let idx = 0;
 const log = (tx: number, block: number, address: Hex, topics: Hex[], data: Hex): RpcLog =>
@@ -23,7 +23,7 @@ export const transfer = (tx: number, block: number, token: Hex, from: Hex, to: H
 export const approval = (tx: number, block: number, token: Hex, owner: Hex, spender: Hex, v: bigint) =>
   log(tx, block, token, [APPROVAL_TOPIC as Hex, pad(owner, { size: 32 }), pad(spender, { size: 32 })], encodeAbiParameters([{ type: "uint256" }], [v]));
 export const swapLog = (tx: number, block: number, pool: Hex, sender: Hex, to: Hex) =>
-  log(tx, block, pool, encodeEventTopics({ abi: swapAbi, eventName: "Swap", args: { sender, to } }) as Hex[], encodeAbiParameters([{ type: "uint256" }], [1n]));
+  log(tx, block, pool, encodeEventTopics({ abi: swapAbi, eventName: "Swap", args: { sender, to } }) as Hex[], encodeAbiParameters([{ type: "uint256" }, { type: "uint256" }, { type: "uint256" }, { type: "uint256" }], [1n, 0n, 0n, 1n]));
 
 /** A tiny chain: blocks with 1 s spacing, transactions with receipts and logs, two ERC-20s, the contracts S/POOL/C. */
 export function fakeWorld(txs: FakeTx[], head = 400, spy: { tool: string; args: any }[] = []) {
@@ -41,7 +41,7 @@ export function fakeWorld(txs: FakeTx[], head = 400, spy: { tool: string; args: 
         return { number: hex(n), timestamp: hex(T0 + n), transactions: args.includeTransactions ? inBlock.map((t) => ({ hash: th(t.n), from: t.from, to: t.to, value: hex(t.value ?? 0n), input: t.input ?? "0x" })) : inBlock.map((t) => th(t.n)) };
       }
       case "get_transaction": { const t = byHash.get(args.hash); return t ? { hash: args.hash, from: t.from, to: t.to, value: hex(t.value ?? 0n), input: t.input ?? "0x", gasPrice: hex(10n ** 9n) } : null; }
-      case "get_transaction_receipt": { const t = byHash.get(args.hash); return t ? { blockNumber: hex(t.block), status: t.status === 0 ? "0x0" : "0x1", gasUsed: hex(21000), effectiveGasPrice: hex(10n ** 9n) } : null; }
+      case "get_transaction_receipt": { const t = byHash.get(args.hash); return t ? { blockNumber: hex(t.block), status: t.status === 0 ? "0x0" : "0x1", gasUsed: hex(21000), effectiveGasPrice: hex(10n ** 9n), logs: [...(t.logs ?? []), ...(t.receiptOnly ?? [])] } : null; }
       case "get_code": return { code: [S, POOL, C, TKN, OTH].some((a) => a.toLowerCase() === String(args.address).toLowerCase()) ? "0x6001" : "0x" };
       case "get_transaction_count": { const upto = args.block === undefined || args.block === "latest" ? head : Number(args.block); return { nonce: String(txs.filter((t) => t.from === W && t.block <= upto).length) }; }
       case "get_logs": {
@@ -87,3 +87,16 @@ export const nativeSwap = (): FakeTx => ({ n: 10, block: 114, from: W, to: POOL,
 export const ZERO_ADDR = "0x0000000000000000000000000000000000000000" as Hex;
 /** Tokens minted to the wallet: a Transfer from the zero address, sent by someone else. */
 export const mintTx = (): FakeTx => ({ n: 11, block: 118, from: B, to: TKN, input: "0x1249c58b", logs: [transfer(11, 118, TKN, ZERO_ADDR, W, 9_000_000n)] });
+
+const WITHDRAWAL = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65" as Hex;
+export const withdrawalLog = (tx: number, block: number, token: Hex, src: Hex, wad: bigint): RpcLog => log(tx, block, token, [WITHDRAWAL, pad(src, { size: 32 })], encodeAbiParameters([{ type: "uint256" }], [wad]));
+/** A token sold for the native token through a router: the wallet sends the token to a pool; the Swap event names the router (not the wallet) and the payout is an unwrap. */
+export const sellForNative = (): FakeTx => ({
+  n: 13, block: 116, from: W, to: C, input: "0x18cbafe5",
+  logs: [transfer(13, 116, TKN, W, POOL, 4_000_000n)],
+  receiptOnly: [swapLog(13, 116, POOL, C, C), withdrawalLog(13, 116, OTH, C, 2n * 10n ** 18n)],
+});
+/** The same shape with no unwrap: nothing shows what came back. */
+export const sellNoPayout = (): FakeTx => ({ n: 14, block: 117, from: W, to: C, input: "0x38ed1739", logs: [transfer(14, 117, TKN, W, POOL, 1_000_000n)], receiptOnly: [swapLog(14, 117, POOL, C, C)] });
+/** Someone else's swap that pays the wallet: the wallet did not send it, so it is a transfer in, not a swap. */
+export const swapByOther = (): FakeTx => ({ n: 15, block: 119, from: B, to: C, input: "0x38ed1739", logs: [transfer(15, 119, TKN, POOL, W, 2_000_000n)], receiptOnly: [swapLog(15, 119, POOL, C, W)] });

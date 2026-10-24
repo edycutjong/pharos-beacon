@@ -13,6 +13,7 @@ export const CATEGORIES: Category[] = ["transfer-in", "transfer-out", "swap", "a
 
 export const TRANSFER_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
 export const APPROVAL_TOPIC = "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925";
+export const WITHDRAWAL_TOPIC = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65"; // Withdrawal(address indexed src, uint256 wad) of a WETH-style wrapped token
 export const APPROVAL_FOR_ALL_TOPIC = "0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31";
 const SWAP_TOPICS = new Set([
   "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822", // Uniswap V2 style Swap(sender, amounts, to)
@@ -39,6 +40,8 @@ export interface Leg {
   decimals: number | undefined; // undefined: not an ERC-20 we could read (NFT or unreadable): raw units
   amountRaw: bigint;
   nft?: bigint;
+  /** Why the leg is shown when the chain does not show it directly, e.g. "unwrapped from WPROS". */
+  note?: string;
 }
 
 export interface Item {
@@ -270,6 +273,20 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
       }
     }
 
+    // A swap routed through a pool the wallet is not a topic of: a V2 Swap event names the router, not the wallet, so the wallet's own log query
+    // never sees it. The receipt holds every log of the transaction, so a Swap event anywhere in a transaction the wallet SENT makes it a swap.
+    const rlogs = ((rc as unknown as { logs?: RpcLog[] }).logs ?? []) as RpcLog[];
+    if (sentByMe && swapPool === null) {
+      const sl = rlogs.find((l) => l.topics[0] && SWAP_TOPICS.has(l.topics[0].toLowerCase()));
+      if (sl) swapPool = sl.address as Hex;
+    }
+    // A sale for the native token pays out through an unwrap of the wrapped token (WETH-style Withdrawal), which the Chain MCP shows only as an
+    // event of the wrapped-token contract: exactly one of them in a swap the wallet sent, with nothing else coming back, is read as the native receipt.
+    if (sentByMe && swapPool !== null && ins.length === 0 && outs.length > 0) {
+      const wd = rlogs.filter((l) => l.topics[0]?.toLowerCase() === WITHDRAWAL_TOPIC && l.data && l.data !== "0x");
+      if (wd.length === 1) ins.push({ token: "native", symbol: nativeSymbol, decimals: 18, amountRaw: BigInt(wd[0]!.data), note: "unwrapped from the wrapped token" });
+    }
+
     // The wallet's own native value in this tx.
     const value = num(tx.value);
     const nativeLeg = (): Leg => ({ token: "native", symbol: nativeSymbol, decimals: 18, amountRaw: value });
@@ -383,7 +400,7 @@ export function fmtAmount(raw: bigint, decimals: number | undefined, symbol: str
   const f = frac.slice(0, 4).replace(/0+$/, "");
   return `${group(int!)}${f ? `.${f}` : ""} ${symbol}`.trim();
 }
-export const fmtLeg = (l: Leg) => (l.nft !== undefined ? `${l.symbol} #${l.nft}` : fmtAmount(l.amountRaw, l.decimals, l.symbol));
+export const fmtLeg = (l: Leg) => (l.nft !== undefined ? `${l.symbol} #${l.nft}` : `${fmtAmount(l.amountRaw, l.decimals, l.symbol)}${l.note ? ` (${l.note})` : ""}`);
 export const fmtWei = (wei: bigint, symbol: string) => {
   const s = formatUnits(wei, 18);
   const [i, f = ""] = s.split(".");
