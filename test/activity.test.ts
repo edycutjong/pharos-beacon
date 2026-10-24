@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { blockAtOrAfter, collectActivity, MAX_RANGE_BLOCKS, parseWallet, rangeForTimes, totalsOf } from "../src/activity/engine.js";
 import { csvReport, highlights, markdownReport, notableTxs } from "../src/activity/report.js";
-import { B, C, fakeWorld, OTH, POOL, S, T0, TKN, W, world } from "./helpers/fake-activity.js";
+import { B, C, fakeWorld, OTH, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
 
 const range = { fromBlock: 90n, toBlock: 200n };
 const collect = (scanBlocks = 0, txs = world()) => collectActivity(fakeWorld(txs), "pharos", W, range, { scanBlocks });
@@ -16,6 +16,12 @@ describe("collectActivity", () => {
     expect(out.out[0]).toMatchObject({ symbol: "TKN", decimals: 6, amountRaw: 5_000_000n });
     expect(a.items[1]!.feeWei).toBe(0n); // B sent it, so W paid no fee
     expect(a.items[0]!.feeWei).toBe(21000n * 10n ** 9n);
+  });
+
+  it("an Approval log from a spender using up an allowance is not reported as a new approval", async () => {
+    const a = await collect(0, [...world(), spentAllowance()]);
+    const t8 = a.items.filter((i) => i.tx.endsWith("08"));
+    expect(t8.map((i) => i.category)).toEqual(["transfer-out"]);
   });
 
   it("flags an unlimited approval and names the spender", async () => {
