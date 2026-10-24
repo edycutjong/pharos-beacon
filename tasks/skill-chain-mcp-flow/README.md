@@ -70,7 +70,7 @@ network atlantic (chain 688689)
 
 ## Installed and run by an agent
 
-[`proof/agent-run.md`](proof/agent-run.md) records it: `npx skills add <fresh clone> --skill settlement-verdict -a claude-code` installs the skill, then `claude -p` (Sonnet) gets one short prompt ("I am about to release goods against the newest transaction on Pharos mainnet. Can I treat it as paid? Give me the verdict and the rule behind it, in two lines."). The agent calls the Skill tool, runs `npm run skill-chain-mcp-flow -- --latest --network pharos`, and answers WAIT with the rule. It ran against whatever was newest at that moment, so a re-run gives another transaction and maybe another verdict.
+[`proof/agent-run.md`](proof/agent-run.md) records it: `npx skills add <fresh clone> --skill settlement-verdict -a claude-code` installs the skill, then `claude -p` (Sonnet) gets one short prompt ("I am about to release goods against the newest transaction on Pharos mainnet. Can I treat it as paid? Give me the verdict and the rule behind it, in two lines."). The agent calls the Skill tool, runs `npm run skill-chain-mcp-flow -- --latest --network pharos`, and answers WAIT with the rule. It ran against whatever was newest at that moment, so a re-run gives another transaction and maybe another verdict. A second run in the same file (section 5) names the mainnet transaction `0x25ab34…ccd0`: the agent reports status and depth (1053 confirmations against 3 required) and says it cannot call it paid without the expected recipient and amount, which is the skill's guardrail.
 
 ## Limits
 
