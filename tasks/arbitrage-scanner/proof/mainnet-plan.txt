@@ -1,0 +1,19 @@
+scan at block 21129343 (pharos) — WPROS/USDC
+  source uniswap-v3-style 0x912c…f647       mid 0.649403 USDC per WPROS · fee 1.00 bps
+  source dodo-v2-pmm 0xac99…7196            mid 0.662334 USDC per WPROS · fee 24.00 bps
+  route             in  gross bps      gross       fees     impact       slip        gas         NET
+  A→B         0.010000      199.1   0.000199   0.000031   0.000021   0.000010   0.002319   -0.002182
+  A→B         0.050000      199.1   0.000996   0.000156   0.000520   0.000050   0.002319   -0.002049
+  A→B         0.100000      199.1   0.001991   0.000309   0.002056   0.000100   0.002319   -0.002793
+  A→B         0.250000      199.1   0.004978   0.000752   0.012476   0.000250   0.002319   -0.010819
+  A→B         0.500000      199.1   0.009956   0.001437   0.047577   0.000500   0.002319   -0.041877
+  B→A         0.010000     -195.2  -0.000195   0.000031   0.000020   0.000010   0.002273   -0.002529
+  B→A         0.050000     -195.2  -0.000976   0.000155   0.000486   0.000050   0.002273   -0.003940
+  B→A         0.100000     -195.2  -0.001952   0.000310   0.001928   0.000100   0.002273   -0.006563
+  B→A         0.250000     -195.2  -0.004881   0.000774   0.011723   0.000250   0.002273   -0.019901
+  B→A         0.500000     -195.2  -0.009762   0.001545   0.044770   0.000500   0.002273   -0.058850
+  (route A→B = buy WPROS on source A, sell on B)
+SKIP: best round trip uniswap-v3-style 0x912c…f647 → dodo-v2-pmm 0xac99…7196 starting with 0.050000 USDC: gross +199.1 bps (0.000996 USDC), costs 0.003045 USDC (fees 0.000156 USDC + impact 0.000520 USDC + slippage buffer 0.000050 USDC + gas 0.002319 USDC) → net -0.002049 USDC < the 0.001000 USDC threshold: the spread does not survive its costs
+logged to state/scans.jsonl
+PLAN shown for inspection only: this scan decided SKIP, nothing would be sent: [{"venue":"uniswap-v3-style 0x912c…f647","amountIn":"0.050000 USDC in","minOut":"0.07690908"},{"venue":"dodo-v2-pmm 0xac99…7196","amountIn":"0.07698606 WPROS in","minOut":"0.050269"}]
+proof: tasks/arbitrage-scanner/proof/mainnet-plan.json
