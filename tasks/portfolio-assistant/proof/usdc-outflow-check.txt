@@ -1,0 +1,4 @@
+USDC Transfer events with 0x0665…4bE3 as sender or receiver, blocks 20851696…21136550 (the "What changed since 3 days ago?" window)
+out block 20980762 4382332.52 USDC to 0xffdea41bab1b6af3e151a7a81c815b8fb2e39521 tx 0x78a90ef5e3c7a9b265cf18ea607521d79d0867fab01c7befd844d68fd1b665d2
+out block 21032790 4.43 USDC to 0xe3de40836356216c151bbafe1985af3b227e8e81 tx 0xe6df3319c1a92281ae29189a5c1f41e32792804beb946f21ae4b67be44845e9b
+total out 4382336.95 USDC, total in 0.00 USDC, net -4382336.95 USDC
