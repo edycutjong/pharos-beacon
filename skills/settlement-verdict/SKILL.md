@@ -53,7 +53,7 @@ does it, in this order, and prints the verdict:
    The tier defaults to 3 confirmations below 1 coin, 12 from 1 up to (not including) 100, 32 from 100 up; `--tiers 1=3,100=12,*=32` changes it and
    `--confirmations N` overrides it for this run.
 4. **Report** the verdict line, the `rule` line and the depth line to the user in plain words. Exit code 0 = SETTLED,
-   2 = WAIT (also bad flags), 1 = FAILED, MISMATCH, NOT_FOUND or an error.
+   2 = WAIT (also bad input), 1 = FAILED, MISMATCH, NOT_FOUND or an error.
 
 ## Guardrails
 

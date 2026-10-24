@@ -96,9 +96,9 @@ export function requiredFor(valueWei: bigint, tokenTransfers: number, tiers: Tie
 }
 
 /**
- * Judge one transaction. Reads, in this order: get_transaction → get_block_number → get_transaction_receipt → then, only on the
- * SETTLED/WAIT path, get_block for head and head−20 (in parallel) for the observed block time. A missing transaction ends it after
- * get_block_number; a reverted or mismatched one before the block reads.
+ * Judge one transaction. Reads, in this order: get_transaction → get_block_number → get_transaction_receipt → then, only for a
+ * mined transaction that is not FAILED or MISMATCH, get_block for head and head−20 (in parallel) for the observed block time.
+ * A missing transaction ends it after get_block_number; a not-yet-mined one after the receipt read.
  */
 export async function judge(call: Call, hash: Hex, opts: { tiers?: Tier[]; expect?: Expect; override?: number } = {}): Promise<Report> {
   const tiers = opts.tiers ?? DEFAULT_TIERS;

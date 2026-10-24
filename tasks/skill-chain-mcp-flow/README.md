@@ -2,7 +2,7 @@
 
 **Task:** [Skill + Chain MCP Flow](https://pharos-agent-arena.vercel.app/tasks/skill-chain-mcp-flow) (Composition · Medium · 100 pts): compose a SkillEngine skill with a Chain MCP call into one working agent flow.
 **The flow we picked:** *"Can I treat this transaction as paid?"* The skill [`settlement-verdict`](../../skills/settlement-verdict/SKILL.md) decides SETTLED / WAIT / FAILED / MISMATCH / NOT_FOUND, and every on-chain fact it decides on (transaction, receipt, head block, block times) comes from the Pharos Chain MCP in the same run. The head block decides WAIT versus SETTLED; NOT_FOUND, FAILED and MISMATCH come from the transaction and receipt.
-**Run** (keyless, read-only, Pharos mainnet, Node ≥ 20): `npm ci && npm run skill-chain-mcp-flow -- 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0` (a mainnet transaction: SETTLED), `-- --latest` (whatever is newest: often WAIT), or `npm run skill-chain-mcp-flow -- 0x<txhash> [--expect-to 0x… --min-value 0.5 --follow 60]`. `--network atlantic` needs the one-time `npm run setup:mcp`.
+**Run** (keyless, read-only, Pharos mainnet, Node ≥ 20): `npm ci && npm run skill-chain-mcp-flow -- 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0` (a mainnet transaction: SETTLED), `-- --latest` (whatever is newest: WAIT when it is only a few blocks old), or `npm run skill-chain-mcp-flow -- 0x<txhash> [--expect-to 0x… --min-value 0.5 --follow 60]`. `--network atlantic` needs the one-time `npm run setup:mcp`.
 **Install as a skill:** `npx skills add https://github.com/edycutjong/pharos-beacon --skill settlement-verdict`.
 
 ## The flow: what calls what, in what order
@@ -25,7 +25,7 @@ agent loads the Skill  settlement-verdict (SKILL.md: the question, the rules, th
 Skill rule   confirmations = head − block + 1  vs  the value tier's requirement (3 / 12 / 32)
    │  below → WAIT n more blocks (about s seconds)     at or above → SETTLED
    ▼
-verdict + the rule that decided + depth    (exit code 0 SETTLED · 2 WAIT · 1 FAILED, MISMATCH, NOT_FOUND or a runtime error; bad flags also exit 2 and print the usage line)
+verdict + the rule that decided + depth    (exit code 0 SETTLED · 2 WAIT · 1 FAILED, MISMATCH, NOT_FOUND or a runtime error; bad input also exits 2: unknown flags and wrong argument counts print the usage line, other bad values one error line)
 ```
 
 The order is the order of the tool calls in every proof (`flow` in each `proof/*.json`, with the arguments and the milliseconds each call took). `--follow` repeats the reads every 2 s until the verdict is no longer WAIT or the `--follow` seconds run out (a not-yet-mined WAIT repeats steps 1–3 only). `--latest` first adds `get_block_number` and up to 60 `get_block` calls to find a transaction.
@@ -70,7 +70,7 @@ network atlantic (chain 688689)
 
 ## Installed and run by an agent
 
-[`proof/agent-run.md`](proof/agent-run.md) records it: `npx skills add <fresh clone> --skill settlement-verdict -a claude-code` installs the skill, then `claude -p` (Sonnet) gets one short prompt ("I am about to release goods against the newest transaction on Pharos mainnet. Can I treat it as paid? Give me the verdict and the rule behind it, in two lines."). The agent calls the Skill tool, runs `npm run skill-chain-mcp-flow -- --latest --network pharos`, and answers WAIT with the rule. It ran against whatever was newest at that moment, so a re-run gives another transaction and maybe another verdict. A second run in the same file (section 5) names the mainnet transaction `0x25ab34…ccd0`: the agent reports status and depth (1053 confirmations against 3 required) and says it cannot call it paid without the expected recipient and amount, which is the skill's guardrail.
+[`proof/agent-run.md`](proof/agent-run.md) records it: `npx skills add <fresh clone> --skill settlement-verdict -a claude-code` installs the skill, then `claude -p` (Sonnet) gets one short prompt ("I am about to release goods against the newest transaction on Pharos mainnet. Can I treat it as paid? Give me the verdict and the rule behind it, in two lines."). The agent calls the Skill tool, runs `npm run skill-chain-mcp-flow -- --latest --network pharos`, and answers WAIT with the rule. It ran against whatever was newest at that moment, so a re-run gives another transaction and maybe another verdict. A second run in the same file (section 5) names the mainnet transaction `0x25ab34…ccd0`: the agent reports status and depth (1053 confirmations against 3 required) and says it cannot call it paid without the expected recipient and amount, and that the skill does not read token amounts (the skill's token guardrail).
 
 ## Limits
 

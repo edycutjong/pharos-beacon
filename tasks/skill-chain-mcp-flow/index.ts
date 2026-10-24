@@ -3,7 +3,7 @@
 //   npm run skill-chain-mcp-flow -- 0x<txhash> [--network pharos|atlantic] [--expect-to 0x…] [--min-value 0.5]
 //   npm run skill-chain-mcp-flow -- --latest        (the newest transaction on the network)
 //   [--tiers 1=3,100=12,*=32] [--confirmations N] [--follow SECONDS] [--proof name]
-// Exit code: 0 SETTLED · 2 WAIT · 1 anything else.
+// Exit code: 0 SETTLED · 2 WAIT or bad input (usage error) · 1 FAILED, MISMATCH, NOT_FOUND or a runtime error.
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isAddress, type Hex } from "viem";
