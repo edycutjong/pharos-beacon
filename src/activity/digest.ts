@@ -131,7 +131,7 @@ export function topEvents(a: Activity, prev?: Metrics, limit = 3): Notable[] {
   const firstSeen = new Set<string>();
   for (const it of a.items) {
     const leg = (it.category === "transfer-out" ? it.out[0] : it.category === "transfer-in" ? it.in[0] : undefined);
-    if (it.unlimited) put(it, "unlimited approval", SCORE.unlimited, `Unlimited approval: ${it.counterparty} can move ${it.out.map(fmtLeg).join(", ")}`);
+    if (it.unlimited) put(it, "unlimited approval", SCORE.unlimited, `Unlimited approval: ${it.counterparty} can move ${it.out[0]!.symbol} without a cap`);
     if (it.status === "reverted") put(it, "failed transaction", SCORE.failed, `A ${it.method ?? it.category} transaction failed (reverted)`);
     const cp = it.counterparty?.toLowerCase();
     if (known && cp && !known.has(cp) && !firstSeen.has(cp)) {

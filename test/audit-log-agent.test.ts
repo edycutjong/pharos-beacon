@@ -44,6 +44,15 @@ describe("audit-log-agent main", () => {
     expect(readFileSync(join(dir, "audit-0x317bca-90-200.md"), "utf8")).toContain("Outgoing transactions found: 5 of 5");
   });
 
+  it("--compact prints a narrow view: every line fits 62 columns and the five categories are there", async () => {
+    await main(ctx, ["--wallet", W, "--from-block", "90", "--to-block", "200", "--baseline", "none", "--compact", "--scan-blocks", "111"], conn(), NOW);
+    const lines = out.join("\n").split("\n").slice(2);
+    expect(Math.max(...lines.map((l) => [...l].length))).toBeLessThanOrEqual(62);
+    for (const k of ["transfers in", "transfers out", "swaps", "approvals", "contract calls"]) expect(lines.join("\n")).toContain(k);
+    expect(lines.join("\n")).toContain("sent txs: 5 of 5 matched by the chain's nonce");
+    expect(lines.join("\n")).not.toContain("# Wallet activity report");
+  });
+
   it("by default the previous period of the same length is read for first-time counterparties", async () => {
     await main(ctx, ["--wallet", W, "--from-block", "120", "--to-block", "170"], conn(), NOW);
     expect(out.join("\n")).not.toContain("First-time counterparties are not checked");
