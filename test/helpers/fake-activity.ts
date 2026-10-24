@@ -99,4 +99,4 @@ export const sellForNative = (): FakeTx => ({
 /** The same shape with no unwrap: nothing shows what came back. */
 export const sellNoPayout = (): FakeTx => ({ n: 14, block: 117, from: W, to: C, input: "0x38ed1739", logs: [transfer(14, 117, TKN, W, POOL, 1_000_000n)], receiptOnly: [swapLog(14, 117, POOL, C, C)] });
 /** Someone else's swap that pays the wallet: the wallet did not send it, so it is a transfer in, not a swap. */
-export const swapByOther = (): FakeTx => ({ n: 15, block: 119, from: B, to: C, input: "0x38ed1739", logs: [transfer(15, 119, TKN, POOL, W, 2_000_000n)], receiptOnly: [swapLog(15, 119, POOL, C, W)] });
+export const swapByOther = (): FakeTx => ({ n: 15, block: 119, from: B, to: C, input: "0x38ed1739", logs: [transfer(15, 119, TKN, POOL, W, 2_000_000n), swapLog(15, 119, POOL, C, W)] }); // the Swap event names the wallet as recipient: the wallet's own log query returns it

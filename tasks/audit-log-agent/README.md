@@ -29,7 +29,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
    (from / to), `Approval` (owner) and `Swap` events. `get_transaction` + `get_transaction_receipt` give the sender, the call, the status and the fee.
 3. **What leaves no log** (a plain PROS transfer, a call that emits nothing) is found through the **nonce**: the wallet's nonce rises by one for every
    transaction it sends, so the engine reads `get_transaction_count` at the two ends of the range, and when it is higher than the sends it already
-   saw, it **bisects the nonce** to the exact blocks where the rest were sent (about one nonce read per halving of the range; the Atlantic proof below spent 55 reads for 7 sends) and opens only those blocks. In plain words: it cross-checks the number of transactions the wallet sent against the chain's own counter for that wallet.
+   saw, it **bisects the nonce** to the exact blocks where the rest were sent (about one nonce read per halving of the range; the Atlantic proof below spent 55 reads in the search for 7 sends, plus 2 at the ends of the range) and opens only those blocks. In plain words: it cross-checks the number of transactions the wallet sent against the chain's own counter for that wallet.
    The report says how many sent transactions it found against how many the nonce counts ("Outgoing transactions found: 21 of 21 …"; `--compact`: "sent txs: 11 of 11 matched by the chain's nonce"), so a gap is visible instead of hidden.
 
 ## Requirements → evidence
@@ -45,7 +45,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
 
 - **Highlights** sit at the top of the report: **first-time counterparties** (anyone the wallet dealt with that it did not in the previous period of the
   same length, which the agent reads by default), the **largest outflow** of each of the three most-sent tokens, and every **unlimited approval**. The third-party wallet's day
-  shows 3 first-time counterparties (pools it swapped through) and 3 unlimited approvals to one spender.
+  shows 3 first-time counterparties (the swap pools, i.e. the contracts that emitted the Swap events) and 3 unlimited approvals to one spender.
 - **The nonce check** ("21 of 21" sent transactions found) is a completeness check for what the wallet sent; on our Atlantic wallet the logs alone found 3 of
   10 sent transactions (the recorded video cast, range 31804700–31806500, prints that line) and the nonce search found the other 7: 55 nonce reads and 7 blocks opened over the 10,001-block proof range, instead of walking every block.
 
@@ -55,7 +55,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
 |---|---|---|
 | A third party's wallet on Pharos mainnet, 2026-10-23 (a wallet we do not control, found among the day's active externally owned accounts; no selection log was kept) | 21 transactions: 18 swaps (10 bought with PROS, 8 sold for PROS), 3 approvals (all unlimited); 21 of 21 sent transactions matched by the nonce; 192 `get_logs` windows; previous day read for the first-time check | [`proof/third-party-mainnet.json`](proof/third-party-mainnet.json) + [`reports/`](proof/reports/) |
 | Our Atlantic wallet 2, blocks 31760575–31807814 | 113 transfers in (111 USDC, 2 WPHRS), all 113 from our wallet 1; 0 sent, 0 expected | [`proof/atlantic-received.json`](proof/atlantic-received.json) |
-| Our Atlantic wallet 1, blocks 31798000–31808000 | 119 transfers out (111 USDC, 2 WPHRS, 6 PHRS sends: 4 with empty calldata, 2 with a short data field), 2 contract interactions (a `deposit` that wrapped 0.01 PHRS, and a reverted `withdraw`); 10 of 10 sent transactions, 7 of them found by the nonce search (55 nonce reads, 7 blocks opened) | [`proof/atlantic-sent.json`](proof/atlantic-sent.json) |
+| Our Atlantic wallet 1, blocks 31798000–31808000 | 119 transfers out (111 USDC, 2 WPHRS, 6 PHRS sends: 4 with empty calldata, 2 carrying a reference in the data field (selectors 0x494e562d and 0x424d2f32)), 2 contract interactions (a `deposit` that wrapped 0.01 PHRS, and a reverted `withdraw`); 10 of 10 sent transactions, 7 of them found by the nonce search (55 nonce reads, 7 blocks opened) | [`proof/atlantic-sent.json`](proof/atlantic-sent.json) |
 
 The three proofs record `dirty: false` (commits 48b04b7, 1efb3ae and abf8d05, all on the final code). The Atlantic wallets are ours, so "received" and "sent" there are our own
 test traffic, and the README says so rather than calling it organic activity (the 111 USDC transfers use the selector `0xe3ee160e`, EIP-3009 `transferWithAuthorization`, which is how the x402 tasks settle). The mainnet wallet is the independent evidence.
@@ -103,7 +103,7 @@ Fees paid: 0.033894 PROS across the transactions this wallet sent. Counts are it
 
 ## Video
 
-The video (`audit-log-agent.mp4`, kept with the submission and posted on X, not in this repo) is three real terminal recordings, not the proof runs: the `--compact` view on a third party's mainnet wallet over
+The video (`audit-log-agent.mp4`, kept with the submission, not in this repo) is three real terminal recordings, not the proof runs: the `--compact` view on a third party's mainnet wallet over
 blocks 21042000–21082000 (11 of 11 sent transactions matched), our Atlantic wallet over blocks 31804700–31806500 (the logs show 3 of 10 sent transactions, the nonce
 search finds the other 7), and a read of the CSV that the Atlantic proof run wrote. Their output is in [`proof/video-casts.log`](proof/video-casts.log). Waits are trimmed on screen and labelled.
 
@@ -115,9 +115,9 @@ search finds the other 7), and a read of the CSV that the Atlantic proof run wro
   newest N and costs one call per block).
 - A swap is recognised from a `Swap` event anywhere in the receipt of a transaction the wallet sent, or from the wallet giving one token and getting another in one
   transaction; a router call that moves nothing the logs show is a contract interaction. When a token is sold for the native token the payout is an unwrap that the Chain MCP shows
-  only as a `Withdrawal` event of the wrapped token: exactly one in the swap is read as the native receipt and marked "unwrapped from the wrapped token"; with none the `Got` column is empty. Someone else's swap that pays the wallet stays a transfer in.
+  only as a `Withdrawal` event of the wrapped token: exactly one in the swap is read as the native receipt and marked "unwrapped from the wrapped token"; with none the `Got` column shows "—" (empty in the CSV). The native amount is inferred from the `Withdrawal` event, not observed as a transfer (the Chain MCP does not show internal transfers). Someone else's swap that pays the wallet stays a transfer in.
 - The transactions read from logs or a block scan are capped by `--max-txs` (default 400, and the report counts what it skipped); the nonce search that finds sends the logs missed is bounded by `--discover-calls` (default 300) and says when it stopped. 
-- A range over 3,000,000 blocks (about a month on mainnet) is refused: run it in pieces. A week is about 600,000 to 670,000 blocks (601,888 and 611,437 for the two weeks in the Weekly Digest proofs): about 1,200 to 1,340 `get_logs` calls, about 12 to 14 minutes at the 100 calls a minute the client paces itself to, and about twice that with the default previous-period read.
+- A range over 3,000,000 blocks (about a month on mainnet) is refused: run it in pieces. A week is about 600,000 to 670,000 blocks (about 1,200 to 1,340 `get_logs` calls, about 12 to 14 minutes at the 100 calls a minute the client paces itself to, and about twice that with the default previous-period read).
 - First-time counterparties compare with the one previous period only, not with the wallet's whole history, and that earlier read does not run the nonce search, so the recipient of a plain PROS send in that period can still be flagged as first-time.
 - The zero address is shown as "mint or burn" and is never a first-time counterparty.
 - No PDF export.
