@@ -81,8 +81,8 @@ export function metricsOf(a: Activity, period: string): Metrics {
   };
 }
 
-const pct = (cur: number, prev: number) => (prev === 0 ? (cur === 0 ? "0%" : "new") : `${cur >= prev ? "+" : "-"}${Math.round((Math.abs(cur - prev) / prev) * 100)}%`);
-const delta = (cur: number, prev: number) => `${cur - prev >= 0 ? "+" : ""}${cur - prev}`;
+const pct = (cur: number, prev: number) => (cur === prev ? "0%" : prev === 0 ? "new" : `${cur > prev ? "+" : "-"}${Math.round((Math.abs(cur - prev) / prev) * 100)}%`);
+const delta = (cur: number, prev: number) => (cur === prev ? "0" : `${cur > prev ? "+" : ""}${cur - prev}`);
 
 export interface CompareRow { metric: string; current: string; previous: string; change: string }
 
