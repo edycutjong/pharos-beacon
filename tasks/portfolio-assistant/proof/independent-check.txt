@@ -1,4 +1,4 @@
-Independent cross-check of the debt/health figures, 2026-10-25, by a DIFFERENT module (the Liquidation Watchdog's CLI, tasks/liquidation-watchdog).
+Cross-check of the debt/health figures, 2026-10-25, against the Liquidation Watchdog's CLI (tasks/liquidation-watchdog). It shares the Morpho read code (src/liq/morpho.ts) with the Portfolio Assistant, so it checks the wiring and the block-to-block consistency, not the formula (the formula's own recompute is tasks/liquidation-watchdog/proof/independent-check.py).
 It reads the same two Morpho Blue positions of 0x6776…1a2b a little later (head 21137896 / 21137899, the proofs are pinned at 21136550),
 so the debt is a few USDC higher (interest accrues every second) and the health factors agree to four decimals.
 
