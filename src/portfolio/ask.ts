@@ -126,7 +126,7 @@ const MSG = {
     blockLine: (b: bigint, w: string) => `Wallet ${w} at block ${b}:`,
     cantRead: (what: string, why: string) => `I could not read ${what}: ${why}. I will not guess it.`,
     unpriced: "not valued (no price source was read for it)",
-    refusal: (what: string) => `I can't answer that: ${what}. I only read wallet token balances (SkillEngine list + PROS), the RockawayX and Centrifuge (JTRSY, HYB) vaults, and Morpho Blue markets on Pharos mainnet.`,
+    refusal: (what: string) => `I can't answer that: ${what}. I only read wallet token balances (SkillEngine list + PROS), the RockawayX and JTRSY/HYB fund vaults, and Morpho Blue markets on Pharos mainnet.`,
     unknown: "I didn't understand that. I can answer: how much of a token you hold, where a token is, your biggest position, what you earn, what you owe, your total, what you hold, and what changed since a block or N days ago.",
   },
   id: {
@@ -135,15 +135,15 @@ const MSG = {
     blockLine: (b: bigint, w: string) => `Dompet ${w} pada blok ${b}:`,
     cantRead: (what: string, why: string) => `Saya tidak bisa membaca ${what}: ${why}. Saya tidak akan menebaknya.`,
     unpriced: "tidak dinilai (tidak ada sumber harga yang dibaca)",
-    refusal: (what: string) => `Saya tidak bisa menjawab itu: ${what}. Saya hanya membaca saldo token dompet (daftar SkillEngine + PROS), vault RockawayX dan Centrifuge (JTRSY, HYB), serta pasar Morpho Blue di Pharos mainnet.`,
+    refusal: (what: string) => `Saya tidak bisa menjawab itu: ${what}. Saya hanya membaca saldo token dompet (daftar SkillEngine + PROS), vault RockawayX dan vault dana JTRSY/HYB, serta pasar Morpho Blue di Pharos mainnet.`,
     unknown: "Saya tidak mengerti. Saya bisa menjawab: berapa token yang Anda punya, di mana sebuah token berada, posisi terbesar, penghasilan, utang, total, apa yang Anda pegang, dan apa yang berubah sejak sebuah blok atau N hari lalu.",
   },
 } as const;
 
 /** What each answer type calls itself in each language (the lines that are not numbers). */
 const W = {
-  en: { noRead: (t: string) => `I have no successful read of ${t}, so I cannot say what you hold`, amongRead: "among what I could read", zeroRead: "the read returned 0", read: "read", netDef: "collateral + supply − debt", supplied: "supplied", borrowedNotHeld: (t: string) => `${t} borrowed, not held`, mayFall: "may fall", beforeLiq: "before liquidation", collateralValue: "collateral", noApy: "I did not compute its supply APY (only the position was read).", nothingEarns: "Nothing here earns: wallet tokens pay no yield, and no vault shares or Morpho supply were found", in: "in", wallet: "wallet", vault: "vault", worth: "worth", none: (t: string) => `You hold no ${t} here`, total: "Total value", of: "of", debt: "debt", collateral: "collateral", health: "health factor", noDebt: "No debt", earns: "grew", perYear: "a year", on: "on", about: "that is about", apy: "annualised", over: "over", days: "days", biggest: "Your biggest position is", biggestMulti: "The biggest position across these wallets is", ranked: "Ranked", changedSince: "Since block", before: "before", after: "after", flows: "from balance moves", priceMove: "from price/rate moves", nothingChanged: "Nothing changed", walletTokens: "wallet tokens", where: "Your" },
-  id: { noRead: (t: string) => `Saya tidak punya bacaan ${t} yang berhasil, jadi saya tidak bisa bilang berapa yang Anda pegang`, amongRead: "di antara yang bisa saya baca", zeroRead: "hasil bacaannya 0", read: "bacaan", netDef: "jaminan + suplai − utang", supplied: "disuplai", borrowedNotHeld: (t: string) => `${t} dipinjam, tidak dipegang`, mayFall: "boleh turun", beforeLiq: "sebelum likuidasi", collateralValue: "jaminan", noApy: "Saya tidak menghitung APY suplainya (hanya posisinya yang dibaca).", nothingEarns: "Tidak ada yang menghasilkan di sini: token dompet tidak memberi imbal hasil, dan tidak ditemukan saham vault atau suplai Morpho", in: "di", wallet: "dompet", vault: "vault", worth: "senilai", none: (t: string) => `Anda tidak punya ${t} di sini`, total: "Total nilai", of: "dari", debt: "utang", collateral: "jaminan", health: "faktor kesehatan", noDebt: "Tidak ada utang", earns: "tumbuh", perYear: "setahun", on: "dari", about: "itu sekitar", apy: "disetahunkan", over: "selama", days: "hari", biggest: "Posisi terbesar Anda adalah", biggestMulti: "Posisi terbesar di dompet-dompet ini adalah", ranked: "Peringkat", changedSince: "Sejak blok", before: "sebelum", after: "sesudah", flows: "dari perpindahan saldo", priceMove: "dari perubahan harga/imbal hasil", nothingChanged: "Tidak ada yang berubah", walletTokens: "token dompet", where: "Milik Anda" },
+  en: { noPosition: "no position of it was read", fell: "fell", fellNote: "a vault share price that falls is unusual; I report it as read and do not annualise it", noRead: (t: string) => `I have no successful read of ${t}, so I cannot say what you hold`, amongRead: "among what I could read", zeroRead: "the read returned 0", read: "read", netDef: "collateral + supply − debt", supplied: "supplied", borrowedNotHeld: (t: string) => `${t} borrowed, not held`, mayFall: "may fall", beforeLiq: "before liquidation", collateralValue: "collateral", noApy: "I did not compute its supply APY (only the position was read).", nothingEarns: "Nothing here earns: wallet tokens pay no yield, and no vault shares or Morpho supply were found", in: "in", wallet: "wallet", vault: "vault", worth: "worth", none: (t: string) => `You hold no ${t} here`, total: "Total value", of: "of", debt: "debt", collateral: "collateral", health: "health factor", noDebt: "No debt", earns: "grew", perYear: "a year", on: "on", about: "that is about", apy: "annualised", over: "over", days: "days", biggest: "Your biggest position is", biggestMulti: "The biggest position across these wallets is", ranked: "Ranked", changedSince: "Since block", before: "before", after: "after", flows: "from balance moves", priceMove: "from price/rate moves", nothingChanged: "Nothing changed", walletTokens: "wallet tokens", where: "Your" },
+  id: { noPosition: "tidak ada posisinya yang terbaca", fell: "turun", fellNote: "harga saham vault yang turun itu tidak biasa; saya laporkan apa adanya dan tidak menyetahunkannya", noRead: (t: string) => `Saya tidak punya bacaan ${t} yang berhasil, jadi saya tidak bisa bilang berapa yang Anda pegang`, amongRead: "di antara yang bisa saya baca", zeroRead: "hasil bacaannya 0", read: "bacaan", netDef: "jaminan + suplai − utang", supplied: "disuplai", borrowedNotHeld: (t: string) => `${t} dipinjam, tidak dipegang`, mayFall: "boleh turun", beforeLiq: "sebelum likuidasi", collateralValue: "jaminan", noApy: "Saya tidak menghitung APY suplainya (hanya posisinya yang dibaca).", nothingEarns: "Tidak ada yang menghasilkan di sini: token dompet tidak memberi imbal hasil, dan tidak ditemukan saham vault atau suplai Morpho", in: "di", wallet: "dompet", vault: "vault", worth: "senilai", none: (t: string) => `Anda tidak punya ${t} di sini`, total: "Total nilai", of: "dari", debt: "utang", collateral: "jaminan", health: "faktor kesehatan", noDebt: "Tidak ada utang", earns: "tumbuh", perYear: "setahun", on: "dari", about: "itu sekitar", apy: "disetahunkan", over: "selama", days: "hari", biggest: "Posisi terbesar Anda adalah", biggestMulti: "Posisi terbesar di dompet-dompet ini adalah", ranked: "Peringkat", changedSince: "Sejak blok", before: "sebelum", after: "sesudah", flows: "dari perpindahan saldo", priceMove: "dari perubahan harga/imbal hasil", nothingChanged: "Tidak ada yang berubah", walletTokens: "token dompet", where: "Milik Anda" },
 } as const;
 
 function unreadableNotes(snaps: Snapshot[], lang: Lang, only?: (u: { protocol: string; what: string }) => boolean): string[] {
@@ -210,7 +210,11 @@ export async function answerQuestion(question: string, reads: Reads, windowDays 
           if (p.loanSymbol.toUpperCase() === sym && p.debt.raw > 0n) rows.push(`${pre}${w.debt}: ${amt(p.debt)} ${w.in} Morpho Blue ${p.pair} (${w.borrowedNotHeld(sym)}) ${c.ref(p.debt)}`);
         }
       }
-      if (!rows.length) out.push(`${w.none(sym)}: ${snaps.flatMap((s) => s.zeros).filter((f) => f.symbol.toUpperCase() === sym).map((f) => `${w.read} ${c.ref(f)}`).join(", ") || "no position read"}`);
+      if (!rows.length) {
+        const z = snaps.flatMap((s) => s.zeros).filter((f) => f.symbol.toUpperCase() === sym);
+        if (z.length) out.push(`${w.none(sym)}: ${z.map((f) => `${w.read} ${c.ref(f)}`).join(", ")}`);
+        else if (!snaps.some((s) => s.unreadable.length)) out.push(`${w.none(sym)} (${w.noPosition})`);
+      }
       else rows.forEach((r) => out.push(`${sym}: ${r}`));
       unreadableNotes(snaps, lang).forEach((n) => out.push(n));
       return finish();
@@ -281,6 +285,10 @@ export async function answerQuestion(question: string, reads: Reads, windowDays 
           try {
             const y = await reads.yieldOf(p, s, windowDays);
             const perYear = p.usd * y.apy;
+            if (y.growth < 0) {
+              out.push(`${who(s)}${p.symbol} (${p.protocol}): 1 share ${w.fell} ${pct(-y.growth, 3)} ${w.over} ${y.days.toFixed(1)} ${w.days} (${amt(y.priceThen, 6)} → ${amt(y.priceNow, 6)}) ${c.ref(y.priceThen, y.priceNow)}; ${w.fellNote}`);
+              continue;
+            }
             out.push(`${who(s)}${p.symbol} (${p.protocol}): 1 share ${w.earns} ${pct(y.growth, 3)} ${w.over} ${y.days.toFixed(1)} ${w.days} (${amt(y.priceThen, 6)} → ${amt(y.priceNow, 6)}) ${c.ref(y.priceThen, y.priceNow)}; ${pct(y.apy, 2)} APY ${w.apy} ${c.ref(y.priceThen, y.priceNow)}; ${w.on} ${usdText(p.usd)} ${c.ref(p.assets)} ${w.about} ${usdText(perYear)} ${w.perYear} ${c.ref(p.assets, y.priceThen, y.priceNow)}`);
           } catch (e) {
             out.push(m.cantRead(`${p.symbol} share price at the earlier block`, (e as Error).message.split("\n")[0]!.slice(0, 120)));

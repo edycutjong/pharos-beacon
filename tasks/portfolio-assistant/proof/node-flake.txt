@@ -1,0 +1,23 @@
+# Two wrong answers from the hosted Chain MCP node, caught while re-checking the proofs (2026-10-25). Why every eth_call / get_balance is now asked twice (src/portfolio/read.ts agreeing()).
+
+## 1. A historical balanceOf, same pinned block 20851696, two different answers
+Run in a fresh clone (USDC of 0x0665…4bE3, the 'What changed since 3 days ago?' row):
+A:   USDC in wallet: 1,420,307.66 → 305.71 USDC; $1,420,307.66 → $305.71 (−$1,420,001.95): −$1,420,001.95 from balances moving, +$0.00 from prices/rates moving [F73, F32]
+The committed proof run of the same command, same block:
+A:   USDC in wallet: 4,382,642.66 → 305.71 USDC; $4,382,642.66 → $305.71 (−$4,382,336.95): −$4,382,336.95 from balances moving, +$0.00 from prices/rates moving [F73, F32]
+Twelve repeats of that read afterwards, for blocks 20851695/6/7 (value ×count; one repeat each of 20851696 and 20851697 came back with another number):
+20851695: 4382642.66 ×12
+20851696: 4382642.66 ×11
+20851697: 4382642.66 ×11
+20851696: 1420307.66 ×1
+20851697: 1.44 ×1
+
+## 2. A head-block share price that contradicted the figure next to it
+In the first English proof (block 21136550) roxUSDC 'price of 1 share' (F26) read 1.003821 while the same answer's 'worth in USDC' (F25) implies 1.007258, and the Bahasa proof of the same block read 1.007258:
+  F25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550
+  F25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550
+  F25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550
+A: 0x62A0…0673 · roxUSDC (RockawayX vault): 1 share grew -0.258% over 7.3 days (1.006414 USDC → 1.003821 USDC) [F40, F26]; -12.13% APY annualised [F40, F26]; on $19,469.79 [F25] that is about $-2,361.29 a year [F25, F40, F26]
+A: 0x0665…4bE3 · JTRSY (fund vault): 1 share grew 0.071% over 7.3 days (1.119288 USDC → 1.120079 USDC) [F41, F38]; 3.60% APY annualised [F41, F38]; on $34,510.28 [F37] that is about $1,243.70 a year [F37, F41, F38]
+
+Both were single reads; the node was not asked twice. Fix: every eth_call/get_balance is read twice and must agree (a third read breaks a tie, otherwise the source is reported unreadable).

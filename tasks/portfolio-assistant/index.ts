@@ -65,13 +65,13 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
       const at = sinceBlock ?? blockForDays(sinceDays ?? windowDays);
       if (at >= head.block) throw new UsageError(`the earlier block ${at} must be before the block read (${head.block})`);
       const out: Snapshot[] = [];
-      for (const w of wallets) out.push(await readSnapshot(call, w as Hex, book, at, true)); // verified: every read twice, see agreeing()
+      for (const w of wallets) out.push(await readSnapshot(call, w as Hex, book, at)); // every read twice, see agreeing()
       return out;
     },
     async yieldOf(pos, snap, days) {
       const from = blockForDays(days);
       const h = await headerAt(call, from);
-      return vaultYield(agreeing(call), pos, from, h.timestamp, snap, book); // the earlier share price is read twice, like every earlier-block read
+      return vaultYield(agreeing(call), pos, from, h.timestamp, snap, book);
     },
   };
 

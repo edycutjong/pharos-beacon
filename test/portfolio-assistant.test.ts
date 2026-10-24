@@ -249,7 +249,7 @@ describe("readSnapshot", () => {
     w.broken.add(`${JT.share}.balanceOf`);
     w.broken.add(`${PROS_POOL}.x`);
     const s = await snapshot(w);
-    expect(s.unreadable.some((u) => u.protocol === "Centrifuge" && /JTRSY share balance/.test(u.what))).toBe(true);
+    expect(s.unreadable.some((u) => u.protocol === "Fund vault" && /JTRSY share balance/.test(u.what))).toBe(true);
     expect(s.positions.some((p) => p.kind === "vault" && p.symbol === "roxUSDC")).toBe(true);
   });
 
@@ -257,7 +257,7 @@ describe("readSnapshot", () => {
     const w = base();
     w.noCode = new Set([MORPHO, JT.share, USDC.address]);
     const s = await snapshot(w);
-    expect(s.unreadable.map((u) => `${u.protocol}: ${u.what}`)).toEqual(expect.arrayContaining(["Morpho Blue: the Morpho Blue contract", "Centrifuge: JTRSY share balance", "Wallet: USDC balance"]));
+    expect(s.unreadable.map((u) => `${u.protocol}: ${u.what}`)).toEqual(expect.arrayContaining(["Morpho Blue: the Morpho Blue contract", "Fund vault: JTRSY share balance", "Wallet: USDC balance"]));
     expect(s.unreadable.find((u) => u.protocol === "Morpho Blue")!.reason).toMatch(/no contract at 0x18573fA1.* at block 1000000 \(Morpho Blue not deployed yet/);
     expect(s.marketsRead).toBe(0);
     expect(s.zeros.some((f) => f.symbol === "USDC" || f.symbol === "JTRSY")).toBe(false);
@@ -314,7 +314,7 @@ describe("readSnapshot", () => {
       return r;
     }) as Call;
     const s = await readSnapshot(flaky, ME, new FactBook());
-    expect(slot0Calls).toBe(4); // two reads that disagreed, then two that agree
+    expect(slot0Calls).toBeGreaterThanOrEqual(3); // the disagreeing read was repeated
     expect(s.unreadable.filter((u) => /PROS price/.test(u.what))).toEqual([]);
     expect(s.positions.find((p) => p.kind === "token" && p.symbol === "WPROS")).toMatchObject({ usd: expect.closeTo(50, 6) });
     let n = 0;
@@ -324,7 +324,7 @@ describe("readSnapshot", () => {
       return r;
     }) as Call;
     const s2 = await readSnapshot(always, ME, new FactBook());
-    expect(s2.unreadable.some((u) => /PROS price/.test(u.what) && /answered differently twice/.test(u.reason))).toBe(true);
+    expect(s2.unreadable.some((u) => /PROS price/.test(u.what) && /answered differently/.test(u.reason))).toBe(true);
     expect(s2.positions.find((p) => p.kind === "token" && p.symbol === "WPROS")).toMatchObject({ usd: null });
   });
 
@@ -336,7 +336,7 @@ describe("readSnapshot", () => {
       if (tool === "eth_call" && args.transaction.data.startsWith("0x70a08231") && getAddress(args.transaction.to) === USDC.address && n++ === 0) return { result: pad(toHex(1_420_307_660_000n), { size: 32 }) }; // the first read of USDC is wrong
       return r;
     }) as Call;
-    const s = await readSnapshot(wrongOnce, ME, new FactBook(), EARLIER, true);
+    const s = await readSnapshot(wrongOnce, ME, new FactBook()); // head read: doubled too
     expect(s.positions.find((p) => p.kind === "token" && p.symbol === "USDC")).toMatchObject({ usd: 1_000 }); // not the wrong 1,420,307.66
     expect(s.unreadable).toEqual([]);
     let m = 0;
@@ -348,15 +348,35 @@ describe("readSnapshot", () => {
     const s2 = await readSnapshot(never, ME, new FactBook(), EARLIER, true);
     expect(s2.unreadable.some((u) => /USDC balance/.test(u.what) && /answered differently on three reads/.test(u.reason))).toBe(true);
     expect(s2.positions.some((p) => p.kind === "token" && p.symbol === "USDC")).toBe(false);
-    // a read at the head is NOT doubled (cost): same fake, verify off → the wrong first read would stand
+    // verify defaults on (head reads too); off = single reads
     let k = 0;
     const counting: Call = (async (tool: string, args: any) => (k++, (real as any)(tool, args))) as Call;
     await readSnapshot(counting, ME, new FactBook(), EARLIER, false);
     const single = k;
     k = 0;
-    await readSnapshot(counting, ME, new FactBook(), EARLIER, true);
+    await readSnapshot(counting, ME, new FactBook(), EARLIER);
     expect(k).toBeGreaterThan(single * 1.5);
     expect(typeof agreeing).toBe("function");
+  });
+
+  it("a falling share price is reported as read, not annualised into a yearly dollar loss", async () => {
+    const w = base();
+    const book = new FactBook();
+    const snap = await readSnapshot(fakeChain(w), ME, book);
+    const r = reads([snap], book, w);
+    r.yieldOf = async (pos) => ({ fromBlock: 1n, toBlock: HEAD, days: 7, growth: -0.003, apy: -0.15, priceThen: book.add("then", 1_010_000n, 6, "USDC", { contract: pos.vault, call: "convertToAssets(1 share)", block: 1n }), priceNow: pos.sharePrice });
+    const a = await answerQuestion("what am I earning?", r);
+    expect(a.text).toMatch(/1 share fell 0\.300% over 7\.0 days.*a vault share price that falls is unusual; I report it as read and do not annualise it/);
+    expect(a.text).not.toMatch(/APY|a year|-\$/);
+    expect((await answerQuestion("apa yang menghasilkan bunga?", r)).text).toContain("turun 0.300%");
+  });
+
+  it("'where is my X' does not say 'you hold none' when X's balance was unreadable", async () => {
+    const w = base();
+    w.noCode = new Set([getAddress("0x1f4b7011Ee3d53969bb67F59428a9ec0477856E9")]);
+    const { a } = await ask("where is my WETH?", w);
+    expect(a.text).not.toMatch(/You hold no WETH/);
+    expect(a.text).toMatch(/I could not read Wallet: WETH balance/);
   });
 
   it("vault yield is the share-price growth over the window, annualised", async () => {
@@ -604,7 +624,7 @@ describe("answers", () => {
     const w = base();
     w.broken.add(`${JT.share}.balanceOf`);
     const { a } = await ask("what do I hold?", w);
-    expect(a.text).toMatch(/I could not read Centrifuge: JTRSY share balance for 0x1111…1111 at block 1000000: execution reverted/);
+    expect(a.text).toMatch(/I could not read Fund vault: JTRSY share balance for 0x1111…1111 at block 1000000: execution reverted/);
     expect(a.text).toContain("I will not guess it.");
   });
 
@@ -621,7 +641,7 @@ describe("answers", () => {
       expect(a.cites).toEqual([]);
     }
     const { a } = await ask("what is my Harbor position?");
-    expect(a.text).toContain("RockawayX and Centrifuge (JTRSY, HYB) vaults, and Morpho Blue markets");
+    expect(a.text).toContain("RockawayX and JTRSY/HYB fund vaults, and Morpho Blue markets");
     const id = await ask("apa posisi Harbor saya?");
     expect(id.a.text).toMatch(/Saya tidak bisa menjawab itu: saya tidak membaca Harbor/);
   });

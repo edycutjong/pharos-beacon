@@ -56,8 +56,8 @@ export class FactBook {
 /** Vaults whose share price is read with ERC-4626 `convertToAssets`. `share` is the token a wallet holds (same as `vault` when the vault is its own share). */
 export const VAULTS = [
   { key: "roxUSDC", protocol: "RockawayX vault", name: "RockawayX USDC", vault: getAddress("0x047cd0a91e9b92ed979189a6c8a120bf280f02e5"), share: getAddress("0x047cd0a91e9b92ed979189a6c8a120bf280f02e5") },
-  { key: "JTRSY", protocol: "Centrifuge", name: "Janus Henderson Treasury Fund", vault: getAddress("0x160e0dd4c4f693b05eca83bc2ec6fd51954fc434"), share: getAddress("0xC18e6f730896971a79D748E8deA61067A9Bc6040") },
-  { key: "HYB", protocol: "Centrifuge", name: "NYLIM US High Yield Bond Fund", vault: getAddress("0x74189e017d3aefee48f3cc5bf592694b2a016da8"), share: getAddress("0x4827C7ecce4f07ADfe44A97165f06A199e7d2505") },
+  { key: "JTRSY", protocol: "Fund vault", name: "Janus Henderson Treasury Fund", vault: getAddress("0x160e0dd4c4f693b05eca83bc2ec6fd51954fc434"), share: getAddress("0xC18e6f730896971a79D748E8deA61067A9Bc6040") },
+  { key: "HYB", protocol: "Fund vault", name: "NYLIM US High Yield Bond Fund", vault: getAddress("0x74189e017d3aefee48f3cc5bf592694b2a016da8"), share: getAddress("0x4827C7ecce4f07ADfe44A97165f06A199e7d2505") },
 ] as const;
 
 /** The Morpho Blue markets found on Pharos mainnet by the liquidation watchdog's Borrow-event scan (2026-10-24). */
@@ -126,9 +126,10 @@ async function attempt<T>(unreadable: Unreadable[], protocol: string, what: stri
 }
 
 /**
- * Reads of an EARLIER block are asked twice and must agree (a third read breaks a tie; no two equal answers = unreadable). The hosted
- * node once answered a historical balanceOf with a different number for the same pinned block (1,420,307 USDC instead of 4,382,642;
- * twelve repeats afterwards all agreed), and a wrong number in "what changed" is worse than none.
+ * Every eth_call / get_balance is asked twice and must agree (a third read breaks a tie; no two equal answers = unreadable). The hosted
+ * node has answered a pinned read wrongly twice in a few runs (a historical balanceOf of 1,420,307 USDC instead of 4,382,642, and a
+ * head-block share price of 1.003821 instead of 1.007258; repeats afterwards agreed: proof/node-flake.txt), and a wrong figure is
+ * worse than none.
  */
 export function agreeing(call: Call): Call {
   const read = (name: string, args?: Record<string, unknown>) => (call as (n: string, a?: Record<string, unknown>) => Promise<unknown>)(name, args);
@@ -144,7 +145,7 @@ export function agreeing(call: Call): Call {
   }) as Call;
 }
 
-export async function readSnapshot(call0: Call, wallet: Hex, book: FactBook, at?: bigint, verify = false): Promise<Snapshot> {
+export async function readSnapshot(call0: Call, wallet: Hex, book: FactBook, at?: bigint, verify = true): Promise<Snapshot> {
   const call = verify ? agreeing(call0) : call0;
   const { block, timestamp } = await headerAt(call, at);
   const fact = book.add.bind(book);
