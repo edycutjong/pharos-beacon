@@ -178,7 +178,7 @@ export async function readArbPool(call: Call, address: Hex, m: Market, block?: b
   }
   const feeBps = Number(u(fee!, 0));
   // The pool pays out of its own balance: a size beyond it would revert, so it is refused, not priced.
-  const holds = async (token: Hex) => u(await ethCall(call, token, ("0x70a08231" + addrOf(address).slice(2).toLowerCase().padStart(64, "0")) as Hex, block), 0);
+  const holds = async (token: Hex) => u(await ethCall(call, token, ("0x70a08231" + address.slice(2).toLowerCase().padStart(64, "0")) as Hex, block), 0);
   const [baseHeld, quoteHeld] = await Promise.all([holds(m.base.address), holds(m.quote.address)]);
   const quoteData = (token: Hex, amountIn: bigint) => ("0x8f79306e" + encodeAbiParameters([{ type: "address" }, { type: "uint256" }], [token, amountIn]).slice(2)) as Hex;
   return {
