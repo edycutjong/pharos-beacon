@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts withdraw --wallet 0xBa3b260596D8412318Ee6ef5476291F6C8E3b68a --amount 1000 --block 21146194 --proof mainnet-withdraw-morpho-supplier",
     "git": {
-      "commit": "7c53b2ae37e6",
+      "commit": "a9d454161369",
       "dirty": false
     },
-    "createdAt": "2026-10-24T20:40:19.497Z"
+    "createdAt": "2026-10-24T21:19:11.151Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -127,9 +127,9 @@
           "feeBps": 0,
           "maxDeposit": "0",
           "blockers": [
-            "maxDeposit(wallet) = 0 USDC raw, below the 1000000000 being moved (the vault is full, paused or restricted)"
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe withdrawal (the vault is full, paused or restricted)"
           ],
-          "note": "entry fee = 1 − previewDeposit(1000000000) / convertToShares(1000000000) = 0 bps"
+          "note": "entry fee = 1 − previewDeposit(1000000) / convertToShares(1000000) = 0 bps"
         },
         "exit": {
           "feeBps": null,
@@ -191,16 +191,16 @@
           },
           {
             "what": "previewDeposit(amount) (shares raw)",
-            "value": "992777325603946044185",
+            "value": "992777325603946044",
             "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
-            "call": "previewDeposit(1000000000)",
+            "call": "previewDeposit(1000000)",
             "block": "21146194"
           },
           {
             "what": "convertToShares(amount) (shares raw)",
-            "value": "992777325603946044185",
+            "value": "992777325603946044",
             "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
-            "call": "convertToShares(1000000000)",
+            "call": "convertToShares(1000000)",
             "block": "21146194"
           }
         ]
@@ -245,7 +245,8 @@
           "kind": "centrifuge",
           "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
           "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -312,7 +313,7 @@
           "feeBps": null,
           "maxDeposit": "0",
           "blockers": [
-            "maxDeposit(wallet) = 0 USDC raw, below the 1000000000 being moved (the vault takes deposits only as asynchronous requests from approved investors)",
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe withdrawal (the vault takes deposits only as asynchronous requests from approved investors)",
             "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
           ],
           "note": "previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read"
@@ -417,7 +418,8 @@
           "kind": "centrifuge",
           "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
           "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-        }
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
       },
       "reading": {
         "source": {
@@ -484,7 +486,7 @@
           "feeBps": null,
           "maxDeposit": "0",
           "blockers": [
-            "maxDeposit(wallet) = 0 USDC raw, below the 1000000000 being moved (the vault takes deposits only as asynchronous requests from approved investors)",
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe withdrawal (the vault takes deposits only as asynchronous requests from approved investors)",
             "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
           ],
           "note": "previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read"
@@ -1080,7 +1082,8 @@
         "kind": "centrifuge",
         "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
         "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "HYB",
@@ -1093,7 +1096,8 @@
         "kind": "centrifuge",
         "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
         "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
-      }
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
     },
     {
       "id": "morpho-c79579",
@@ -1170,7 +1174,8 @@
       }
     ],
     "explanation": [
-      "Chose Morpho Blue syzUSD/USDC supply (Morpho Blue): taking $1,000.00 out costs $5.25 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $5.24 at its optimistic 6.38%."
+      "Chose Morpho Blue syzUSD/USDC supply (Morpho Blue): taking $1,000.00 out costs $5.25 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $5.24 at its optimistic 6.38%.",
+      "Only $301,218.74 of the $3,912,147.53 in Morpho Blue syzUSD/USDC supply can leave in one transaction today (the market's idle liquidity); the rest stays until borrowers repay."
     ],
     "unplacedUsd": 0
   },
@@ -1188,7 +1193,9 @@
         "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
         "protocol": "morpho",
         "assets": "1000000000",
-        "all": false
+        "all": false,
+        "shares": "0",
+        "market": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86"
       }
     ],
     "transactions": [
@@ -1266,16 +1273,16 @@
     },
     {
       "what": "previewDeposit(amount) (shares raw)",
-      "value": "992777325603946044185",
+      "value": "992777325603946044",
       "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
-      "call": "previewDeposit(1000000000)",
+      "call": "previewDeposit(1000000)",
       "block": "21146194"
     },
     {
       "what": "convertToShares(amount) (shares raw)",
-      "value": "992777325603946044185",
+      "value": "992777325603946044",
       "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
-      "call": "convertToShares(1000000000)",
+      "call": "convertToShares(1000000)",
       "block": "21146194"
     },
     {
