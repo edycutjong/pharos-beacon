@@ -1,4 +1,4 @@
-# A wrong share price served by the hosted Chain MCP node (2026-10-25, Pharos mainnet), found by two runs started together
+# A wrong share price served by the hosted Chain MCP node (2026-10-24 UTC, Pharos mainnet), found by two runs started together
 # Both runs read the RockawayX vault 0x047cd0a91e9b92ed979189a6c8a120bf280f02e5, convertToAssets(10^24 shares), "1 day ago".
 # The first version of the optimizer asked each read twice and compared (as the Portfolio Assistant does). Here both answers of one run agreed and were wrong.
 

@@ -1,4 +1,4 @@
-# What the 'blocked / open' statements rest on (2026-10-25, Pharos mainnet via the Chain MCP, scratch script not committed)
+# What the 'blocked / open' statements rest on (2026-10-24 UTC, Pharos mainnet via the Chain MCP, scratch script not committed)
 head block 21146600
 
 ## RockawayX vault (holder 0x62A0…0673, shares 19329483983960707748291)
