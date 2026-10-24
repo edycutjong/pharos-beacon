@@ -46,6 +46,8 @@ interface World {
   prosPrice: number;
   /** tools / selectors that throw */
   broken: Set<string>;
+  /** addresses with no code at the block read (not deployed yet) */
+  noCode: Set<string>;
 }
 
 const base = (): World => ({
@@ -59,6 +61,7 @@ const base = (): World => ({
   borrowShares: () => 0n,
   prosPrice: 0.5,
   broken: new Set(),
+  noCode: new Set(),
 });
 
 const word = (n: bigint) => pad(toHex(n), { size: 32 });
@@ -70,6 +73,7 @@ function fakeChain(w: World, spy: { tool: string; args: any }[] = []): Call {
     if (w.broken.has(tool)) throw new Error(`${tool} is down`);
     if (tool === "get_block_number") return { blockNumber: HEAD.toString() };
     if (tool === "get_block") return { number: toHex(BigInt(args.block)), timestamp: toHex(T0 + BigInt(args.block)) };
+    if (tool === "get_code") return { code: w.noCode.has(getAddress(args.address)) ? "0x" : "0x6080" };
     if (tool === "get_balance") return { balanceWei: w.native(BigInt(args.block ?? HEAD)).toString() };
     if (tool !== "eth_call") throw new Error(`unexpected tool ${tool}`);
     const b = BigInt(args.block ?? HEAD);
@@ -219,7 +223,16 @@ describe("readSnapshot", () => {
   it("is read-only: only read tools are ever called", async () => {
     const spy: { tool: string; args: any }[] = [];
     await readSnapshot(fakeChain(base(), spy), ME, new FactBook());
-    expect(new Set(spy.map((c) => c.tool))).toEqual(new Set(["get_block_number", "get_block", "get_balance", "eth_call"]));
+    expect(new Set(spy.map((c) => c.tool))).toEqual(new Set(["get_block_number", "get_block", "get_balance", "get_code", "eth_call"]));
+  });
+
+  it("a wallet with no PROS records the zero read of get_balance", async () => {
+    const s = await snapshot({ ...base(), native: () => 0n });
+    expect(s.zeros.find((f) => f.symbol === "PROS")).toMatchObject({ raw: 0n, source: { contract: "native", call: "get_balance", block: HEAD } });
+    const book = new FactBook();
+    const snap = await readSnapshot(fakeChain({ ...base(), native: () => 0n }), ME, book);
+    const a = await answerQuestion("how much PROS do I have?", reads([snap], book));
+    expect(a.text).toMatch(/no PROS here: the read returned 0 \[F\d+\]/);
   });
 
   it("a balance that is zero is recorded as a read, not skipped silently", async () => {
@@ -238,6 +251,27 @@ describe("readSnapshot", () => {
     const s = await snapshot(w);
     expect(s.unreadable.some((u) => u.protocol === "Centrifuge" && /JTRSY share balance/.test(u.what))).toBe(true);
     expect(s.positions.some((p) => p.kind === "vault" && p.symbol === "roxUSDC")).toBe(true);
+  });
+
+  it("a contract with no code at the block is unreadable, NOT a zero balance (the node answers zero for an empty address)", async () => {
+    const w = base();
+    w.noCode = new Set([MORPHO, JT.share, USDC.address]);
+    const s = await snapshot(w);
+    expect(s.unreadable.map((u) => `${u.protocol}: ${u.what}`)).toEqual(expect.arrayContaining(["Morpho Blue: the Morpho Blue contract", "Centrifuge: JTRSY share balance", "Wallet: USDC balance"]));
+    expect(s.unreadable.find((u) => u.protocol === "Morpho Blue")!.reason).toMatch(/no contract at 0x18573fA1.* at block 1000000 \(Morpho Blue not deployed yet/);
+    expect(s.marketsRead).toBe(0);
+    expect(s.zeros.some((f) => f.symbol === "USDC" || f.symbol === "JTRSY")).toBe(false);
+    expect(s.positions.some((p) => p.kind === "token" && p.symbol === "USDC")).toBe(false);
+  });
+
+  it("when Morpho cannot be read the answer to 'do I owe anything?' does NOT say 'no debt'; it says what it could not read", async () => {
+    const w = base();
+    w.noCode = new Set([MORPHO]);
+    const { a } = await ask("do I owe anything?", w);
+    expect(a.text).not.toMatch(/No debt/);
+    expect(a.text).toMatch(/I could not read Morpho Blue: the Morpho Blue contract for 0x1111…1111 at block 1000000: no contract at/);
+    const e = await ask("what am I earning?", w);
+    expect(e.a.text).not.toMatch(/Nothing here earns/);
   });
 
   it("no price source → the position is listed but not valued (usd null), never guessed", async () => {
@@ -308,7 +342,7 @@ describe("answers", () => {
 
   it("a balance of zero says so and cites the zero read", async () => {
     const { a, book } = await ask("how much WETH do I have?");
-    expect(a.text).toMatch(/no WETH here: balanceOf returned 0 \[F\d+\]/);
+    expect(a.text).toMatch(/no WETH here: the read returned 0 \[F\d+\]/);
     expect(book.facts.get(a.cites[0]!)!.raw).toBe(0n);
   });
 

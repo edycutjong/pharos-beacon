@@ -130,18 +130,34 @@ export async function readSnapshot(call: Call, wallet: Hex, book: FactBook, at?:
   const zeros: Fact[] = [];
   let marketsRead = 0;
 
+  // A node answers a call to an address with no code as zero. Before trusting any read, check that the contract exists at THIS block,
+  // so "you hold none" is never said about a contract that was not deployed yet (or is not a contract at all).
+  const codeChecks = new Map<string, Promise<void>>();
+  const needCode = (addr: Hex, what: string): Promise<void> => {
+    let p = codeChecks.get(addr);
+    if (!p) {
+      p = (async () => {
+        const r = (await call("get_code", { address: addr, ...pin(block) })) as { code?: string };
+        if (typeof r.code !== "string" || r.code === "0x" || r.code.length <= 2) throw new Error(`no contract at ${addr} at block ${block} (${what} not deployed yet, or not a contract)`);
+      })();
+      codeChecks.set(addr, p);
+    }
+    return p;
+  };
+
   // PROS price once per snapshot (needed to value native PROS and WPROS).
-  const price = await attempt(unreadable, "Wallet", "PROS price (WPROS/USDC pool)", () => readProsPrice(call, block));
+  const price = await attempt(unreadable, "Wallet", "PROS price (WPROS/USDC pool)", async () => (await needCode(PROS_POOL, "the WPROS/USDC pool"), readProsPrice(call, block)));
   const prosPriceFact = price ? fact("WPROS price in USDC", BigInt(Math.round(price.price * 1e6)), 6, "USDC", { contract: price.pool, call: "slot0()", block }) : undefined;
 
   // wallet tokens: native PROS + the SkillEngine token list
   const native = await attempt(unreadable, "Wallet", "native PROS balance", async () => BigInt((await call("get_balance", { address: wallet, ...pin(block) })).balanceWei));
+  if (native === 0n) zeros.push(fact("PROS in wallet", 0n, 18, "PROS", { contract: "native", call: "get_balance", block }));
   if (native !== undefined && native > 0n) {
     const f = fact("PROS in wallet", native, 18, "PROS", { contract: "native", call: "get_balance", block });
     positions.push({ kind: "token", protocol: "Wallet", symbol: "PROS", token: "native", amount: f, usd: price ? toNumber(native, 18) * price.price : null, priceFact: prosPriceFact });
   }
   for (const t of WALLET_TOKENS) {
-    const bal = await attempt(unreadable, "Wallet", `${t.symbol} balance`, () => ethCall(call, t.address, "balanceOf", [wallet], block));
+    const bal = await attempt(unreadable, "Wallet", `${t.symbol} balance`, async () => (await needCode(t.address, t.symbol), ethCall(call, t.address, "balanceOf", [wallet], block)));
     if (bal === undefined) continue;
     if (bal === 0n) {
       zeros.push(fact(`${t.symbol} in wallet`, 0n, t.decimals, t.symbol, { contract: t.address, call: "balanceOf(wallet)", block }));
@@ -154,7 +170,7 @@ export async function readSnapshot(call: Call, wallet: Hex, book: FactBook, at?:
 
   // vault shares → underlying USDC via convertToAssets
   for (const v of VAULTS) {
-    const shares = await attempt(unreadable, v.protocol, `${v.key} share balance`, () => ethCall(call, v.share, "balanceOf", [wallet], block));
+    const shares = await attempt(unreadable, v.protocol, `${v.key} share balance`, async () => (await needCode(v.share, `${v.key} vault`), ethCall(call, v.share, "balanceOf", [wallet], block)));
     if (shares === undefined) continue;
     if (shares === 0n) {
       zeros.push(fact(`${v.key} shares`, 0n, 18, v.key, { contract: v.share, call: "balanceOf(wallet)", block }));
@@ -172,7 +188,16 @@ export async function readSnapshot(call: Call, wallet: Hex, book: FactBook, at?:
   }
 
   // Morpho Blue: supply, collateral and debt in every known market
-  for (const id of MORPHO_MARKETS) {
+  let morphoUp = true;
+  await attempt(unreadable, "Morpho Blue", "the Morpho Blue contract", async () => {
+    try {
+      await needCode(MORPHO_BLUE, "Morpho Blue");
+    } catch (e) {
+      morphoUp = false;
+      throw e;
+    }
+  });
+  for (const id of morphoUp ? MORPHO_MARKETS : []) {
     await attempt(unreadable, "Morpho Blue", `market ${id.slice(0, 10)}…`, async () => {
       const pos = await readPosition(call, id, wallet, block);
       marketsRead++;
