@@ -1,0 +1,13 @@
+you: send 1000 WPHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+parser: gemini-3.5-flash · language: en
+understood: {"amount":"1000","token":"WPHRS","recipient":"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"}
+
+checks
+  PASS  recipient 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)
+  PASS  token     WPHRS at 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (SkillEngine tokens.json)
+  PASS  decimals  decimals() = 18 read on chain
+  PASS  amount    1000 WPHRS = 1000000000000000000000 base units
+  FAIL  balance   0x317b…2975 holds 0.00231 WPHRS but 1000 is requested
+
+REFUSED: no transaction was prepared.
+proof: tasks/natural-language-payment-agent/proof/refused-balance.json

@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "task": "natural-language-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/natural-language-payment-agent/index.ts send 1000 WPHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --proof refused-balance",
+    "git": {
+      "commit": "02f867e06651",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:28:50.213Z"
+  },
+  "turns": [
+    "send 1000 WPHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+  ],
+  "parsed": {
+    "draft": {
+      "amount": "1000",
+      "token": "WPHRS",
+      "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+    },
+    "questions": [],
+    "lang": "en",
+    "parser": "gemini-3.5-flash"
+  },
+  "outcome": "refused",
+  "checks": [
+    {
+      "name": "recipient",
+      "ok": true,
+      "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)"
+    },
+    {
+      "name": "token",
+      "ok": true,
+      "detail": "WPHRS at 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (SkillEngine tokens.json)"
+    },
+    {
+      "name": "decimals",
+      "ok": true,
+      "detail": "decimals() = 18 read on chain"
+    },
+    {
+      "name": "amount",
+      "ok": true,
+      "detail": "1000 WPHRS = 1000000000000000000000 base units"
+    },
+    {
+      "name": "balance",
+      "ok": false,
+      "detail": "0x317b…2975 holds 0.00231 WPHRS but 1000 is requested"
+    }
+  ]
+}
