@@ -32,9 +32,9 @@ export interface MovePlan {
   planId: Hex;
 }
 
-const erc4626 = parseAbi(["function redeem(uint256 shares, address receiver, address owner) returns (uint256)", "function deposit(uint256 assets, address receiver) returns (uint256)"]);
-const erc20 = parseAbi(["function approve(address spender, uint256 amount) returns (bool)"]);
-const morpho = parseAbi([
+export const erc4626 = parseAbi(["function redeem(uint256 shares, address receiver, address owner) returns (uint256)", "function deposit(uint256 assets, address receiver) returns (uint256)"]);
+export const erc20 = parseAbi(["function approve(address spender, uint256 amount) returns (bool)"]);
+export const morpho = parseAbi([
   "function withdraw((address loanToken, address collateralToken, address oracle, address irm, uint256 lltv) marketParams, uint256 assets, uint256 shares, address onBehalf, address receiver) returns (uint256, uint256)",
   "function supply((address loanToken, address collateralToken, address oracle, address irm, uint256 lltv) marketParams, uint256 assets, uint256 shares, address onBehalf, bytes data) returns (uint256, uint256)",
 ]);

@@ -45,7 +45,8 @@
     "liquidation-watchdog": "tsx tasks/liquidation-watchdog/index.ts",
     "portfolio-assistant": "tsx tasks/portfolio-assistant/index.ts",
     "yield-optimizer": "tsx tasks/yield-optimizer/index.ts",
-    "yield-wallet": "tsx tasks/yield-optimizer/wallet.ts"
+    "yield-wallet": "tsx tasks/yield-optimizer/wallet.ts",
+    "multi-protocol-aggregator": "tsx tasks/multi-protocol-aggregator/index.ts"
   },
   "keywords": [],
   "author": "",

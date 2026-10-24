@@ -189,6 +189,8 @@ export interface ReadCtx {
   heldShares?: bigint;
   assetDecimals: number;
   usdc: Hex;
+  /** How the blocker text names `amount` (default " being moved"). */
+  amountNote?: string;
 }
 
 export async function readSource(src: Source, ctx: ReadCtx): Promise<Reading> {
@@ -266,7 +268,7 @@ export async function readSource(src: Source, ctx: ReadCtx): Promise<Reading> {
     } else {
       entry.note = `previewDeposit reverts (${pd.why}): the deposit is an asynchronous request, so its fee cannot be read`;
     }
-    if (entry.maxDeposit !== null && entry.maxDeposit < amount) entry.blockers.push(`maxDeposit(wallet) = ${entry.maxDeposit} USDC raw, below the ${amount} being moved (${src.kind === "centrifuge" ? "the vault takes deposits only as asynchronous requests from approved investors" : "the vault is full, paused or restricted"})`);
+    if (entry.maxDeposit !== null && entry.maxDeposit < amount) entry.blockers.push(`maxDeposit(wallet) = ${entry.maxDeposit} USDC raw, below the ${amount}${ctx.amountNote ?? " being moved"} (${src.kind === "centrifuge" ? "the vault takes deposits only as asynchronous requests from approved investors" : "the vault is full, paused or restricted"})`);
     if (!pd.ok) entry.blockers.push("deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move");
     if (src.kind === "testvault") {
       const lock = await big(call, src.contract, "lockSeconds() view returns (uint256)", [], block);
