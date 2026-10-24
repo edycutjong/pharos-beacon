@@ -8,16 +8,16 @@
     },
     "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-totals.txt --proof flagged-totals",
     "git": {
-      "commit": "216208408711",
+      "commit": "a8e9c889ce6e",
       "dirty": false
     },
-    "createdAt": "2026-10-24T01:30:14.176Z"
+    "createdAt": "2026-10-24T01:38:28.400Z"
   },
   "invoice": "tasks/invoice-to-payment-agent/samples/bad-totals.txt",
   "extracted": {
     "format": "text",
     "flags": [
-      "the invoice states different totals (20 vs 25 vs 30): refusing to pick one"
+      "the invoice states different totals (25 vs 30): refusing to pick one"
     ],
     "notes": [],
     "via": "labelled lines",
@@ -28,6 +28,6 @@
   },
   "outcome": "flagged",
   "flags": [
-    "the invoice states different totals (20 vs 25 vs 30): refusing to pick one"
+    "the invoice states different totals (25 vs 30): refusing to pick one"
   ]
 }

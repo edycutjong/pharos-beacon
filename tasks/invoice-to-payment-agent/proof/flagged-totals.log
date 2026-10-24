@@ -5,5 +5,5 @@ invoice: tasks/invoice-to-payment-agent/samples/bad-totals.txt (text) · read by
   amount    — USDC
 
 FLAGGED: nothing was prepared. The invoice needs a human:
-  ! the invoice states different totals (20 vs 25 vs 30): refusing to pick one
+  ! the invoice states different totals (25 vs 30): refusing to pick one
 proof: tasks/invoice-to-payment-agent/proof/flagged-totals.json
