@@ -96,3 +96,13 @@ dce49aac980b2479f06353f8d7f8fb7ff3545bd8:tasks/batch-executor/proof/all-success-
 12aaf69e01eeb5fd4de0ff58567886dfcd370d48:tasks/x402-agent-buyer/proof/budget.json:generic-api-key:77
 12aaf69e01eeb5fd4de0ff58567886dfcd370d48:tasks/x402-agent-buyer/proof/budget.json:generic-api-key:94
 f71bede509f0d116e172f7f1147fee1699a6175a:.gitleaksignore:generic-api-key:91
+7e810bb6858d6978aa13866f64efde0a95418d32:tasks/saga-executor/proof/success.json:generic-api-key:34
+7e810bb6858d6978aa13866f64efde0a95418d32:tasks/saga-executor/proof/success.json:generic-api-key:35
+67a73f20856c54414f55cce6135009e40da6e199:tasks/saga-executor/proof/crash-resume.json:generic-api-key:34
+67a73f20856c54414f55cce6135009e40da6e199:tasks/saga-executor/proof/crash-resume.json:generic-api-key:35
+e9c3abe224fbae3f8bdd33b1ebb0728f5c43031c:tasks/saga-executor/proof/success.json:generic-api-key:34
+e9c3abe224fbae3f8bdd33b1ebb0728f5c43031c:tasks/saga-executor/proof/success.json:generic-api-key:35
+063e8c1e0c29829c210ef895cf8694c15268e982:tasks/saga-executor/proof/retry.json:generic-api-key:43
+063e8c1e0c29829c210ef895cf8694c15268e982:tasks/saga-executor/proof/retry.json:generic-api-key:44
+3ed4edb0836766c24919039ed75262ea0075c134:tasks/saga-executor/proof/forced-failure.json:generic-api-key:34
+3ed4edb0836766c24919039ed75262ea0075c134:tasks/saga-executor/proof/forced-failure.json:generic-api-key:35
