@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "task": "natural-language-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "none"
+    },
+    "command": "tasks/natural-language-payment-agent/index.ts kirim 1.000 WPHRS ke 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --proof asks-thousands-id",
+    "git": {
+      "commit": "f226631b631e",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:28:31.041Z"
+  },
+  "turns": [
+    "kirim 1.000 WPHRS ke 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+  ],
+  "parsed": {
+    "draft": {
+      "token": "WPHRS",
+      "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+    },
+    "questions": [
+      "\"1.000\" itu seribu atau satu koma nol? Tulis 1000 atau 1.0 supaya saya tidak menebak."
+    ],
+    "lang": "id",
+    "parser": "gemini-3.5-flash"
+  },
+  "outcome": "asked-follow-up"
+}

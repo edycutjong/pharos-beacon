@@ -1,0 +1,9 @@
+you: kirim 1.000 WPHRS ke 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+parser: gemini-3.5-flash · language: id
+understood: {"token":"WPHRS","recipient":"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"}
+
+I need one more thing before I prepare anything:
+  ? "1.000" itu seribu atau satu koma nol? Tulis 1000 atau 1.0 supaya saya tidak menebak.
+
+Answer with: --followup "<your answer>"
+proof: tasks/natural-language-payment-agent/proof/asks-thousands-id.json
