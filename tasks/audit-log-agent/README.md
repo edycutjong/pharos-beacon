@@ -57,7 +57,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
 | Our Atlantic wallet 2, blocks 31760575–31807814 | 113 transfers in (111 USDC, 2 WPHRS), all 113 from our wallet 1; 0 sent, 0 expected | [`proof/atlantic-received.json`](proof/atlantic-received.json) |
 | Our Atlantic wallet 1, blocks 31798000–31808000 | 119 transfers out (111 USDC, 2 WPHRS, 6 PHRS sends: 4 with empty calldata, 2 with a short data field), 2 contract interactions (a `deposit` that wrapped 0.01 PHRS, and a reverted `withdraw`); 10 of 10 sent transactions, 7 of them found by the nonce search (55 nonce reads, 7 blocks opened) | [`proof/atlantic-sent.json`](proof/atlantic-sent.json) |
 
-The three proofs record `dirty: false` (commits a3cd636, 63696c2 and the one in each file). The Atlantic wallets are ours, so "received" and "sent" there are our own
+The three proofs record `dirty: false` (commits 595bfba, e5df2dd and 7c99e6a, all on the final code). The Atlantic wallets are ours, so "received" and "sent" there are our own
 test traffic, and the README says so rather than calling it organic activity (the 111 USDC transfers use the selector `0xe3ee160e`, EIP-3009 `transferWithAuthorization`, which is how the x402 tasks settle). The mainnet wallet is the independent evidence.
 
 ```text
@@ -65,11 +65,11 @@ $ npm run audit-log-agent -- --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901
 (report head, from proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.md)
 # Wallet activity report: `0x28Ed4A97a21C2264CA352EbBcc6CaffF60e89901`
 
-Pharos mainnet · 2026-10-23T00:00:00Z to 2026-10-24T00:00:00Z · blocks 20974946–21070507 · generated 2026-10-24T04:09:11Z · read-only through the Pharos Chain MCP
+Pharos mainnet · 2026-10-23 to 2026-10-23 UTC (both days included) · blocks 20974946–21070507 · generated 2026-10-24T07:56:34Z · read-only through the Pharos Chain MCP
 
 ## In plain words
 
-21 transactions touched this wallet; it received tokens 0 times and sent them 8 times; made 10 swaps; granted 3 approvals (3 unlimited); and made 0 other contract calls. Fees it paid for the transactions it sent: 0.033894 PROS.
+21 transactions touched this wallet; it received tokens by plain transfer 0 times and sent them 8 times; made 10 swaps; granted 3 approvals (3 unlimited); and made 0 other contract calls. Fees it paid for the transactions it sent: 0.033894 PROS.
 
 ## Highlights
 
