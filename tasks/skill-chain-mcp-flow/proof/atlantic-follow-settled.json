@@ -1,0 +1,212 @@
+{
+  "meta": {
+    "task": "skill-chain-mcp-flow",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/skill-chain-mcp-flow/index.ts 0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b --network atlantic --follow 90 --proof atlantic-follow-settled",
+    "git": {
+      "commit": "f7e36897f28d",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T02:17:07.296Z"
+  },
+  "verdict": "SETTLED",
+  "rule": "mined with status 0x1 and 12 confirmations, at least the 12 this tier needs",
+  "confirmations": 12,
+  "required": 12,
+  "tier": "1 native value → tier 2 of 3 (below 100)",
+  "facts": {
+    "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b",
+    "from": "0x317bca01bb101c0f1e86c21576a4e14d92b02975",
+    "to": "0x8d347c72431ed6e033d5f43e56c0987e97f5d91b",
+    "valueWei": "1000000000000000000",
+    "head": "31806037",
+    "tokenTransfers": 0,
+    "block": "31806026",
+    "status": "success",
+    "gasUsed": "21000",
+    "blockSeconds": 1.05
+  },
+  "explorer": "https://atlantic.pharosscan.xyz/tx/0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b",
+  "polls": [
+    {
+      "verdict": "WAIT",
+      "confirmations": 9,
+      "head": "31806034"
+    },
+    {
+      "verdict": "WAIT",
+      "confirmations": 11,
+      "head": "31806036"
+    },
+    {
+      "verdict": "WAIT",
+      "confirmations": 11,
+      "head": "31806036"
+    },
+    {
+      "verdict": "SETTLED",
+      "confirmations": 12,
+      "head": "31806037"
+    }
+  ],
+  "flow": [
+    {
+      "step": 1,
+      "tool": "get_transaction",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 32
+    },
+    {
+      "step": 2,
+      "tool": "get_block_number",
+      "args": {},
+      "ms": 25
+    },
+    {
+      "step": 3,
+      "tool": "get_transaction_receipt",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 33
+    },
+    {
+      "step": 4,
+      "tool": "get_block",
+      "args": {
+        "block": "31806014"
+      },
+      "ms": 28
+    },
+    {
+      "step": 5,
+      "tool": "get_block",
+      "args": {
+        "block": "31806034"
+      },
+      "ms": 28
+    },
+    {
+      "step": 6,
+      "tool": "get_transaction",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 36
+    },
+    {
+      "step": 7,
+      "tool": "get_block_number",
+      "args": {},
+      "ms": 25
+    },
+    {
+      "step": 8,
+      "tool": "get_transaction_receipt",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 36
+    },
+    {
+      "step": 9,
+      "tool": "get_block",
+      "args": {
+        "block": "31806016"
+      },
+      "ms": 31
+    },
+    {
+      "step": 10,
+      "tool": "get_block",
+      "args": {
+        "block": "31806036"
+      },
+      "ms": 33
+    },
+    {
+      "step": 11,
+      "tool": "get_transaction",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 39
+    },
+    {
+      "step": 12,
+      "tool": "get_block_number",
+      "args": {},
+      "ms": 28
+    },
+    {
+      "step": 13,
+      "tool": "get_transaction_receipt",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 35
+    },
+    {
+      "step": 14,
+      "tool": "get_block",
+      "args": {
+        "block": "31806036"
+      },
+      "ms": 33
+    },
+    {
+      "step": 15,
+      "tool": "get_block",
+      "args": {
+        "block": "31806016"
+      },
+      "ms": 33
+    },
+    {
+      "step": 16,
+      "tool": "get_transaction",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 36
+    },
+    {
+      "step": 17,
+      "tool": "get_block_number",
+      "args": {},
+      "ms": 26
+    },
+    {
+      "step": 18,
+      "tool": "get_transaction_receipt",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 44
+    },
+    {
+      "step": 19,
+      "tool": "get_block",
+      "args": {
+        "block": "31806017"
+      },
+      "ms": 30
+    },
+    {
+      "step": 20,
+      "tool": "get_block",
+      "args": {
+        "block": "31806037"
+      },
+      "ms": 31
+    }
+  ]
+}
