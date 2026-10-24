@@ -102,6 +102,7 @@ Payer wallet 1 `0x317b…2975` → our wallet 2 `0x8D34…D91B` (`PRIVATE_KEY_2`
 - Currencies are the six Atlantic symbols (PHRS, USDC, USDT, WBTC, WETH, WPHRS). A fiat invoice needs the human's `--pay-in` choice: there is no price feed and the agent does not guess an exchange rate.
 - The PDF reader needs `pdftotext` and a text PDF. Layouts it knows are labelled lines; the LLM only fills gaps. Not tested: scanned PDFs.
 - The duplicate guard is a local file keyed by invoice fingerprint. It records a payment only after a confirmed success, and `--state` points at another ledger; an invoice that is only prepared (unsigned) and signed elsewhere is not recorded.
+- The three `sent-*.log` files were captured before the fingerprint rule was made case/number-insensitive, so the `fingerprint` line in them differs from the one in `state/paid.json` (recomputed from the same invoices). The payments themselves are unchanged.
 - The text reader is label-based and narrow on purpose: an unusual layout is flagged as missing fields rather than guessed.
 - The reference is limited to 64 bytes. A token that rejects the extra calldata would fail `estimate_gas` and the agent would refuse (not tested with such a token).
 - The proofs ran with `--parser auto`; none of the three sample invoices needed the LLM (`read by labelled lines` / `json fields` in the logs).

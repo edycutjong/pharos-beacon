@@ -39,6 +39,10 @@ describe("invoices", () => {
     expect(await f(json({ amount_due: "9" }), "json")).toMatch(/fields disagree: 0\.5 vs 9/);
     expect(await f(json({ wallet: FROM }), "json")).toMatch(/fields disagree/);
     expect(await f(`[${json({})},${json({})}]`, "json")).toMatch(/several invoices/);
+    expect(await f(`[${json({})}]`, "json")).toBe("");
+    expect(await f(json({ token: "USDT" }), "json")).toMatch(/fields disagree: PHRS vs USDT/);
+    expect(await f(json({ line_items: [{ amount: "0.5" }, {}] }), "json")).toMatch(/no readable amount/);
+    expect(await f(`INVOICE #S-1\nPay to: ${TO}\nSub-total: 100 PHRS\nTotal: 110 PHRS`)).toBe("");
   });
   it("USD is settled only when the human says --pay-in", async () => {
     const x = await extractInvoice(json({ currency: "USD" }), "json");

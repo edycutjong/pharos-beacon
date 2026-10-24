@@ -25,7 +25,7 @@ export interface Extracted {
 }
 
 const NUM = "(\\d[\\d.,]*\\d|\\d)";
-const AMOUNT_LABEL = new RegExp(`(?<![A-Za-z])(?:grand\\s+total|total\\s+due|amount\\s+due|balance\\s+due|total\\s+tagihan|jumlah\\s+tagihan|total|amount|jumlah)\\s*[:\\-]?\\s*(?:[$]\\s*)?${NUM}\\s*([A-Za-z$]{1,6})?`, "gi");
+const AMOUNT_LABEL = new RegExp(`(?<![A-Za-z]|sub[\\s-])(?:grand\\s+total|total\\s+due|amount\\s+due|balance\\s+due|total\\s+tagihan|jumlah\\s+tagihan|total|amount|jumlah)\\s*[:\\-]?\\s*(?:[$]\\s*)?${NUM}\\s*([A-Za-z$]{1,6})?`, "gi");
 
 export function detectFormat(path: string, text: string): Format {
   if (/\.pdf$/i.test(path)) return "pdf";
@@ -65,17 +65,17 @@ function fromJson(text: string): Extracted {
   } catch (e) {
     return { format: "json", flags: [`the JSON does not parse: ${(e as Error).message}`], notes: [], via: "json" };
   }
-  if (Array.isArray(JSON.parse(text))) flags.push("the file holds several invoices: pay them one file at a time");
+  if (Array.isArray(JSON.parse(text)) && JSON.parse(text).length > 1) flags.push("the file holds several invoices: pay them one file at a time");
   const x: Extracted = { format: "json", flags, notes: [], via: "json fields" };
   x.number = pick(o, ["invoicenumber", "invoiceno", "invoiceid", "number", "id", "reference", "ref"], flags);
   x.issuer = pick(o, ["issuer", "vendor", "supplier", "from", "billedby", "seller"]);
   x.payee = pick(o, ["payee", "payto", "wallet", "walletaddress", "address", "recipient"], flags);
-  x.currency = pick(o, ["currency", "token", "asset"])?.toUpperCase();
+  x.currency = pick(o, ["currency", "token", "asset"], flags)?.toUpperCase();
   const total = pick(o, ["total", "amountdue", "amount", "totaldue", "balancedue"], flags);
   if (total) x.amount = amountFrom(total, "the total", flags);
   const items = (o.line_items ?? o.items ?? o.lineItems) as Array<Record<string, unknown>> | undefined;
   if (Array.isArray(items) && items.length && x.amount !== undefined) {
-    const sum = items.reduce((s, it) => s + Number(it.amount ?? Number(it.qty ?? it.quantity ?? 1) * Number(it.unit_price ?? it.price ?? 0)), 0);
+    const sum = items.reduce((s, it) => s + Number(it.amount ?? Number(it.qty ?? it.quantity ?? 1) * Number(it.unit_price ?? it.price ?? Number.NaN)), 0);
     if (!Number.isFinite(sum)) flags.push("a line item has no readable amount, so the total cannot be checked");
     else if (Math.abs(sum - Number(x.amount)) > 1e-9) flags.push(`the line items add up to ${sum} but the invoice total says ${x.amount}`);
   }
@@ -159,7 +159,7 @@ export function toDraft(x: Extracted, payIn?: string): { draft?: Draft; flags: s
 // Duplicate guard: invoice number + issuer + amount + currency → one fingerprint, remembered with the tx that paid it.
 export const fingerprint = (x: Pick<Extracted, "number" | "issuer" | "amount" | "currency">) =>
   createHash("sha256")
-    .update([(x.number ?? "").toLowerCase(), (x.issuer ?? "").toLowerCase().replace(/\s+/g, " "), x.amount ? String(Number(x.amount)) : "", (x.currency ?? "").toUpperCase()].join("|"))
+    .update([(x.number ?? "").trim().toLowerCase(), (x.issuer ?? "").trim().toLowerCase().replace(/\s+/g, " "), x.amount ? String(Number(x.amount)) : "", (x.currency ?? "").toUpperCase()].join("|"))
     .digest("hex").slice(0, 16);
 
 export interface PaidRecord { fingerprint: string; number: string; issuer?: string; amount: string; token: string; hash: Hex; url: string; at: string }
