@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "task": "invoice-to-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "none"
+    },
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-line-items.json --proof flagged-line-items",
+    "git": {
+      "commit": "b9a60dc4898f",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:30:16.198Z"
+  },
+  "invoice": "tasks/invoice-to-payment-agent/samples/bad-line-items.json",
+  "extracted": {
+    "format": "json",
+    "flags": [
+      "the line items add up to 0.008 but the invoice total says 0.01"
+    ],
+    "notes": [],
+    "via": "json fields",
+    "number": "LI-31",
+    "issuer": "Sum Mismatch Ltd",
+    "payee": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "currency": "PHRS",
+    "amount": "0.01"
+  },
+  "outcome": "flagged",
+  "flags": [
+    "the line items add up to 0.008 but the invoice total says 0.01"
+  ]
+}
