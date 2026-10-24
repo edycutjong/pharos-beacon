@@ -136,7 +136,7 @@ export async function rangeForTimes(call: Call, fromTs: number, toTs: number, he
   const next = await blockAtOrAfter(call, toTs, head);
   if (fromBlock > head) throw new Error("the period starts after the latest block");
   const toBlock = next - 1n < head ? next - 1n : head;
-  if (toBlock < fromBlock) throw new Error("the period holds no blocks");
+  if (toBlock < fromBlock) throw new Error("the period holds no blocks (it ends before the first block of the chain)");
   return { fromBlock, toBlock, fromTs, toTs };
 }
 

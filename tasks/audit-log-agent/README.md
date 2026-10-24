@@ -8,7 +8,7 @@ several minutes for a day (192 `get_logs` windows, then the transactions), becau
 previous-period read; `--proof label` writes `proof/<label>.json`.
 **Uses:** Chain MCP ✅ (`get_chain_info`, `get_block_number`, `get_block`, `get_logs`, `get_transaction`, `get_transaction_receipt`, `get_code`, `eth_call`,
 `get_transaction_count`) · SkillEngine: not used · Docs MCP: not used. It never sends a transaction. The same engine (`src/activity/`) powers the
-[Weekly Digest Agent](../weekly-digest-agent/README.md).
+Weekly Digest Agent (`tasks/weekly-digest-agent/`, the next task in the stack).
 
 ## How it finds a wallet's activity
 
