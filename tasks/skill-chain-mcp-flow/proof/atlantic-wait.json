@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "task": "skill-chain-mcp-flow",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/skill-chain-mcp-flow/index.ts 0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b --network atlantic --proof atlantic-wait",
+    "git": {
+      "commit": "6961bc2e228e",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T02:17:01.413Z"
+  },
+  "verdict": "WAIT",
+  "rule": "mined with status 0x1 but 3 confirmation(s) is below the 12 this tier needs",
+  "confirmations": 3,
+  "required": 12,
+  "tier": "1 native value → tier 2 of 3 (below 100)",
+  "waitBlocks": 9,
+  "waitSeconds": 15.8,
+  "facts": {
+    "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b",
+    "from": "0x317bca01bb101c0f1e86c21576a4e14d92b02975",
+    "to": "0x8d347c72431ed6e033d5f43e56c0987e97f5d91b",
+    "valueWei": "1000000000000000000",
+    "head": "31806028",
+    "tokenTransfers": 0,
+    "block": "31806026",
+    "status": "success",
+    "gasUsed": "21000",
+    "blockSeconds": 1.75
+  },
+  "explorer": "https://atlantic.pharosscan.xyz/tx/0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b",
+  "polls": [
+    {
+      "verdict": "WAIT",
+      "confirmations": 3,
+      "head": "31806028"
+    }
+  ],
+  "flow": [
+    {
+      "step": 1,
+      "tool": "get_transaction",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 205
+    },
+    {
+      "step": 2,
+      "tool": "get_block_number",
+      "args": {},
+      "ms": 28
+    },
+    {
+      "step": 3,
+      "tool": "get_transaction_receipt",
+      "args": {
+        "hash": "0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b"
+      },
+      "ms": 40
+    },
+    {
+      "step": 4,
+      "tool": "get_block",
+      "args": {
+        "block": "31806028"
+      },
+      "ms": 33
+    },
+    {
+      "step": 5,
+      "tool": "get_block",
+      "args": {
+        "block": "31806008"
+      },
+      "ms": 282
+    }
+  ]
+}
