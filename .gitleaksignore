@@ -192,3 +192,22 @@ ff07fe82cf52f2a92165183a1babfbc6e1d85f55:tasks/multi-protocol-aggregator/proof/m
 ff07fe82cf52f2a92165183a1babfbc6e1d85f55:tasks/multi-protocol-aggregator/proof/mainnet-deposit-250.json:generic-api-key:770
 ff07fe82cf52f2a92165183a1babfbc6e1d85f55:tasks/multi-protocol-aggregator/proof/mainnet-deposit-250.json:generic-api-key:910
 ff07fe82cf52f2a92165183a1babfbc6e1d85f55:tasks/multi-protocol-aggregator/proof/mainnet-deposit-250.json:generic-api-key:919
+# venue ids in the later aggregator proofs (burn-address runs, re-runs), public on-chain values
+49ae2144b957928620afea354f403a23018627e1:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-two-protocols.json:generic-api-key:1151
+49ae2144b957928620afea354f403a23018627e1:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-two-protocols.json:generic-api-key:1164
+49ae2144b957928620afea354f403a23018627e1:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-two-protocols.json:generic-api-key:778
+49ae2144b957928620afea354f403a23018627e1:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-two-protocols.json:generic-api-key:787
+49ae2144b957928620afea354f403a23018627e1:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-two-protocols.json:generic-api-key:930
+49ae2144b957928620afea354f403a23018627e1:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-two-protocols.json:generic-api-key:939
+4f10a4aa7ea47a69854979935822aef7298e0331:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-rockawayx-down.json:generic-api-key:569
+4f10a4aa7ea47a69854979935822aef7298e0331:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-rockawayx-down.json:generic-api-key:578
+4f10a4aa7ea47a69854979935822aef7298e0331:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-rockawayx-down.json:generic-api-key:721
+4f10a4aa7ea47a69854979935822aef7298e0331:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-rockawayx-down.json:generic-api-key:730
+4f10a4aa7ea47a69854979935822aef7298e0331:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-rockawayx-down.json:generic-api-key:960
+4f10a4aa7ea47a69854979935822aef7298e0331:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-rockawayx-down.json:generic-api-key:973
+c9fe97d7943ccea7a1639687d8d8c7c992e49327:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-async-only.json:generic-api-key:1130
+c9fe97d7943ccea7a1639687d8d8c7c992e49327:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-async-only.json:generic-api-key:1143
+c9fe97d7943ccea7a1639687d8d8c7c992e49327:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-async-only.json:generic-api-key:763
+c9fe97d7943ccea7a1639687d8d8c7c992e49327:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-async-only.json:generic-api-key:772
+c9fe97d7943ccea7a1639687d8d8c7c992e49327:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-async-only.json:generic-api-key:912
+c9fe97d7943ccea7a1639687d8d8c7c992e49327:tasks/multi-protocol-aggregator/proof/mainnet-withdraw-async-only.json:generic-api-key:921

@@ -23,7 +23,7 @@ One interface over RockawayX (ERC-4626), Morpho Blue (USDC markets) and the Cent
 git clone https://github.com/edycutjong/pharos-beacon && cd pharos-beacon && npm ci
 ```
 
-No key, no `.env`. Runs take a few minutes (the hosted server is rate limited): tell the user before starting.
+No key; an optional `.env` is read only for the server URL. Runs take a few minutes (the hosted server is rate limited): tell the user before starting.
 
 ## Workflow
 
@@ -39,7 +39,7 @@ No key, no `.env`. Runs take a few minutes (the hosted server is rate limited): 
    npm run multi-protocol-aggregator -- withdraw --wallet 0x… --amount 5000     # or --amount all
    ```
    Give the user the `ROUTE` block as printed: the chosen venue and its numbers, the runner-up, every venue that was not eligible and why. Never summarise a reason away. Say clearly that nothing was signed.
-3. **If a protocol is unavailable** the run still answers from the others. To rehearse it: `--down morpho` (a protocol) or `--down morpho-c79579` (one venue); every line that names the failed venue says SIMULATED (the `PARTLY UP` and `positions … UNKNOWN` summary lines do not).
+3. **If a protocol is unavailable** the run still answers from the others. To rehearse it: `--down morpho` (a protocol) or `--down morpho-c79579` (one venue); every line that names the failed venue says SIMULATED (the `PARTLY UP`, `positions … UNKNOWN` and `all`-covers-only-answering-venues lines do not).
 
 ## Rules
 
