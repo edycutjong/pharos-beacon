@@ -313,7 +313,7 @@ export class Agent {
    *   not used and lapsed → it can never settle; the purchase may be signed again with a new nonce.
    *   not used and still valid → it may still settle; the caller re-sends the SAME header, or waits.
    */
-  private async reconcile(p: Purchase, want: string, j: Journal): Promise<"settled" | "lapsed" | "open"> {
+  private async reconcile(p: Purchase, want: string, j: Journal, quiet = false): Promise<"settled" | "lapsed" | "open"> {
     const used = await this.chain.nonceUsed(p.payer, p.nonce);
     if (used) {
       const s = await this.chain.settlementOf(p.payer, p.nonce);
@@ -331,7 +331,7 @@ export class Agent {
       this.emit({ type: "reconcile", want, nonceUsed: false, text: `authorization ${p.nonce.slice(0, 10)}… was never used and has expired: it can no longer be charged` });
       return "lapsed";
     }
-    this.emit({ type: "reconcile", want, nonceUsed: false, text: `authorization ${p.nonce.slice(0, 10)}… not used yet and still valid` });
+    if (!quiet) this.emit({ type: "reconcile", want, nonceUsed: false, text: `authorization ${p.nonce.slice(0, 10)}… not used yet and still valid` });
     return "open";
   }
 
@@ -342,7 +342,7 @@ export class Agent {
   private async settleOld(j: Journal, except: string): Promise<void> {
     for (const q of Object.values(j)) {
       if (q.key === except || (q.state !== "signed" && q.state !== "rejected")) continue;
-      await this.reconcile(q, q.key.split("/").pop()!, j).catch(() => undefined);
+      await this.reconcile(q, q.key.split("/").pop()!, j, true).catch(() => undefined);
     }
   }
 
