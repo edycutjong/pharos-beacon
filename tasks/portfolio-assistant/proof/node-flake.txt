@@ -13,11 +13,14 @@ Twelve repeats of that read afterwards, for blocks 20851695/6/7 (value ×count; 
 20851697: 1.44 ×1
 
 ## 2. A head-block share price that contradicted the figure next to it
-In the first English proof (block 21136550) roxUSDC 'price of 1 share' (F26) read 1.003821 while the same answer's 'worth in USDC' (F25) implies 1.007258, and the Bahasa proof of the same block read 1.007258:
-  F25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550
-  F25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550
-  F25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550
+The first English proof of block 21136550 (commit b94c5eb) printed, for roxUSDC, a share price of 1.003821 USDC while the same answer's 'worth in USDC' implies 1.007258 (19,469.79 / 19,329.4840), and the Bahasa proof of the same block read 1.007258:
 A: 0x62A0…0673 · roxUSDC (RockawayX vault): 1 share grew -0.258% over 7.3 days (1.006414 USDC → 1.003821 USDC) [F40, F26]; -12.13% APY annualised [F40, F26]; on $19,469.79 [F25] that is about $-2,361.29 a year [F25, F40, F26]
-A: 0x0665…4bE3 · JTRSY (fund vault): 1 share grew 0.071% over 7.3 days (1.119288 USDC → 1.120079 USDC) [F41, F38]; 3.60% APY annualised [F41, F38]; on $34,510.28 [F37] that is about $1,243.70 a year [F37, F41, F38]
+A: 0x0665…4bE3 · JTRSY (Centrifuge): 1 share grew 0.071% over 7.3 days (1.119288 USDC → 1.120079 USDC) [F41, F38]; 3.60% APY annualised [F41, F38]; on $34,510.28 [F37] that is about $1,243.70 a year [F37, F41, F38]
+  F26 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550
 
-Both were single reads; the node was not asked twice. Fix: every eth_call/get_balance is read twice and must agree (a third read breaks a tie, otherwise the source is reported unreadable).
+The same lines after the fix (current mainnet-watchlist-en.txt):
+A: 0x62A0…0673 · roxUSDC (RockawayX vault): 1 share grew 0.084% over 7.3 days (1.006414 USDC → 1.007258 USDC) [F40, F26]; 4.29% APY annualised [F40, F26]; on $19,469.79 [F25] that is about $835.36 a year [F25, F40, F26]
+A: 0x0665…4bE3 · JTRSY (Fund vault): 1 share grew 0.071% over 7.3 days (1.119288 USDC → 1.120079 USDC) [F41, F38]; 3.60% APY annualised [F41, F38]; on $34,510.28 [F37] that is about $1,243.70 a year [F37, F41, F38]
+  F26 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550
+
+Both wrong answers came from single reads; the node was not asked twice. Fix: every eth_call and get_balance is read twice and must agree (a third read breaks a tie, otherwise the source is reported unreadable).
