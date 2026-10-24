@@ -197,6 +197,23 @@ describe("weekly-digest-agent main", () => {
     await expect(main(ctx, ["--wallet", W, "--now", "2023-11-13T01:00:00Z", "--baseline", "none"], conn(), undefined)).rejects.toThrow(/holds no blocks/);
   });
 
+  it("fails closed when the previous period cannot be read: no digest, nothing delivered", async () => {
+    const spy: { tool: string; args: any }[] = [];
+    await main(ctx, ["--wallet", W, "--now", NOW, "--baseline", "none"], conn(spy), undefined);
+    const base = spy.filter((c) => c.tool === "get_block").length;
+    let seen = 0;
+    const failing = async () => {
+      const real = await conn()();
+      return { ...real, call: (async (tool: string, args?: any) => {
+        if (tool === "get_block" && ++seen > base) throw new Error("rpc down");
+        return real.call(tool, args);
+      }) as typeof real.call };
+    };
+    const sent: string[] = [];
+    await expect(main(ctx, ["--wallet", W, "--now", NOW, "--deliver", "discord"], failing, () => fakeNotifier(sent))).rejects.toThrow(/previous period could not be read: rpc down/);
+    expect(sent).toHaveLength(0);
+  });
+
   it("--print-schedule shows the cron expression and reads nothing", async () => {
     const spy: { tool: string; args: any }[] = [];
     expect(await main(ctx, ["--wallet", W, "--print-schedule"], conn(spy), undefined)).toBe(0);

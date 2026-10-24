@@ -2,7 +2,7 @@
 
 **Task:** [Invoice-to-Payment Agent](https://pharos-agent-arena.vercel.app/tasks/invoice-to-payment-agent) (Payments · Medium · 100 pts): read an invoice or payment request and prepare the matching on-chain payment.
 **Run** (Atlantic testnet; one-time `npm run setup:mcp`; the sender is `--from 0x…`, or the address derived from `PRIVATE_KEY` (the key is read only to derive that address; it signs nothing until `--execute`)). The three valid samples are already paid on Atlantic, so try them against a scratch ledger:
-`npm run invoice-to-payment-agent -- tasks/invoice-to-payment-agent/samples/acme-0042.json --parser rules --state "$(mktemp)"` · four of the five `bad-*` samples are flagged before any ledger is read (pass `--state "$(mktemp)"` with `bad-payee.txt`, which reads it) · `--pay-in USDC` settles a USD invoice · `--execute` signs and sends.
+`npm run invoice-to-payment-agent -- tasks/invoice-to-payment-agent/samples/acme-0042.json --parser rules --state "$(mktemp)" --from 0x317bca01Bb101C0F1E86C21576a4e14D92B02975` · four of the five `bad-*` samples are flagged before any ledger is read (pass `--state "$(mktemp)"` with `bad-payee.txt`, which reads it) · `--pay-in USDC` settles a USD invoice · `--execute` signs and sends.
 **Uses:** Chain MCP ✅ (`get_balance`, `eth_call` `decimals()` / `balanceOf`, `get_transaction_count`, `estimate_gas`, `get_block`, `get_gas_price`, `send_raw_transaction`, `get_transaction_receipt`); SkillEngine `tokens.json`; `pdftotext` (poppler) for PDFs; a Gemini model only to fill fields the labelled lines did not give (key read from `~/.config/gemini/`, optional).
 
 ## How it works

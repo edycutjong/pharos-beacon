@@ -2,7 +2,7 @@
 
 **Task:** [Natural-Language Payment Agent](https://pharos-agent-arena.vercel.app/tasks/natural-language-payment-agent) (Payments · Medium · 100 pts): turn "send 100 USDC to X" into a fully prepared transaction for the user to review and sign.
 **Run** (Atlantic testnet; one-time `npm run setup:mcp`; the sender is `--from 0x…`, or the address derived from `PRIVATE_KEY` in `~/.config/pharos/testnet.env` (the key is read only to derive that address; it signs nothing until `--execute`)):
-`npm run natural-language-payment-agent -- "send 0.01 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"` · add `--followup "WPHRS"` to answer a question · `--parser rules` runs without any LLM key · `--execute` signs and sends.
+`npm run natural-language-payment-agent -- "send 0.01 PHRS to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B" --from 0x317bca01Bb101C0F1E86C21576a4e14D92B02975` · add `--followup "WPHRS"` to answer a question · `--parser rules` runs without any LLM key · `--execute` signs and sends.
 **Uses:** Chain MCP ✅ (`get_balance`, `eth_call` `decimals()` / `balanceOf`, `get_transaction_count`, `estimate_gas`, `get_block`, `get_gas_price`, `send_raw_transaction`, `get_transaction_receipt`); SkillEngine `tokens.json` for the token list; a Gemini model (key read from `~/.config/gemini/` at run time) for the language step; viem signs locally.
 
 ## How it works
@@ -92,7 +92,7 @@ Both pay a distinct recipient: wallet 1 `0x317b…2975` → our wallet 2 `0x8D34
 ## Limits, stated plainly
 
 - Atlantic testnet only; signing is refused for any other chain. Mainnet is not reachable from this task.
-- Tokens are the five in the SkillEngine Atlantic list plus native PHRS. Wallet 1 holds no Atlantic USDC, so the live ERC-20 send uses WPHRS; the same code path serves every listed token.
+- Tokens are the five in the SkillEngine Atlantic list plus native PHRS. Wallet 1 holds none of the listed Atlantic USDC (0xE0BE…; its test USDC is the x402 token, which is not on the list), so the live ERC-20 send uses WPHRS; the same code path serves every listed token.
 - Name resolution (`alice.eth`) is not supported (no name service is wired in); the agent says so instead of guessing an address.
 - The LLM step needs a key in `~/.config/gemini/credentials.json`. Without one, or with `--parser rules`, a deterministic rule parser handles the same instructions (English and Bahasa). The proofs were produced with `gemini-3.5-flash`.
 - The model is not deterministic, but its output is validated the same way every time.

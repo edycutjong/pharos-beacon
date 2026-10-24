@@ -101,7 +101,11 @@ export async function main(
     previous = state.metrics;
     console.log(`previous period's numbers: from the state file (${state.periodLabel}), no re-read`);
   } else if (baselineMode === "auto") {
-    const pr = await rangeForTimes(call, prevPeriod.fromTs, prevPeriod.toTs, head).catch(() => undefined);
+    const pr = await rangeForTimes(call, prevPeriod.fromTs, prevPeriod.toTs, head).catch((e: unknown) => {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/holds no blocks/.test(msg)) return undefined; // a genuinely empty period (before the chain began)
+      throw new Error(`previous period could not be read: ${msg}`); // fail closed: no digest without requirement 2's comparison
+    });
     if (pr) {
       previous = metricsOf(await collectActivity(call, network, wallet, pr, { scanBlocks, maxTxs, progress: (l) => console.error(l) }), prevPeriod.label);
       console.log(`previous period read: blocks ${pr.fromBlock}–${pr.toBlock}`);

@@ -28,7 +28,7 @@ Skill rule   confirmations = head − block + 1  vs  the value tier's requiremen
 verdict + the rule that decided + depth    (exit code 0 SETTLED · 2 WAIT · 1 FAILED, MISMATCH, NOT_FOUND or a runtime error; bad input also exits 2: unknown flags and wrong argument counts print the usage line, other bad values one error line)
 ```
 
-The order is the order of the tool calls in every proof (`flow` in each `proof/*.json`, with the arguments and the milliseconds each call took). `--follow` repeats the reads every 2 s until the verdict is no longer WAIT or the `--follow` seconds run out (a not-yet-mined WAIT repeats steps 1–3 only). `--latest` first adds `get_block_number` and up to 60 `get_block` calls to find a transaction.
+Exit 2 means WAIT (not enough confirmations yet), not an error; the newest transaction (`--latest`) is usually WAIT. The order is the order of the tool calls in every proof (`flow` in each `proof/*.json`, with the arguments and the milliseconds each call took). `--follow` repeats the reads every 2 s until the verdict is no longer WAIT or the `--follow` seconds run out (a not-yet-mined WAIT repeats steps 1–3 only). `--latest` first adds `get_block_number` and up to 60 `get_block` calls to find a transaction.
 
 ## Requirements → evidence
 
@@ -68,7 +68,7 @@ depth   12 confirmations of 12 required (1 native value → tier 2 of 3 (below 1
 network atlantic (chain 688689)
 ```
 
-## Installed and run by an agent
+## Beyond the requirements: installed and run by an agent
 
 [`proof/agent-run.md`](proof/agent-run.md) records it: `npx skills add <fresh clone> --skill settlement-verdict -a claude-code` installs the skill, then `claude -p` (Sonnet) gets one short prompt ("I am about to release goods against the newest transaction on Pharos mainnet. Can I treat it as paid? Give me the verdict and the rule behind it, in two lines."). The agent calls the Skill tool, runs `npm run skill-chain-mcp-flow -- --latest --network pharos`, and answers WAIT with the rule. It ran against whatever was newest at that moment, so a re-run gives another transaction and maybe another verdict. A second run in the same file (section 5) names the mainnet transaction `0x25ab34…ccd0`: the agent reports status and depth (1053 confirmations against 3 required) and says it cannot call it paid without the expected recipient and amount, and that the skill does not read token amounts (the skill's token guardrail).
 
