@@ -1,0 +1,1668 @@
+{
+  "meta": {
+    "task": "yield-optimizer",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/yield-optimizer/index.ts recommend --wallet 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --network atlantic --windows 10m,40m,58m --hold-days 30 --min-net-usd 0.001 --proof atlantic-after-move",
+    "git": {
+      "commit": "9168c0be0878",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T19:50:59.764Z"
+  },
+  "network": "atlantic",
+  "chainId": 688689,
+  "wallet": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+  "block": "31834856",
+  "timestamp": "1792871459",
+  "secondsPerBlock": 2.15662,
+  "windows": [
+    {
+      "label": "10m",
+      "seconds": 600
+    },
+    {
+      "label": "40m",
+      "seconds": 2400
+    },
+    {
+      "label": "58m",
+      "seconds": 3480
+    }
+  ],
+  "params": {
+    "holdDays": 30,
+    "minNetUsd": 0.001,
+    "slippageBps": 10,
+    "haircut": 0.5
+  },
+  "gas": {
+    "priceWei": "10000000000",
+    "nativeUsd": 0.637910888759249,
+    "nativeBasis": "stand-in: Atlantic PHRS has no market, so the MAINNET PROS price is used (WPROS/USDC pool slot0 at mainnet block 21147912)"
+  },
+  "held": {
+    "source": {
+      "key": "growth",
+      "name": "Atlantic Growth",
+      "kind": "testvault",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A"
+    },
+    "holding": {
+      "shares": "2993983487982010052",
+      "assets": "2994015"
+    },
+    "others": []
+  },
+  "readings": [
+    {
+      "source": {
+        "key": "steady",
+        "name": "Atlantic Steady",
+        "kind": "testvault",
+        "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F"
+      },
+      "basis": {
+        "assetDecimals": 6,
+        "shareDecimals": 18
+      },
+      "now": {
+        "block": "31834856",
+        "timestamp": "1792871459",
+        "price": 1.000004694317
+      },
+      "tvl": "0",
+      "windows": [
+        {
+          "label": "10m",
+          "seconds": 600,
+          "apr": 0.03999982534099825
+        },
+        {
+          "label": "40m",
+          "seconds": 2400,
+          "apr": 0.03999992875272179
+        },
+        {
+          "label": "58m",
+          "seconds": 3480,
+          "apr": 0.03999999402451449
+        }
+      ],
+      "samples": [
+        {
+          "label": "10m",
+          "then": {
+            "block": "31834578",
+            "timestamp": "1792870771",
+            "price": 1.0000038216640001
+          }
+        },
+        {
+          "label": "40m",
+          "then": {
+            "block": "31833743",
+            "timestamp": "1792869205",
+            "price": 1.000001835362
+          }
+        },
+        {
+          "label": "58m",
+          "then": {
+            "block": "31833242",
+            "timestamp": "1792867934",
+            "price": 1.0000002232360001
+          }
+        }
+      ],
+      "entry": {
+        "feeBps": 0,
+        "maxDeposit": "1000000000000",
+        "blockers": [],
+        "note": "entry fee = 1 − previewDeposit(2994015) / convertToShares(2994015) = 0 bps"
+      },
+      "exit": {
+        "feeBps": null,
+        "depth": null,
+        "lockedUntil": null,
+        "blockers": [],
+        "note": ""
+      },
+      "lockSeconds": 0,
+      "evidence": [
+        {
+          "what": "vault asset",
+          "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "asset()",
+          "block": "31834856"
+        },
+        {
+          "what": "share price now (USDC per share)",
+          "value": "1.000004694",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "convertToAssets(10^24)",
+          "block": "31834856"
+        },
+        {
+          "what": "share price 10m ago (USDC per share)",
+          "value": "1.000003822",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "same call, pinned",
+          "block": "31834578"
+        },
+        {
+          "what": "share price 40m ago (USDC per share)",
+          "value": "1.000001835",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "same call, pinned",
+          "block": "31833743"
+        },
+        {
+          "what": "share price 58m ago (USDC per share)",
+          "value": "1.000000223",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "same call, pinned",
+          "block": "31833242"
+        },
+        {
+          "what": "totalAssets (USDC raw)",
+          "value": "0",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "totalAssets()",
+          "block": "31834856"
+        },
+        {
+          "what": "maxDeposit(wallet) (USDC raw)",
+          "value": "1000000000000",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "maxDeposit(wallet)",
+          "block": "31834856"
+        },
+        {
+          "what": "previewDeposit(amount) (shares raw)",
+          "value": "2994000945208652694",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "previewDeposit(2994015)",
+          "block": "31834856"
+        },
+        {
+          "what": "convertToShares(amount) (shares raw)",
+          "value": "2994000945208652694",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "convertToShares(2994015)",
+          "block": "31834856"
+        },
+        {
+          "what": "lock-in after a deposit (s)",
+          "value": "0",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+          "call": "lockSeconds()",
+          "block": "31834856"
+        }
+      ]
+    },
+    {
+      "source": {
+        "key": "growth",
+        "name": "Atlantic Growth",
+        "kind": "testvault",
+        "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A"
+      },
+      "basis": {
+        "assetDecimals": 6,
+        "shareDecimals": 18
+      },
+      "now": {
+        "block": "31834856",
+        "timestamp": "1792871459",
+        "price": 1.000010556506
+      },
+      "tvl": "2994015",
+      "windows": [
+        {
+          "label": "10m",
+          "seconds": 600,
+          "apr": 0.08999921197712916
+        },
+        {
+          "label": "40m",
+          "seconds": 2400,
+          "apr": 0.08999962323282976
+        },
+        {
+          "label": "58m",
+          "seconds": 3480,
+          "apr": 0.08999995077339708
+        }
+      ],
+      "samples": [
+        {
+          "label": "10m",
+          "then": {
+            "block": "31834578",
+            "timestamp": "1792870771",
+            "price": 1.000008593036
+          }
+        },
+        {
+          "label": "40m",
+          "then": {
+            "block": "31833743",
+            "timestamp": "1792869205",
+            "price": 1.000004123858
+          }
+        },
+        {
+          "label": "58m",
+          "then": {
+            "block": "31833242",
+            "timestamp": "1792867934",
+            "price": 1.000000496575
+          }
+        }
+      ],
+      "entry": {
+        "feeBps": 10,
+        "maxDeposit": "999997005985",
+        "blockers": [],
+        "note": "entry fee = 1 − previewDeposit(2994015) / convertToShares(2994015) = 10 bps"
+      },
+      "exit": {
+        "feeBps": 10,
+        "depth": "2993983487982010052",
+        "lockedUntil": "1792871448",
+        "blockers": [],
+        "note": "exit fee = 1 − previewRedeem(shares) / convertToAssets(shares) = 10 bps; a simulated redeem(all shares) from the wallet succeeds and returns 2991021 USDC raw"
+      },
+      "lockSeconds": 0,
+      "evidence": [
+        {
+          "what": "vault asset",
+          "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "asset()",
+          "block": "31834856"
+        },
+        {
+          "what": "share price now (USDC per share)",
+          "value": "1.000010557",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "convertToAssets(10^24)",
+          "block": "31834856"
+        },
+        {
+          "what": "share price 10m ago (USDC per share)",
+          "value": "1.000008593",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "same call, pinned",
+          "block": "31834578"
+        },
+        {
+          "what": "share price 40m ago (USDC per share)",
+          "value": "1.000004124",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "same call, pinned",
+          "block": "31833743"
+        },
+        {
+          "what": "share price 58m ago (USDC per share)",
+          "value": "1.000000497",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "same call, pinned",
+          "block": "31833242"
+        },
+        {
+          "what": "totalAssets (USDC raw)",
+          "value": "2994015",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "totalAssets()",
+          "block": "31834856"
+        },
+        {
+          "what": "maxDeposit(wallet) (USDC raw)",
+          "value": "999997005985",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "maxDeposit(wallet)",
+          "block": "31834856"
+        },
+        {
+          "what": "previewDeposit(amount) (shares raw)",
+          "value": "2990989425599642428",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "previewDeposit(2994015)",
+          "block": "31834856"
+        },
+        {
+          "what": "convertToShares(amount) (shares raw)",
+          "value": "2993983393993794569",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "convertToShares(2994015)",
+          "block": "31834856"
+        },
+        {
+          "what": "lock-in after a deposit (s)",
+          "value": "0",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "lockSeconds()",
+          "block": "31834856"
+        },
+        {
+          "what": "previewRedeem(held shares) (USDC raw)",
+          "value": "2991021",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "previewRedeem(shares)",
+          "block": "31834856"
+        },
+        {
+          "what": "maxRedeem(wallet) (share raw)",
+          "value": "2993983487982010052",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "maxRedeem(wallet)",
+          "block": "31834856"
+        },
+        {
+          "what": "simulated redeem(all shares) (USDC raw)",
+          "value": "2991021",
+          "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+          "call": "eth_call redeem(shares, wallet, wallet) from the wallet",
+          "block": "31834856"
+        }
+      ]
+    },
+    {
+      "source": {
+        "key": "lockup",
+        "name": "Atlantic Lockup",
+        "kind": "testvault",
+        "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08"
+      },
+      "basis": {
+        "assetDecimals": 6,
+        "shareDecimals": 18
+      },
+      "now": {
+        "block": "31834856",
+        "timestamp": "1792871459",
+        "price": 1.0000141248530001
+      },
+      "tvl": "0",
+      "windows": [
+        {
+          "label": "10m",
+          "seconds": 600,
+          "apr": 0.10999921184174069
+        },
+        {
+          "label": "40m",
+          "seconds": 2400,
+          "apr": 0.10999981724375224
+        },
+        {
+          "label": "58m",
+          "seconds": 3480,
+          "apr": 0.11908965332069138
+        }
+      ],
+      "samples": [
+        {
+          "label": "10m",
+          "then": {
+            "block": "31834578",
+            "timestamp": "1792870771",
+            "price": 1.000011725045
+          }
+        },
+        {
+          "label": "40m",
+          "then": {
+            "block": "31833743",
+            "timestamp": "1792869205",
+            "price": 1.000006262691
+          }
+        },
+        {
+          "label": "58m",
+          "then": {
+            "block": "31833242",
+            "timestamp": "1792867934",
+            "price": 1.000000813356
+          }
+        }
+      ],
+      "entry": {
+        "feeBps": 50,
+        "maxDeposit": "1000000000000",
+        "blockers": [],
+        "note": "entry fee = 1 − previewDeposit(2994015) / convertToShares(2994015) = 50 bps"
+      },
+      "exit": {
+        "feeBps": null,
+        "depth": null,
+        "lockedUntil": null,
+        "blockers": [],
+        "note": ""
+      },
+      "lockSeconds": 604800,
+      "evidence": [
+        {
+          "what": "vault asset",
+          "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "asset()",
+          "block": "31834856"
+        },
+        {
+          "what": "share price now (USDC per share)",
+          "value": "1.000014125",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "convertToAssets(10^24)",
+          "block": "31834856"
+        },
+        {
+          "what": "share price 10m ago (USDC per share)",
+          "value": "1.000011725",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "same call, pinned",
+          "block": "31834578"
+        },
+        {
+          "what": "share price 40m ago (USDC per share)",
+          "value": "1.000006263",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "same call, pinned",
+          "block": "31833743"
+        },
+        {
+          "what": "share price 58m ago (USDC per share)",
+          "value": "1.000000813",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "same call, pinned",
+          "block": "31833242"
+        },
+        {
+          "what": "totalAssets (USDC raw)",
+          "value": "0",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "totalAssets()",
+          "block": "31834856"
+        },
+        {
+          "what": "maxDeposit(wallet) (USDC raw)",
+          "value": "1000000000000",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "maxDeposit(wallet)",
+          "block": "31834856"
+        },
+        {
+          "what": "previewDeposit(amount) (shares raw)",
+          "value": "2979002922019645408",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "previewDeposit(2994015)",
+          "block": "31834856"
+        },
+        {
+          "what": "convertToShares(amount) (shares raw)",
+          "value": "2993972710573572621",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "convertToShares(2994015)",
+          "block": "31834856"
+        },
+        {
+          "what": "lock-in after a deposit (s)",
+          "value": "604800",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+          "call": "lockSeconds()",
+          "block": "31834856"
+        }
+      ]
+    },
+    {
+      "source": {
+        "key": "spike",
+        "name": "Atlantic Spike",
+        "kind": "testvault",
+        "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC"
+      },
+      "basis": {
+        "assetDecimals": 6,
+        "shareDecimals": 18
+      },
+      "now": {
+        "block": "31834856",
+        "timestamp": "1792871459",
+        "price": 1.000012641443
+      },
+      "tvl": "0",
+      "windows": [
+        {
+          "label": "10m",
+          "seconds": 600,
+          "apr": 0.299998672256331
+        },
+        {
+          "label": "40m",
+          "seconds": 2400,
+          "apr": 0.16409948293599927
+        },
+        {
+          "label": "58m",
+          "seconds": 3480,
+          "apr": 0.11214199510379665
+        }
+      ],
+      "samples": [
+        {
+          "label": "10m",
+          "then": {
+            "block": "31834578",
+            "timestamp": "1792870771",
+            "price": 1.000006096531
+          }
+        },
+        {
+          "label": "40m",
+          "then": {
+            "block": "31833743",
+            "timestamp": "1792869205",
+            "price": 1.000000912607
+          }
+        },
+        {
+          "label": "58m",
+          "then": {
+            "block": "31833242",
+            "timestamp": "1792867934",
+            "price": 1.000000106544
+          }
+        }
+      ],
+      "entry": {
+        "feeBps": 0,
+        "maxDeposit": "1000000000000",
+        "blockers": [],
+        "note": "entry fee = 1 − previewDeposit(2994015) / convertToShares(2994015) = 0 bps"
+      },
+      "exit": {
+        "feeBps": null,
+        "depth": null,
+        "lockedUntil": null,
+        "blockers": [],
+        "note": ""
+      },
+      "lockSeconds": 0,
+      "evidence": [
+        {
+          "what": "vault asset",
+          "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "asset()",
+          "block": "31834856"
+        },
+        {
+          "what": "share price now (USDC per share)",
+          "value": "1.000012641",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "convertToAssets(10^24)",
+          "block": "31834856"
+        },
+        {
+          "what": "share price 10m ago (USDC per share)",
+          "value": "1.000006097",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "same call, pinned",
+          "block": "31834578"
+        },
+        {
+          "what": "share price 40m ago (USDC per share)",
+          "value": "1.000000913",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "same call, pinned",
+          "block": "31833743"
+        },
+        {
+          "what": "share price 58m ago (USDC per share)",
+          "value": "1.000000107",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "same call, pinned",
+          "block": "31833242"
+        },
+        {
+          "what": "totalAssets (USDC raw)",
+          "value": "0",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "totalAssets()",
+          "block": "31834856"
+        },
+        {
+          "what": "maxDeposit(wallet) (USDC raw)",
+          "value": "1000000000000",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "maxDeposit(wallet)",
+          "block": "31834856"
+        },
+        {
+          "what": "previewDeposit(amount) (shares raw)",
+          "value": "2993977151807297283",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "previewDeposit(2994015)",
+          "block": "31834856"
+        },
+        {
+          "what": "convertToShares(amount) (shares raw)",
+          "value": "2993977151807297283",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "convertToShares(2994015)",
+          "block": "31834856"
+        },
+        {
+          "what": "lock-in after a deposit (s)",
+          "value": "0",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+          "call": "lockSeconds()",
+          "block": "31834856"
+        }
+      ]
+    }
+  ],
+  "unreadable": [],
+  "holdingErrors": [],
+  "skipped": [],
+  "heldView": {
+    "key": "growth",
+    "name": "Atlantic Growth",
+    "usd": 2.994015,
+    "rate": {
+      "windows": [
+        {
+          "label": "10m",
+          "seconds": 600,
+          "apr": 0.08999921197712916
+        },
+        {
+          "label": "40m",
+          "seconds": 2400,
+          "apr": 0.08999962323282976
+        },
+        {
+          "label": "58m",
+          "seconds": 3480,
+          "apr": 0.08999995077339708
+        }
+      ],
+      "read": 3,
+      "ref": 0.08999962323282976,
+      "spread": 7.387962679128446e-7,
+      "jumpy": false,
+      "pessimistic": 0.0899992538346958,
+      "optimistic": 0.08999999263096371,
+      "thin": false
+    },
+    "exitFeeBps": 10,
+    "exitBlockers": []
+  },
+  "targets": [
+    {
+      "key": "steady",
+      "name": "Atlantic Steady",
+      "rate": {
+        "windows": [
+          {
+            "label": "10m",
+            "seconds": 600,
+            "apr": 0.03999982534099825
+          },
+          {
+            "label": "40m",
+            "seconds": 2400,
+            "apr": 0.03999992875272179
+          },
+          {
+            "label": "58m",
+            "seconds": 3480,
+            "apr": 0.03999999402451449
+          }
+        ],
+        "read": 3,
+        "ref": 0.03999992875272179,
+        "spread": 1.686835162384437e-7,
+        "jumpy": false,
+        "pessimistic": 0.03999984441096367,
+        "optimistic": 0.04000001309447991,
+        "thin": false
+      },
+      "entryFeeBps": 0,
+      "lockSeconds": 0,
+      "entryBlockers": [],
+      "gasUsd": 0.0029988190880572297,
+      "dilution": 1,
+      "reading": {
+        "source": {
+          "key": "steady",
+          "name": "Atlantic Steady",
+          "kind": "testvault",
+          "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 18
+        },
+        "now": {
+          "block": "31834856",
+          "timestamp": "1792871459",
+          "price": 1.000004694317
+        },
+        "tvl": "0",
+        "windows": [
+          {
+            "label": "10m",
+            "seconds": 600,
+            "apr": 0.03999982534099825
+          },
+          {
+            "label": "40m",
+            "seconds": 2400,
+            "apr": 0.03999992875272179
+          },
+          {
+            "label": "58m",
+            "seconds": 3480,
+            "apr": 0.03999999402451449
+          }
+        ],
+        "samples": [
+          {
+            "label": "10m",
+            "then": {
+              "block": "31834578",
+              "timestamp": "1792870771",
+              "price": 1.0000038216640001
+            }
+          },
+          {
+            "label": "40m",
+            "then": {
+              "block": "31833743",
+              "timestamp": "1792869205",
+              "price": 1.000001835362
+            }
+          },
+          {
+            "label": "58m",
+            "then": {
+              "block": "31833242",
+              "timestamp": "1792867934",
+              "price": 1.0000002232360001
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": 0,
+          "maxDeposit": "1000000000000",
+          "blockers": [],
+          "note": "entry fee = 1 − previewDeposit(2994015) / convertToShares(2994015) = 0 bps"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": null,
+          "lockedUntil": null,
+          "blockers": [],
+          "note": ""
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "asset()",
+            "block": "31834856"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "1.000004694",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "convertToAssets(10^24)",
+            "block": "31834856"
+          },
+          {
+            "what": "share price 10m ago (USDC per share)",
+            "value": "1.000003822",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "same call, pinned",
+            "block": "31834578"
+          },
+          {
+            "what": "share price 40m ago (USDC per share)",
+            "value": "1.000001835",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "same call, pinned",
+            "block": "31833743"
+          },
+          {
+            "what": "share price 58m ago (USDC per share)",
+            "value": "1.000000223",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "same call, pinned",
+            "block": "31833242"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "0",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "totalAssets()",
+            "block": "31834856"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "1000000000000",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "maxDeposit(wallet)",
+            "block": "31834856"
+          },
+          {
+            "what": "previewDeposit(amount) (shares raw)",
+            "value": "2994000945208652694",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "previewDeposit(2994015)",
+            "block": "31834856"
+          },
+          {
+            "what": "convertToShares(amount) (shares raw)",
+            "value": "2994000945208652694",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "convertToShares(2994015)",
+            "block": "31834856"
+          },
+          {
+            "what": "lock-in after a deposit (s)",
+            "value": "0",
+            "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+            "call": "lockSeconds()",
+            "block": "31834856"
+          }
+        ]
+      },
+      "gasUnits": 470100,
+      "gasBasis": "exit:estimated, approve:estimated, enter:configured"
+    },
+    {
+      "key": "lockup",
+      "name": "Atlantic Lockup",
+      "rate": {
+        "windows": [
+          {
+            "label": "10m",
+            "seconds": 600,
+            "apr": 0.10999921184174069
+          },
+          {
+            "label": "40m",
+            "seconds": 2400,
+            "apr": 0.10999981724375224
+          },
+          {
+            "label": "58m",
+            "seconds": 3480,
+            "apr": 0.11908965332069138
+          }
+        ],
+        "read": 3,
+        "ref": 0.10999981724375224,
+        "spread": 0.00909044147895069,
+        "jumpy": false,
+        "pessimistic": 0.1054545965042769,
+        "optimistic": 0.11454503798322759,
+        "thin": false
+      },
+      "entryFeeBps": 50,
+      "lockSeconds": 604800,
+      "entryBlockers": [],
+      "gasUsd": 0.0029988190880572297,
+      "dilution": 1,
+      "reading": {
+        "source": {
+          "key": "lockup",
+          "name": "Atlantic Lockup",
+          "kind": "testvault",
+          "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 18
+        },
+        "now": {
+          "block": "31834856",
+          "timestamp": "1792871459",
+          "price": 1.0000141248530001
+        },
+        "tvl": "0",
+        "windows": [
+          {
+            "label": "10m",
+            "seconds": 600,
+            "apr": 0.10999921184174069
+          },
+          {
+            "label": "40m",
+            "seconds": 2400,
+            "apr": 0.10999981724375224
+          },
+          {
+            "label": "58m",
+            "seconds": 3480,
+            "apr": 0.11908965332069138
+          }
+        ],
+        "samples": [
+          {
+            "label": "10m",
+            "then": {
+              "block": "31834578",
+              "timestamp": "1792870771",
+              "price": 1.000011725045
+            }
+          },
+          {
+            "label": "40m",
+            "then": {
+              "block": "31833743",
+              "timestamp": "1792869205",
+              "price": 1.000006262691
+            }
+          },
+          {
+            "label": "58m",
+            "then": {
+              "block": "31833242",
+              "timestamp": "1792867934",
+              "price": 1.000000813356
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": 50,
+          "maxDeposit": "1000000000000",
+          "blockers": [],
+          "note": "entry fee = 1 − previewDeposit(2994015) / convertToShares(2994015) = 50 bps"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": null,
+          "lockedUntil": null,
+          "blockers": [],
+          "note": ""
+        },
+        "lockSeconds": 604800,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "asset()",
+            "block": "31834856"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "1.000014125",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "convertToAssets(10^24)",
+            "block": "31834856"
+          },
+          {
+            "what": "share price 10m ago (USDC per share)",
+            "value": "1.000011725",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "same call, pinned",
+            "block": "31834578"
+          },
+          {
+            "what": "share price 40m ago (USDC per share)",
+            "value": "1.000006263",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "same call, pinned",
+            "block": "31833743"
+          },
+          {
+            "what": "share price 58m ago (USDC per share)",
+            "value": "1.000000813",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "same call, pinned",
+            "block": "31833242"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "0",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "totalAssets()",
+            "block": "31834856"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "1000000000000",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "maxDeposit(wallet)",
+            "block": "31834856"
+          },
+          {
+            "what": "previewDeposit(amount) (shares raw)",
+            "value": "2979002922019645408",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "previewDeposit(2994015)",
+            "block": "31834856"
+          },
+          {
+            "what": "convertToShares(amount) (shares raw)",
+            "value": "2993972710573572621",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "convertToShares(2994015)",
+            "block": "31834856"
+          },
+          {
+            "what": "lock-in after a deposit (s)",
+            "value": "604800",
+            "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+            "call": "lockSeconds()",
+            "block": "31834856"
+          }
+        ]
+      },
+      "gasUnits": 470100,
+      "gasBasis": "exit:estimated, approve:estimated, enter:configured"
+    },
+    {
+      "key": "spike",
+      "name": "Atlantic Spike",
+      "rate": {
+        "windows": [
+          {
+            "label": "10m",
+            "seconds": 600,
+            "apr": 0.299998672256331
+          },
+          {
+            "label": "40m",
+            "seconds": 2400,
+            "apr": 0.16409948293599927
+          },
+          {
+            "label": "58m",
+            "seconds": 3480,
+            "apr": 0.11214199510379665
+          }
+        ],
+        "read": 3,
+        "ref": 0.16409948293599927,
+        "spread": 0.18785667715253435,
+        "jumpy": true,
+        "pessimistic": 0.0701711443597321,
+        "optimistic": 0.25802782151226644,
+        "thin": false
+      },
+      "entryFeeBps": 0,
+      "lockSeconds": 0,
+      "entryBlockers": [],
+      "gasUsd": 0.0029988190880572297,
+      "dilution": 1,
+      "reading": {
+        "source": {
+          "key": "spike",
+          "name": "Atlantic Spike",
+          "kind": "testvault",
+          "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 18
+        },
+        "now": {
+          "block": "31834856",
+          "timestamp": "1792871459",
+          "price": 1.000012641443
+        },
+        "tvl": "0",
+        "windows": [
+          {
+            "label": "10m",
+            "seconds": 600,
+            "apr": 0.299998672256331
+          },
+          {
+            "label": "40m",
+            "seconds": 2400,
+            "apr": 0.16409948293599927
+          },
+          {
+            "label": "58m",
+            "seconds": 3480,
+            "apr": 0.11214199510379665
+          }
+        ],
+        "samples": [
+          {
+            "label": "10m",
+            "then": {
+              "block": "31834578",
+              "timestamp": "1792870771",
+              "price": 1.000006096531
+            }
+          },
+          {
+            "label": "40m",
+            "then": {
+              "block": "31833743",
+              "timestamp": "1792869205",
+              "price": 1.000000912607
+            }
+          },
+          {
+            "label": "58m",
+            "then": {
+              "block": "31833242",
+              "timestamp": "1792867934",
+              "price": 1.000000106544
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": 0,
+          "maxDeposit": "1000000000000",
+          "blockers": [],
+          "note": "entry fee = 1 − previewDeposit(2994015) / convertToShares(2994015) = 0 bps"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": null,
+          "lockedUntil": null,
+          "blockers": [],
+          "note": ""
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "asset()",
+            "block": "31834856"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "1.000012641",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "convertToAssets(10^24)",
+            "block": "31834856"
+          },
+          {
+            "what": "share price 10m ago (USDC per share)",
+            "value": "1.000006097",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "same call, pinned",
+            "block": "31834578"
+          },
+          {
+            "what": "share price 40m ago (USDC per share)",
+            "value": "1.000000913",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "same call, pinned",
+            "block": "31833743"
+          },
+          {
+            "what": "share price 58m ago (USDC per share)",
+            "value": "1.000000107",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "same call, pinned",
+            "block": "31833242"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "0",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "totalAssets()",
+            "block": "31834856"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "1000000000000",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "maxDeposit(wallet)",
+            "block": "31834856"
+          },
+          {
+            "what": "previewDeposit(amount) (shares raw)",
+            "value": "2993977151807297283",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "previewDeposit(2994015)",
+            "block": "31834856"
+          },
+          {
+            "what": "convertToShares(amount) (shares raw)",
+            "value": "2993977151807297283",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "convertToShares(2994015)",
+            "block": "31834856"
+          },
+          {
+            "what": "lock-in after a deposit (s)",
+            "value": "0",
+            "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+            "call": "lockSeconds()",
+            "block": "31834856"
+          }
+        ]
+      },
+      "gasUnits": 470100,
+      "gasBasis": "exit:estimated, approve:estimated, enter:configured"
+    }
+  ],
+  "recommendation": {
+    "decision": "STAY",
+    "best": {
+      "key": "spike",
+      "name": "Atlantic Spike",
+      "horizonDays": 30,
+      "gasUsd": 0.0029988190880572297,
+      "exitBlockers": [],
+      "entryBlockers": [],
+      "notes": [],
+      "dilution": 1,
+      "rateGap": -0.019828848271231617,
+      "grossUsd": -0.004879550889599304,
+      "exitFeeUsd": 0.0029940150000000005,
+      "entryFeeUsd": 0,
+      "costUsd": 0.005992834088057231,
+      "netUsd": -0.010872384977656534,
+      "netAtMedianUsd": 0.012241913154341543,
+      "destRate": 0.0701711443597321,
+      "breakEvenDays": null,
+      "verdict": "no"
+    },
+    "evaluations": [
+      {
+        "key": "steady",
+        "name": "Atlantic Steady",
+        "horizonDays": 30,
+        "gasUsd": 0.0029988190880572297,
+        "exitBlockers": [],
+        "entryBlockers": [],
+        "notes": [],
+        "dilution": 1,
+        "rateGap": -0.05000014822000004,
+        "grossUsd": -0.012304207707361925,
+        "exitFeeUsd": 0.0029940150000000005,
+        "entryFeeUsd": 0,
+        "costUsd": 0.005992834088057231,
+        "netUsd": -0.018297041795419154,
+        "netAtMedianUsd": -0.01829693013755261,
+        "destRate": 0.03999984441096367,
+        "breakEvenDays": null,
+        "verdict": "no"
+      },
+      {
+        "key": "lockup",
+        "name": "Atlantic Lockup",
+        "horizonDays": 30,
+        "gasUsd": 0.0029988190880572297,
+        "exitBlockers": [],
+        "entryBlockers": [],
+        "notes": [],
+        "dilution": 1,
+        "rateGap": 0.015454603873313183,
+        "grossUsd": 0.003803121847870502,
+        "exitFeeUsd": 0.0029940150000000005,
+        "entryFeeUsd": 0.014955104925,
+        "costUsd": 0.02094793901305723,
+        "netUsd": -0.01714481716518673,
+        "netAtMedianUsd": -0.01602622277703432,
+        "destRate": 0.1054545965042769,
+        "breakEvenDays": 165.24271257403993,
+        "verdict": "no"
+      },
+      {
+        "key": "spike",
+        "name": "Atlantic Spike",
+        "horizonDays": 30,
+        "gasUsd": 0.0029988190880572297,
+        "exitBlockers": [],
+        "entryBlockers": [],
+        "notes": [],
+        "dilution": 1,
+        "rateGap": -0.019828848271231617,
+        "grossUsd": -0.004879550889599304,
+        "exitFeeUsd": 0.0029940150000000005,
+        "entryFeeUsd": 0,
+        "costUsd": 0.005992834088057231,
+        "netUsd": -0.010872384977656534,
+        "netAtMedianUsd": 0.012241913154341543,
+        "destRate": 0.0701711443597321,
+        "breakEvenDays": null,
+        "verdict": "no"
+      }
+    ],
+    "reason": "the best alternative that could be entered, Atlantic Spike, would net -$0.0109 at conservative rates ($0.0122 at median rates) over 30 d after $0.005993 of costs (its conservative rate is not above the current one, so the costs are never earned back); a move must net at least $0.001000 and pay back within the 30 d holding period"
+  },
+  "plan": null,
+  "planNote": "no transactions prepared: the recommendation is to stay put",
+  "evidence": [
+    {
+      "what": "Atlantic Growth shares of the wallet",
+      "value": "2993983487982010052",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "balanceOf(wallet)",
+      "block": "31834856"
+    },
+    {
+      "what": "Atlantic Growth position worth (USDC raw)",
+      "value": "2994015",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "convertToAssets(shares)",
+      "block": "31834856"
+    },
+    {
+      "what": "vault asset",
+      "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "asset()",
+      "block": "31834856"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "1.000004694",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "convertToAssets(10^24)",
+      "block": "31834856"
+    },
+    {
+      "what": "share price 10m ago (USDC per share)",
+      "value": "1.000003822",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "same call, pinned",
+      "block": "31834578"
+    },
+    {
+      "what": "share price 40m ago (USDC per share)",
+      "value": "1.000001835",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "same call, pinned",
+      "block": "31833743"
+    },
+    {
+      "what": "share price 58m ago (USDC per share)",
+      "value": "1.000000223",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "same call, pinned",
+      "block": "31833242"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "0",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "totalAssets()",
+      "block": "31834856"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "1000000000000",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "maxDeposit(wallet)",
+      "block": "31834856"
+    },
+    {
+      "what": "previewDeposit(amount) (shares raw)",
+      "value": "2994000945208652694",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "previewDeposit(2994015)",
+      "block": "31834856"
+    },
+    {
+      "what": "convertToShares(amount) (shares raw)",
+      "value": "2994000945208652694",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "convertToShares(2994015)",
+      "block": "31834856"
+    },
+    {
+      "what": "lock-in after a deposit (s)",
+      "value": "0",
+      "contract": "0x43C698f3901F5E727305A52635427a2699a8C70F",
+      "call": "lockSeconds()",
+      "block": "31834856"
+    },
+    {
+      "what": "vault asset",
+      "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "asset()",
+      "block": "31834856"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "1.000010557",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "convertToAssets(10^24)",
+      "block": "31834856"
+    },
+    {
+      "what": "share price 10m ago (USDC per share)",
+      "value": "1.000008593",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "same call, pinned",
+      "block": "31834578"
+    },
+    {
+      "what": "share price 40m ago (USDC per share)",
+      "value": "1.000004124",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "same call, pinned",
+      "block": "31833743"
+    },
+    {
+      "what": "share price 58m ago (USDC per share)",
+      "value": "1.000000497",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "same call, pinned",
+      "block": "31833242"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "2994015",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "totalAssets()",
+      "block": "31834856"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "999997005985",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "maxDeposit(wallet)",
+      "block": "31834856"
+    },
+    {
+      "what": "previewDeposit(amount) (shares raw)",
+      "value": "2990989425599642428",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "previewDeposit(2994015)",
+      "block": "31834856"
+    },
+    {
+      "what": "convertToShares(amount) (shares raw)",
+      "value": "2993983393993794569",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "convertToShares(2994015)",
+      "block": "31834856"
+    },
+    {
+      "what": "lock-in after a deposit (s)",
+      "value": "0",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "lockSeconds()",
+      "block": "31834856"
+    },
+    {
+      "what": "previewRedeem(held shares) (USDC raw)",
+      "value": "2991021",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "previewRedeem(shares)",
+      "block": "31834856"
+    },
+    {
+      "what": "maxRedeem(wallet) (share raw)",
+      "value": "2993983487982010052",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "maxRedeem(wallet)",
+      "block": "31834856"
+    },
+    {
+      "what": "simulated redeem(all shares) (USDC raw)",
+      "value": "2991021",
+      "contract": "0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A",
+      "call": "eth_call redeem(shares, wallet, wallet) from the wallet",
+      "block": "31834856"
+    },
+    {
+      "what": "vault asset",
+      "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "asset()",
+      "block": "31834856"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "1.000014125",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "convertToAssets(10^24)",
+      "block": "31834856"
+    },
+    {
+      "what": "share price 10m ago (USDC per share)",
+      "value": "1.000011725",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "same call, pinned",
+      "block": "31834578"
+    },
+    {
+      "what": "share price 40m ago (USDC per share)",
+      "value": "1.000006263",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "same call, pinned",
+      "block": "31833743"
+    },
+    {
+      "what": "share price 58m ago (USDC per share)",
+      "value": "1.000000813",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "same call, pinned",
+      "block": "31833242"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "0",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "totalAssets()",
+      "block": "31834856"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "1000000000000",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "maxDeposit(wallet)",
+      "block": "31834856"
+    },
+    {
+      "what": "previewDeposit(amount) (shares raw)",
+      "value": "2979002922019645408",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "previewDeposit(2994015)",
+      "block": "31834856"
+    },
+    {
+      "what": "convertToShares(amount) (shares raw)",
+      "value": "2993972710573572621",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "convertToShares(2994015)",
+      "block": "31834856"
+    },
+    {
+      "what": "lock-in after a deposit (s)",
+      "value": "604800",
+      "contract": "0xf214616884cbF73F37d20468A98C95F22D701d08",
+      "call": "lockSeconds()",
+      "block": "31834856"
+    },
+    {
+      "what": "vault asset",
+      "value": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "asset()",
+      "block": "31834856"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "1.000012641",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "convertToAssets(10^24)",
+      "block": "31834856"
+    },
+    {
+      "what": "share price 10m ago (USDC per share)",
+      "value": "1.000006097",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "same call, pinned",
+      "block": "31834578"
+    },
+    {
+      "what": "share price 40m ago (USDC per share)",
+      "value": "1.000000913",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "same call, pinned",
+      "block": "31833743"
+    },
+    {
+      "what": "share price 58m ago (USDC per share)",
+      "value": "1.000000107",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "same call, pinned",
+      "block": "31833242"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "0",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "totalAssets()",
+      "block": "31834856"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "1000000000000",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "maxDeposit(wallet)",
+      "block": "31834856"
+    },
+    {
+      "what": "previewDeposit(amount) (shares raw)",
+      "value": "2993977151807297283",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "previewDeposit(2994015)",
+      "block": "31834856"
+    },
+    {
+      "what": "convertToShares(amount) (shares raw)",
+      "value": "2993977151807297283",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "convertToShares(2994015)",
+      "block": "31834856"
+    },
+    {
+      "what": "lock-in after a deposit (s)",
+      "value": "0",
+      "contract": "0x31737242239F289b6CD5a4E53A71822f864315EC",
+      "call": "lockSeconds()",
+      "block": "31834856"
+    }
+  ]
+}
