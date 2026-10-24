@@ -1,0 +1,31 @@
+Pharos mainnet (chain 1672), block 21145287 (0.911 s/block) · wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3
+Holds: Janus Henderson Treasury Fund worth 34,510.281698 USDC
+Rules: hold at least 30 d after a move · net gain at least $1.00 · windows 1d / 7d / 30d · gas 10000000000 wei × native price 0.635908 USD (PROS in USDC from the WPROS/USDC pool 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 slot0 at block 21145218)
+
+Yield sources, measured as share-price growth over each window, annualised (APR, simple):
+  source                                 1d       7d      30d   median  conservative  notes
+  Morpho Blue syzUSD/USDC supply      7.07%    5.46%    5.28%    5.46%         4.57%  TVL 3,912,139.256317
+  Morpho Blue APC3M/USDC supply       3.59%    5.34%    5.29%    5.29%         4.41%  TVL 1,209,565.580284
+  Morpho Blue APT/USDC supply         9.39%    4.37%      n/a    6.88%         4.37%  JUMPY (spread 5.03%: ranked down) · TVL 1,000,631.413482
+  RockawayX USDC vault                4.75%    4.23%    3.99%    4.23%         3.85%  TVL 11,123,186.101201
+  Janus Henderson Treasury Fund       0.00%    3.55%    3.47%    3.47%         1.70%  HELD · JUMPY (spread 3.55%: ranked down) · TVL 1,765,778.147055
+  NYLIM US High Yield Bond Fund       0.00%   -0.20%  -10.65%   -0.20%         0.00%  JUMPY (spread 10.65%: ranked down) · TVL 98,398.088663
+  (left out: 0xab78d4ff…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x95bc6fe9…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x4cbedaf6…: only 603838 USDC raw supplied (below 1000000000))
+
+Entry / exit, read from the contracts:
+  exit Janus Henderson Treasury Fund: previewRedeem reverts (eth_call: execution reverted: (code 3)): the redeem is an asynchronous request, so its fee and delay cannot be read → BLOCKED: redeem is an asynchronous request (previewRedeem reverts): it settles in a later epoch, not in one transaction
+  entry RockawayX USDC vault: entry fee = 1 − previewDeposit(34510281698) / convertToShares(34510281698) = 0 bps → BLOCKED: maxDeposit(wallet) = 0 USDC raw, below the 34510281698 being moved (the vault is full, paused or restricted)
+  entry NYLIM US High Yield Bond Fund: previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read → BLOCKED: maxDeposit(wallet) = 0 USDC raw, below the 34510281698 being moved (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move
+  entry Morpho Blue syzUSD/USDC supply: Morpho Blue supply charges no entry fee (supply() has no fee parameter) → open
+  entry Morpho Blue APT/USDC supply: Morpho Blue supply charges no entry fee (supply() has no fee parameter) → open
+  entry Morpho Blue APC3M/USDC supply: Morpho Blue supply charges no entry fee (supply() has no fee parameter) → open
+
+Moving $34,510.28 out of Janus Henderson Treasury Fund (credited at its optimistic 5.25%; destinations at their conservative rate):
+  → RockawayX USDC vault: cannot be valued (maxDeposit(wallet) = 0 USDC raw, below the 34510281698 being moved (the vault is full, paused or restricted))
+  → NYLIM US High Yield Bond Fund: cannot be valued (maxDeposit(wallet) = 0 USDC raw, below the 34510281698 being moved (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move)
+  → Morpho Blue syzUSD/USDC supply: cannot be valued
+  → Morpho Blue APT/USDC supply: cannot be valued
+  → Morpho Blue APC3M/USDC supply: cannot be valued
+
+RECOMMENDATION: STAY PUT: Janus Henderson Treasury Fund cannot be exited in one transaction today (redeem is an asynchronous request (previewRedeem reverts): it settles in a later epoch, not in one transaction); no alternative can be entered by this wallet today (RockawayX USDC vault: maxDeposit(wallet) = 0 USDC raw, below the 34510281698 being moved (the vault is full, paused or restricted); NYLIM US High Yield Bond Fund: maxDeposit(wallet) = 0 USDC raw, below the 34510281698 being moved (the vault takes deposits only as asynchronous requests from approved investors))
+no transactions prepared: the recommendation is to stay put.
