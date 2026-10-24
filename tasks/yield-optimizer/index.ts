@@ -73,6 +73,8 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   const rate = { ...DEFAULT_RATE_OPTIONS, haircut };
   if (values.block !== undefined && !/^\d{1,12}$/.test(values.block)) throw new UsageError("--block must be a block number");
 
+  const givenNativeUsd = values["native-usd"] === undefined ? undefined : num("native-usd", values["native-usd"], 1e-9, 1e9); // validated before any chain call
+
   const mcp = await chainMcp(network);
   onExit(() => mcp.close());
   const meta = values.proof ? proofMeta(TASK, mcp) : undefined;
@@ -81,7 +83,7 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
 
   // the price of the gas token in USD: mainnet from its own WPROS/USDC pool; Atlantic's PHRS has no market, so a stand-in is used and named
   let nativeUsd: { value: number; basis: string };
-  if (values["native-usd"] !== undefined) nativeUsd = { value: num("native-usd", values["native-usd"], 1e-9, 1e9), basis: "given with --native-usd" };
+  if (givenNativeUsd !== undefined) nativeUsd = { value: givenNativeUsd, basis: "given with --native-usd" };
   else if (network === "pharos") {
     const h = await headerAt(call, pinned);
     const p = await readProsPrice(call, h.block);

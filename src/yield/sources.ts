@@ -3,7 +3,7 @@ import { MORPHO_BLUE, accrue, readBorrowRate, readMarketParams, readMarketState,
 import { MORPHO_MARKETS, VAULTS, agreeing, headerAt, type Call } from "../portfolio/read.js";
 import { aprBetween, type PricePoint, type Window, type WindowRate } from "./model.js";
 
-// Where the yield comes from, and how each source is READ. Everything goes through the Chain MCP (eth_call / get_code), twice per
+// Where the yield comes from, and how each source is READ. Everything goes through the Chain MCP (eth_call), twice per
 // read (see `agreeing`). Nothing here signs or sends anything. A source that cannot be read says why instead of guessing.
 
 export type Kind = "erc4626" | "centrifuge" | "morpho" | "testvault";

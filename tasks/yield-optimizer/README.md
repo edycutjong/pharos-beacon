@@ -20,7 +20,7 @@ npm run yield-optimizer -- recommend --wallet 0x62A0e4b7fD967fab5be1a733c09b22eB
 - `--plan file.json` writes the unsigned transactions when the answer is MOVE. `--proof name` writes `proof/name.json` and the same run as readable text.
 - Signing, testnet only: `npm run yield-wallet -- sign plan.json` (dry run), `… --execute` to sign and send.
 
-**Uses:** Pharos Chain MCP `eth_call`, `get_block`, `get_block_number`, `get_gas_price`, `estimate_gas`, `get_code` (hosted `https://mcp.pharos.xyz/mcp` for mainnet, the local pharos-mcp for Atlantic), plus `send_raw_transaction`, which only `wallet.ts` reaches (through the shared `src/lib/signer.ts`, the one place that reads a key and signs); viem for ABI encoding.
+**Uses:** Pharos Chain MCP `eth_call`, `get_block`, `get_block_number`, `get_gas_price`, `estimate_gas` (hosted `https://mcp.pharos.xyz/mcp` for mainnet, the local pharos-mcp for Atlantic), plus `send_raw_transaction`, which only `wallet.ts` reaches (through the shared `src/lib/signer.ts`, the one place that reads a key and signs); viem for ABI encoding.
 
 ## How a recommendation is built
 

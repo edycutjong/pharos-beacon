@@ -83,6 +83,12 @@ All mainnet and read-only; every read is pinned at block 21146194 (the gas price
 
 **Tests:** 43 in [`test/multi-protocol-aggregator.test.ts`](../../test/multi-protocol-aggregator.test.ts): the router (net yield, fees, dilution, limits and splits, ineligible venues, empty wallet), a fake chain with an ERC-4626 vault, an asynchronous fund vault and a Morpho market (positions, rates, deposit/withdraw plans, drills, an RPC error, a hang, nothing answering, an unfunded wallet), the wallet-side check against edited plans (sender, value, chain id, target, amount, shares, order, a different Morpho market, a doubled approve/deposit, a deposit or approval for someone else, a withdrawal paying someone else), a withdrawal split across a vault and a Morpho market whose idle liquidity is short, a venue with an unreadable rate used last, `all` with a venue down, the CLI's input errors, and the no-signer grep.
 
+## Beyond the requirements
+
+- **Three protocols, six venues, one ROUTE.** RockawayX, three Morpho Blue USDC markets and the JTRSY and HYB funds are priced in the same view; every venue that cannot take the request is listed with its reason (RockawayX `maxDeposit` 0, Centrifuge asynchronous).
+- **A live two-protocol split withdrawal** ([`proof/mainnet-withdraw-two-protocols.txt`](proof/mainnet-withdraw-two-protocols.txt)): RockawayX first, then the APC3M/USDC Morpho market, on dust.
+- **Tested only, not live:** splitting a deposit when a venue's `maxDeposit` is below the amount (unit tests; no live wallet and venue combination triggers it).
+
 ## Limits, stated plainly
 
 - **The wallet-side check is a self-consistency check:** it decodes the calldata against the plan's own legs, which catches an adapter bug or edited calldata; a real wallet must also check the legs against its own list of known venues and markets (a plan edited consistently in both places would pass). The plans for the burn address are routing demonstrations on dust: no one is known to hold a key for it (a conventional burn address).
