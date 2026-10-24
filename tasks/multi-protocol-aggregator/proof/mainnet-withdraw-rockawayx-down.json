@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts withdraw --wallet 0x000000000000000000000000000000000000dEaD --amount 0.5 --down rockawayx --block 21146194 --proof mainnet-withdraw-rockawayx-down",
     "git": {
-      "commit": "49ae2144b957",
+      "commit": "f1ea3d0f2646",
       "dirty": false
     },
-    "createdAt": "2026-10-24T21:38:30.475Z"
+    "createdAt": "2026-10-24T21:47:17.453Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -263,7 +263,7 @@
           {
             "label": "7d",
             "seconds": 604800,
-            "apr": -0.0020225663338788785
+            "apr": -0.002022572782257938
           },
           {
             "label": "30d",
@@ -283,8 +283,8 @@
           {
             "label": "7d",
             "then": {
-              "block": "20482678",
-              "timestamp": "1792242570",
+              "block": "20482680",
+              "timestamp": "1792242572",
               "price": 0.988120399132
             }
           },
@@ -341,7 +341,7 @@
             "value": "0.988120399",
             "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
             "call": "same call, pinned",
-            "block": "20482678"
+            "block": "20482680"
           },
           {
             "what": "share price 30d ago (USDC per share)",
@@ -376,7 +376,7 @@
           {
             "label": "7d",
             "seconds": 604800,
-            "apr": -0.0020225663338788785
+            "apr": -0.002022572782257938
           },
           {
             "label": "30d",
@@ -385,11 +385,11 @@
           }
         ],
         "read": 3,
-        "ref": -0.0020225663338788785,
+        "ref": -0.002022572782257938,
         "spread": 0.10660285293783545,
         "jumpy": true,
-        "pessimistic": -0.0553239928027966,
-        "optimistic": 0.051278860135038844,
+        "pessimistic": -0.05532399925117566,
+        "optimistic": 0.051278853686659784,
         "thin": false
       },
       "holding": null
@@ -430,7 +430,7 @@
           {
             "label": "1d",
             "seconds": 86400,
-            "apr": 0.06902146192847934
+            "apr": 0.07102103668543039
           },
           {
             "label": "7d",
@@ -449,7 +449,7 @@
             "then": {
               "block": "21051406",
               "timestamp": "1792783326",
-              "price": 0.0000010096672201190184
+              "price": 0.0000010096616799651727
             }
           },
           {
@@ -533,7 +533,7 @@
           {
             "label": "1d",
             "seconds": 86400,
-            "apr": 0.06902146192847934
+            "apr": 0.07102103668543039
           },
           {
             "label": "7d",
@@ -548,10 +548,10 @@
         ],
         "read": 3,
         "ref": 0.05469001491698007,
-        "spread": 0.016233459572555967,
+        "spread": 0.018233034329507014,
         "jumpy": false,
-        "pessimistic": 0.04657328513070209,
-        "optimistic": 0.06280674470325806,
+        "pessimistic": 0.04557349775222656,
+        "optimistic": 0.06380653208173358,
         "thin": false
       },
       "holding": {
@@ -752,7 +752,7 @@
           {
             "label": "7d",
             "seconds": 604800,
-            "apr": 0.05287998567581957
+            "apr": 0.053284368391679354
           },
           {
             "label": "30d",
@@ -774,7 +774,7 @@
             "then": {
               "block": "20482680",
               "timestamp": "1792242572",
-              "price": 0.0000010035647532522555
+              "price": 0.0000010035566891966797
             }
           },
           {
@@ -855,7 +855,7 @@
           {
             "label": "7d",
             "seconds": 604800,
-            "apr": 0.05287998567581957
+            "apr": 0.053284368391679354
           },
           {
             "label": "30d",
@@ -864,11 +864,11 @@
           }
         ],
         "read": 3,
-        "ref": 0.05287998567581957,
-        "spread": 0.0170640824107067,
+        "ref": 0.0529183495390067,
+        "spread": 0.017430101263379356,
         "jumpy": false,
-        "pessimistic": 0.04434794447046622,
-        "optimistic": 0.06141202688117292,
+        "pessimistic": 0.044203298907317015,
+        "optimistic": 0.06163340017069638,
         "thin": false
       },
       "holding": {
@@ -1001,16 +1001,16 @@
         "eligible": true,
         "reasons": [],
         "capacityUsd": 0.001009,
-        "scoreUsd": 0.001606398948644941,
+        "scoreUsd": 0.0016064818625187668,
         "parts": {
           "exitFeeUsd": 0,
           "gasUsd": 0.0016011902906663995,
-          "forgoneYieldUsd": 0.000005208657978541428,
+          "forgoneYieldUsd": 0.000005291571852367329,
           "positionUsd": 0.001009,
           "atUsd": 0.001009,
           "rateUnknown": 0
         },
-        "ratePct": "6.28%"
+        "ratePct": "6.38%"
       },
       {
         "venueId": "morpho-d83401",
@@ -1037,20 +1037,20 @@
         "eligible": true,
         "reasons": [],
         "capacityUsd": 1.00462,
-        "scoreUsd": 0.004124972217289944,
+        "scoreUsd": 0.004134069749736114,
         "parts": {
           "exitFeeUsd": 0,
           "gasUsd": 0.0016011902906663995,
-          "forgoneYieldUsd": 0.0025237819266235445,
+          "forgoneYieldUsd": 0.002532879459069714,
           "positionUsd": 1.00462,
           "atUsd": 0.5,
           "rateUnknown": 0
         },
-        "ratePct": "6.14%"
+        "ratePct": "6.16%"
       }
     ],
     "explanation": [
-      "Chose Morpho Blue APC3M/USDC supply (Morpho Blue): taking $0.5000 out costs $0.004125 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $0.002524 at its optimistic 6.14%.",
+      "Chose Morpho Blue APC3M/USDC supply (Morpho Blue): taking $0.5000 out costs $0.004134 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $0.002533 at its optimistic 6.16%.",
       "Next cheapest: Morpho Blue APT/USDC supply would cost $0.005466 for $0.5000; it keeps earning 9.40%.",
       "SIMULATED OUTAGE: RockawayX USDC vault (RockawayX): outage drill (--down rockawayx): RockawayX was not contacted. The wallet's position there is UNKNOWN, so it is not counted."
     ],
@@ -1174,7 +1174,7 @@
       "value": "0.988120399",
       "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
       "call": "same call, pinned",
-      "block": "20482678"
+      "block": "20482680"
     },
     {
       "what": "share price 30d ago (USDC per share)",
