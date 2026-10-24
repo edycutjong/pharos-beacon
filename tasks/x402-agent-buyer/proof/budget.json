@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run budget --base http://localhost:4021/ --fresh --proof budget",
     "git": {
-      "commit": "306546265374",
+      "commit": "2730dabd4b78",
       "dirty": false
     },
-    "createdAt": "2026-10-23T23:55:12.366Z"
+    "createdAt": "2026-10-24T00:05:01.995Z"
   },
   "task": "budget",
   "goal": "Same job on a 0.02 USDC budget: it runs out before the deep history.",
@@ -36,34 +36,27 @@
     {
       "type": "sign",
       "want": "gas",
-      "key": "budget/gas",
-      "nonce": "0x108256851a881106be3fef3c3d0cf0a41e6c6b88f351dae13c990517c09611c4",
+      "purchase": "budget/gas",
+      "nonce": "0x8550c7c06446e967e88a48ee8fcbdd7d38376dbc7e49753e0376990e91af2136",
       "price": "0.001 USDC"
     },
     {
       "type": "attempt",
       "want": "gas",
       "n": 1,
-      "status": 200
+      "status": 402,
+      "body": "{\"status\":402,\"reason\":\"invalid_exact_evm_transaction_failed\",\"message\":\"This route costs 0.001 USDC (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91"
     },
     {
-      "type": "paid",
+      "type": "reconcile",
       "want": "gas",
-      "row": {
-        "n": 1,
-        "at": "2026-10-23T23:55:15.666Z",
-        "task": "budget",
-        "key": "budget/gas",
-        "endpoint": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
-        "bought": "Atlantic gas price now",
-        "price": "0.001 USDC",
-        "amount": "1000",
-        "tx": "0x9dc677649acbf456c7e8490204c952dbcfea2d169433a2442ee9882d36fc5b7a",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x9dc677649acbf456c7e8490204c952dbcfea2d169433a2442ee9882d36fc5b7a",
-        "block": 31801879,
-        "runningTotal": "0.001 USDC",
-        "runningTotalAtomic": "1000"
-      }
+      "nonceUsed": false,
+      "text": "authorization 0x8550c7c0… not used yet and still valid"
+    },
+    {
+      "type": "failed",
+      "want": "gas",
+      "text": "the API refused the payment: invalid_exact_evm_transaction_failed; the token shows the authorization unused, so nothing was charged"
     },
     {
       "type": "ask",
@@ -72,10 +65,16 @@
       "price": "0.01 USDC"
     },
     {
+      "type": "reconcile",
+      "want": "gas",
+      "nonceUsed": false,
+      "text": "authorization 0x8550c7c0… not used yet and still valid"
+    },
+    {
       "type": "sign",
       "want": "whales",
-      "key": "budget/whales",
-      "nonce": "0x6e69f0a1f39e5b8343ed515825ba87f5f9ebc5226e74fa6585d885b4a868237d",
+      "purchase": "budget/whales",
+      "nonce": "0x48e498d5c6826b9535bc31526ff04ea4502eac7ecb2a1231698dcdae98617bef",
       "price": "0.01 USDC"
     },
     {
@@ -88,19 +87,19 @@
       "type": "paid",
       "want": "whales",
       "row": {
-        "n": 2,
-        "at": "2026-10-23T23:55:19.861Z",
+        "n": 1,
+        "at": "2026-10-24T00:05:08.803Z",
         "task": "budget",
-        "key": "budget/whales",
+        "purchase": "budget/whales",
         "endpoint": "http://localhost:4021/api/x402-paywalled-api/whale-brief",
         "bought": "largest USDC transfers on Pharos mainnet, last ~1,000 blocks",
         "price": "0.01 USDC",
         "amount": "10000",
-        "tx": "0x765a2649fa389df90b3b9551bb7a1b79ede4f220076e80b860a87e99a4baef59",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x765a2649fa389df90b3b9551bb7a1b79ede4f220076e80b860a87e99a4baef59",
-        "block": 31801884,
-        "runningTotal": "0.011 USDC",
-        "runningTotalAtomic": "11000"
+        "tx": "0x1dcc4303b2001165fbae0453b4db02e6fef25607909c481e45b99c553e42bc99",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x1dcc4303b2001165fbae0453b4db02e6fef25607909c481e45b99c553e42bc99",
+        "block": 31802134,
+        "runningTotal": "0.01 USDC",
+        "runningTotalAtomic": "10000"
       }
     },
     {
@@ -108,6 +107,12 @@
       "want": "history",
       "path": "whale-range?blocks=3000",
       "price": "0.015 USDC"
+    },
+    {
+      "type": "reconcile",
+      "want": "gas",
+      "nonceUsed": false,
+      "text": "authorization 0x8550c7c0… not used yet and still valid"
     },
     {
       "type": "refused",
@@ -118,32 +123,30 @@
     {
       "type": "stopped",
       "want": "history",
-      "text": "stopping: \"history\" does not fit the budget (0.011 USDC spent of 0.02 USDC); 1 want(s) not attempted"
+      "text": "stopping: \"history\" does not fit the budget (0.01 USDC spent of 0.02 USDC); 1 want(s) not attempted"
     },
     {
       "type": "done",
       "summary": {
         "task": "budget",
         "outcome": "stopped-budget",
-        "paid": 2,
+        "paid": 1,
         "refused": 1,
-        "spent": "0.011 USDC",
-        "spentAtomic": "11000",
+        "spent": "0.01 USDC",
+        "spentAtomic": "10000",
         "saved": "0 USDC",
         "budget": "0.02 USDC",
-        "left": "0.009 USDC",
+        "left": "0.01 USDC",
         "results": [
           {
             "want": "gas",
-            "status": "paid",
-            "price": "0.001 USDC",
-            "tx": "0x9dc677649acbf456c7e8490204c952dbcfea2d169433a2442ee9882d36fc5b7a"
+            "status": "failed"
           },
           {
             "want": "whales",
             "status": "paid",
             "price": "0.01 USDC",
-            "tx": "0x765a2649fa389df90b3b9551bb7a1b79ede4f220076e80b860a87e99a4baef59"
+            "tx": "0x1dcc4303b2001165fbae0453b4db02e6fef25607909c481e45b99c553e42bc99"
           },
           {
             "want": "history",
@@ -162,25 +165,23 @@
   "summary": {
     "task": "budget",
     "outcome": "stopped-budget",
-    "paid": 2,
+    "paid": 1,
     "refused": 1,
-    "spent": "0.011 USDC",
-    "spentAtomic": "11000",
+    "spent": "0.01 USDC",
+    "spentAtomic": "10000",
     "saved": "0 USDC",
     "budget": "0.02 USDC",
-    "left": "0.009 USDC",
+    "left": "0.01 USDC",
     "results": [
       {
         "want": "gas",
-        "status": "paid",
-        "price": "0.001 USDC",
-        "tx": "0x9dc677649acbf456c7e8490204c952dbcfea2d169433a2442ee9882d36fc5b7a"
+        "status": "failed"
       },
       {
         "want": "whales",
         "status": "paid",
         "price": "0.01 USDC",
-        "tx": "0x765a2649fa389df90b3b9551bb7a1b79ede4f220076e80b860a87e99a4baef59"
+        "tx": "0x1dcc4303b2001165fbae0453b4db02e6fef25607909c481e45b99c553e42bc99"
       },
       {
         "want": "history",
