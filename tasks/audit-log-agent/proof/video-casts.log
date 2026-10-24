@@ -7,7 +7,7 @@ $ npm run audit-log-agent -- --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901
 > tsx tasks/audit-log-agent/index.ts --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901 --from-block 21042000 --to-block 21082000 --baseline none --compact
 
 audit log for 0x28Ed4A97a21C2264CA352EbBcc6CaffF60e89901 on pharos (chain 1672) via https://mcp.pharos.xyz/mcp
-period blocks 21042000–21082000 (40001 blocks, pinned at head 21096611)
+period blocks 21042000–21082000 (40001 blocks, pinned at head 21111362)
 read 11 items
 
 wallet 0x28Ed…9901 · pharos mainnet
@@ -15,18 +15,12 @@ blocks 21042000–21082000
 11 txs · fees 0.018487 PROS · 0 failed
 
 transfers in       0
-transfers out      3
-swaps              7
+transfers out      0
+swaps             10
 approvals          1  (1 unlimited)
 contract calls     0
 
 highlights
- ! largest: pTACO out: 11,688.7 pTACO to 0xAf2b…E7B8.
-   0xe925a190…14f4
- ! largest: pTier out: 27,565.6223 pTier to 0x9615…01E2.
-   0x7bee9c1b…d9c3
- ! largest: pCARR out: 19,738.4299 pCARR to 0x3fa4…e558.
-   0xc2579c59…7312
  ! unlimited: 0xBF10…849c can move pTier without a cap.
    0x566b75a6…4edf
 
