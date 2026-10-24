@@ -91,7 +91,7 @@ describe("collectActivity", () => {
   });
 
   it("rejects a range over the cap and an empty one", async () => {
-    await expect(collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 0n, toBlock: BigInt(MAX_RANGE_BLOCKS) })).rejects.toThrow(/over the 400000 cap/);
+    await expect(collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 0n, toBlock: BigInt(MAX_RANGE_BLOCKS) })).rejects.toThrow(/over the 3000000 cap/);
     await expect(collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 5n, toBlock: 4n })).rejects.toThrow(/empty/);
   });
 
