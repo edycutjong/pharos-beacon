@@ -1,0 +1,12 @@
+you: send 5 WPHRS to alice.eth
+parser: gemini-3.5-flash · language: en
+understood: {"amount":"5","token":"WPHRS","recipient":"alice.eth"}
+
+checks
+  FAIL  recipient "alice.eth" is a name, and Pharos has no name service to resolve it: give a 0x address
+  PASS  token     WPHRS at 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (SkillEngine tokens.json)
+  PASS  decimals  decimals() = 18 read on chain
+  PASS  amount    5 WPHRS = 5000000000000000000 base units
+
+REFUSED: no transaction was prepared.
+proof: tasks/natural-language-payment-agent/proof/refused-name.json
