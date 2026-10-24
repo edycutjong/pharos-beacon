@@ -94,20 +94,35 @@ export function parseWallet(raw: string): Hex {
 
 const num = (h: string | null | undefined) => (h == null ? 0n : BigInt(h));
 
-/** The first block whose timestamp is >= ts (or head + 1 when ts is in the future), by binary search over get_block. */
+/**
+ * The first block whose timestamp is >= ts (or head + 1 when ts is in the future). Interpolation search over get_block: block times are
+ * nearly even, so a guess from the two known ends lands within a few blocks and the search needs about 5 calls instead of 25 (the hosted
+ * server allows 100 calls a minute). It falls back to bisection whenever a guess does not shrink the bracket enough.
+ */
 export async function blockAtOrAfter(call: Call, ts: number, head: bigint): Promise<bigint> {
   const stamp = async (n: bigint) => {
     const b = await call("get_block", { block: n.toString() });
     if (!b) throw new Error(`block ${n} is not available`);
     return Number(BigInt(b.timestamp));
   };
-  if (ts > (await stamp(head))) return head + 1n;
-  let lo = 0n;
-  let hi = head;
+  const tHead = await stamp(head);
+  if (ts > tHead) return head + 1n;
+  let lo = 0n; // invariant: the answer is in [lo, hi]; every block before lo is earlier than ts
+  let hi = head; // block hi is at or after ts
+  let tLo = await stamp(0n);
+  let tHi = tHead;
+  if (ts <= tLo) return 0n;
+  let bisect = false;
   while (lo < hi) {
-    const mid = (lo + hi) / 2n;
-    if ((await stamp(mid)) >= ts) hi = mid;
-    else lo = mid + 1n;
+    let mid = (lo + hi) / 2n;
+    if (!bisect && tHi > tLo) mid = lo + BigInt(Math.floor(((ts - tLo) / (tHi - tLo)) * Number(hi - lo)));
+    if (mid >= hi) mid = hi - 1n;
+    if (mid < lo) mid = lo;
+    const t = await stamp(mid);
+    const before = hi - lo;
+    if (t >= ts) (hi = mid, (tHi = t));
+    else (lo = mid + 1n, (tLo = t));
+    bisect = (hi - lo) * 2n > before; // a guess that did not halve the bracket: bisect the next one
   }
   return lo;
 }
