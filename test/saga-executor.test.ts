@@ -30,6 +30,7 @@ class FakeChain {
   mined = new Map<string, Rcpt>();
   pool = new Map<string, { to: Hex; data: Hex }>(); // hash → tx waiting in the mempool
   sent: string[] = []; // every broadcast, by hash
+  inPool = new Set<string>(); // accepted by the node, not mined
   signs: { to: Hex; nonce: number; maxFee: bigint }[] = [];
   /** Hooks per call index (1-based) of broadcast. */
   broadcastError: ((n: number, to: Hex, data: Hex) => string | undefined) | undefined;
@@ -41,6 +42,14 @@ class FakeChain {
   skewShares = 0n;
   private bcast = 0;
   raws = new Map<string, { to: Hex; data: Hex; nonce: number; maxFee: bigint }>();
+
+  /** The node mines a transaction it was holding. */
+  mineNow(hash: string): void {
+    const r = this.raws.get(hash)!;
+    this.inPool.delete(hash);
+    this.block += 1n;
+    this.mined.set(hash, { status: "success", blockNumber: this.block, gasUsed: 50_000n, logs: this.apply(r.to, r.data) });
+  }
 
   key = (a: string, b: string) => `${a.toLowerCase()}|${b.toLowerCase()}`;
 
@@ -97,7 +106,7 @@ class FakeChain {
 function portFor(c: FakeChain): Port {
   return {
     async sign(tx: TxFields, o): Promise<SignedFields> {
-      c.preflight(tx.to, tx.data);
+      if (o.gas === undefined) c.preflight(tx.to, tx.data);
       const nonce = o.nonce ?? c.nonce++;
       let maxFee = 1_000n;
       if (o.minMaxFee !== undefined && maxFee < o.minMaxFee) maxFee = o.minMaxFee;
@@ -115,14 +124,17 @@ function portFor(c: FakeChain): Port {
       const err = c.broadcastError?.(n, r.to, r.data);
       if (err) throw new Error(err);
       if (r.maxFee < 100n) throw new Error("transaction underpriced");
-      if (c.mines && !c.mines(r.to, r.data, n)) return; // accepted, never mined
+      if (c.mines && !c.mines(r.to, r.data, n)) {
+        c.inPool.add(s.hash); // accepted, not mined (yet)
+        return;
+      }
       if (c.mined.has(s.hash)) return;
       const rev = c.mineRevert?.(r.to, r.data);
       c.block += 1n;
       c.mined.set(s.hash, { status: rev ? "reverted" : "success", blockNumber: c.block, gasUsed: 50_000n, logs: rev ? [] : c.apply(r.to, r.data) });
     },
     async receipt(h) { return c.mined.get(h) ?? null; },
-    async known(h) { return c.mined.has(h) || c.sent.includes(h); },
+    async known(h) { return c.mined.has(h) || c.inPool.has(h); },
     async waitReceipt(h) { return c.mined.get(h) ?? null; },
     async call(to, data) { return c.read(to, data); },
     async sleep() {},
@@ -325,6 +337,7 @@ describe("crash-resume", () => {
     c.mines = undefined; // from now on the node mines what it is sent
     const lost = loadJournal(first.file)!.actions.find((a) => a.id === "swap")!.attempts[0]!;
     c.sent = c.sent.filter((h) => h !== lost.hash);
+    c.inPool.delete(lost.hash);
     const second = make(c, {}, loadJournal(first.file)!);
     const j = await second.saga.run();
     expect(j.status).toBe("completed");
@@ -400,5 +413,107 @@ describe("CLI usage (no network: these fail before any chain is opened)", () => 
   it("an unknown command and a bad retry count", async () => {
     await expect(main(ctx, ["explode"])).rejects.toThrow(/unknown command explode/);
     await expect(main(ctx, ["plan", "--retries", "0"])).rejects.toThrow(/--retries must be a number ≥ 1/);
+  });
+});
+
+describe("races and give-up (review round 1)", () => {
+  it("a send that lands while the retry is backing off is found; nothing is sent twice", async () => {
+    const c = new FakeChain();
+    c.mines = (_to, data) => decodeFunctionData({ abi: ABI, data }).functionName !== "swap"; // the first swap send waits in the pool
+    const base = portFor(c);
+    // the node mines the held swap during the backoff
+    const port: Port = { ...base, sleep: async () => { for (const h of [...c.inPool]) c.mineNow(h); c.mines = undefined; } };
+    const def = defiSaga(P);
+    const j0 = newJournal({ id: "t", wallet: ME, params: {} }, def.forward, new Date());
+    const j = await new Saga(def, j0, port, join(dir, "s.json"), { policy: POLICY }).run();
+    expect(j.status).toBe("completed");
+    const swap = j.actions.find((a) => a.id === "swap")!;
+    expect(swap.attempts).toHaveLength(1);
+    expect(c.bal[WPHRS]).toBe(5n * 10n ** 15n - P.amountIn); // swapped once
+    expect(j.log.some((l) => l.action === "swap" && l.event === "RECOVERED" && /not sending again/.test(l.detail ?? ""))).toBe(true);
+  });
+
+  it("'nonce too low' is retried (an earlier send may have landed), not failed at once", () => {
+    expect(classify(new Error("nonce too low: next nonce 8, tx nonce 7"))).toBe("transient");
+  });
+
+  it("all sends used up but one still in the pool: STUCK, no rollback; a resume finishes when it lands", async () => {
+    const c = new FakeChain();
+    c.mines = (_to, data) => decodeFunctionData({ abi: ABI, data }).functionName !== "swap"; // every swap send waits in the pool
+    const first = make(c);
+    const j = await first.saga.run();
+    expect(j.status).toBe("stuck");
+    expect(j.stuckFrom).toBe("running");
+    expect(j.actions.find((a) => a.id === "swap")!.failure!.kind).toBe("pending-unresolved");
+    expect(j.actions.some((a) => a.phase === "undo")).toBe(false); // nothing rolled back while a send may still land
+    expect(c.bal[WPHRS]).toBe(5n * 10n ** 15n); // swap not applied yet
+    // the node mines the last send, then the saga is resumed
+    c.mineNow(c.sent[c.sent.length - 1]!);
+    const second = make(c, {}, loadJournal(first.file)!);
+    const done = await second.saga.run();
+    expect(done.status).toBe("completed");
+    expect(c.bal[WPHRS]).toBe(5n * 10n ** 15n - P.amountIn);
+    expect(c.shares).toBe(OUT);
+  });
+
+  it("killed after the journal knows the approve is mined but before it was verified: the resume verifies it, never skips it", async () => {
+    const c = new FakeChain();
+    const first = make(c, { inject: [{ kind: "crash", action: "approve-in", point: "mined" }] });
+    await expect(first.saga.run()).rejects.toBeInstanceOf(CrashInjected);
+    const mid = loadJournal(first.file)!;
+    expect(mid.actions.find((a) => a.id === "approve-in")!.attempts[0]!.state).toBe("mined");
+    expect(mid.actions.find((a) => a.id === "approve-in")!.state).toBe("running");
+    const j = await make(c, {}, mid).saga.run();
+    const a = j.actions.find((x) => x.id === "approve-in")!;
+    expect(a.state).toBe("verified");
+    expect(a.detail).toContain("read back");
+    expect(a.attempts).toHaveLength(1);
+    expect(j.status).toBe("completed");
+  });
+
+  it("a stuck rollback can be resumed once the cause is gone", async () => {
+    const c = new FakeChain();
+    c.vaultOpen = false;
+    let swapBacks = 0;
+    c.mineRevert = (_to, data) => {
+      const d = decodeFunctionData({ abi: ABI, data });
+      return d.functionName === "swap" && String(d.args![0]).toLowerCase() === USDC.toLowerCase() && ++swapBacks === 1; // the first swap-back reverts
+    };
+    const first = make(c);
+    const j = await first.saga.run();
+    expect(j.status).toBe("stuck");
+    expect(j.stuckFrom).toBe("compensating");
+    const second = make(c, {}, loadJournal(first.file)!);
+    const done = await second.saga.run();
+    expect(done.status).toBe("rolled-back");
+    expect(done.checks!.every((x) => x.ok)).toBe(true);
+    expect(c.bal[WPHRS]).toBe(5n * 10n ** 15n);
+    expect(done.actions.find((a) => a.id === "undo-swap")!.earlier).toHaveLength(1);
+  });
+
+  it("with the pre-flight simulation off, the closed vault gives a MINED status-0 deposit: permanent, rolled back", async () => {
+    const c = new FakeChain();
+    c.vaultOpen = false;
+    c.mineRevert = (_to, data) => decodeFunctionData({ abi: ABI, data }).functionName === "deposit";
+    const { saga } = make(c, { fixedGas: 400_000n });
+    const j = await saga.run();
+    const dep = j.actions.find((a) => a.id === "deposit")!;
+    expect(dep.attempts).toHaveLength(1);
+    expect(dep.attempts[0]!.state).toBe("reverted");
+    expect(dep.failure!.kind).toBe("revert");
+    expect(j.status).toBe("rolled-back");
+    expect(j.checks!.every((x) => x.ok)).toBe(true);
+  });
+
+  it("an undo that cannot be built (no recorded swap output) ends STUCK, not as an exception", async () => {
+    const c = new FakeChain();
+    c.vaultOpen = false;
+    const { journal } = make(c);
+    const port = portFor(c);
+    // when the deposit is about to be refused, lose the recorded swap output: the rollback cannot build the swap-back
+    const wrapped: Port = { ...port, sign: async (tx, o) => { if (tx.to === VAULT) delete journal.data["swap.out"]; return port.sign(tx, o); } };
+    const j = await new Saga(defiSaga(P), journal, wrapped, join(dir, "s2.json"), { policy: POLICY }).run();
+    expect(j.status).toBe("stuck");
+    expect(j.actions.find((a) => a.id === "undo-swap-approve")!.failure!.reason).toContain("could not build");
   });
 });

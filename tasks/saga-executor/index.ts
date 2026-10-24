@@ -61,11 +61,11 @@ function params(wallet: Hex, amount: string, slippageBps: number): SagaParams {
 export async function main({ onExit }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- plan|run|resume|status|vault [open|close] [--id name] [--amount 0.001] [--slippage-bps 50] [--inject kind:action[:point],…] [--retries 3] [--backoff-ms 2000] [--receipt-timeout-s 30] [--execute] [--proof name]`,
+      usage: `npm run ${TASK} -- plan|run|resume|status|vault [open|close] [--id name] [--amount 0.001] [--slippage-bps 50] [--inject kind:action[:point],…] [--retries 3] [--backoff-ms 2000] [--receipt-timeout-s 30] [--execute] [--no-preflight] [--proof name]`,
       options: {
         id: { type: "string" }, amount: { type: "string", default: "0.001" }, "slippage-bps": { type: "string", default: "50" }, inject: { type: "string" },
         retries: { type: "string", default: String(DEFAULT_POLICY.maxAttempts) }, "backoff-ms": { type: "string", default: String(DEFAULT_POLICY.backoffMs) },
-        "receipt-timeout-s": { type: "string", default: String(DEFAULT_POLICY.receiptTimeoutMs / 1000) }, execute: { type: "boolean", default: false }, proof: { type: "string" },
+        "receipt-timeout-s": { type: "string", default: String(DEFAULT_POLICY.receiptTimeoutMs / 1000) }, execute: { type: "boolean", default: false }, "no-preflight": { type: "boolean", default: false }, proof: { type: "string" },
       },
       positionals: [1, 2],
     },
@@ -171,9 +171,11 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   if (j.data["native0"] === undefined) j.data["native0"] = String(BigInt((await mcp.call("get_balance", { address: signer.address })).balanceWei));
 
   console.log(`${cmd === "run" ? "starting" : "resuming"} saga ${id} · wallet ${signer.address} · ${formatUnits(sagaP.amountIn, sagaP.decimalsIn)} WPHRS → USDC → vault · retries ${policy.maxAttempts}, backoff ${policy.backoffMs} ms ×2, receipt timeout ${policy.receiptTimeoutMs / 1000} s`);
+  if (values["no-preflight"]) console.log("pre-flight simulation OFF: every transaction is sent with a fixed 400000 gas limit, so one that would revert is mined with status 0");
   if (inject.length) console.log(`fault injection: ${inject.map((i) => (i.kind === "crash" ? `crash ${i.action} at ${i.point}` : `${i.kind} ${i.action} (attempt 1)`)).join(", ")}`);
   const saga = new Saga(def, j, port, file, {
     policy, inject, onLog: printLog,
+    ...(values["no-preflight"] ? { fixedGas: 400_000n } : {}),
     crash: () => {
       process.kill(process.pid, "SIGKILL");
       throw new Error("unreachable");

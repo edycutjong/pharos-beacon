@@ -33,7 +33,7 @@ export interface SignedFields {
 
 export interface Port {
   /** Fill gas by estimate_gas (a revert throws), nonce (`nonce` if given) and fees (`minFee`: at least this max fee), then sign. */
-  sign(tx: TxFields, o: { nonce?: number; minMaxFee?: bigint; maxFeeOverride?: bigint }): Promise<SignedFields>;
+  sign(tx: TxFields, o: { nonce?: number; minMaxFee?: bigint; maxFeeOverride?: bigint; gas?: bigint }): Promise<SignedFields>;
   /** Send the signed bytes. Resolves when the node took the tx; throws a classified error otherwise. */
   broadcast(s: SignedFields): Promise<void>;
   /** The mined receipt, or null while there is none. */
@@ -75,8 +75,10 @@ export interface ActionRec {
   /** A successful receipt was seen: the effect is on chain, so a rollback must reverse it. */
   landed?: boolean;
   attempts: AttemptRec[];
+  /** Attempts of an earlier try of this action, kept when a resume starts it afresh. */
+  earlier?: AttemptRec[];
   detail?: string;
-  failure?: { kind: "transient-exhausted" | "revert" | "rejected" | "verify"; reason: string };
+  failure?: { kind: "transient-exhausted" | "pending-unresolved" | "revert" | "rejected" | "verify"; reason: string };
 }
 
 export interface LogEntry {
@@ -105,6 +107,8 @@ export interface Journal {
   actions: ActionRec[];
   log: LogEntry[];
   failedAt?: string;
+  /** Where a STUCK saga stopped, so a resume re-enters there. */
+  stuckFrom?: "running" | "compensating";
   checks?: { name: string; expected: string; after: string; ok: boolean }[];
 }
 
@@ -161,6 +165,8 @@ export class CrashInjected extends Error {
 export interface EngineOptions {
   policy?: RetryPolicy;
   inject?: Inject[];
+  /** Skip the pre-flight simulation: send with this gas limit, so a transaction that would revert is mined with status 0. */
+  fixedGas?: bigint;
   /** Called at an injected crash point. The CLI sends SIGKILL to itself; tests throw CrashInjected. */
   crash?: (action: string, point: CrashPoint) => never;
   /** Heard for every journal log line (the CLI prints it). */
@@ -173,7 +179,7 @@ export type Failure = "transient" | "permanent";
 
 /** Node answers that mean "try again, maybe with more fee": a spike, a dropped or refused-for-now transaction, a throttled RPC. */
 const TRANSIENT =
-  /underpriced|less than base fee|below (the )?base fee|fee cap|max fee|gas price (is )?too low|replacement|already known|mempool|txpool|timed? ?out|timeout|etimedout|econnreset|econnrefused|fetch failed|socket|429|rate.?limit|too many requests|temporar|unavailable|50[0234]\b|dropped|evicted|not found in (the )?pool/i;
+  /underpriced|nonce too low|less than base fee|below (the )?base fee|fee cap|max fee|gas price (is )?too low|replacement|already known|mempool|txpool|timed? ?out|timeout|etimedout|econnreset|econnrefused|fetch failed|socket|429|rate.?limit|too many requests|temporar|unavailable|50[0234]\b|dropped|evicted|not found in (the )?pool/i;
 const REVERT = /revert|execution reverted|invalid opcode|out of gas|insufficient (funds|allowance|balance)|exceeds allowance|exceeds balance/i;
 
 /** A revert (code 3 or its text) is permanent: sending it again fails the same way. Known transient texts are retried. Anything else fails closed (permanent). */
@@ -269,7 +275,23 @@ export class Saga {
   /** Run (or resume) the saga to a terminal status. */
   async run(): Promise<Journal> {
     const j = this.j;
-    if (j.status === "completed" || j.status === "rolled-back" || j.status === "stuck") return j;
+    if (j.status === "completed" || j.status === "rolled-back") return j;
+    if (j.status === "stuck") {
+      // A resume re-enters where it stopped: an unresolved send is looked at again; a failed undo is tried again.
+      j.status = j.stuckFrom ?? "compensating";
+      for (const a of j.actions) {
+        if (a.state === "failed" && (a.phase === "undo" || a.failure?.kind === "pending-unresolved")) {
+          // Keep the attempts when a send may still land or has landed (settle and verify them); otherwise start the action afresh.
+          if (!a.landed && a.failure?.kind !== "pending-unresolved") {
+            a.earlier = [...(a.earlier ?? []), ...a.attempts];
+            a.attempts = [];
+          }
+          a.state = "pending";
+          delete a.failure;
+        }
+      }
+      this.log("saga", "RESUMED-FROM-STUCK", `re-entering ${j.status}`);
+    }
     if (Object.keys(j.snapshot).length === 0) {
       j.snapshot = await this.def.snapshot(this.ctx);
       this.log("saga", "STARTED", `saga ${j.id}: ${j.actions.filter((a) => a.phase === "forward").map((a) => a.id).join(" → ")}`);
@@ -281,6 +303,13 @@ export class Saga {
       for (const rec of j.actions.filter((a) => a.phase === "forward")) {
         if (rec.state === "verified" || rec.state === "skipped") continue; // done: never repeated
         const ok = await this.runAction(rec);
+        if (!ok && rec.failure?.kind === "pending-unresolved") {
+          // A send of this step may still be in the node's pool: rolling back now could race it. Stop and say so.
+          j.status = "stuck";
+          j.stuckFrom = "running";
+          this.log("saga", "STUCK", `step ${rec.id}: ${rec.failure.reason}. Not rolling back while a send may still land; resume later`);
+          return j;
+        }
         if (!ok) {
           j.failedAt = rec.id;
           j.status = "compensating";
@@ -315,6 +344,7 @@ export class Saga {
       if (rec.state === "verified" || rec.state === "skipped") continue;
       if (!(await this.runAction(rec))) {
         j.status = "stuck";
+        j.stuckFrom = "compensating";
         this.log("saga", "STUCK", `rollback action ${rec.id} failed permanently: ${rec.failure?.reason}. Funds may be stranded mid-saga; see the journal`);
         return j;
       }
@@ -323,7 +353,10 @@ export class Saga {
     j.checks = await this.def.check(this.ctx, "rolled-back");
     const bad = j.checks.filter((c) => !c.ok);
     this.log("saga", "ROLLED-BACK", bad.length ? `balance invariant FAILED for ${bad.map((c) => c.name).join(", ")}` : `balance invariant holds for all ${j.checks.length} reads`);
-    if (bad.length) j.status = "stuck";
+    if (bad.length) {
+      j.status = "stuck";
+      j.stuckFrom = "compensating";
+    }
     this.save();
     return j;
   }
@@ -338,11 +371,16 @@ export class Saga {
 
     // An attempt already journaled (the process was killed mid-action): settle it before doing anything new.
     const last = rec.attempts.at(-1);
-    let pendingAttempt = last && ["signed", "sent", "timeout", "not-sent"].includes(last.state) ? last : undefined;
+    let pendingAttempt = last && ["signed", "sent", "timeout", "not-sent", "mined", "reverted"].includes(last.state) ? last : undefined;
 
     if (!pendingAttempt) {
       if (!rec.attempts.length) await d.before?.(ctx);
-      const intent = await d.intent(ctx);
+      let intent: TxFields | null;
+      try {
+        intent = await d.intent(ctx);
+      } catch (e) {
+        return this.fail(rec, "rejected", `could not build the transaction: ${reasonOf(e)}`);
+      }
       if (intent === null) {
         rec.state = "skipped";
         rec.detail = "the state this would produce already holds";
@@ -353,16 +391,39 @@ export class Saga {
       this.save();
     }
 
+    let giveUp: string | undefined; // set when the sends are used up: one last look at every attempt before failing
     for (;;) {
       const attemptNo = rec.attempts.length + (pendingAttempt ? 0 : 1);
       let att = pendingAttempt;
       pendingAttempt = undefined;
       let rcpt: Rcpt | null = null;
 
-      if (att) {
+      if (!att && giveUp !== undefined && !rec.attempts.some((a) => a.raw !== "0x")) return this.fail(rec, "transient-exhausted", giveUp);
+      if (!att && rec.attempts.some((a) => a.raw !== "0x")) {
+        // Before signing anything new: did an earlier send land while we were backing off? (A slow node, a late block.)
+        const hit = await this.sweep(rec);
+        if (hit) {
+          this.log(rec.id, "RECOVERED", `an earlier send, ${hit.att.hash}, is mined (block ${hit.rcpt.blockNumber}); not sending again`);
+          att = hit.att;
+          rcpt = hit.rcpt;
+        } else if (giveUp !== undefined) {
+          const pending = await this.stillKnown(rec);
+          if (pending) return this.fail(rec, "pending-unresolved", `${pending} is still in the node's pool after ${rec.attempts.length} sends`);
+          return this.fail(rec, "transient-exhausted", giveUp);
+        }
+      }
+
+      if (att && rcpt) {
+        // found by the sweep: go straight to the receipt handling below
+      } else if (att) {
         rcpt = await this.settle(rec, att);
       } else {
-        const intent = this.intents.get(rec.id) ?? (await d.intent(ctx));
+        let intent: TxFields | null;
+        try {
+          intent = this.intents.get(rec.id) ?? (await d.intent(ctx));
+        } catch (e) {
+          return this.fail(rec, "rejected", `could not build the transaction: ${reasonOf(e)}`);
+        }
         if (intent === null) {
           rec.state = "skipped";
           rec.detail = "the state this would produce already holds";
@@ -372,7 +433,8 @@ export class Saga {
         const prev = [...rec.attempts].reverse().find((a) => a.raw !== "0x");
         let signed: SignedFields;
         try {
-          const o: { nonce?: number; minMaxFee?: bigint; maxFeeOverride?: bigint } = {};
+          const o: { nonce?: number; minMaxFee?: bigint; maxFeeOverride?: bigint; gas?: bigint } = {};
+          if (this.opts.fixedGas !== undefined) o.gas = this.opts.fixedGas;
           if (prev) {
             o.nonce = prev.nonce;
             o.minMaxFee = (BigInt(prev.maxFeePerGas) * BigInt(100 + this.policy.bumpPercent) + 99n) / 100n;
@@ -386,7 +448,10 @@ export class Saga {
           rec.attempts.push({ n: attemptNo, hash: "0x", raw: "0x", nonce: -1, gas: "0", maxFeePerGas: "0", maxPriorityFeePerGas: "0", state: "refused", note: `not signed: ${reason}` });
           this.log(rec.id, kind === "permanent" ? "REFUSED" : "TRANSIENT", `attempt ${attemptNo} could not be prepared: ${reason}`);
           if (kind === "permanent") return this.fail(rec, REVERT.test(reason) ? "revert" : "rejected", reason);
-          if (attemptNo >= this.policy.maxAttempts) return this.fail(rec, "transient-exhausted", reason);
+          if (attemptNo >= this.policy.maxAttempts) {
+            giveUp = reason;
+            continue;
+          }
           await this.backoff(rec, attemptNo);
           continue;
         }
@@ -423,7 +488,10 @@ export class Saga {
               return this.fail(rec, REVERT.test(reason) ? "revert" : "rejected", reason);
             }
             this.log(rec.id, "TRANSIENT", `attempt ${attemptNo} refused by the node (${reason})`);
-            if (attemptNo >= this.policy.maxAttempts) return this.fail(rec, "transient-exhausted", reason);
+            if (attemptNo >= this.policy.maxAttempts) {
+              giveUp = reason;
+              continue;
+            }
             await this.backoff(rec, attemptNo);
             continue;
           }
@@ -434,20 +502,19 @@ export class Saga {
 
       if (rcpt === null) {
         // No receipt in time. Before sending anything again, ask whether ANY earlier attempt landed (one of them may have).
-        for (const a of rec.attempts) {
-          if (!a.raw || a.raw === "0x") continue;
-          const r = await this.port.receipt(a.hash);
-          if (r) {
-            rcpt = r;
-            att = a;
-            break;
-          }
+        const hit = await this.sweep(rec);
+        if (hit) {
+          rcpt = hit.rcpt;
+          att = hit.att;
         }
       }
       if (rcpt === null) {
         att!.state = "timeout";
         this.log(rec.id, "TRANSIENT", `attempt ${att!.n}: no receipt for ${att!.hash} within ${Math.round(this.policy.receiptTimeoutMs / 1000)} s (dropped, or the fee was too low)`);
-        if (rec.attempts.length >= this.policy.maxAttempts) return this.fail(rec, "transient-exhausted", `no receipt after ${rec.attempts.length} attempts`);
+        if (rec.attempts.length >= this.policy.maxAttempts) {
+          giveUp = `no receipt after ${rec.attempts.length} attempts`;
+          continue;
+        }
         await this.backoff(rec, rec.attempts.length);
         continue;
       }
@@ -456,7 +523,6 @@ export class Saga {
       for (const a of rec.attempts) if (a.hash !== att!.hash && a.state !== "refused") a.state = "replaced";
       att!.gasUsed = String(rcpt.gasUsed);
       att!.blockNumber = String(rcpt.blockNumber);
-      this.crashAt(rec.id, "mined");
       if (rcpt.status === "reverted") {
         att!.state = "reverted";
         this.log(rec.id, "REVERTED", `${att!.hash} mined in block ${rcpt.blockNumber} with status 0: permanent`);
@@ -465,7 +531,13 @@ export class Saga {
       att!.state = "mined";
       rec.landed = true;
       this.log(rec.id, "MINED", `${att!.hash} block ${rcpt.blockNumber} status 1 gas ${rcpt.gasUsed}`);
-      const v = await d.verify(ctx, rcpt);
+      this.crashAt(rec.id, "mined"); // after the journal knows: a resume verifies from the receipt
+      let v: { ok: boolean; detail: string };
+      try {
+        v = await d.verify(ctx, rcpt);
+      } catch (e) {
+        v = { ok: false, detail: `could not verify: ${reasonOf(e)}` };
+      }
       if (!v.ok) {
         this.log(rec.id, "VERIFY-FAILED", v.detail);
         return this.fail(rec, "verify", v.detail);
@@ -475,6 +547,22 @@ export class Saga {
       this.log(rec.id, "VERIFIED", v.detail);
       return true;
     }
+  }
+
+  /** The first attempt of this action that has a receipt, if any. */
+  private async sweep(rec: ActionRec): Promise<{ att: AttemptRec; rcpt: Rcpt } | undefined> {
+    for (const a of rec.attempts) {
+      if (a.raw === "0x") continue;
+      const r = await this.port.receipt(a.hash);
+      if (r) return { att: a, rcpt: r };
+    }
+    return undefined;
+  }
+
+  /** The hash of an attempt the node still holds (pending), if any. */
+  private async stillKnown(rec: ActionRec): Promise<Hex | undefined> {
+    for (const a of rec.attempts) if (a.raw !== "0x" && (await this.port.known(a.hash))) return a.hash;
+    return undefined;
   }
 
   /** In-memory intents of the actions started in this process; a resumed action never needs one before its first new send. */

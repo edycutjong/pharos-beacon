@@ -42,7 +42,7 @@ export function chainPort(mcp: ChainMcp, signer: TestnetSigner): Port {
     async sign(tx, o) {
       let prepared;
       try {
-        prepared = await signer.prepare({ to: tx.to, value: tx.value, data: tx.data, ...(o.nonce !== undefined ? { nonce: o.nonce } : {}) });
+        prepared = await signer.prepare({ to: tx.to, value: tx.value, data: tx.data, ...(o.nonce !== undefined ? { nonce: o.nonce } : {}), ...(o.gas !== undefined ? { gas: o.gas } : {}) });
       } catch (e) {
         if (e instanceof UnresolvedTxError) throw new Error(`timeout: ${e.message}`);
         throw revertText(e);
