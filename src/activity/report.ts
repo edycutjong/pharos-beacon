@@ -5,7 +5,7 @@ import { counterparties, dayUtc, fmtLeg, fmtWei, stampUtc, totalsOf, type Activi
 // read; nothing is estimated. Highlights compare with a baseline period (the same length, right before) when one is given.
 
 const lower = (s: string) => s.toLowerCase();
-const short = (a: string | null) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "(contract creation)");
+export const short = (a: string | null) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "(contract creation)");
 const link = (a: Activity, tx: string) => `[${tx.slice(0, 10)}…](${explorerTx(a.network, tx)})`;
 const sum = (rows: TokenTotal[]) => rows.map((r) => `${fmtLeg({ token: r.token as `0x${string}`, symbol: r.symbol, decimals: r.decimals, amountRaw: r.raw })} (${r.count})`).join(", ") || "none";
 const legs = (ls: Leg[]) => ls.map(fmtLeg).join(" + ") || "—";
@@ -146,3 +146,25 @@ export function csvReport(a: Activity): string {
 }
 
 export { dayUtc };
+
+const clip = (s: string, n: number) => (s.length <= n ? s : `${s.slice(0, n - 1)}…`);
+
+/** A narrow plain-text view (62 columns) for a terminal or a video; the same facts as the Markdown report, fewer words. */
+export function compactReport(a: Activity, info: { baseline?: Activity }): string {
+  const t = totalsOf(a.items);
+  const hl = highlights(a, info.baseline);
+  const c = a.coverage;
+  const L: string[] = [];
+  L.push(`wallet ${short(a.wallet)} · ${a.network === "pharos" ? "pharos mainnet" : "atlantic testnet"}`);
+  L.push(a.range.fromTs !== undefined ? `${dayUtc(a.range.fromTs)}${a.range.toTs !== undefined && dayUtc(a.range.toTs - 1) !== dayUtc(a.range.fromTs) ? ` to ${dayUtc(a.range.toTs - 1)}` : ""} UTC · blocks ${a.range.fromBlock}–${a.range.toBlock}` : `blocks ${a.range.fromBlock}–${a.range.toBlock}`);
+  L.push(`${t.txs} txs · fees ${fmtWei(t.feesWei, a.nativeSymbol)} · ${t.failed} failed`, "");
+  const n = (v: number) => String(v).padStart(3);
+  L.push(`transfers in     ${n(t.counts["transfer-in"])}`, `transfers out    ${n(t.counts["transfer-out"])}`, `swaps            ${n(t.counts.swap)}`, `approvals        ${n(t.counts.approval)}${t.unlimitedApprovals ? `  (${t.unlimitedApprovals} unlimited)` : ""}`, `contract calls   ${n(t.counts["contract-call"])}`, "");
+  if (hl.length) {
+    L.push("highlights");
+    for (const h of hl.slice(0, 6)) L.push(clip(` ! ${h.kind.replace(/-/g, " ")}: ${h.text.replace(/`/g, "").replace(/^(First time dealing with |Largest |Unlimited approval: )/, "")}`, 62), `   ${h.tx.slice(0, 10)}…${h.tx.slice(-4)}`);
+    L.push("");
+  }
+  L.push(c.sentExpected === null ? "sent-tx check: nonce not readable" : `sent txs: ${c.sentFound} of ${c.sentExpected} matched by the chain's nonce`);
+  return L.join("\n");
+}

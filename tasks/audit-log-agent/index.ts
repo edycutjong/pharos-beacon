@@ -6,7 +6,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { collectActivity, dayUtc, parseWallet, rangeForTimes, type Activity, type Call, type Range } from "../../src/activity/engine.js";
-import { csvReport, markdownReport } from "../../src/activity/report.js";
+import { compactReport, csvReport, markdownReport } from "../../src/activity/report.js";
 import { choice, isMain, parseCli, runCli, UsageError, type RunContext } from "../../src/lib/cli.js";
 import { chainMcp, type ChainMcp, type Network } from "../../src/lib/mcp.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
@@ -30,11 +30,11 @@ export async function main(
 ): Promise<number> {
   const { values } = parseCli(
     {
-      usage: `npm run ${TASK} -- --wallet 0x… (--from YYYY-MM-DD --to YYYY-MM-DD | --from-block N --to-block N) [--network pharos|atlantic] [--format md|csv|both] [--out dir] [--scan-blocks N] [--max-txs N] [--baseline auto|none] [--proof label]`,
+      usage: `npm run ${TASK} -- --wallet 0x… (--from YYYY-MM-DD --to YYYY-MM-DD | --from-block N --to-block N) [--network pharos|atlantic] [--format md|csv|both] [--out dir] [--scan-blocks N] [--max-txs N] [--baseline auto|none] [--compact] [--proof label]`,
       options: {
         wallet: { type: "string" }, from: { type: "string" }, to: { type: "string" }, "from-block": { type: "string" }, "to-block": { type: "string" },
         network: { type: "string", default: "pharos" }, format: { type: "string", default: "md" }, out: { type: "string" },
-        "scan-blocks": { type: "string", default: "0" }, "max-txs": { type: "string", default: "400" }, baseline: { type: "string", default: "auto" }, proof: { type: "string" },
+        "scan-blocks": { type: "string", default: "0" }, "max-txs": { type: "string", default: "400" }, compact: { type: "boolean", default: false }, baseline: { type: "string", default: "auto" }, proof: { type: "string" },
       },
     },
     argv,
@@ -101,7 +101,8 @@ export async function main(
     if (format !== "csv") console.log(`wrote ${join(values.out, `${stem}.md`)}`), writeFileSync(join(values.out, `${stem}.md`), md);
     if (format !== "md") console.log(`wrote ${join(values.out, `${stem}.csv`)}`), writeFileSync(join(values.out, `${stem}.csv`), csv);
   }
-  if (!values.out || format === "md") console.log(`\n${md}`);
+  if (values.compact) console.log(`\n${compactReport(activity, baseline ? { baseline } : {})}`);
+  else if (!values.out || format === "md") console.log(`\n${md}`);
   else if (format === "csv") console.log(`\n${csv}`);
 
   if (values.proof !== undefined) {
