@@ -1,4 +1,4 @@
-# Output of the three casts shown in the video (recorded 2026-10-24, real runs; ANSI codes removed).
+# Output of the five casts shown in the video (recorded 2026-10-24, real runs; ANSI codes removed).
 # c1: the transaction was sent just before the run, so the first answer is WAIT. Atlantic tx: https://atlantic.pharosscan.xyz/tx/0x36b975feddbc9271f15724c3baca96f5fae379eb8f5375d05e66c6f0f06873f5
 
 ## c1-follow
@@ -49,4 +49,35 @@ value   0 native
 mined   block 31806038, head 31806143, status reverted, gas used 23971
 network atlantic (chain 688689)
 explorer https://atlantic.pharosscan.xyz/tx/0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d
+⠙$
+
+## c4-settled (re-recorded 2026-10-24 18:38 for the audit fix: a mainnet SETTLED and a NOT_FOUND run)
+$ npm run skill-chain-mcp-flow -- 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
+
+> beacon@0.2.0 skill-chain-mcp-flow
+> tsx tasks/skill-chain-mcp-flow/index.ts 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
+
+VERDICT SETTLED
+rule    mined with status 0x1 and 36615 confirmations, at least the 3 this tier needs
+tx      0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
+from    0xda12bd94cded64c0927272674df0ed4c0ec1f88c  →  to 0x52acdeb49056518578c7af788ae2c367132e2db5
+value   0 native
+mined   block 21079587, head 21116201, status success, gas used 46040
+depth   36615 confirmations of 3 required (0 native value → tier 1 of 3 (below 1))
+network pharos (chain 1672)
+explorer https://www.pharosscan.xyz/tx/0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
+⠙$
+
+## c5-notfound (re-recorded 2026-10-24 18:38 for the audit fix: a mainnet SETTLED and a NOT_FOUND run)
+$ npm run skill-chain-mcp-flow -- 0xdededededededededededededededededededededededededededededededede
+
+> beacon@0.2.0 skill-chain-mcp-flow
+> tsx tasks/skill-chain-mcp-flow/index.ts 0xdededededededededededededededededededededededededededededededede
+
+VERDICT NOT_FOUND
+rule    the node returns no transaction for this hash: it was never broadcast to this network, or was dropped
+tx      0xdededededededededededededededededededededededededededededededede
+head    block 21116211
+network pharos (chain 1672)
+explorer https://www.pharosscan.xyz/tx/0xdededededededededededededededededededededededededededededededede
 ⠙$

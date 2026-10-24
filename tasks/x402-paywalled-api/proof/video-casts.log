@@ -1,4 +1,4 @@
-### v1-pay.cast
+### v1-pay.cast (re-recorded 2026-10-24 18:4x: the CLI now prints the PAYMENT-RESPONSE line; audit M4)
 $ npm run x402-paywalled-api -- pay a --base http://localhost:4021
 
 > beacon@0.2.0 x402-paywalled-api
@@ -6,17 +6,18 @@ $ npm run x402-paywalled-api -- pay a --base http://localhost:4021
 
 GET /api/x402-paywalled-api/gas-snapshot · 0.001 USDC · payer 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
   http://localhost:4021/api/x402-paywalled-api/gas-snapshot
-  ✓   req     sent  (53 ms)
+  ✓   req     sent  (66 ms)
   402 q       402 · 0.001 USDC
-  ✓   sign    EIP-3009 signed  (4 ms)
-  ✓   verify  /verify valid  (767 ms)
-  ✓   settle  /settle tx mined  (2188 ms)
-  ✓   ok      200 · receipt ok  (129 ms)
-PAID in 3172 ms: Paid 0.001 USDC, settled on chain, receipt checked, data returned.
-  settle tx https://atlantic.pharosscan.xyz/tx/0x1e8de7b81927487fbfd1c235bbb58386ed5f079571db8cadea0091ac3f0c93ec (block 31800786)
+  ✓   sign    EIP-3009 signed  (6 ms)
+  ✓   verify  /verify valid  (1453 ms)
+  ✓   settle  /settle tx mined  (2472 ms)
+  ✓   ok      200 · receipt ok  (119 ms)
+PAID in 4929 ms: Paid 0.001 USDC, settled on chain, receipt checked, data returned.
+  200 OK · PAYMENT-RESPONSE: success, tx 0x5860fa1e1ae97593edd2917b61c78bc259757defc276dafced3732cc2915d85c
+  settle tx https://atlantic.pharosscan.xyz/tx/0x5860fa1e1ae97593edd2917b61c78bc259757defc276dafced3732cc2915d85c (block 31821417)
   receipt check: status 1 · USDC Transfer 0.001 USDC to the payee
-  data: {"network":"Pharos Atlantic testnet (eip155:688689)","source":"Atlantic JSON-RPC (eth_getBlockByNumber, eth_gasPrice, eth_maxPriorityFeePerGas)","block":31800785,"blockTime":"2026-10-23T23:19:41.000Z","baseFeeGwei":"1","gasPriceGwei":"10","priorityFeeGwei":"0","plainTransferCostPHRS":"0.00021"}
-⠙$ 
+  data: {"network":"Pharos Atlantic testnet (eip155:688689)","source":"Atlantic JSON-RPC (eth_getBlockByNumber, eth_gasPrice, eth_maxPriorityFeePerGas)","block":31821414,"blockTime":"2026-10-24T11:42:31.000Z","baseFeeGwei":"1","gasPriceGwei":"10","priorityFeeGwei":"0","plainTransferCostPHRS":"0.00021"}
+⠙$
 ### v2-under.cast
 $ npm run x402-paywalled-api -- pay under --base http://localhost:4021
 
