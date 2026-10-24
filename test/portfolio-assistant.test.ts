@@ -5,7 +5,7 @@ import { decodeFunctionData, encodeAbiParameters, encodeFunctionResult, getAddre
 import { UsageError } from "../src/lib/cli.js";
 import { answerQuestion, classify, detectLang, sourceTable, valueOf, type Answer, type Intent, type Reads } from "../src/portfolio/ask.js";
 import { diffSnapshots } from "../src/portfolio/change.js";
-import { FactBook, MORPHO_MARKETS, type Fact, PROS_POOL, USDC, VAULTS, WPROS, readSnapshot, vaultYield, type Call, type Snapshot } from "../src/portfolio/read.js";
+import { FactBook, MORPHO_MARKETS, agreeing, type Fact, PROS_POOL, USDC, VAULTS, WPROS, readSnapshot, vaultYield, type Call, type Snapshot } from "../src/portfolio/read.js";
 import { main, REPORT_QUESTION } from "../tasks/portfolio-assistant/index.js";
 
 const ME = getAddress("0x1111111111111111111111111111111111111111");
@@ -326,6 +326,37 @@ describe("readSnapshot", () => {
     const s2 = await readSnapshot(always, ME, new FactBook());
     expect(s2.unreadable.some((u) => /PROS price/.test(u.what) && /answered differently twice/.test(u.reason))).toBe(true);
     expect(s2.positions.find((p) => p.kind === "token" && p.symbol === "WPROS")).toMatchObject({ usd: null });
+  });
+
+  it("a verified (earlier-block) read asks twice, takes the agreed answer when one read was wrong, and refuses a node that never agrees", async () => {
+    const real = fakeChain(base());
+    let n = 0;
+    const wrongOnce: Call = (async (tool: string, args: any) => {
+      const r = await (real as any)(tool, args);
+      if (tool === "eth_call" && args.transaction.data.startsWith("0x70a08231") && getAddress(args.transaction.to) === USDC.address && n++ === 0) return { result: pad(toHex(1_420_307_660_000n), { size: 32 }) }; // the first read of USDC is wrong
+      return r;
+    }) as Call;
+    const s = await readSnapshot(wrongOnce, ME, new FactBook(), EARLIER, true);
+    expect(s.positions.find((p) => p.kind === "token" && p.symbol === "USDC")).toMatchObject({ usd: 1_000 }); // not the wrong 1,420,307.66
+    expect(s.unreadable).toEqual([]);
+    let m = 0;
+    const never: Call = (async (tool: string, args: any) => {
+      const r = await (real as any)(tool, args);
+      if (tool === "eth_call" && args.transaction.data.startsWith("0x70a08231") && getAddress(args.transaction.to) === USDC.address) return { result: pad(toHex(1_000_000_000n + BigInt(m++)), { size: 32 }) };
+      return r;
+    }) as Call;
+    const s2 = await readSnapshot(never, ME, new FactBook(), EARLIER, true);
+    expect(s2.unreadable.some((u) => /USDC balance/.test(u.what) && /answered differently on three reads/.test(u.reason))).toBe(true);
+    expect(s2.positions.some((p) => p.kind === "token" && p.symbol === "USDC")).toBe(false);
+    // a read at the head is NOT doubled (cost): same fake, verify off → the wrong first read would stand
+    let k = 0;
+    const counting: Call = (async (tool: string, args: any) => (k++, (real as any)(tool, args))) as Call;
+    await readSnapshot(counting, ME, new FactBook(), EARLIER, false);
+    const single = k;
+    k = 0;
+    await readSnapshot(counting, ME, new FactBook(), EARLIER, true);
+    expect(k).toBeGreaterThan(single * 1.5);
+    expect(typeof agreeing).toBe("function");
   });
 
   it("vault yield is the share-price growth over the window, annualised", async () => {

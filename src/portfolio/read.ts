@@ -125,7 +125,27 @@ async function attempt<T>(unreadable: Unreadable[], protocol: string, what: stri
   }
 }
 
-export async function readSnapshot(call: Call, wallet: Hex, book: FactBook, at?: bigint): Promise<Snapshot> {
+/**
+ * Reads of an EARLIER block are asked twice and must agree (a third read breaks a tie; no two equal answers = unreadable). The hosted
+ * node once answered a historical balanceOf with a different number for the same pinned block (1,420,307 USDC instead of 4,382,642;
+ * twelve repeats afterwards all agreed), and a wrong number in "what changed" is worse than none.
+ */
+export function agreeing(call: Call): Call {
+  const read = (name: string, args?: Record<string, unknown>) => (call as (n: string, a?: Record<string, unknown>) => Promise<unknown>)(name, args);
+  return (async (name: string, args?: Record<string, unknown>) => {
+    if (name !== "eth_call" && name !== "get_balance") return read(name, args);
+    const a = await read(name, args);
+    const b = await read(name, args);
+    if (JSON.stringify(a) === JSON.stringify(b)) return a;
+    const c = await read(name, args);
+    if (JSON.stringify(c) === JSON.stringify(a)) return a;
+    if (JSON.stringify(c) === JSON.stringify(b)) return b;
+    throw new Error(`${name} at block ${args?.block ?? "head"} answered differently on three reads (the node's history is not consistent)`);
+  }) as Call;
+}
+
+export async function readSnapshot(call0: Call, wallet: Hex, book: FactBook, at?: bigint, verify = false): Promise<Snapshot> {
+  const call = verify ? agreeing(call0) : call0;
   const { block, timestamp } = await headerAt(call, at);
   const fact = book.add.bind(book);
   const positions: Position[] = [];

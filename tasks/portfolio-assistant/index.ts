@@ -12,7 +12,7 @@ import { choice, isMain, parseCli, runCli, UsageError, type RunContext } from ".
 import { chainMcp } from "../../src/lib/mcp.js";
 import { proofMeta, writeProof } from "../../src/lib/proof.js";
 import { answerQuestion, sourceTable, type Answer, type Reads } from "../../src/portfolio/ask.js";
-import { FactBook, headerAt, readSnapshot, vaultYield, type Snapshot } from "../../src/portfolio/read.js";
+import { FactBook, agreeing, headerAt, readSnapshot, vaultYield, type Snapshot } from "../../src/portfolio/read.js";
 
 const TASK = "portfolio-assistant";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
@@ -65,13 +65,13 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
       const at = sinceBlock ?? blockForDays(sinceDays ?? windowDays);
       if (at >= head.block) throw new UsageError(`the earlier block ${at} must be before the block read (${head.block})`);
       const out: Snapshot[] = [];
-      for (const w of wallets) out.push(await readSnapshot(call, w as Hex, book, at));
+      for (const w of wallets) out.push(await readSnapshot(call, w as Hex, book, at, true)); // verified: every read twice, see agreeing()
       return out;
     },
     async yieldOf(pos, snap, days) {
       const from = blockForDays(days);
       const h = await headerAt(call, from);
-      return vaultYield(call, pos, from, h.timestamp, snap, book);
+      return vaultYield(agreeing(call), pos, from, h.timestamp, snap, book); // the earlier share price is read twice, like every earlier-block read
     },
   };
 
