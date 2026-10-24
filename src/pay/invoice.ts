@@ -153,7 +153,9 @@ export const fingerprint = (x: Pick<Extracted, "number" | "issuer" | "amount" | 
 export interface PaidRecord { fingerprint: string; number: string; issuer?: string; amount: string; token: string; hash: Hex; url: string; at: string }
 
 export function loadPaid(file: string): PaidRecord[] {
-  return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as PaidRecord[]) : [];
+  if (!existsSync(file)) return [];
+  const text = readFileSync(file, "utf8").trim();
+  return text ? (JSON.parse(text) as PaidRecord[]) : [];
 }
 export function findPaid(file: string, fp: string): PaidRecord | undefined {
   return loadPaid(file).find((r) => r.fingerprint === fp);

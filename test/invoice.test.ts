@@ -52,7 +52,8 @@ describe("invoices", () => {
     const x = { number: "A-1", issuer: "Acme  Corp", amount: "0.5", currency: "PHRS" };
     expect(fingerprint(x)).toBe(fingerprint({ ...x, issuer: "acme corp" }));
     expect(fingerprint(x)).not.toBe(fingerprint({ ...x, amount: "0.6" }));
-    expect(findPaid(file, fingerprint(x))).toBeUndefined();
+    writeFileSync(file, "");
+    expect(findPaid(file, fingerprint(x))).toBeUndefined(); // an empty (mktemp) file is an empty ledger
     recordPaid(file, { fingerprint: fingerprint(x), number: "A-1", amount: "0.5", token: "PHRS", hash: "0xabc" as Hex, url: "u", at: "now" });
     expect(findPaid(file, fingerprint(x))?.hash).toBe("0xabc");
   });
