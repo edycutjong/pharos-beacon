@@ -264,6 +264,18 @@ describe("readSnapshot", () => {
     expect(s.positions.some((p) => p.kind === "token" && p.symbol === "USDC")).toBe(false);
   });
 
+  it("with nothing readable the answers say so instead of 'you hold none'", async () => {
+    const w = base();
+    w.noCode = new Set([USDC.address, WPROS.address, ROX.share, JT.share, getAddress("0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"), MORPHO, PROS_POOL, getAddress(JT.vault), getAddress("0x51e2A24742Db77604B881d6781Ee16B5b8fcBE29"), getAddress("0x1f4b7011Ee3d53969bb67F59428a9ec0477856E9")]);
+    w.native = () => 0n;
+    const h = await ask("what do I hold?", w);
+    expect(h.a.text).toMatch(/no positions found among what I could read/);
+    const u = await ask("how much USDC do I have?", w);
+    expect(u.a.text).toContain("I have no successful read of USDC, so I cannot say what you hold");
+    expect(u.a.text).not.toMatch(/You hold no USDC/);
+    expect((await ask("berapa saldo USDC saya?", w)).a.text).toContain("Saya tidak punya bacaan USDC yang berhasil");
+  });
+
   it("when Morpho cannot be read the answer to 'do I owe anything?' does NOT say 'no debt'; it says what it could not read", async () => {
     const w = base();
     w.noCode = new Set([MORPHO]);
