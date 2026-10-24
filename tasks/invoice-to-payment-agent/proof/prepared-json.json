@@ -8,12 +8,12 @@
       "server": "pharos-mcp-server",
       "version": "0.1.0"
     },
-    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/acme-0042.json --proof prepared-json",
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/acme-0042.json --state /var/folders/hy/h4_prwdj11d1p_gf5kr77k5r0000gn/T/tmp.YWDlp3q5Vj --proof prepared-json",
     "git": {
-      "commit": "5be4e076d5cc",
+      "commit": "8b1d8e95384f",
       "dirty": false
     },
-    "createdAt": "2026-10-24T01:30:09.726Z"
+    "createdAt": "2026-10-24T01:38:23.804Z"
   },
   "invoice": "tasks/invoice-to-payment-agent/samples/acme-0042.json",
   "extracted": {
@@ -28,7 +28,7 @@
     "amount": "0.005"
   },
   "outcome": "prepared-unsigned",
-  "fingerprint": "91415a4420740ca2",
+  "fingerprint": "ee44523cd8494c8b",
   "notes": [],
   "checks": [
     {
@@ -54,7 +54,7 @@
     {
       "name": "balance",
       "ok": true,
-      "detail": "0x317b…2975 holds 14.917193901999979 PHRS, needs 0.0050573 (amount + max fee)"
+      "detail": "0x317b…2975 holds 14.910116001999979 PHRS, needs 0.0050573 (amount + max fee)"
     }
   ],
   "unsignedTx": {
@@ -62,7 +62,7 @@
     "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
     "value": "5000000000000000",
     "data": "0x494e562d323032362d30303432",
-    "nonce": 113,
+    "nonce": 116,
     "gas": "28650",
     "maxFeePerGas": "2000000000",
     "maxPriorityFeePerGas": "0"
@@ -78,7 +78,7 @@
         "gas": "0x6fea",
         "maxFeePerGas": "0x77359400",
         "maxPriorityFeePerGas": "0x0",
-        "nonce": "0x71",
+        "nonce": "0x74",
         "chainId": "0xa8231",
         "type": "0x2"
       }
