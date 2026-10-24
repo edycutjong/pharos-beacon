@@ -41,7 +41,8 @@
     "natural-language-payment-agent": "tsx tasks/natural-language-payment-agent/index.ts",
     "invoice-to-payment-agent": "tsx tasks/invoice-to-payment-agent/index.ts",
     "saga-executor": "tsx tasks/saga-executor/index.ts",
-    "arbitrage-scanner": "tsx tasks/arbitrage-scanner/index.ts"
+    "arbitrage-scanner": "tsx tasks/arbitrage-scanner/index.ts",
+    "liquidation-watchdog": "tsx tasks/liquidation-watchdog/index.ts"
   },
   "keywords": [],
   "author": "",

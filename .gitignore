@@ -19,3 +19,4 @@ tasks/saga-executor/contracts/cache/
 tasks/arbitrage-scanner/state/
 tasks/arbitrage-scanner/contracts/out/
 tasks/arbitrage-scanner/contracts/cache/
+tasks/liquidation-watchdog/state/
