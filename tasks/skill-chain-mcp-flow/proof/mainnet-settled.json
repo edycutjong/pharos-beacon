@@ -1,0 +1,83 @@
+{
+  "meta": {
+    "task": "skill-chain-mcp-flow",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/skill-chain-mcp-flow/index.ts 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0 --proof mainnet-settled",
+    "git": {
+      "commit": "8c0fbaf78156",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T02:16:49.195Z"
+  },
+  "verdict": "SETTLED",
+  "rule": "mined with status 0x1 and 101 confirmations, at least the 3 this tier needs",
+  "confirmations": 101,
+  "required": 3,
+  "tier": "0 native value → tier 1 of 3 (below 1)",
+  "facts": {
+    "hash": "0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0",
+    "from": "0xda12bd94cded64c0927272674df0ed4c0ec1f88c",
+    "to": "0x52acdeb49056518578c7af788ae2c367132e2db5",
+    "valueWei": "0",
+    "head": "21079687",
+    "tokenTransfers": 0,
+    "block": "21079587",
+    "status": "success",
+    "gasUsed": "46040",
+    "blockSeconds": 0.85
+  },
+  "explorer": "https://www.pharosscan.xyz/tx/0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0",
+  "polls": [
+    {
+      "verdict": "SETTLED",
+      "confirmations": 101,
+      "head": "21079687"
+    }
+  ],
+  "flow": [
+    {
+      "step": 1,
+      "tool": "get_transaction",
+      "args": {
+        "hash": "0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0"
+      },
+      "ms": 38
+    },
+    {
+      "step": 2,
+      "tool": "get_block_number",
+      "args": {},
+      "ms": 31
+    },
+    {
+      "step": 3,
+      "tool": "get_transaction_receipt",
+      "args": {
+        "hash": "0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0"
+      },
+      "ms": 44
+    },
+    {
+      "step": 4,
+      "tool": "get_block",
+      "args": {
+        "block": "21079687"
+      },
+      "ms": 37
+    },
+    {
+      "step": 5,
+      "tool": "get_block",
+      "args": {
+        "block": "21079667"
+      },
+      "ms": 71
+    }
+  ]
+}
