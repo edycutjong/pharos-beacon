@@ -266,7 +266,7 @@ describe("safe retries: the same payment never counts twice", () => {
     expect(readLog(agent.o.logFile)).toHaveLength(1);
   });
 
-  it("a 200 whose receipt holds no matching Transfer: data refused, the payment counted as spent", async () => {
+  it("a 200 whose receipt holds no matching Transfer although our authorization is used: data refused, the payment counted once", async () => {
     const w = world();
     const bad: Chain = { ...w.chain, receipt: async () => ({ status: "success", blockNumber: 1n, logs: [] }) as never };
     const { agent, events } = agentFor("retry", w, { chain: bad });
@@ -274,7 +274,7 @@ describe("safe retries: the same payment never counts twice", () => {
     expect(r.status).toBe("failed");
     const rows = readLog(agent.o.logFile);
     expect(rows).toHaveLength(1);
-    expect(rows[0]!.note).toContain("counted as spent");
+    expect(rows[0]!.note).toContain("counted once");
     expect(agent.spent()).toBe(1000n);
     expect(events.some((e) => e.type === "failed" && e.text.includes("receipt check failed"))).toBe(true);
     // A re-run does not sign a second payment under the same key.
@@ -282,12 +282,24 @@ describe("safe retries: the same payment never counts twice", () => {
     expect(w.settles()).toBe(1);
   });
 
-  it("a 200 whose settle tx reverted: nothing moved, data refused, nothing logged", async () => {
+  it("a 200 that names another seller's transaction: the real settlement is logged once, the data is refused", async () => {
     const w = world();
-    const reverted: Chain = { ...w.chain, receipt: async () => ({ status: "reverted", blockNumber: 1n, logs: [] }) as never };
-    const { agent } = agentFor("retry", w, { chain: reverted });
-    expect((await agent.buy(gas)).status).toBe("failed");
-    expect(readLog(agent.o.logFile)).toHaveLength(0);
+    const other = agentFor("retry", w); // a different ledger buys first; its tx is not in the ledger under test
+    await other.agent.buy(gas);
+    const foreign = readLog(other.agent.o.logFile)[0]!.tx!;
+    const liar = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await w.api(input, init);
+      if (!new Headers(init?.headers).has("PAYMENT-SIGNATURE")) return res;
+      return new Response("{}", { status: 200, headers: { "PAYMENT-RESPONSE": encodePaymentResponseHeader({ success: true, transaction: foreign, network: NETWORK, payer: PAYER } as never) } });
+    }) as typeof fetch;
+    const { agent } = agentFor("retry", w, { fetch: liar });
+    const r = await agent.buy(gas);
+    expect(r.status).toBe("failed");
+    const rows = readLog(agent.o.logFile);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.tx).not.toBe(foreign);
+    expect(rows[0]!.note).toContain("named another transaction");
+    expect(w.settles()).toBe(2);
   });
 
   it("a receipt that cannot be read leaves the payment pending, and a re-run reconciles it from the chain without paying again", async () => {

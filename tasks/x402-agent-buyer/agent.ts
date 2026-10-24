@@ -5,7 +5,7 @@
 //   Safe retries (requirement 04): the signed payment is written to the journal BEFORE it is sent, under the purchase's
 //   idempotency key. A retry re-sends that same EIP-3009 authorization, never a fresh one, so the chain can settle it at most
 //   once (the nonce). If the answer to a send is lost, the next try asks the token (authorizationState) before it signs anything.
-import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
+import { appendFileSync, chmodSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { decodePaymentRequiredHeader, decodePaymentResponseHeader, encodePaymentSignatureHeader } from "@x402/core/http";
 import type { PaymentRequired } from "@x402/core/types";
@@ -259,7 +259,10 @@ export class Agent {
   }
 
   private journal = (): Journal => readState<Journal>(this.o.journalFile, {});
-  private save = (j: Journal) => writeJsonAtomic(this.o.journalFile, j);
+  private save = (j: Journal) => {
+    writeJsonAtomic(this.o.journalFile, j);
+    chmodSync(this.o.journalFile, 0o600); // it holds signed authorizations
+  };
   private url = (path: string) => (/^https?:\/\//.test(path) ? path : `${this.o.base.replace(/\/+$/, "")}${BASE_PATH}/${path}`);
   private get = (path: string, headers: Record<string, string> = {}) => this.fetchFn(this.url(path), { headers: { accept: "application/json", ...this.o.headers, ...headers } });
   /** Past validBefore plus a minute of margin for clock skew and a transaction still in a block's making. */
@@ -267,9 +270,9 @@ export class Agent {
 
   /** Total paid in this ledger (its payment log): a budget scopes the ledger, not one task. */
   spent = (): bigint => readLog(this.o.logFile).reduce((s, r) => s + BigInt(r.amount), 0n);
-  /** Signed but unresolved authorizations (also ones the API refused, until they lapse): they may still settle, so they count against the budget. */
+  /** Signed but unresolved authorizations (also ones the API refused, until the token has been asked): they may still settle, so they count against the budget. */
   pending = (j = this.journal(), except?: string): bigint =>
-    Object.values(j).filter((p) => p.key !== except && (p.state === "signed" || (p.state === "rejected" && !this.lapsed(p)))).reduce((s, p) => s + BigInt(p.amount), 0n);
+    Object.values(j).filter((p) => p.key !== except && (p.state === "signed" || p.state === "rejected")).reduce((s, p) => s + BigInt(p.amount), 0n);
 
   private log(p: Purchase, tx: Hex | undefined, block: number | undefined, note?: string): PaymentRow {
     const rows = readLog(this.o.logFile);
@@ -317,8 +320,8 @@ export class Agent {
       this.emit({ type: "reconcile", want, nonceUsed: true, ...(s ? { tx: s.tx } : {}), text: s ? `authorization ${p.nonce.slice(0, 10)}… was used in ${s.tx.slice(0, 12)}…: it settled once` : `authorization ${p.nonce.slice(0, 10)}… was used; the settling tx is outside the lookback, logged without one` });
       p.tx = s?.tx;
       p.block = s?.block;
-      p.state = p.data !== undefined ? "paid" : "paid-data-lost";
       this.log(p, s?.tx, s?.block, p.data !== undefined ? undefined : `the response was lost after the API settled; counted once, not bought again${s ? "" : " (tx not found in the lookback)"}`);
+      p.state = p.data !== undefined ? "paid" : "paid-data-lost";
       this.save(j);
       return "settled";
     }
@@ -380,7 +383,7 @@ export class Agent {
       return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
     }
     if (p?.state === "signed" || p?.state === "rejected") {
-      const r = await this.reconcile(p, want.id, j);
+      const r = await this.reconcile(p, want.id, j).catch(() => "unknown" as const);
       if (r === "settled") return { want: want.id, status: "paid-data-lost", price: usdc(p.amount), ...(p.tx ? { tx: p.tx } : {}) };
       if (r === "open" && p.state === "rejected") return fail(`the API refused the earlier payment for this purchase and its authorization is still valid until ${new Date(p.validBefore * 1000).toISOString()}; not signing a second one before it lapses`);
     }
@@ -451,30 +454,27 @@ export class Agent {
       const settle = res.headers.get("PAYMENT-RESPONSE") ? decodePaymentResponseHeader(res.headers.get("PAYMENT-RESPONSE")!) : undefined;
       if (res.status === 200 && settle?.success && settle.transaction) {
         const tx = settle.transaction as Hex;
+        if (readLog(this.o.logFile).some((r) => r.tx?.toLowerCase() === tx.toLowerCase())) return fail(`the API named a transaction already in the log (${tx}) as this payment; not accepted`, { tx });
+        // First, the token: our authorization must be used on chain. A seller can name any transaction; only the nonce is ours.
+        const used = await this.chain.nonceUsed(p.payer, p.nonce).catch(() => undefined);
+        if (used !== true) return fail(`the token does not show our authorization as used${used === undefined ? " (could not check)" : ""}; the data is not accepted and the payment stays pending`, { tx });
+        const real = await this.chain.settlementOf(p.payer, p.nonce).catch(() => undefined);
         let verdict: ReturnType<typeof matchReceipt>;
-        if (readLog(this.o.logFile).some((r) => r.tx === tx)) return fail(`the API named a transaction already in the log (${tx}) as this payment; not accepted`);
         try {
-          verdict = matchReceipt(await this.chain.receipt(tx), { token: getAddress(X402_USDC.address), from: p.payer, to: p.payTo, value: BigInt(p.amount) });
+          verdict = matchReceipt(await this.chain.receipt(real?.tx ?? tx), { token: getAddress(X402_USDC.address), from: p.payer, to: p.payTo, value: BigInt(p.amount) });
         } catch (e) {
           // No receipt yet: the payment stays pending (counted against the budget); a re-run reconciles it from the chain.
           return fail(`the API answered 200 (tx ${tx}) but its receipt could not be read: ${(e as Error).message}; the payment stays pending`, { tx });
         }
-        if (!verdict.ok) {
-          if (verdict.status === "reverted") {
-            p.state = "rejected";
-            this.save(j);
-            return fail(`the API answered 200 but the settle transaction reverted: nothing moved; the data is not accepted`, { tx });
-          }
-          // Mined, but not the payment we signed: money may have moved, so it is counted, and the data is not accepted.
+        if (!verdict.ok || (real && real.tx.toLowerCase() !== tx.toLowerCase())) {
+          // Our authorization IS used, so the money moved: it is counted once, with the transaction the token names, and the data is not accepted.
+          const why = !verdict.ok ? `receipt check failed (${verdict.reason})` : `the API named another transaction (${tx})`;
+          p.tx = real?.tx ?? tx;
+          this.log(p, p.tx, real?.block ?? verdict.block, `${why}; counted once, data not accepted`);
           p.state = "paid-data-lost";
-          p.tx = tx;
-          this.log(p, tx, verdict.block, `receipt check failed (${verdict.reason}); counted as spent, data not accepted`);
           this.save(j);
-          return fail(`the API answered 200 but the receipt check failed: ${verdict.reason}; the data is not accepted and the payment is counted as spent`, { tx });
+          return fail(`the API answered 200 but ${why}; the data is not accepted and the payment is counted once`, { tx: p.tx });
         }
-        // The receipt must be of OUR authorization: a seller could name an old transaction of the same price.
-        const ours = await this.chain.nonceUsed(p.payer, p.nonce).catch(() => undefined);
-        if (ours !== true) return fail(`the receipt matches the price but the token does not show our authorization as used${ours === undefined ? " (could not check)" : ""}; the data is not accepted and the payment stays pending`, { tx });
         p.state = "paid";
         p.tx = tx;
         p.block = verdict.block;
