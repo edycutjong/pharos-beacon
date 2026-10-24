@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { decodeFunctionData, encodeAbiParameters, encodeEventTopics, encodeFunctionResult, keccak256, parseAbi, type Hex } from "viem";
 import { defiSaga, erc20Abi, poolAbi, vaultAbi, type SagaParams } from "../src/saga/defi.js";
 import { classify, CrashInjected, DEFAULT_POLICY, loadJournal, newJournal, Saga, statusTable, type EngineOptions, type Inject, type Journal, type Port, type Rcpt, type RetryPolicy, type SignedFields, type TxFields } from "../src/saga/engine.js";
-import { parseInject } from "../tasks/saga-executor/index.js";
+import { main, parseInject } from "../tasks/saga-executor/index.js";
+import { UsageError } from "../src/lib/cli.js";
 
 const ME = "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B" as Hex;
 const POOL = "0x88176Fb095C178446816F5a1D7C32E35af1Fdac8" as Hex;
@@ -384,5 +385,20 @@ describe("classify + CLI flags", () => {
 
   it("default policy: 3 attempts, doubling backoff, +25% fee", () => {
     expect(DEFAULT_POLICY).toMatchObject({ maxAttempts: 3, backoffMs: 2000, bumpPercent: 25 });
+  });
+});
+
+describe("CLI usage (no network: these fail before any chain is opened)", () => {
+  const ctx = { onExit() {}, signal: new AbortController().signal };
+  it("status of a saga that does not exist", async () => {
+    await expect(main(ctx, ["status", "--id", "no-such-saga"])).rejects.toThrow(/no saga journal named no-such-saga/);
+  });
+  it("a missing or malformed --id", async () => {
+    await expect(main(ctx, ["status"])).rejects.toThrow(/--id <name> is required/);
+    await expect(main(ctx, ["status", "--id", "../etc"])).rejects.toBeInstanceOf(UsageError);
+  });
+  it("an unknown command and a bad retry count", async () => {
+    await expect(main(ctx, ["explode"])).rejects.toThrow(/unknown command explode/);
+    await expect(main(ctx, ["plan", "--retries", "0"])).rejects.toThrow(/--retries must be a number ≥ 1/);
   });
 });

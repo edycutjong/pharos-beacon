@@ -125,23 +125,25 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
     return r.status === "success" && now.open === (to === "open") ? 0 : 1;
   }
 
+  if (cmd === "plan") {
+    // Keyless: reads the pool quote and the vault state only.
+    const amountIn = parseUnits(values.amount!, DEPLOY.tokens.WPHRS.decimals);
+    const v = await readVault(mcp);
+    const quote = await mcp.call("eth_call", { transaction: { to: DEPLOY.pool.address, data: encodeFunctionData({ abi: poolAbi, functionName: "quote", args: [DEPLOY.tokens.WPHRS.address, amountIn] }) } });
+    console.log(`pool ${DEPLOY.pool.address} · vault ${DEPLOY.vault.address} (${v.open ? "open" : "CLOSED: the deposit will fail and the saga will roll back"}) · Atlantic`);
+    console.log(`1 approve-in   approve the pool to pull ${formatUnits(amountIn, DEPLOY.tokens.WPHRS.decimals)} WPHRS`);
+    console.log(`2 swap         swap it for ${formatUnits(BigInt(quote.result), DEPLOY.tokens.USDC.decimals)} USDC (pool quote)`);
+    console.log("3 approve-out  approve the vault to pull that USDC");
+    console.log("4 deposit      deposit it into the vault");
+    console.log("rollback       undo, newest first: withdraw → revoke vault allowance → swap back (approve, swap, revoke) → revoke pool allowance");
+    console.log("add --execute to run it (run --id <name> --execute; the saga wallet is PRIVATE_KEY_2)");
+    return 0;
+  }
+
   // The saga's wallet is the second key, so the vault owner (the first) closing the vault is a different party's action.
   const signer = testnetSigner(mcp, { envVar: "PRIVATE_KEY_2" });
   const port = chainPort(mcp, signer);
   const p = params(signer.address, values.amount!, num("slippage-bps", values["slippage-bps"]!, 0));
-
-  if (cmd === "plan") {
-    const v = await readVault(mcp);
-    const quote = await port.call(p.pool, encodeFunctionData({ abi: poolAbi, functionName: "quote", args: [p.tokenIn, p.amountIn] }));
-    console.log(`wallet ${p.wallet} (Atlantic) · pool ${p.pool} · vault ${p.vault} (${v.open ? "open" : "CLOSED: the deposit will fail and the saga will roll back"})`);
-    console.log(`1 approve-in   approve the pool to pull ${formatUnits(p.amountIn, p.decimalsIn)} WPHRS`);
-    console.log(`2 swap         swap it for ${formatUnits(BigInt(quote), p.decimalsOut)} USDC (pool quote)`);
-    console.log("3 approve-out  approve the vault to pull that USDC");
-    console.log("4 deposit      deposit it into the vault");
-    console.log("rollback       undo, newest first: withdraw → revoke vault allowance → swap back (approve, swap, revoke) → revoke pool allowance");
-    console.log("add --execute to run it (run --id <name> --execute)");
-    return 0;
-  }
 
   const id = idOf();
   const file = journalFile(id);

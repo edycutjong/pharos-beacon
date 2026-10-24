@@ -6,7 +6,7 @@
 
 **Run** (Atlantic testnet only; keys in `~/.config/pharos/testnet.env`, never printed):
 `npm run saga-executor -- plan|run|resume|status|vault [--id name] [--amount 0.001] [--inject drop:swap,underpriced:swap,crash:swap:sent] [--retries 3] [--backoff-ms 2000] [--receipt-timeout-s 30] [--execute] [--proof name]`.
-`plan` and `status` send nothing; `run` and `resume` need `--execute`. Exit codes: 0 completed · 3 rolled back cleanly · 1 stuck or error · 2 bad usage.
+`plan` (needs no key) and `status` send nothing; `run` and `resume` need `--execute`. Exit codes: 0 completed · 3 rolled back cleanly · 1 stuck or error · 2 bad usage.
 **Uses:** Pharos Chain MCP (local stdio server for Atlantic) for every read and the broadcast, viem for local signing and ABI encoding, a SkillEngine-format [`SKILL.md`](../../skills/saga-executor/SKILL.md).
 
 ## What the saga does
@@ -114,4 +114,4 @@ The swap was sent once ([`0x1eb4d4e4…97ab`](https://atlantic.pharosscan.xyz/tx
 
 ## Tests
 
-`npm test`: 20 tests in [`test/saga-executor.test.ts`](../../test/saga-executor.test.ts) (an in-memory chain; success, every retry path, the rollback paths, a stuck rollback, crash-resume at three points and mid-rollback), 867 in the repo. `npm run typecheck` is clean.
+`npm test`: 23 tests in [`test/saga-executor.test.ts`](../../test/saga-executor.test.ts) (an in-memory chain; success, every retry path, the rollback paths, a stuck rollback, crash-resume at three points and mid-rollback, CLI usage errors), 870 in the repo. `npm run typecheck` is clean.
