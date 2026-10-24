@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run budget --base http://localhost:4021/ --fresh --proof budget",
     "git": {
-      "commit": "9852d7086d13",
+      "commit": "bbf78d10f716",
       "dirty": false
     },
-    "createdAt": "2026-10-24T00:09:22.916Z"
+    "createdAt": "2026-10-24T00:17:18.930Z"
   },
   "task": "budget",
   "goal": "Same job on a 0.02 USDC budget: it runs out before the deep history.",
@@ -37,7 +37,7 @@
       "type": "sign",
       "want": "gas",
       "purchase": "budget/gas",
-      "nonce": "0x5088442b408d0f7c832c9bf55a36628a8c2f4428c93be2789644c1976bc1ee55",
+      "nonce": "0x6d008f403ce935406e560dd960d36b9fffa38123374e5fa8a4eec47f2870bb9a",
       "price": "0.001 USDC"
     },
     {
@@ -51,16 +51,16 @@
       "want": "gas",
       "row": {
         "n": 1,
-        "at": "2026-10-24T00:09:26.790Z",
+        "at": "2026-10-24T00:17:22.335Z",
         "task": "budget",
         "purchase": "budget/gas",
         "endpoint": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
         "bought": "Atlantic gas price now",
         "price": "0.001 USDC",
         "amount": "1000",
-        "tx": "0x65d212b8d7dff93101fa767cb5e0b9a915f9040caeb1a3a15970712dcec5d1ce",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x65d212b8d7dff93101fa767cb5e0b9a915f9040caeb1a3a15970712dcec5d1ce",
-        "block": 31802286,
+        "tx": "0xf52275898188fcb831d0c90f0ab2bc2c032c5f8235ff0d18ed34e2e1a4fed5cb",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0xf52275898188fcb831d0c90f0ab2bc2c032c5f8235ff0d18ed34e2e1a4fed5cb",
+        "block": 31802567,
         "runningTotal": "0.001 USDC",
         "runningTotalAtomic": "1000"
       }
@@ -75,7 +75,7 @@
       "type": "sign",
       "want": "whales",
       "purchase": "budget/whales",
-      "nonce": "0xcff97e1648eac6a329d706410318b24f176f7e1e46e8a895cb3dd5f0ca2fd494",
+      "nonce": "0xc65a50298efca914e8f241a2ed43f03564dbc71d90f89347b031e57806d5393a",
       "price": "0.01 USDC"
     },
     {
@@ -89,16 +89,16 @@
       "want": "whales",
       "row": {
         "n": 2,
-        "at": "2026-10-24T00:09:31.377Z",
+        "at": "2026-10-24T00:17:26.104Z",
         "task": "budget",
         "purchase": "budget/whales",
         "endpoint": "http://localhost:4021/api/x402-paywalled-api/whale-brief",
         "bought": "largest USDC transfers on Pharos mainnet, last ~1,000 blocks",
         "price": "0.01 USDC",
         "amount": "10000",
-        "tx": "0x629b5c91daf96a36d9b5221c05588d2f52566301307e3ae4fe5b82f34cdfc636",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x629b5c91daf96a36d9b5221c05588d2f52566301307e3ae4fe5b82f34cdfc636",
-        "block": 31802291,
+        "tx": "0x6a2a3f033604ed76530e27fba702af473eca044911e204313b233235ba0bbd4a",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x6a2a3f033604ed76530e27fba702af473eca044911e204313b233235ba0bbd4a",
+        "block": 31802571,
         "runningTotal": "0.011 USDC",
         "runningTotalAtomic": "11000"
       }
@@ -137,13 +137,13 @@
             "want": "gas",
             "status": "paid",
             "price": "0.001 USDC",
-            "tx": "0x65d212b8d7dff93101fa767cb5e0b9a915f9040caeb1a3a15970712dcec5d1ce"
+            "tx": "0xf52275898188fcb831d0c90f0ab2bc2c032c5f8235ff0d18ed34e2e1a4fed5cb"
           },
           {
             "want": "whales",
             "status": "paid",
             "price": "0.01 USDC",
-            "tx": "0x629b5c91daf96a36d9b5221c05588d2f52566301307e3ae4fe5b82f34cdfc636"
+            "tx": "0x6a2a3f033604ed76530e27fba702af473eca044911e204313b233235ba0bbd4a"
           },
           {
             "want": "history",
@@ -174,13 +174,13 @@
         "want": "gas",
         "status": "paid",
         "price": "0.001 USDC",
-        "tx": "0x65d212b8d7dff93101fa767cb5e0b9a915f9040caeb1a3a15970712dcec5d1ce"
+        "tx": "0xf52275898188fcb831d0c90f0ab2bc2c032c5f8235ff0d18ed34e2e1a4fed5cb"
       },
       {
         "want": "whales",
         "status": "paid",
         "price": "0.01 USDC",
-        "tx": "0x629b5c91daf96a36d9b5221c05588d2f52566301307e3ae4fe5b82f34cdfc636"
+        "tx": "0x6a2a3f033604ed76530e27fba702af473eca044911e204313b233235ba0bbd4a"
       },
       {
         "want": "history",
