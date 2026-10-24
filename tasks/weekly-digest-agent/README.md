@@ -42,7 +42,7 @@ It prints the digest of 2026-10-23 and ends with the top three events (no previo
 
 The digest also lists the counterparties that appear in this period but not the one before (13 of 17 this week) and how many dropped out, and the Discord message
 carries the transaction change and the new-counterparty count. A mint (tokens sent from the zero address) is described as a mint and never counted as a counterparty.
-The counterparty list is the only part of the comparison and Discord delivery that goes past the requirement list. The other extra is the engine's completeness check, shared with the Audit-Log Agent: the wallet's nonce says how many transactions it sent, and the digest reports how many of them it matched ("44 of 44 sent matched" over the two proof weeks).
+The counterparty list is the only part of the comparison and Discord delivery that goes past the requirement list. The other extra is the engine's completeness check, shared with the Audit-Log Agent: the wallet's nonce says how many transactions it sent, and the digest reports how many of them it matched (week 2026-10-12: "outgoing transactions found 44 of 44 by the chain's nonce"; week 2026-10-05: 16 of 16).
 
 ## Proof (Pharos mainnet, a third party's wallet we do not control)
 

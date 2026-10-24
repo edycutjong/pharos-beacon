@@ -28,7 +28,7 @@ Skill rule   confirmations = head − block + 1  vs  the value tier's requiremen
 verdict + the rule that decided + depth    (exit code 0 SETTLED · 2 WAIT · 1 FAILED, MISMATCH, NOT_FOUND or a runtime error; bad input also exits 2: unknown flags and wrong argument counts print the usage line, other bad values one error line)
 ```
 
-Exit 2 means WAIT (not enough confirmations yet), not an error; the newest transaction (`--latest`) is usually WAIT. The order is the order of the tool calls in every proof (`flow` in each `proof/*.json`, with the arguments and the milliseconds each call took). `--follow` repeats the reads every 2 s until the verdict is no longer WAIT or the `--follow` seconds run out (a not-yet-mined WAIT repeats steps 1–3 only). `--latest` first adds `get_block_number` and up to 60 `get_block` calls to find a transaction.
+Exit 2 means WAIT (not enough confirmations yet) or bad input, not a runtime error (that is exit 1); the newest transaction (`--latest`) is usually WAIT. The order is the order of the tool calls in every proof (`flow` in each `proof/*.json`, with the arguments and the milliseconds each call took). `--follow` repeats the reads every 2 s until the verdict is no longer WAIT or the `--follow` seconds run out (a not-yet-mined WAIT repeats steps 1–3 only). `--latest` first adds `get_block_number` and up to 60 `get_block` calls to find a transaction.
 
 ## Requirements → evidence
 
