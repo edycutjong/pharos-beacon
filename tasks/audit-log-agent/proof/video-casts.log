@@ -65,13 +65,12 @@ sent txs: 10 of 10 matched by the chain's nonce
 === c3 csv
 $ npm run -s audit-log-agent -- --wallet 0x317bca01Bb101C0F1E86C21576a4e14D92B02975 --network atlantic --from-block 31804700 --to-block 31806500 --baseline none --format csv --out /tmp/audit-csv 2>/dev/null | grep wrote
 wrote /tmp/audit-csv/audit-0x317bca-31804700-31806500.csv
-$ cut -d, -f3,6,8 /tmp/audit-csv/*.csv | column -s, -t | head -8
-category       gave           method
-transfer-out   0.002 PHRS     plain transfer
-transfer-out   0.0005 WPHRS   transfer
-transfer-out   0.005 PHRS     call 0x494e562d
-transfer-out   0.001 WPHRS    transfer
-transfer-out   0.002 PHRS     call 0x424d2f32
-contract-call  0.010000 PHRS  deposit (wrap)
-transfer-out   0.001 PHRS     plain transfer
+$ cut -d, -f3,8 /tmp/audit-csv/*.csv | sort | uniq -c | sort -rn
+   4 transfer-out,plain transfer
+   2 transfer-out,transfer
+   1 transfer-out,call 0x494e562d
+   1 transfer-out,call 0x424d2f32
+   1 contract-call,withdraw (unwrap)
+   1 contract-call,deposit (wrap)
+   1 category,method
 $ 
