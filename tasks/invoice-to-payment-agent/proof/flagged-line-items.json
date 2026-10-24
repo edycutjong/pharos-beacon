@@ -8,10 +8,10 @@
     },
     "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-line-items.json --proof flagged-line-items",
     "git": {
-      "commit": "b9a60dc4898f",
+      "commit": "763a16d03d9d",
       "dirty": false
     },
-    "createdAt": "2026-10-24T01:30:16.198Z"
+    "createdAt": "2026-10-24T01:38:30.544Z"
   },
   "invoice": "tasks/invoice-to-payment-agent/samples/bad-line-items.json",
   "extracted": {
