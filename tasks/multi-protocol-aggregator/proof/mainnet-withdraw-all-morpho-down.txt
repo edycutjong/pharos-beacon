@@ -27,7 +27,7 @@ Positions of the wallet:
   (positions in Morpho Blue are UNKNOWN: those venues did not answer)
 
 ROUTE (withdraw):
-  Chose RockawayX USDC vault (RockawayX) first: taking $19,470.11 out costs $73.88 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $73.88 at its optimistic 4.62%.
+  Chose RockawayX USDC vault (RockawayX): taking $19,470.11 out costs $73.88 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $73.88 at its optimistic 4.62%.
   SIMULATED OUTAGE: Morpho Blue syzUSD/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. The wallet's position there is UNKNOWN, so it is not counted.
   SIMULATED OUTAGE: Morpho Blue APT/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. The wallet's position there is UNKNOWN, so it is not counted.
   SIMULATED OUTAGE: Morpho Blue APC3M/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. The wallet's position there is UNKNOWN, so it is not counted.

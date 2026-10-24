@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts withdraw --wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 --amount all --down morpho --block 21146194 --proof mainnet-withdraw-all-morpho-down",
     "git": {
-      "commit": "adb2a91f323e",
+      "commit": "0f6f99958b2a",
       "dirty": false
     },
-    "createdAt": "2026-10-24T20:35:13.372Z"
+    "createdAt": "2026-10-24T20:39:07.055Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -770,7 +770,7 @@
       }
     ],
     "explanation": [
-      "Chose RockawayX USDC vault (RockawayX) first: taking $19,470.11 out costs $73.88 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $73.88 at its optimistic 4.62%.",
+      "Chose RockawayX USDC vault (RockawayX): taking $19,470.11 out costs $73.88 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $73.88 at its optimistic 4.62%.",
       "SIMULATED OUTAGE: Morpho Blue syzUSD/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. The wallet's position there is UNKNOWN, so it is not counted.",
       "SIMULATED OUTAGE: Morpho Blue APT/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. The wallet's position there is UNKNOWN, so it is not counted.",
       "SIMULATED OUTAGE: Morpho Blue APC3M/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. The wallet's position there is UNKNOWN, so it is not counted."
