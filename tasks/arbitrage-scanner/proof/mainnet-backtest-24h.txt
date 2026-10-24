@@ -1,0 +1,29 @@
+backtest: 25 scans, one every 60 min over 24 h, at pinned blocks 21033141…21127773 (0.913 s/block), thresholds as in a live scan
+# 1 block 21033141 2026-10-23T14:42Z  gross    4.0 bps  net -0.002437 USDC (size 0.01)  SKIP
+# 2 block 21037084 2026-10-23T15:47Z  gross  133.3 bps  net -0.002343 USDC (size 0.01)  SKIP
+# 3 block 21041027 2026-10-23T16:48Z  gross   18.3 bps  net -0.002423 USDC (size 0.01)  SKIP
+# 4 block 21044970 2026-10-23T17:47Z  gross  -10.5 bps  net 0.048764 USDC (size 0.10)  ACT
+# 5 block 21048913 2026-10-23T18:45Z  gross  177.3 bps  net -0.002212 USDC (size 0.05)  SKIP
+# 6 block 21052856 2026-10-23T19:42Z  gross   55.7 bps  net -0.002388 USDC (size 0.01)  SKIP
+# 7 block 21056799 2026-10-23T20:40Z  gross   97.7 bps  net -0.002346 USDC (size 0.01)  SKIP
+# 8 block 21060742 2026-10-23T21:37Z  gross  214.7 bps  net -0.002029 USDC (size 0.05)  SKIP
+# 9 block 21064685 2026-10-23T22:33Z  gross  188.2 bps  net -0.002159 USDC (size 0.05)  SKIP
+#10 block 21068628 2026-10-23T23:31Z  gross -211.8 bps  net 0.022911 USDC (size 0.05)  ACT
+#11 block 21072571 2026-10-24T00:30Z  gross  294.3 bps  net -0.001640 USDC (size 0.05)  SKIP
+#12 block 21076514 2026-10-24T01:29Z  gross  206.0 bps  net -0.002072 USDC (size 0.05)  SKIP
+#13 block 21080457 2026-10-24T02:28Z  gross  378.1 bps  net -0.001117 USDC (size 0.10)  SKIP
+#14 block 21084400 2026-10-24T03:27Z  gross  289.4 bps  net -0.001664 USDC (size 0.05)  SKIP
+#15 block 21088343 2026-10-24T04:26Z  gross  301.7 bps  net -0.001604 USDC (size 0.05)  SKIP
+#16 block 21092286 2026-10-24T05:28Z  gross  351.0 bps  net -0.001362 USDC (size 0.05)  SKIP
+#17 block 21096229 2026-10-24T06:28Z  gross  337.8 bps  net -0.001427 USDC (size 0.05)  SKIP
+#18 block 21100172 2026-10-24T07:29Z  gross  116.6 bps  net -0.002265 USDC (size 0.01)  SKIP
+#19 block 21104115 2026-10-24T08:29Z  gross  200.3 bps  net -0.002044 USDC (size 0.05)  SKIP
+#20 block 21108058 2026-10-24T09:30Z  gross  257.6 bps  net -0.001763 USDC (size 0.05)  SKIP
+#21 block 21112001 2026-10-24T10:31Z  gross  258.1 bps  net -0.001760 USDC (size 0.05)  SKIP
+#22 block 21115944 2026-10-24T11:33Z  gross  290.5 bps  net -0.001603 USDC (size 0.05)  SKIP
+#23 block 21119887 2026-10-24T12:36Z  gross  249.2 bps  net -0.001804 USDC (size 0.05)  SKIP
+#24 block 21123830 2026-10-24T13:40Z  gross  314.8 bps  net -0.001484 USDC (size 0.05)  SKIP
+#25 block 21127773 2026-10-24T14:41Z  gross  163.9 bps  net -0.002217 USDC (size 0.01)  SKIP
+
+summary: 25 scans over 24 h · gross spread positive in 23 · acted 2 · skipped 23 (23× gross spread did not survive costs) · best net 0.048764 USDC · median best gross 206 bps · unreadable blocks 0
+proof: tasks/arbitrage-scanner/proof/mainnet-backtest-24h.json
