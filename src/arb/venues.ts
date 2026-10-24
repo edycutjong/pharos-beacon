@@ -27,6 +27,22 @@ export interface Venue {
 }
 
 export const Q96 = 2n ** 96n;
+
+/** Two reads that should describe one state disagree: retry the read, never price from it. */
+export class InconsistentRead extends Error {
+  override name = "InconsistentRead";
+}
+
+/** Run a venue read, repeating it when its own consistency check fails (the RPC answered from two different states). */
+export async function withRetries<T>(read: () => Promise<T>, attempts = 3): Promise<T> {
+  for (let i = 1; ; i++) {
+    try {
+      return await read();
+    } catch (e) {
+      if (!(e instanceof InconsistentRead) || i >= attempts) throw e;
+    }
+  }
+}
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 const tag = (block?: bigint) => (block === undefined ? {} : { block: block.toString() });
 const word = (hex: string, i: number) => hex.slice(2 + i * 64, 2 + (i + 1) * 64);
@@ -77,10 +93,12 @@ export function quoteV3(s: V3Snapshot, side: Side, amountIn: bigint): QuoteResul
 }
 
 export async function readUniV3(call: Call, address: Hex, m: Market, block?: bigint): Promise<Venue> {
-  const [t0, t1, slot0, liq, spacing, fee] = await Promise.all([
+  const [t0, t1, slot0, liq, spacing, fee, slot0Again] = await Promise.all([
     ethCall(call, address, "0x0dfe1681", block), ethCall(call, address, "0xd21220a7", block), ethCall(call, address, "0x3850c7bd", block),
     ethCall(call, address, "0x1a686502", block), ethCall(call, address, "0xd0c93a7c", block), ethCall(call, address, "0xddca3f43", block),
+    ethCall(call, address, "0x3850c7bd", block),
   ]);
+  if (slot0 !== slot0Again) throw new InconsistentRead(`${address}: slot0 answered differently twice for ${block === undefined ? "the same moment" : `block ${block}`}`);
   if (addrOf(t0).toLowerCase() !== m.base.address.toLowerCase() || addrOf(t1).toLowerCase() !== m.quote.address.toLowerCase()) {
     throw new Error(`${address}: token0/token1 are ${addrOf(t0)}/${addrOf(t1)}, expected ${m.base.address}/${m.quote.address}`);
   }
@@ -110,9 +128,18 @@ export async function readDodo(call: Call, address: Hex, m: Market, block?: bigi
     const r = await ethCall(call, address, data, block);
     return { out: u(r, 0), mtFee: u(r, 1) };
   };
+  // The RPC behind the hosted server occasionally answers a historical read from a different state: a pool's mid price must
+  // agree with what a tiny trade really pays, otherwise the two reads came from different states and nothing is priced.
+  const midPrice = Number(u(mid, 0)) / 10 ** m.quote.decimals;
+  const probeIn = 10n ** BigInt(m.base.decimals - 3);
+  const probe = await q("0x79a04876", probeIn);
+  const implied = Number(probe.out + probe.mtFee) / 10 ** m.quote.decimals / (Number(probeIn) / 10 ** m.base.decimals) / (1 - lpRate);
+  if (Math.abs(implied / midPrice - 1) > 0.02) {
+    throw new InconsistentRead(`${address}: mid price ${midPrice} but a 0.001 ${m.base.symbol} sale implies ${implied.toFixed(6)} (reads from different states)`);
+  }
   return {
     id: `dodo-v2-pmm ${short(address)}`, kind: "dodo-v2-pmm", address,
-    mid: Number(u(mid, 0)) / 10 ** m.quote.decimals, feeBps: lpRate * 1e4,
+    mid: midPrice, feeBps: lpRate * 1e4,
     raw: { midPrice: u(mid, 0).toString(), lpFeeRate1e18: u(lp, 0).toString() },
     async quote(side, amountIn) {
       if (amountIn <= 0n) return { refused: "amount must be positive" };

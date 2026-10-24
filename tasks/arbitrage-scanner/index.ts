@@ -19,7 +19,7 @@ import { testnetSigner } from "../../src/lib/signer.js";
 import { backtest, pinBlocks, secondsPerBlock } from "../../src/arb/backtest.js";
 import { executeOnAtlantic, planRoute } from "../../src/arb/execute.js";
 import { appendLog, fmtUnits, logLine, makeRecord, scanText, scanVenues, type ScanConfig } from "../../src/arb/scan.js";
-import { readArbPool, readDodo, readUniV3, type Market, type Venue } from "../../src/arb/venues.js";
+import { readArbPool, readDodo, readUniV3, withRetries, type Market, type Venue } from "../../src/arb/venues.js";
 
 const TASK = "arbitrage-scanner";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
@@ -138,7 +138,7 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
   let venues: [Venue, Venue];
   let refs: [{ kind: Venue["kind"]; address: Hex }, { kind: Venue["kind"]; address: Hex }];
   if (network === "pharos") {
-    venues = await Promise.all([readUniV3(call, MAINNET.uniswapStylePool, m, head), readDodo(call, MAINNET.faroSwapPool, m, head)]);
+    venues = await Promise.all([withRetries(() => readUniV3(call, MAINNET.uniswapStylePool, m, head)), withRetries(() => readDodo(call, MAINNET.faroSwapPool, m, head))]);
   } else {
     const p = deployments().pools;
     venues = await Promise.all([readArbPool(call, p.A.address, m, head), readArbPool(call, p.B.address, m, head)]);

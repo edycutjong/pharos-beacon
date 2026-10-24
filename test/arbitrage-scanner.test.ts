@@ -5,7 +5,7 @@ import type { TestnetSigner } from "../src/lib/signer.js";
 import { backtest, pinBlocks } from "../src/arb/backtest.js";
 import { executeOnAtlantic, planRoute, withSlippage } from "../src/arb/execute.js";
 import { decide, fmtUnits, gasCost, logLine, makeRecord, priceRoute, scanVenues, type ScanConfig } from "../src/arb/scan.js";
-import { Q96, quoteV3, readArbPool, readDodo, readUniV3, type Market, type QuoteResult, type Side, type V3Snapshot, type Venue } from "../src/arb/venues.js";
+import { InconsistentRead, Q96, quoteV3, readArbPool, readDodo, readUniV3, withRetries, type Market, type QuoteResult, type Side, type V3Snapshot, type Venue } from "../src/arb/venues.js";
 import { parseAmounts } from "../tasks/arbitrage-scanner/index.js";
 import { UsageError } from "../src/lib/cli.js";
 
@@ -228,6 +228,47 @@ describe("readers", () => {
   it("a contract that answers with no data is named, not misread", async () => {
     const call = (async () => ({ result: "0x" })) as unknown as ChainMcp["call"];
     await expect(readUniV3(call, POOL_A, M)).rejects.toThrow(/no data/);
+  });
+});
+
+describe("inconsistent reads (the RPC sometimes answers a historical call from another state)", () => {
+  const dodoChain = (mid: bigint, quoteOut: bigint) =>
+    (async (_n: string, args: { transaction: { data: Hex } }) => {
+      const sel = args.transaction.data.slice(0, 10);
+      if (sel === "0x4a248d2a") return { result: addrWord(BASE) };
+      if (sel === "0xd4b97046") return { result: addrWord(QUOTE) };
+      if (sel === "0xee27c689") return { result: word(mid) };
+      if (sel === "0xab44a7a3") return { result: word(2_400_000_000_000_000n) };
+      if (sel === "0x79a04876") return { result: ("0x" + quoteOut.toString(16).padStart(64, "0") + (2n).toString(16).padStart(64, "0")) as Hex };
+      throw new Error(sel);
+    }) as unknown as ChainMcp["call"];
+  it("readDodo reads when the mid price and a tiny sale agree, and refuses when they do not", async () => {
+    // 0.001 base at 0.68 → ~680 raw USDC less the 0.24% fee
+    const v = await readDodo(dodoChain(680_380n, 678n), POOL_B, M);
+    expect(v.mid).toBeCloseTo(0.68038, 6);
+    await expect(readDodo(dodoChain(600_914n, 678n), POOL_B, M)).rejects.toThrow(InconsistentRead);
+  });
+  it("readUniV3 refuses when slot0 answers differently twice", async () => {
+    let n = 0;
+    const call = (async (_x: string, args: { transaction: { data: Hex } }) => {
+      const sel = args.transaction.data.slice(0, 10);
+      if (sel === "0x0dfe1681") return { result: addrWord(BASE) };
+      if (sel === "0xd21220a7") return { result: addrWord(QUOTE) };
+      if (sel === "0x3850c7bd") return { result: ("0x" + (++n).toString(16).padStart(64, "0").repeat(7)) as Hex };
+      return { result: word(1n) };
+    }) as unknown as ChainMcp["call"];
+    await expect(readUniV3(call, POOL_A, M)).rejects.toThrow(/answered differently twice/);
+  });
+  it("withRetries repeats only an inconsistent read, at most 3 times", async () => {
+    let tries = 0;
+    expect(await withRetries(async () => (++tries < 3 ? Promise.reject(new InconsistentRead("x")) : "ok"))).toBe("ok");
+    expect(tries).toBe(3);
+    let t2 = 0;
+    await expect(withRetries(async () => { t2++; throw new InconsistentRead("always"); })).rejects.toThrow("always");
+    expect(t2).toBe(3);
+    let t3 = 0;
+    await expect(withRetries(async () => { t3++; throw new Error("other"); })).rejects.toThrow("other");
+    expect(t3).toBe(1);
   });
 });
 

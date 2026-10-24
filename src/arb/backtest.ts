@@ -1,5 +1,5 @@
 import type { Call, Market } from "./venues.js";
-import { readDodo, readUniV3 } from "./venues.js";
+import { readDodo, readUniV3, withRetries } from "./venues.js";
 import { fmtUnits, makeRecord, scanVenues, type ScanConfig, type ScanRecord } from "./scan.js";
 import type { Hex } from "viem";
 
@@ -38,7 +38,7 @@ export async function backtest(o: {
       const blk = await o.call("get_block", { block: block.toString() });
       if (!blk?.baseFeePerGas) throw new Error(`block ${block} has no base fee`);
       const cfg = { ...o.cfg, gasPriceWei: BigInt(blk.baseFeePerGas) };
-      const venues = await Promise.all([readUniV3(o.call, o.uni, o.m, block), readDodo(o.call, o.dodo, o.m, block)]);
+      const venues = await Promise.all([withRetries(() => readUniV3(o.call, o.uni, o.m, block)), withRetries(() => readDodo(o.call, o.dodo, o.m, block))]);
       const candidates = await scanVenues([venues[0], venues[1]], o.m, cfg);
       const rec = makeRecord({ network: "pharos", block, m: o.m, venues, cfg, candidates, at: new Date(Number(BigInt(blk.timestamp)) * 1000) });
       records.push(rec);
