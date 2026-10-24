@@ -104,7 +104,7 @@ export function markdownReport(a: Activity, info: ReportInfo): string {
   L.push("## Transfers out", "", table(["When", "Amount", "To", "Tx", "Status"], by("transfer-out").map((i) => row(i, [legs(i.out), addrLink(a, i.counterparty)]))));
   L.push("## Swaps", "", table(["When", "Gave", "Got", "Via", "Tx", "Status"], by("swap").map((i) => row(i, [legs(i.out), legs(i.in), addrLink(a, i.counterparty)]))));
   L.push("## Approvals", "", table(["When", "Allowance", "Spender", "Tx", "Status"], by("approval").map((i) => row(i, [allowance(i), addrLink(a, i.counterparty)]))));
-  L.push("## Contract interactions", "", table(["When", "Call", "Contract", "Tx", "Status"], by("contract-call").map((i) => row(i, [i.method ?? "call", addrLink(a, i.counterparty)]))));
+  L.push("## Contract interactions", "", table(["When", "Call", "Contract", "Tx", "Status"], by("contract-call").map((i) => row(i, [`${i.method ?? "call"}${i.nativeValueWei ? ` + ${fmtWei(i.nativeValueWei, a.nativeSymbol)}` : ""}`, addrLink(a, i.counterparty)]))));
 
   const notable = notableTxs(a);
   L.push("## Notable transactions", "", notable.length ? notable.map((n) => `- ${n.why}: ${link(a, n.tx)}`).join("\n") + "\n" : "_None._\n");
@@ -141,7 +141,7 @@ const csvCell = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` 
 export function csvReport(a: Activity): string {
   const head = ["time_utc", "block", "category", "status", "counterparty", "gave", "got", "method", "fee_native", "tx", "link"];
   const rows = a.items.map((i) =>
-    [stampUtc(i.timestamp), String(i.block), i.category, i.status, i.counterparty ?? "", i.category === "transfer-in" ? "" : legs(i.out), i.category === "transfer-in" ? legs(i.in) : i.category === "swap" ? legs(i.in) : "", i.method ?? "", i.feeWei ? fmtWei(i.feeWei, a.nativeSymbol) : "", i.tx, explorerTx(a.network, i.tx)].map(csvCell).join(","),
+    [stampUtc(i.timestamp), String(i.block), i.category, i.status, i.counterparty ?? "", i.category === "transfer-in" ? "" : i.category === "contract-call" && i.nativeValueWei ? fmtWei(i.nativeValueWei, a.nativeSymbol) : legs(i.out), i.category === "transfer-in" ? legs(i.in) : i.category === "swap" ? legs(i.in) : "", i.method ?? "", i.feeWei ? fmtWei(i.feeWei, a.nativeSymbol) : "", i.tx, explorerTx(a.network, i.tx)].map(csvCell).join(","),
   );
   return [head.join(","), ...rows].join("\n") + "\n";
 }

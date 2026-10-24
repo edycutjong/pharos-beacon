@@ -274,8 +274,12 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
     const value = num(tx.value);
     const nativeLeg = (): Leg => ({ token: "native", symbol: nativeSymbol, decimals: 18, amountRaw: value });
     if (value > 0n && status === "success") {
-      if (sentByMe) outs.push(nativeLeg());
-      else if (tx.to && lower(tx.to) === me) ins.push(nativeLeg());
+      if (sentByMe) {
+        // Value sent into a contract together with calldata (a payable call: wrap, mint, buy) is a contract interaction, not a transfer. A swap that
+        // pays in the native token keeps its native leg (it has an incoming token), and a plain send to an address with no code stays a transfer.
+        const payable = tx.input !== "0x" && !!tx.to && ins.length === 0 && swapPool === null && ((await call("get_code", { address: tx.to as Hex })).code ?? "0x") !== "0x";
+        if (!payable) outs.push(nativeLeg());
+      } else if (tx.to && lower(tx.to) === me) ins.push(nativeLeg());
     }
 
     // An ERC-20 Approval log is also emitted when a spender USES an allowance (transferFrom lowers it): that is not a new approval. Drop an
