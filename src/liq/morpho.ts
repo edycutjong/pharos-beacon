@@ -71,10 +71,10 @@ export const dropToLiquidation = (hf: number): number => (!Number.isFinite(hf) ?
 export function remedy(collateral: bigint, price: bigint, lltv: bigint, debt: bigint, target: number): { repay: bigint; addCollateral: bigint } {
   const t = BigInt(Math.round(target * 1e9)) * (WAD / 1_000_000_000n);
   const hf = healthFactor(collateral, price, lltv, debt);
-  if (hf === null || hf >= t) return { repay: 0n, addCollateral: 0n };
+  if (hf === null || hf >= t || price === 0n || lltv === 0n) return { repay: 0n, addCollateral: 0n }; // nothing sensible to quote on a zero price
   // repay r: need maxBorrow ≥ (debt − r)·t  →  r = debt − floor(maxBorrow·WAD / t)   (+1 for rounding)
   const keep = mulDivDown(maxBorrow(collateral, price, lltv), WAD, t);
-  const repay = debt > keep ? debt - keep + 1n : 0n;
+  const repay = debt > keep ? (debt - keep + 1n > debt ? debt : debt - keep + 1n) : 0n; // never more than the whole debt
   // add c collateral: need maxBorrow(coll + c) ≥ debt·t / WAD
   const needBorrow = mulDivUp(debt, t, WAD);
   const needValue = mulDivUp(needBorrow, WAD, lltv);

@@ -16,7 +16,7 @@ import { writeJsonAtomic } from "../../src/lib/state.js";
 import { secondsPerBlock } from "../../src/arb/backtest.js";
 import { buildAlert, checkThresholds, fmtHf, fmtToken, levelOf, marketLabel, nextLevel, pct, short, severity, type Alert, type Level, type Thresholds } from "../../src/liq/alert.js";
 import { discoverBorrowers } from "../../src/liq/discover.js";
-import { evaluate, readPosition, snapshotMarket, type MarketSnapshot, type PositionHealth } from "../../src/liq/morpho.js";
+import { dropToLiquidation, evaluate, readPosition, snapshotMarket, type MarketSnapshot, type PositionHealth } from "../../src/liq/morpho.js";
 import { discordNotifier, loadWebhook, type Notifier } from "../../src/watch/discord.js";
 
 const TASK = "liquidation-watchdog";
@@ -36,7 +36,7 @@ const marketId = (flag: string, v: string): Hex => {
 
 /** The ranked table: closest to liquidation first. Pure, so tests and the proof use the same text. */
 export function tableText(rows: Row[], top: number, shock: number): string {
-  const head = ["#", "market", "account", "health", "drop to liquidation", ...(shock > 0 ? [`health at −${pct(shock, 1)}`] : []), "debt", "collateral", "level"];
+  const head = ["#", "market", "account", "health", "drop to liquidation", ...(shock > 0 ? [`health at −${pct(shock, 1)}`] : []), "debt", "collateral", shock > 0 ? "level now (unshocked)" : "level"];
   const out = [head.join(" | ")];
   rows.slice(0, top).forEach((r, i) => {
     const { snap, p } = r;
@@ -61,13 +61,16 @@ export function sortRows(rows: Row[]): Row[] {
   return [...rows].sort((a, b) => a.p.hfNumber - b.p.hfNumber);
 }
 
+/** A watch remembers levels per position AND per scenario: a --shock watch never silences a real one. */
+const levelKey = (r: Row, shock: number) => `${r.snap.id}:${r.p.user}:shock=${shock}`;
+
 interface LevelFile { levels: Record<string, Level> }
 const loadLevels = (file: string): LevelFile => (existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as LevelFile) : { levels: {} });
 
 export async function main({ onExit, signal }: RunContext, argv = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseCli(
     {
-      usage: `npm run ${TASK} -- scan|watch|position [--lookback-days N] [--market 0x<id>] [--user 0x<address>] [--warn 1.3] [--critical 1.1] [--rearm 0.02] [--shock 0.05] [--min-debt 1] [--top N] [--discord] [--interval-s N] [--max-polls N] [--index file] [--proof name]`,
+      usage: `npm run ${TASK} -- scan|watch|position [--lookback-days N] [--market 0x<id>] [--user 0x<address>] [--warn 1.3] [--critical 1.1] [--rearm 0.02] [--shock 0.05] [--min-debt 1] [--top N] [--discord] [--interval-s N] [--max-polls N] [--index file] [--levels file] [--proof name]`,
       options: {
         "lookback-days": { type: "string", default: "7" }, market: { type: "string" }, user: { type: "string" },
         warn: { type: "string", default: "1.3" }, critical: { type: "string", default: "1.1" }, rearm: { type: "string", default: "0.02" },
@@ -156,7 +159,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
     } else {
       log(tableText([row], 1, shock));
       const lvl = shock > 0 ? levelOf(shockedHf(row, shock), t) : row.level;
-      if (lvl !== "ok") await deliver([buildAlert(lvl, snap, shock > 0 ? { ...p, hfNumber: shockedHf(row, shock), dropToLiquidation: 1 - 1 / shockedHf(row, shock) } : p, t, new Date(), shock)]);
+      if (lvl !== "ok") await deliver([buildAlert(lvl, snap, shock > 0 ? { ...p, hfNumber: shockedHf(row, shock), dropToLiquidation: dropToLiquidation(shockedHf(row, shock)) } : p, t, new Date(), shock)]);
       else log(`ok: health ${fmtHf(p.hfNumber)} is above the warn threshold ${t.warn.toFixed(2)}`);
     }
     if (values.proof) {
@@ -193,7 +196,7 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
       const hf = shock > 0 ? shockedHf(r, shock) : r.p.hfNumber;
       const lvl = levelOf(hf, t);
       if (lvl === "ok" || r.dust) continue;
-      const p = shock > 0 ? { ...r.p, hfNumber: hf, dropToLiquidation: hf <= 1 ? 0 : 1 - 1 / hf } : r.p;
+      const p = shock > 0 ? { ...r.p, hfNumber: hf, dropToLiquidation: dropToLiquidation(hf) } : r.p;
       alerts.push(buildAlert(lvl, r.snap, p, t, new Date(), shock));
       if (alerts.length >= 20) break;
     }
@@ -220,19 +223,24 @@ export async function main({ onExit, signal }: RunContext, argv = process.argv.s
   // watch: poll the known borrowers; alert only when a position's level changes (worsening at once, clearing with hysteresis)
   const levelFile = values.levels!;
   const state = loadLevels(levelFile);
+  const suppressed = Object.values(state.levels).filter((l) => l !== "ok").length;
+  if (suppressed) log(`${suppressed} position level(s) remembered from ${levelFile.startsWith(HERE) ? levelFile.slice(HERE.length) : levelFile}: only changes alert (delete the file to alert on everything again)`);
   for (let i = 0; i < maxPolls; i++) {
     if (i > 0) await wait(intervalS * 1000, signal);
     log(`--- poll ${i + 1} of ${maxPolls} ---`);
     const h = await header();
-    const rows = sortRows(await readAll(found.index.markets, h.timestamp));
+    // new borrowers since the last poll: the incremental discovery reads only the new blocks
+    const fresh = i === 0 ? found : await discoverBorrowers(call, { from, to: h.head, cacheFile: values.index, signal });
+    const rows = sortRows(await readAll(fresh.index.markets, h.timestamp));
+    for (const k of Object.keys(state.levels)) if (!rows.some((r) => levelKey(r, shock) === k)) delete state.levels[k]; // repaid / gone: forget, so a later re-borrow alerts again
     const alerts: Alert[] = [];
     for (const r of rows) {
-      const key = `${r.snap.id}:${r.p.user}`;
+      const key = levelKey(r, shock);
       const hf = shock > 0 ? shockedHf(r, shock) : r.p.hfNumber;
       const prev = state.levels[key] ?? "ok";
       const next = r.dust ? "ok" : nextLevel(prev, hf, t);
       state.levels[key] = next;
-      if (next !== prev && severity(next) > severity(prev) && next !== "ok") alerts.push(buildAlert(next as Exclude<Level, "ok">, r.snap, { ...r.p, hfNumber: hf, dropToLiquidation: hf <= 1 ? 0 : 1 - 1 / hf }, t, new Date(), shock));
+      if (next !== prev && severity(next) > severity(prev) && next !== "ok") alerts.push(buildAlert(next as Exclude<Level, "ok">, r.snap, { ...r.p, hfNumber: hf, dropToLiquidation: dropToLiquidation(hf) }, t, new Date(), shock));
       else if (next !== prev) log(`[${new Date().toISOString()}] ${next === "ok" ? "CLEARED" : "EASED to " + next} Morpho ${marketLabel(r.snap)} ${short(r.p.user)}: health factor ${hf.toFixed(4)}`);
     }
     writeJsonAtomic(levelFile, state);

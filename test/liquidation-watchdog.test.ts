@@ -88,6 +88,10 @@ describe("remedy: the concrete action", () => {
     expect(healthFactor(coll + addCollateral, PRICE, LLTV, debt)! >= 1_300_000_000_000_000_000n).toBe(true);
     expect(healthFactor(coll + addCollateral - 2n, PRICE, LLTV, debt)! < 1_300_000_000_000_000_000n).toBe(true);
   });
+  it("never asks for more than the whole debt and quotes nothing on a zero price", () => {
+    expect(remedy(1n, PRICE, LLTV, 1_000_000n, 1.3).repay).toBe(1_000_000n); // collateral worth next to nothing: repay at most the debt
+    expect(remedy(1_000n, 0n, LLTV, 100n, 1.3)).toEqual({ repay: 0n, addCollateral: 0n });
+  });
   it("needs nothing when the position is already above the target or has no debt", () => {
     expect(remedy(10_000_000n, PRICE, LLTV, 1_000n, 1.3)).toEqual({ repay: 0n, addCollateral: 0n });
     expect(remedy(1_000n, PRICE, LLTV, 0n, 1.3)).toEqual({ repay: 0n, addCollateral: 0n });
@@ -148,6 +152,10 @@ describe("alert text", () => {
 });
 
 describe("table", () => {
+  it("labels the level column as unshocked when a scenario is shown", () => {
+    expect(tableText([row(1_200_000n, 1_000_000_000_000n)], 5, 0.05).split("\n")[0]).toContain("level now (unshocked)");
+    expect(tableText([row(1_200_000n, 1_000_000_000_000n)], 5, 0).split("\n")[0]).toMatch(/\| level$/);
+  });
   it("marks dust positions as listed but never alerted", () => {
     const r = { ...row(1_200_000n, 1_000_000_000_000n), dust: true };
     expect(tableText([r], 5, 0).split("\n")[1]).toContain("critical (dust, no alert)");
