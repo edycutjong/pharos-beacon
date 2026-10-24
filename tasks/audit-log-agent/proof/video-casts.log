@@ -1,4 +1,4 @@
-# Output of the three terminal recordings used in assets/demo/audit-log-agent (asciinema, real runs, not the proof runs; the third reads the CSV the Atlantic proof run wrote).
+# Output of the three terminal recordings used in assets/demo/audit-log-agent (asciinema, real runs, not the proof runs); the third reads the CSV the Atlantic proof run wrote.
 
 === c1 mainnet
 $ npm run audit-log-agent -- --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901 --from-block 21042000 --to-block 21082000 --baseline none --compact
