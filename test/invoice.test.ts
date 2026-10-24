@@ -25,10 +25,20 @@ describe("invoices", () => {
   it("flags instead of guessing", async () => {
     expect(toDraft(await extractInvoice(json({ invoice_number: undefined }), "json")).flags.join()).toMatch(/missing field: invoice number/);
     expect(toDraft(await extractInvoice(json({ line_items: [{ amount: 0.1 }, { amount: 0.1 }] }), "json")).flags.join()).toMatch(/add up to 0\.2/);
-    expect(toDraft(await extractInvoice(`INVOICE #Q-9\nPay to: ${TO}\nSubtotal: 20 USDC\nTotal due: 25 USDC`, "text")).flags.join()).toMatch(/different totals/);
+    expect(toDraft(await extractInvoice(`INVOICE #Q-9\nPay to: ${TO}\nTotal due: 25 USDC\nAmount due: 30 USDC`, "text")).flags.join()).toMatch(/different totals/);
+    // a Subtotal line is not a competing total
+    expect(toDraft(await extractInvoice(`INVOICE #Q-9\nPay to: ${TO}\nSubtotal: 100 PHRS\nTotal: 110 PHRS`, "text")).draft).toMatchObject({ amount: "110" });
     expect(toDraft(await extractInvoice(`INVOICE #Q-9\nPay to: ${TO}\nTotal due: 1.000 USDC`, "text")).flags.join()).toMatch(/ambiguous/);
     expect(toDraft(await extractInvoice(`INVOICE #Q-9\nPay to: ${TO}\nPay to: ${FROM}\nTotal due: 5 USDC`, "text")).flags.join()).toMatch(/2 different payee addresses/);
     expect(toDraft(await extractInvoice("{not json", "json")).flags.join()).toMatch(/does not parse/);
+  });
+  it("flags conflicts the reader used to resolve silently", async () => {
+    const f = async (t: string, fmt: "text" | "json" = "text") => toDraft(await extractInvoice(t, fmt)).flags.join();
+    expect(await f(`INVOICE #C-1\nPay to: ${TO}\nCurrency: USDC\nTotal due: 10 USDT`)).toMatch(/currency line but USDT/);
+    expect(await f(json({ line_items: [{ amount: "abc" }] }), "json")).toMatch(/no readable amount/);
+    expect(await f(json({ amount_due: "9" }), "json")).toMatch(/fields disagree: 0\.5 vs 9/);
+    expect(await f(json({ wallet: FROM }), "json")).toMatch(/fields disagree/);
+    expect(await f(`[${json({})},${json({})}]`, "json")).toMatch(/several invoices/);
   });
   it("USD is settled only when the human says --pay-in", async () => {
     const x = await extractInvoice(json({ currency: "USD" }), "json");
@@ -52,6 +62,7 @@ describe("invoices", () => {
     const x = { number: "A-1", issuer: "Acme  Corp", amount: "0.5", currency: "PHRS" };
     expect(fingerprint(x)).toBe(fingerprint({ ...x, issuer: "acme corp" }));
     expect(fingerprint(x)).not.toBe(fingerprint({ ...x, amount: "0.6" }));
+    expect(fingerprint({ ...x, amount: "100" })).toBe(fingerprint({ ...x, amount: "100.00", number: "a-1" }));
     writeFileSync(file, "");
     expect(findPaid(file, fingerprint(x))).toBeUndefined(); // an empty (mktemp) file is an empty ledger
     recordPaid(file, { fingerprint: fingerprint(x), number: "A-1", amount: "0.5", token: "PHRS", hash: "0xabc" as Hex, url: "u", at: "now" });
