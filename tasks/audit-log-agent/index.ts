@@ -30,11 +30,11 @@ export async function main(
 ): Promise<number> {
   const { values } = parseCli(
     {
-      usage: `npm run ${TASK} -- --wallet 0x… (--from YYYY-MM-DD --to YYYY-MM-DD | --from-block N --to-block N) [--network pharos|atlantic] [--format md|csv|both] [--out dir] [--scan-blocks N] [--max-txs N] [--baseline auto|none] [--compact] [--proof label]`,
+      usage: `npm run ${TASK} -- --wallet 0x… (--from YYYY-MM-DD --to YYYY-MM-DD | --from-block N --to-block N) [--network pharos|atlantic] [--format md|csv|both] [--out dir] [--scan-blocks N] [--max-txs N] [--baseline auto|none] [--compact] [--no-discover] [--discover-calls N] [--proof label]`,
       options: {
         wallet: { type: "string" }, from: { type: "string" }, to: { type: "string" }, "from-block": { type: "string" }, "to-block": { type: "string" },
         network: { type: "string", default: "pharos" }, format: { type: "string", default: "md" }, out: { type: "string" },
-        "scan-blocks": { type: "string", default: "0" }, "max-txs": { type: "string", default: "400" }, compact: { type: "boolean", default: false }, baseline: { type: "string", default: "auto" }, proof: { type: "string" },
+        "scan-blocks": { type: "string", default: "0" }, "max-txs": { type: "string", default: "400" }, compact: { type: "boolean", default: false }, "no-discover": { type: "boolean", default: false }, "discover-calls": { type: "string", default: "300" }, baseline: { type: "string", default: "auto" }, proof: { type: "string" },
       },
     },
     argv,
@@ -55,6 +55,7 @@ export async function main(
   };
   const scanBlocks = whole("--scan-blocks", values["scan-blocks"]!, 0);
   const maxTxs = whole("--max-txs", values["max-txs"]!, 1);
+  const discoverCalls = whole("--discover-calls", values["discover-calls"]!, 1);
   if (values.proof !== undefined && !/^[a-z0-9][a-z0-9-]*$/.test(values.proof)) throw new UsageError("--proof takes a label of lower-case letters, digits and hyphens");
   const byDate = values.from !== undefined || values.to !== undefined;
   const byBlock = values["from-block"] !== undefined || values["to-block"] !== undefined;
@@ -87,10 +88,10 @@ export async function main(
 
   console.log(`audit log for ${wallet} on ${network} (chain ${mcp.chainId}) via ${mcp.endpoint}`);
   console.log(`period ${byDate ? `${values.from} to ${values.to} UTC · ` : ""}blocks ${range.fromBlock}–${range.toBlock} (${range.toBlock - range.fromBlock + 1n} blocks, pinned at head ${head})`);
-  const opts = { scanBlocks, maxTxs, progress: (l: string) => console.error(l) };
+  const opts = { scanBlocks, maxTxs, discoverSent: !values["no-discover"], maxDiscoverCalls: discoverCalls, progress: (l: string) => console.error(l) };
   const activity = await collectActivity(call, network, wallet, range, opts);
   console.error(`read ${activity.items.length} items`);
-  const baseline: Activity | undefined = prior ? await collectActivity(call, network, wallet, prior, { maxTxs }) : undefined;
+  const baseline: Activity | undefined = prior ? await collectActivity(call, network, wallet, prior, { maxTxs, discoverSent: false }) : undefined;
 
   const generatedAt = now().toISOString().replace(/\.\d+Z$/, "Z");
   const md = markdownReport(activity, { generatedAt, ...(baseline ? { baseline } : {}) });

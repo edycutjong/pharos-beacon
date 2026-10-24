@@ -74,6 +74,8 @@ export interface Coverage {
   /** Transactions the wallet sent: counted from the logs / scan vs what the chain's nonce says. */
   sentFound: number;
   sentExpected: number | null;
+  /** Nonce-guided search for sent transactions the logs did not show: whether it ran, the nonce reads it took, the blocks it opened. */
+  discovery: { used: boolean; nonceCalls: number; blocksRead: number; truncated: boolean };
   /** Tx hashes found but not read because of the cap. */
   skipped: number;
 }
@@ -141,6 +143,10 @@ export async function rangeForTimes(call: Call, fromTs: number, toTs: number, he
 export interface CollectOptions {
   /** Walk blocks (get_block with transactions) for up to this many blocks, newest range first excluded: 0 = off. */
   scanBlocks?: number;
+  /** Look for sent transactions the logs missed by bisecting the nonce (default true). */
+  discoverSent?: boolean;
+  /** Most nonce reads the discovery may spend (default 300). */
+  maxDiscoverCalls?: number;
   /** Read at most this many transactions (default 400). */
   maxTxs?: number;
   /** Called with a progress line every so often (never required). */
@@ -214,14 +220,18 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
   };
   const items: Item[] = [];
   let sentFound = 0;
-  for (const h of chosen) {
+  const sentAt = new Map<string, Set<string>>(); // block → hashes of transactions the wallet sent there
+  const processHash = async (h: Hex): Promise<void> => {
     const [tx, rc] = await Promise.all([call("get_transaction", { hash: h }), call("get_transaction_receipt", { hash: h })]);
-    if (!tx || !rc) continue;
+    if (!tx || !rc) return;
     const block = num(rc.blockNumber);
-    if (block < range.fromBlock || block > range.toBlock) continue;
+    if (block < range.fromBlock || block > range.toBlock) return;
     const ts = await stampOf(block);
     const sentByMe = lower(tx.from) === me;
-    if (sentByMe) sentFound++;
+    if (sentByMe) {
+      sentFound++;
+      (sentAt.get(block.toString()) ?? sentAt.set(block.toString(), new Set()).get(block.toString())!).add(h);
+    }
     const status = rc.status === "0x1" ? "success" : "reverted";
     const feeWei = sentByMe ? num(rc.gasUsed) * num((rc as unknown as { effectiveGasPrice?: Hex }).effectiveGasPrice ?? tx.gasPrice) : 0n;
     const base = { tx: h, block, timestamp: ts, status } as const;
@@ -291,16 +301,61 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
     // The fee belongs to the wallet once per transaction: put it on the first item that carries the tx.
     if (sentByMe && feeWei > 0n && !made.some((m) => m.feeWei > 0n) && made.length > 0) made[0] = { ...made[0]!, feeWei };
     items.push(...made);
-    if (opts.progress && chosen.indexOf(h) % 25 === 24) opts.progress(`read ${chosen.indexOf(h) + 1}/${chosen.length} transactions`);
+  };
+  for (const [i, h] of chosen.entries()) {
+    await processHash(h);
+    if (opts.progress && i % 25 === 24) opts.progress(`read ${i + 1}/${chosen.length} transactions`);
   }
 
+
+  // Nonce-guided discovery of what the logs missed. The wallet's nonce rises by one for every transaction it sends, so bisecting the nonce over the
+  // range finds the exact blocks of the missing ones (about 2 x log2(range) calls each) without walking every block. Ranges whose nonce rise is
+  // already explained by transactions we read are skipped, so a wallet whose sends all left events costs two calls.
+  const nonceCache = new Map<string, Promise<number>>();
+  const nonceAt = (b: bigint) => {
+    const k = b.toString();
+    if (!nonceCache.has(k)) nonceCache.set(k, call("get_transaction_count", { address: wallet, block: k }).then((r) => Number(r.nonce)));
+    return nonceCache.get(k)!;
+  };
   let sentExpected: number | null = null;
+  let nBefore = 0;
+  let nAfter = 0;
   try {
-    const at = (b: bigint) => call("get_transaction_count", { address: wallet, block: b.toString() }).then((r) => Number(r.nonce));
-    const [after, before] = await Promise.all([at(range.toBlock), range.fromBlock > 0n ? at(range.fromBlock - 1n) : Promise.resolve(0)]);
-    if (after >= before) sentExpected = after - before;
+    [nAfter, nBefore] = await Promise.all([nonceAt(range.toBlock), range.fromBlock > 0n ? nonceAt(range.fromBlock - 1n) : Promise.resolve(0)]);
+    if (nAfter >= nBefore) sentExpected = nAfter - nBefore;
   } catch {
     sentExpected = null;
+  }
+  const discovery = { used: false, nonceCalls: 0, blocksRead: 0, truncated: false };
+  if (sentExpected !== null && sentFound < sentExpected && (opts.discoverSent ?? true)) {
+    discovery.used = true;
+    const cap = opts.maxDiscoverCalls ?? 300;
+    const knownIn = (lo: bigint, hi: bigint) => {
+      let n = 0;
+      for (const [b, set] of sentAt) if (BigInt(b) >= lo && BigInt(b) <= hi) n += set.size;
+      return n;
+    };
+    const leaves: bigint[] = [];
+    const find = async (lo: bigint, hi: bigint, before: number, after: number): Promise<void> => {
+      if (after - before <= knownIn(lo, hi)) return; // everything the nonce counts here is already read
+      if (lo === hi) return void leaves.push(lo);
+      if (discovery.nonceCalls >= cap) return void (discovery.truncated = true);
+      const mid = (lo + hi) / 2n;
+      discovery.nonceCalls++;
+      const nMid = await nonceAt(mid);
+      await find(lo, mid, before, nMid);
+      await find(mid + 1n, hi, nMid, after);
+    };
+    try {
+      await find(range.fromBlock, range.toBlock, nBefore, nAfter);
+    } catch {
+      discovery.truncated = true; // a failed nonce read ends the search; what it found stays
+    }
+    for (const b of leaves) {
+      const blk = await call("get_block", { block: b.toString(), includeTransactions: true } as Record<string, unknown>);
+      discovery.blocksRead++;
+      for (const t of (blk?.transactions ?? []) as unknown as { hash: Hex; from: Hex }[]) if (lower(t.from) === me && !sentAt.get(b.toString())?.has(t.hash)) await processHash(t.hash);
+    }
   }
   items.sort((a, b) => (a.block < b.block ? -1 : a.block > b.block ? 1 : 0));
   return {
@@ -308,7 +363,7 @@ export async function collectActivity(call: Call, network: Network, wallet: Hex,
     coverage: {
       logWindows: windows * 2, logsRead: logs.length,
       blockScan: { mode: scanN === 0 ? "off" : scanN >= total ? "full" : "partial", scanned: scanN, of: total },
-      sentFound, sentExpected, skipped: hashes.length - chosen.length,
+      sentFound, sentExpected, discovery, skipped: hashes.length - chosen.length,
     },
   };
 }

@@ -4,7 +4,7 @@ import { csvReport, highlights, markdownReport, notableTxs } from "../src/activi
 import { B, C, fakeWorld, OTH, POOL, S, spentAllowance, T0, TKN, W, world } from "./helpers/fake-activity.js";
 
 const range = { fromBlock: 90n, toBlock: 200n };
-const collect = (scanBlocks = 0, txs = world()) => collectActivity(fakeWorld(txs), "pharos", W, range, { scanBlocks });
+const collect = (scanBlocks = 0, txs = world(), extra: object = { discoverSent: false }) => collectActivity(fakeWorld(txs), "pharos", W, range, { scanBlocks, ...extra });
 
 describe("collectActivity", () => {
   it("groups log-visible activity into transfers, swaps and approvals", async () => {
@@ -41,10 +41,30 @@ describe("collectActivity", () => {
   });
 
   it("without a block scan, misses the event-less txs and says so through the nonce count", async () => {
-    const a = await collect(0);
+    const a = await collect(0, world(), { discoverSent: false });
     expect(a.coverage.blockScan.mode).toBe("off");
     expect(a.coverage.sentFound).toBe(3 + 0); // tx1, tx3, tx4 (tx5 and tx6 leave no log)
     expect(a.coverage.sentExpected).toBe(5); // tx1, 3, 4, 5, 6
+  });
+
+  it("nonce-guided discovery finds the event-less sends without scanning blocks, in a handful of reads", async () => {
+    const spy: { tool: string; args: any }[] = [];
+    const a = await collectActivity(fakeWorld(world(), 400, spy), "pharos", W, range);
+    expect(a.coverage.discovery).toMatchObject({ used: true, truncated: false, blocksRead: 2 });
+    expect(a.coverage.sentFound).toBe(5);
+    expect(a.coverage.sentExpected).toBe(5);
+    expect(a.items.find((i) => i.category === "contract-call")).toMatchObject({ status: "reverted", method: "call 0xdeadbeef" });
+    expect(a.items.find((i) => i.tx.endsWith("06"))).toMatchObject({ category: "transfer-out", method: "plain transfer" });
+    expect(spy.filter((s) => s.tool === "get_block" && s.args.includeTransactions)).toHaveLength(2); // two blocks opened, not 111
+    expect(a.coverage.discovery.nonceCalls).toBeLessThan(25);
+  });
+
+  it("discovery stops at its call limit and says so; a wallet with nothing missing spends no search at all", async () => {
+    const cut = await collectActivity(fakeWorld(world()), "pharos", W, range, { maxDiscoverCalls: 1 });
+    expect(cut.coverage.discovery.truncated).toBe(true);
+    expect(cut.coverage.sentFound).toBeLessThan(5);
+    const full = await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 90n, toBlock: 135n });
+    expect(full.coverage.discovery).toEqual({ used: false, nonceCalls: 0, blocksRead: 0, truncated: false });
   });
 
   it("a full block scan finds the reverted call and the plain PROS transfers, and the counts then agree", async () => {
@@ -76,7 +96,7 @@ describe("collectActivity", () => {
   });
 
   it("caps the transactions it reads and says how many it skipped", async () => {
-    const a = await collectActivity(fakeWorld(world()), "pharos", W, range, { maxTxs: 2 });
+    const a = await collectActivity(fakeWorld(world()), "pharos", W, range, { maxTxs: 2, discoverSent: false });
     expect(a.coverage.skipped).toBe(2);
     expect(new Set(a.items.map((i) => i.tx)).size).toBe(2);
   });
