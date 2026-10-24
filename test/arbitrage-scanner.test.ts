@@ -112,7 +112,9 @@ describe("priceRoute / decide", () => {
   it("the profit threshold is configurable: the same scan acts at 0.001 and skips at 0.05", async () => {
     const cands = await scanVenues([cheap, dear], M, CFG);
     expect(decide(cands, CFG, M).decision).toBe("ACT");
-    expect(decide(cands, { ...CFG, minProfit: 50_000n }, M).decision).toBe("SKIP");
+    const strict = decide(cands, { ...CFG, minProfit: 50_000n }, M);
+    expect(strict.decision).toBe("SKIP");
+    expect(strict.reason).toMatch(/survives its costs, but the profit is under the threshold/);
   });
   it("gas is priced in the quote token at the sell venue's mid", () => {
     expect(gasCost(CFG, 0.665, 6)).toBe(2_328n); // 350k × 10 gwei = 0.0035 native × 0.665

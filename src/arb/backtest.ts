@@ -52,7 +52,7 @@ export async function backtest(o: {
   const acted = records.filter((r) => r.decision === "ACT");
   const because: Record<string, number> = {};
   for (const r of records.filter((x) => x.decision === "SKIP")) {
-    const k = r.reason.startsWith("no positive gross spread") ? "no positive gross spread in either direction" : r.reason.includes("does not survive its costs") ? "gross spread did not survive costs" : "no route could be quoted";
+    const k = r.reason.startsWith("no positive gross spread") ? "no positive gross spread in either direction" : r.reason.includes("does not survive its costs") ? "gross spread did not survive costs" : r.reason.includes("profit is under the threshold") ? "net profit under the threshold" : "no route could be quoted";
     because[k] = (because[k] ?? 0) + 1;
   }
   const grosses = records.map((r) => r.best?.grossBps ?? 0).sort((a, b) => a - b);
