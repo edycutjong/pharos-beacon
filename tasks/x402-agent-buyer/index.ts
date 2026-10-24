@@ -33,15 +33,15 @@ export function formatEvent(e: AgentEvent): string | undefined {
     case "refused":
       return `  REFUSED  ${e.want.padEnd(12)} ${e.why}: ${e.text}`;
     case "sign":
-      return `  sign     ${e.want.padEnd(12)} ${e.price} · key ${e.key} · nonce ${short(e.nonce)} · journaled first`;
+      return `  sign     ${e.want.padEnd(12)} ${e.price} · key ${e.purchase} · nonce ${short(e.nonce)} · journaled first`;
     case "attempt":
-      return `  send #${e.n}  ${e.want.padEnd(12)} ${e.error ? `FAILED: ${e.error}` : `HTTP ${e.status}`}`;
+      return `  send #${e.n}  ${e.want.padEnd(12)} ${e.error ? `FAILED: ${e.error}` : `HTTP ${e.status}${e.body ? ` ${e.body.replace(/\s+/g, " ").slice(0, 70)}` : ""}`}`;
     case "reconcile":
       return `  check    ${e.want.padEnd(12)} ${e.text}`;
     case "paid":
       return `  PAID     ${e.want.padEnd(12)} ${e.row.price} · tx ${short(e.row.tx)} · running total ${e.row.runningTotal}`;
     case "already-paid":
-      return `  have it  ${e.want.padEnd(12)} already paid under key ${e.key}${e.tx ? ` (tx ${short(e.tx)})` : ""}: no HTTP, no payment`;
+      return `  have it  ${e.want.padEnd(12)} already paid under key ${e.purchase}${e.tx ? ` (tx ${short(e.tx)})` : ""}: no HTTP, no payment`;
     case "failed":
       return `  FAILED   ${e.want.padEnd(12)} ${e.text}`;
     case "stopped":

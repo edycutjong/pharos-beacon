@@ -426,6 +426,69 @@ describe("safe retries: the same payment never counts twice", () => {
     expect(events.some((e) => e.type === "ask")).toBe(true);
   });
 
+  it("a seller that names someone else's transaction as the payment is not believed", async () => {
+    const w = world();
+    const first = agentFor("retry", w);
+    await first.agent.buy(gas); // a real purchase: its tx is in the log
+    const oldTx = readLog(first.agent.o.logFile)[0]!.tx!;
+    // The same ledger, a new purchase: the seller answers 200 and points at the OLD transaction.
+    const liar = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await w.api(input, init);
+      if (!new Headers(init?.headers).has("PAYMENT-SIGNATURE")) return res;
+      return new Response("{}", { status: 200, headers: { "PAYMENT-RESPONSE": encodePaymentResponseHeader({ success: true, transaction: oldTx, network: NETWORK, payer: PAYER } as never) } });
+    }) as typeof fetch;
+    const second = new Agent({ ...first.agent.o, fetch: liar });
+    const r = await second.buy({ ...gas, id: "again", path: "whale-range?blocks=1000", maxWorth: u("0.02") });
+    expect(r.status).toBe("failed");
+    expect(readLog(first.agent.o.logFile)).toHaveLength(1);
+  });
+
+  it("a receipt that matches the price but not our authorization is refused and the payment stays pending", async () => {
+    const w = world();
+    const unused: Chain = { ...w.chain, nonceUsed: async () => false };
+    const { agent } = agentFor("retry", w, { chain: unused });
+    const r = await agent.buy(gas);
+    expect(r.status).toBe("failed");
+    expect(readLog(agent.o.logFile)).toHaveLength(0);
+    expect(agent.pending()).toBe(1000n);
+  });
+
+  it("one ledger is one budget, whichever task spends from it", async () => {
+    const w = world();
+    const a = agentFor("retry", w); // budget 0.01
+    await a.agent.buy({ ...gas, id: "x", path: "whale-brief", maxWorth: u("0.02") });
+    const b = new Agent({ ...a.agent.o, task: "other" });
+    const r = await b.buy({ ...gas, id: "y", path: "gas-snapshot" });
+    expect(r.status).toBe("over-budget");
+  });
+
+  it("before deciding, an older signed payment that did settle is logged, so the budget is right", async () => {
+    const w = world();
+    const dead = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await w.api(input, init);
+      if (new Headers(init?.headers).has("PAYMENT-SIGNATURE")) throw new Error("lost");
+      return res;
+    }) as typeof fetch;
+    const { agent } = agentFor("retry", w, { fetch: dead, retries: 1, chain: { ...w.chain, nonceUsed: async () => false } });
+    await agent.buy({ ...gas, id: "old", path: "whale-brief", maxWorth: u("0.02") }); // settled at the API; the agent could not tell
+    expect(agent.pending()).toBe(10_000n);
+    const fresh = new Agent({ ...agent.o, fetch: w.api, chain: w.chain });
+    const r = await fresh.buy({ ...gas, id: "new", path: "gas-snapshot" });
+    expect(r.status).toBe("over-budget"); // the old 0.01 is now known to be spent: 0.01 + 0.001 > 0.01
+    expect(readLog(agent.o.logFile).map((x) => x.purchase)).toEqual(["retry/old"]);
+  });
+
+  it("a half-written last line in the payment log does not swallow the next row", async () => {
+    const w = world();
+    const { agent } = agentFor("retry", w);
+    const { appendFileSync } = await import("node:fs");
+    appendFileSync(agent.o.logFile, '{"n":1,"half');
+    await agent.buy(gas);
+    const rows = readLog(agent.o.logFile);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.purchase).toBe("retry/gas");
+  });
+
   it("failOnce drops only the first paid request", async () => {
     const calls: boolean[] = [];
     const f = failOnce((async (_i: RequestInfo | URL, init?: RequestInit) => (calls.push(new Headers(init?.headers).has("PAYMENT-SIGNATURE")), new Response("ok"))) as typeof fetch, "before");
