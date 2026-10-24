@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run budget --base http://localhost:4021/ --fresh --proof budget",
     "git": {
-      "commit": "2730dabd4b78",
+      "commit": "02960207dd65",
       "dirty": false
     },
-    "createdAt": "2026-10-24T00:05:01.995Z"
+    "createdAt": "2026-10-24T00:08:27.834Z"
   },
   "task": "budget",
   "goal": "Same job on a 0.02 USDC budget: it runs out before the deep history.",
@@ -37,26 +37,33 @@
       "type": "sign",
       "want": "gas",
       "purchase": "budget/gas",
-      "nonce": "0x8550c7c06446e967e88a48ee8fcbdd7d38376dbc7e49753e0376990e91af2136",
+      "nonce": "0x6f129e9d8db203c6ea53a69179da8069b1438a9c2bd5fa591b06ca2a31aa017a",
       "price": "0.001 USDC"
     },
     {
       "type": "attempt",
       "want": "gas",
       "n": 1,
-      "status": 402,
-      "body": "{\"status\":402,\"reason\":\"invalid_exact_evm_transaction_failed\",\"message\":\"This route costs 0.001 USDC (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91"
+      "status": 200
     },
     {
-      "type": "reconcile",
+      "type": "paid",
       "want": "gas",
-      "nonceUsed": false,
-      "text": "authorization 0x8550c7c0… not used yet and still valid"
-    },
-    {
-      "type": "failed",
-      "want": "gas",
-      "text": "the API refused the payment: invalid_exact_evm_transaction_failed; the token shows the authorization unused, so nothing was charged"
+      "row": {
+        "n": 1,
+        "at": "2026-10-24T00:08:30.842Z",
+        "task": "budget",
+        "purchase": "budget/gas",
+        "endpoint": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
+        "bought": "Atlantic gas price now",
+        "price": "0.001 USDC",
+        "amount": "1000",
+        "tx": "0x1049ecad6a6b9ea134d55381fd8997a78ff89f7359d9efb32e9b323f4f24a767",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x1049ecad6a6b9ea134d55381fd8997a78ff89f7359d9efb32e9b323f4f24a767",
+        "block": 31802263,
+        "runningTotal": "0.001 USDC",
+        "runningTotalAtomic": "1000"
+      }
     },
     {
       "type": "ask",
@@ -65,42 +72,29 @@
       "price": "0.01 USDC"
     },
     {
-      "type": "reconcile",
-      "want": "gas",
-      "nonceUsed": false,
-      "text": "authorization 0x8550c7c0… not used yet and still valid"
-    },
-    {
       "type": "sign",
       "want": "whales",
       "purchase": "budget/whales",
-      "nonce": "0x48e498d5c6826b9535bc31526ff04ea4502eac7ecb2a1231698dcdae98617bef",
+      "nonce": "0xce07a33bdf75e65ac9f74404fe1a518216510dd70b4d4a8e5376e122ad4dbddd",
       "price": "0.01 USDC"
     },
     {
       "type": "attempt",
       "want": "whales",
       "n": 1,
-      "status": 200
+      "status": 402,
+      "body": "{\"status\":402,\"reason\":\"Facilitator verify failed (500): {\\\"error\\\":\\\"RPC Request failed.\\\\n\\\\nURL: https://atlantic.dplabs-internal.com\\\\nRequest body: {\\\\\\\"method\\\\\\\":\\\\\\\"eth_call\\\\\\\",\\\\\\\"params\\\\\\\":[{\\\\\\\"data\\\\\\\":\\\\\\\"0xe94a01020000000000"
     },
     {
-      "type": "paid",
+      "type": "reconcile",
       "want": "whales",
-      "row": {
-        "n": 1,
-        "at": "2026-10-24T00:05:08.803Z",
-        "task": "budget",
-        "purchase": "budget/whales",
-        "endpoint": "http://localhost:4021/api/x402-paywalled-api/whale-brief",
-        "bought": "largest USDC transfers on Pharos mainnet, last ~1,000 blocks",
-        "price": "0.01 USDC",
-        "amount": "10000",
-        "tx": "0x1dcc4303b2001165fbae0453b4db02e6fef25607909c481e45b99c553e42bc99",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x1dcc4303b2001165fbae0453b4db02e6fef25607909c481e45b99c553e42bc99",
-        "block": 31802134,
-        "runningTotal": "0.01 USDC",
-        "runningTotalAtomic": "10000"
-      }
+      "nonceUsed": false,
+      "text": "authorization 0xce07a33b… not used yet and still valid"
+    },
+    {
+      "type": "failed",
+      "want": "whales",
+      "text": "the API refused the payment: Facilitator verify failed (500): {\"error\":\"RPC Request failed.\\n\\nURL: https://atlantic.dplabs-internal.com\\nRequest body: {\\\"method\\\":\\\"eth_call\\\",\\\"params\\\":[{\\\"data\\\":\\\"0xe94a0102000000000000000000000000317bca01bb101c0f1e86c215...; the token shows the authorization unused, so nothing was charged"
     },
     {
       "type": "ask",
@@ -110,9 +104,9 @@
     },
     {
       "type": "reconcile",
-      "want": "gas",
+      "want": "whales",
       "nonceUsed": false,
-      "text": "authorization 0x8550c7c0… not used yet and still valid"
+      "text": "authorization 0xce07a33b… not used yet and still valid"
     },
     {
       "type": "refused",
@@ -123,7 +117,7 @@
     {
       "type": "stopped",
       "want": "history",
-      "text": "stopping: \"history\" does not fit the budget (0.01 USDC spent of 0.02 USDC); 1 want(s) not attempted"
+      "text": "stopping: \"history\" does not fit the budget (0.001 USDC spent of 0.02 USDC); 1 want(s) not attempted"
     },
     {
       "type": "done",
@@ -132,21 +126,21 @@
         "outcome": "stopped-budget",
         "paid": 1,
         "refused": 1,
-        "spent": "0.01 USDC",
-        "spentAtomic": "10000",
+        "spent": "0.001 USDC",
+        "spentAtomic": "1000",
         "saved": "0 USDC",
         "budget": "0.02 USDC",
-        "left": "0.01 USDC",
+        "left": "0.019 USDC",
         "results": [
           {
             "want": "gas",
-            "status": "failed"
+            "status": "paid",
+            "price": "0.001 USDC",
+            "tx": "0x1049ecad6a6b9ea134d55381fd8997a78ff89f7359d9efb32e9b323f4f24a767"
           },
           {
             "want": "whales",
-            "status": "paid",
-            "price": "0.01 USDC",
-            "tx": "0x1dcc4303b2001165fbae0453b4db02e6fef25607909c481e45b99c553e42bc99"
+            "status": "failed"
           },
           {
             "want": "history",
@@ -167,21 +161,21 @@
     "outcome": "stopped-budget",
     "paid": 1,
     "refused": 1,
-    "spent": "0.01 USDC",
-    "spentAtomic": "10000",
+    "spent": "0.001 USDC",
+    "spentAtomic": "1000",
     "saved": "0 USDC",
     "budget": "0.02 USDC",
-    "left": "0.01 USDC",
+    "left": "0.019 USDC",
     "results": [
       {
         "want": "gas",
-        "status": "failed"
+        "status": "paid",
+        "price": "0.001 USDC",
+        "tx": "0x1049ecad6a6b9ea134d55381fd8997a78ff89f7359d9efb32e9b323f4f24a767"
       },
       {
         "want": "whales",
-        "status": "paid",
-        "price": "0.01 USDC",
-        "tx": "0x1dcc4303b2001165fbae0453b4db02e6fef25607909c481e45b99c553e42bc99"
+        "status": "failed"
       },
       {
         "want": "history",
