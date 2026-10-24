@@ -57,7 +57,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
 | Our Atlantic wallet 2, blocks 31760575–31807814 | 113 transfers in (111 USDC, 2 WPHRS), all 113 from our wallet 1; 0 sent, 0 expected | [`proof/atlantic-received.json`](proof/atlantic-received.json) |
 | Our Atlantic wallet 1, blocks 31798000–31808000 | 119 transfers out (111 USDC, 2 WPHRS, 6 PHRS sends: 4 with empty calldata, 2 carrying a reference in the data field (selectors 0x494e562d and 0x424d2f32)), 2 contract interactions (a `deposit` that wrapped 0.01 PHRS, and a reverted `withdraw`); 10 of 10 sent transactions, 7 of them found by the nonce search (55 nonce reads, 7 blocks opened) | [`proof/atlantic-sent.json`](proof/atlantic-sent.json) |
 
-The three proofs record `dirty: false` (commits 48b04b7, 1efb3ae and abf8d05, all on the final code). The Atlantic wallets are ours, so "received" and "sent" there are our own
+The three proofs record `dirty: false` (commits 48b04b7, 1efb3ae and abf8d05, all on the final code). A later one-line rule fix (a Swap event makes a swap only in a transaction the wallet sent) was checked against the mainnet proof: a fresh run of the same command over the same day produced an identical CSV and an identical report body. The Atlantic wallets are ours, so "received" and "sent" there are our own
 test traffic, and the README says so rather than calling it organic activity (the 111 USDC transfers use the selector `0xe3ee160e`, EIP-3009 `transferWithAuthorization`, which is how the x402 tasks settle). The mainnet wallet is the independent evidence.
 
 ```text
