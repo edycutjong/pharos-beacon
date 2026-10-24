@@ -35,7 +35,10 @@ describe("periods", () => {
     expect(periodAt(ts("2026-10-24T05:00:00Z"), "monthly").label).toBe("2026-09-01 to 2026-09-30");
     expect(periodAt(ts("2026-01-05T05:00:00Z"), "monthly").label).toBe("2025-12-01 to 2025-12-31");
     expect(periodAt(ts("2026-01-05T05:00:00Z"), "monthly", 1).label).toBe("2025-11-01 to 2025-11-30");
-    expect(periodAt(ts("2026-10-24T05:00:00Z"), "14d").label).toBe("2026-10-10 to 2026-10-23");
+    expect(periodAt(ts("2026-10-24T05:00:00Z"), "14d").label).toBe("2026-10-08 to 2026-10-21");
+    // N-day periods sit on a fixed grid: the same period is returned for N days, then the next one (a sliding window would break "once per period")
+    for (const now of ["2026-10-22T00:00:00Z", "2026-10-29T12:00:00Z", "2026-11-04T23:59:59Z"]) expect(periodAt(ts(now), "14d").label).toBe("2026-10-08 to 2026-10-21");
+    expect(periodAt(ts("2026-11-05T00:00:00Z"), "14d").label).toBe("2026-10-22 to 2026-11-04");
   });
   it("cadence parsing", () => {
     expect(parseCadence("weekly")).toBe("weekly");
@@ -159,6 +162,15 @@ describe("weekly-digest-agent main", () => {
     await main(ctx, [...args, "--deliver", "discord"], conn(), () => fakeNotifier(sent));
     expect(sent).toHaveLength(1);
     expect(JSON.parse(readFileSync(state, "utf8")).delivered.id).toBe("m1");
+  });
+
+  it("the digest says when the clock was set with --now, and a bare approval to a new spender is not a top event", async () => {
+    await main(ctx, ["--wallet", W, "--now", NOW, "--baseline", "none"], conn(), undefined);
+    expect(out.join("\n")).toContain("generated 2023-11-20T01:00:00Z (clock set with --now)");
+    const a = await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 90n, toBlock: 200n }, { scanBlocks: 0 });
+    const base = metricsOf(await collectActivity(fakeWorld(world()), "pharos", W, { fromBlock: 0n, toBlock: 99n }), "p");
+    const ev = topEvents(a, base, 20);
+    expect(ev.some((e) => e.kind === "new counterparty" && /approve/.test(e.why))).toBe(false);
   });
 
   it("--force builds the same period again", async () => {

@@ -35,8 +35,10 @@ export function periodAt(nowTs: number, cadence: Cadence, back = 0): Period {
   const len = cadence === "daily" ? 1 : cadence === "weekly" ? 7 : Number(cadence.slice(0, -1));
   // Weeks end on a Monday 00:00 UTC (the epoch, 1970-01-01, was a Thursday: day 4 → Monday is day 0 of the week at +4 days offset).
   const dayNo = Math.floor(nowTs / DAY);
-  const anchor = cadence === "weekly" ? dayNo - ((dayNo + 3) % 7) : dayNo;
-  const end = (cadence === "weekly" || cadence === "daily" ? anchor : dayNo) * DAY - back * len * DAY;
+  // Periods sit on a fixed grid so the same period is returned all through its successor: weeks end on a Monday, N-day periods on multiples of N
+  // days since 1970-01-01, daily on every midnight. (A sliding "last N days" would be a new period every day and break "once per period".)
+  const anchor = cadence === "weekly" ? dayNo - ((dayNo + 3) % 7) : cadence === "daily" ? dayNo : dayNo - (dayNo % len);
+  const end = anchor * DAY - back * len * DAY;
   const start = end - len * DAY;
   return { fromTs: start, toTs: end, label: label(start, end) };
 }
@@ -95,7 +97,7 @@ export function compare(cur: Metrics, prev: Metrics | undefined, symbol: string)
   const cf = BigInt(cur.feesWei), pf = prev ? BigInt(prev.feesWei) : undefined;
   rows.push({
     metric: `Fees paid (${symbol})`, current: fmtWei(cf, symbol).replace(` ${symbol}`, ""), previous: pf === undefined ? "n/a" : fmtWei(pf, symbol).replace(` ${symbol}`, ""),
-    change: pf === undefined ? "n/a" : pf === 0n ? (cf === 0n ? "0%" : "new") : `${cf >= pf ? "+" : "-"}${Number(((cf > pf ? cf - pf : pf - cf) * 100n) / pf)}%`,
+    change: pf === undefined ? "n/a" : pf === 0n ? (cf === 0n ? "0%" : "new") : `${cf >= pf ? "+" : "-"}${Math.round(Number(((cf > pf ? cf - pf : pf - cf) * 10_000n) / pf) / 100)}%`,
   });
   const newCp = prev ? cur.counterparties.filter((c) => !prev.counterparties.includes(c)).length : undefined;
   rows.push(n("Counterparties", cur.counterparties.length, prev?.counterparties.length));
@@ -142,7 +144,7 @@ export function topEvents(a: Activity, prev?: Metrics, limit = 3): Notable[] {
     if (it.unlimited) put(it, "unlimited approval", SCORE.unlimited, `Unlimited approval: ${it.counterparty} can move ${it.out[0]!.symbol} without a cap`);
     if (it.status === "reverted") put(it, "failed transaction", SCORE.failed, `A ${it.method ?? it.category} transaction failed (reverted)`);
     const cp = it.counterparty?.toLowerCase();
-    if (known && cp && !isZero(cp) && !known.has(cp) && !firstSeen.has(cp)) {
+    if (known && cp && it.category !== "approval" && !isZero(cp) && !known.has(cp) && !firstSeen.has(cp)) { // a bare approval to a new spender is not worth a top-three slot
       firstSeen.add(cp);
       put(it, "new counterparty", SCORE.newCounterparty + (leg && leg.nft === undefined ? share(out ? "out" : "in", leg) : 0), `First time dealing with ${it.counterparty}${leg ? ` (${inn ? "received" : "sent"} ${fmtLeg(leg)})` : ` (${it.method ?? it.category})`}`);
     }
@@ -197,7 +199,7 @@ export function digestMarkdown(d: DigestInput): string {
   }
   L.push("## Key numbers", "", row(["Metric", "This period", "Previous period", "Change"]), "|---|---|---|---|", ...compare(m, d.previous, sym).map((r) => row([r.metric, r.current, r.previous, r.change])), "");
   const flow = tokenFlow(m, d.previous);
-  if (flow.length) L.push("### Token flow", "", row(["Token", "In", "Out", "In (previous)", "Out (previous)"]), "|---|---|---|---|---|", ...flow.map((f) => row([f.symbol, f.inNow, f.outNow, f.inPrev, f.outPrev])), "");
+  if (flow.length) L.push("### Token flow (plain transfers; swaps are not counted here)", "", row(["Token", "In", "Out", "In (previous)", "Out (previous)"]), "|---|---|---|---|---|", ...flow.map((f) => row([f.symbol, f.inNow, f.outNow, f.inPrev, f.outPrev])), "");
   L.push("## Top 3 notable events", "");
   if (d.events.length === 0) L.push("_None: no activity to rank._", "");
   else L.push(...d.events.map((e, i) => `${i + 1}. **${e.kind}:** ${e.why}. [${e.tx.slice(0, 10)}…](${explorerTx(a.network, e.tx)})`), "");

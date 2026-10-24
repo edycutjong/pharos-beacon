@@ -9,10 +9,19 @@ default is the real clock), `--state f` remembers the last period and its number
 **Uses:** Chain MCP ✅ (the same engine as the Audit-Log Agent on the branch below this one, `tasks/audit-log-agent/README.md`, `src/activity/`: `get_chain_info`, `get_block_number`, `get_block`, `get_logs`, `get_transaction`, `get_transaction_receipt`, `get_code`,
 `eth_call`, `get_transaction_count`) · SkillEngine: not used · Docs MCP: not used. Its only external write is one Discord message.
 
+## Try it (about 3 minutes, keyless, read-only)
+
+```text
+npm ci
+npm run weekly-digest-agent -- --wallet 0xe7368221de15a7c5e0a50a95317b06e6d08c3861 --cadence daily --now 2026-10-24T01:00:00Z --baseline none --compact
+```
+
+It prints the digest of 2026-10-23 and ends with the top three events. `--print-schedule` prints the cron line in a second. The weekly default takes about 14 minutes (see Proof).
+
 ## What a run does
 
 1. **The period.** A digest describes the last *finished* UTC period of its cadence: a weekly digest run on any day of the week describes the Monday-to-Sunday week before it
-   (monthly: the last calendar month; `Nd`: the last N whole days). So running it twice in a week describes the same week.
+   (monthly: the last calendar month; `Nd`: N-day periods on a fixed grid counted from 1970-01-01, so the same period is returned for N days). So running it twice in a week describes the same week.
 2. **The numbers.** The wallet's activity over the period (the engine reads events and the nonce, see the Audit-Log README), reduced to counts, token flow, fees and counterparties.
 3. **The previous period.** Read from the state file when the last run was the period before; otherwise read again (`--baseline none` skips it).
 4. **The top three events.** Candidates are scored by importance class (unlimited approval 100, failed transaction 95, large outflow 80, new counterparty 70, swap 60, large inflow 50,
@@ -106,10 +115,10 @@ cadence is used so a run takes minutes; the weekly proofs above are the default 
 
 ## Limits (honest)
 
-- Token amounts are units, never money. Internal transfers and a plain PROS transfer the wallet *receives* are invisible (see the Audit-Log README).
+- Token amounts are units, never money, and there are no prices to compare tokens: "size" is a share of that token's own volume, so a one-off transfer of a low-value token can outrank a larger USDC amount. Internal transfers and a plain PROS transfer the wallet *receives* are invisible (see the Audit-Log README).
 - Only finished UTC periods are reported, and only against the one period before; there is no trend over more periods.
 - A week costs about 14 minutes of reads at the 100 calls a minute the client paces itself to (measured), a month about an hour (estimated from the block rate, not run; the engine refuses ranges over 3,000,000 blocks).
 - The Discord message is cut to 1,891 characters with an ellipsis when longer than 1,900 (Discord's own limit is 2,000) and shows the top events as links, not tables.
 - The first run for a wallet has no previous period unless `--baseline auto` (the default) reads it, which doubles the time.
 - The schedule is a GitHub Actions workflow; until it is merged and configured it has not run, and the digests in `proof/` were produced by manual runs with an injected clock.
-- 22 tests in `test/weekly-digest-agent.test.ts` (periods, comparison, top events and their ranking, Discord text, the CLI with state, delivery and idempotence) on top of the 26 engine tests.
+- 23 tests in `test/weekly-digest-agent.test.ts` (periods, comparison, top events and their ranking, Discord text, the CLI with state, delivery and idempotence) on top of the 29 engine and report tests in `test/activity.test.ts`.
