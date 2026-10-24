@@ -3,7 +3,7 @@
 # The first version of the optimizer asked each read twice and compared (as the Portfolio Assistant does). Here both answers of one run agreed and were wrong.
 
 run A  block 21050107 (1d ago)   price 1.007142030 USDC per share   -> 1d APR 4.75 %   (consistent with the 7d 1.006426448 and now 1.007273149)
-run B  block 21050109 (1d ago)   price 1.085322455 USDC per share   -> 1d APR -2621.53 %  (a vault does not lose 7 % of its value in a day and regain it)
+run B  block 21050109 (1d ago)   price 1.085322455 USDC per share   -> 1d APR -2621.53 %  (7.8 % above run A's price; a vault does not gain 7.8 % in a day and give it back)
 
-Same contract, same call, two blocks 2 apart, read twice each. A price series that moves 7 % between adjacent blocks is not a market, it is the node.
+Same contract, same call, two blocks 2 apart, read twice each. A price series that moves 7.8 % between adjacent blocks is not a market, it is the node.
 The optimizer now checks every price against the price one block earlier and, if they differ by more than 0.001 %, moves the anchor two blocks and tries again (4 attempts, then the window is reported unreadable).

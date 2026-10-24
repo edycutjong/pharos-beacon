@@ -1,0 +1,21 @@
+# What the 'blocked / open' statements rest on (2026-10-25, Pharos mainnet via the Chain MCP, scratch script not committed)
+head block 21146600
+
+## RockawayX vault (holder 0x62A0…0673, shares 19329483983960707748291)
+maxRedeem(holder) @21146600                                0
+maxRedeem(holder) @21046600                                0
+maxRedeem(holder) @20146600                                0
+maxWithdraw(holder) @head                                  0
+maxDeposit(holder) @head                                   0
+previewRedeem(1e18) @head                                  1007275
+SIMULATED redeem(all shares, holder, holder) from holder @head 19470123183
+
+## JTRSY / HYB (Centrifuge, ERC-7540)
+JTRSY previewDeposit(1e6)                                  REVERTS: eth_call: execution reverted: (code 3)
+JTRSY previewRedeem(1e6)                                   REVERTS: eth_call: execution reverted: (code 3)
+JTRSY maxDeposit(0x0665…4bE3)                              0
+JTRSY maxRedeem(0x0665…4bE3)                               0
+HYB previewDeposit(1e6)                                    REVERTS: eth_call: execution reverted: (code 3)
+HYB previewRedeem(1e6)                                     REVERTS: eth_call: execution reverted: (code 3)
+HYB maxDeposit(0x0665…4bE3)                                0
+HYB maxRedeem(0x0665…4bE3)                                 0
