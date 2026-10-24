@@ -1,0 +1,8 @@
+# dry run: nothing is signed without --execute (2026-10-24, Atlantic)
+$ npm run yield-wallet -- sign tasks/yield-optimizer/proof/atlantic-move-plan.json
+wallet 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B · plan 0x89bdebb6a523350e67985c02aab1d5c2d7ed0e8496a24d79c5d804eb73f09805 · Atlantic Steady → Atlantic Growth · Atlantic
+  1. Redeem all shares of Atlantic Steady · to 0x43C698f3901F5E727305A52635427a2699a8C70F · gas 98634 (estimated)
+  2. Approve Atlantic Growth to pull 2997012 USDC raw (the exit's previewed proceeds 3000013 less 10 bps) · to 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B · gas 71466 (estimated)
+  3. Deposit 2997012 USDC raw into Atlantic Growth · to 0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A · gas 300000 (configured)
+before: wallet USDC 0.579 · Atlantic Steady shares 2999999714611899295 · Atlantic Growth shares 0
+not signed: add --execute to sign and send these transactions with this wallet
