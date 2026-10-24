@@ -68,7 +68,8 @@ const toUsd = (raw: bigint, dec: number) => Number(raw) / 10 ** dec;
 
 function entryBlockers(v: VenueView): string[] {
   const r = v.reading;
-  const b = [...r.entry.blockers];
+  const b = v.venue.actionBlocker ? [`${v.venue.name} is ${v.venue.actionBlocker}`] : [];
+  b.push(...r.entry.blockers);
   if (v.rate.pessimistic === null) b.push("no rate could be read, so its yield is unknown");
   if (r.entry.feeBps === null && !b.length) b.push("its entry fee cannot be read");
   return b;
@@ -125,7 +126,8 @@ export function routeDeposit(views: VenueView[], down: Down[], amountUsd: number
     if (allocations.length > 1) lines.push(`${top.name} takes at most ${usd(top.capacityUsd)} in one deposit (maxDeposit), so the rest goes to the next best: ${allocations.slice(1).map((a) => `${usd(a.usd)} to ${name(a.venueId).name}`).join(", ")}.`);
     if (left > 1e-9) lines.push(`${usd(left)} could not be placed: every eligible venue is at its limit.`);
   }
-  for (const o of options.filter((x) => !x.eligible)) lines.push(`Not eligible: ${o.name} (${o.protocolName}): ${o.reasons.join("; ")}.`);
+  if (allocations.length && name(allocations[0]!.venueId).scoreUsd! < 0) lines.push(`Warning: over ${p.holdDays} d this deposit nets less than nothing (yield below the fee and gas); a longer --hold-days or a larger amount would change that.`);
+  if (allocations.length) for (const o of options.filter((x) => !x.eligible)) lines.push(`Not eligible: ${o.name} (${o.protocolName}): ${o.reasons.join("; ")}.`);
   for (const d of down) lines.push(`${d.simulated ? "SIMULATED OUTAGE" : "Unavailable"}: ${d.venue.name} (${d.venue.protocolName}): ${d.reason}. Routed without it.`);
   return { request: "deposit", amountUsd, allocations, options, explanation: lines, unplacedUsd: Math.max(0, left) };
 }
@@ -141,7 +143,8 @@ export function routeWithdraw(views: VenueView[], down: Down[], amountUsd: numbe
   const options: Option[] = held.map((v) => {
     const r = v.reading;
     const posUsd = toUsd(v.holding!.assets, p.assetDecimals);
-    const reasons = [...r.exit.blockers];
+    const reasons = v.venue.actionBlocker ? [`${v.venue.name} is ${v.venue.actionBlocker}`] : [];
+    reasons.push(...r.exit.blockers);
     if (r.exit.feeBps === null && !reasons.length) reasons.push("its exit fee cannot be read");
     // what can leave in one go: the position, and for Morpho the market's idle liquidity
     const cap = v.venue.protocol === "morpho" && r.exit.depth !== null ? Math.min(posUsd, toUsd(r.exit.depth, p.assetDecimals)) : posUsd;
@@ -169,13 +172,13 @@ export function routeWithdraw(views: VenueView[], down: Down[], amountUsd: numbe
   for (const o of ranked) {
     if (left <= 1e-9) break;
     const take = Math.min(left, o.capacityUsd);
-    allocations.push({ venueId: o.venueId, usd: take, all: amountUsd === "all" || take >= toUsd(held.find((v) => v.venue.id === o.venueId)!.holding!.assets, p.assetDecimals) - 1e-9 });
+    allocations.push({ venueId: o.venueId, usd: take, all: take >= toUsd(held.find((v) => v.venue.id === o.venueId)!.holding!.assets, p.assetDecimals) - 1e-9 });
     left -= take;
   }
   const lines: string[] = [];
   const name = (id: string) => options.find((o) => o.venueId === id)!;
   if (!held.length) lines.push("The wallet holds nothing in any venue that answered, so there is nothing to withdraw.");
-  else if (!allocations.length) lines.push(`Nothing can be withdrawn today: ${options.map((o) => `${o.name}: ${o.reasons.join(" / ")}`).join("; ")}`);
+  else if (!allocations.length) lines.push("Nothing can be withdrawn today.");
   else {
     const top = name(allocations[0]!.venueId);
     lines.push(
@@ -186,6 +189,7 @@ export function routeWithdraw(views: VenueView[], down: Down[], amountUsd: numbe
     if (allocations.length > 1) lines.push(`No single venue holds the whole amount, so it is split: ${allocations.map((a) => `${usd(a.usd)} from ${name(a.venueId).name}`).join(", ")}.`);
     if (left > 1e-9) lines.push(`${usd(left)} of the request cannot be covered by what the wallet can take out today.`);
   }
+  for (const o of options.filter((x) => x.eligible && x.capacityUsd < x.parts.positionUsd! - 1e-9)) lines.push(`Only ${usd(o.capacityUsd)} of the ${usd(o.parts.positionUsd!)} in ${o.name} can leave in one transaction today (the market's idle liquidity); the rest stays until borrowers repay.`);
   for (const o of options.filter((x) => !x.eligible)) lines.push(`Cannot withdraw from ${o.name} (${o.protocolName}), position ${usd(toUsd(held.find((v) => v.venue.id === o.venueId)!.holding!.assets, p.assetDecimals))}: ${o.reasons.join("; ")}.`);
   for (const d of down) lines.push(`${d.simulated ? "SIMULATED OUTAGE" : "Unavailable"}: ${d.venue.name} (${d.venue.protocolName}): ${d.reason}. The wallet's position there is UNKNOWN, so it is not counted.`);
   return { request: "withdraw", amountUsd: total, allocations, options, explanation: lines, unplacedUsd: Math.max(0, left) };

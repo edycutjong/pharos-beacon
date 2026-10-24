@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { decodeFunctionData, encodeFunctionResult, getAddress, keccak256, parseAbi, type Hex } from "viem";
+import { decodeFunctionData, encodeAbiParameters, encodeFunctionResult, getAddress, keccak256, parseAbi, type Hex } from "viem";
 import { UsageError } from "../src/lib/cli.js";
 import { MORPHO_BLUE } from "../src/liq/morpho.js";
 import { ADAPTERS, NotPreparable, buildPlan, verifyActionPlan, venuesFromSources, type ActionPlan, type Venue } from "../src/aggregator/adapters.js";
@@ -18,7 +18,9 @@ const USDC = getAddress("0x2222222222222222222222222222222222222222");
 const ROX = getAddress("0x00000000000000000000000000000000000000a1");
 const CEN = getAddress("0x00000000000000000000000000000000000000c1");
 const IRM = getAddress("0x00000000000000000000000000000000000000d1");
-const MID = ("0x" + "ab".repeat(32)) as Hex;
+// a Morpho market id IS the hash of its parameters, so the fake market's id is computed from the parameters its idToMarketParams returns
+const MARKET_PARAMS = [USDC, ROX, ROX, IRM, 860000000000000000n] as const;
+const MID = keccak256(encodeAbiParameters([{ type: "address" }, { type: "address" }, { type: "address" }, { type: "address" }, { type: "uint256" }], [...MARKET_PARAMS]));
 const HEAD = 5_000_000n; // 1 s blocks, so a block number is also its timestamp
 const MILLION = 10n ** 12n; // 1,000,000 USDC raw
 
@@ -70,7 +72,7 @@ describe("routeDeposit", () => {
   it("never routes to a venue with a blocker, and lists it with the reason", () => {
     const r = routeDeposit([view("a", "erc4626", 0.04), view("async", "centrifuge", 0.09, { entryBlockers: ["deposit is an asynchronous request"] })], [], 1_000, P);
     expect(r.allocations.map((a) => a.venueId)).toEqual(["a"]);
-    expect(r.explanation.join("\n")).toContain("Not eligible: Venue async (Centrifuge): deposit is an asynchronous request");
+    expect(r.explanation.join("\n")).toContain("Not eligible: Venue async (Centrifuge): Venue async is an asynchronous (ERC-7540) vault");
   });
   it("splits across venues when the best one has a limit", () => {
     const r = routeDeposit([view("small", "erc4626", 0.09, { maxDeposit: 400n * 10n ** 6n }), view("big", "erc4626", 0.05)], [], 1_000, P);
@@ -168,6 +170,8 @@ interface FakeMorpho {
   apr: number;
   supplyShares?: bigint;
   broken?: boolean;
+  /** Share of the supply that is lent out (default 0.5). */
+  borrowFrac?: number;
 }
 
 function chain(vaults: Record<string, FakeVault>, mo?: FakeMorpho, usdcBalance = 10_000n * 10n ** 6n) {
@@ -189,9 +193,10 @@ function chain(vaults: Record<string, FakeVault>, mo?: FakeMorpho, usdcBalance =
       if (!mo) throw new Error(`no contract at ${to}`);
       if (mo.broken) throw new Error("rpc down");
       const supply = BigInt(Math.round(Number(2n * MILLION) * (1 + (mo.apr * Number(at)) / (365 * 86_400))));
-      const state = [supply, 2n * MILLION * 1_000_000n, supply / 2n, supply / 2n, at, 0n];
+      const borrow = BigInt(Math.round(Number(supply) * (mo.borrowFrac ?? 0.5)));
+      const state = [supply, 2n * MILLION * 1_000_000n, borrow, borrow, at, 0n];
       switch (d.functionName) {
-        case "idToMarketParams": return enc("idToMarketParams", [USDC, ROX, ROX, IRM, 860000000000000000n]);
+        case "idToMarketParams": return enc("idToMarketParams", [...MARKET_PARAMS]);
         case "market": return enc("market", state);
         case "borrowRateView": return enc("borrowRateView", 0n);
         case "position": return enc("position", [mo.supplyShares ?? 0n, 0n, 0n]);
@@ -277,7 +282,7 @@ describe("aggregate (fake chain: RockawayX-shaped vault, async fund vault, Morph
     expect(r.plan!.transactions[1]!.request.to).toBe(ROX);
   });
   it("keeps working when ONE venue is down (drill by venue id): the request goes to the next best of the same protocol", async () => {
-    const two = venuesFromSources([roxSrc, moSrc, { ...moSrc, key: "morpho-cd", name: "Morpho Blue SECOND/USDC supply", marketId: ("0x" + "cd".repeat(32)) as Hex }]);
+    const two = venuesFromSources([roxSrc, moSrc, { ...moSrc, key: "morpho-cd", name: "Morpho Blue SECOND/USDC supply", marketId: MID }]);
     const call = chain({ [ROX]: { price: growth(0.01), shares: 0n } }, { apr: 0.06 });
     const r = await aggregate(base(call, { kind: "deposit", assets: 100n * 10n ** 6n }, { venues: two, down: ["morpho-ab"] }));
     expect(r.down.map((d) => [d.venue.id, d.simulated])).toEqual([["morpho-ab", true]]);
@@ -326,9 +331,25 @@ describe("aggregate (fake chain: RockawayX-shaped vault, async fund vault, Morph
     const part = await aggregate(base(call, { kind: "withdraw", assets: 100n * 10n ** 6n }, mo));
     expect(part.route!.allocations.map((a) => a.venueId)).toEqual(["morpho-ab"]);
     expect(verifyActionPlan(part.plan!, USDC)).toEqual([]);
+    // "all" of a position larger than the idle liquidity takes what can leave (by assets, never by shares: that would revert) and says what stays
     const all = await aggregate(base(call, { kind: "withdraw", assets: "all" }, mo));
-    expect(all.plan).toBeNull();
-    expect(all.route!.explanation.join("\n")).toContain("idle liquidity");
+    expect(all.plan!.legs[0]!.all).toBe(false);
+    expect(Number(all.plan!.legs[0]!.assets)).toBeGreaterThan(900_000n * 10n ** 6n > 0n ? 900_000 * 1e6 : 0);
+    expect(Number(all.plan!.legs[0]!.assets)).toBeLessThan(1_100_000 * 1e6); // the idle liquidity, about 1M USDC, not the 1.5M position
+    expect(all.route!.explanation.join("\n")).toContain("can leave in one transaction today");
+    expect(verifyActionPlan(all.plan!, USDC)).toEqual([]);
+  });
+  it("splits a withdrawal when a Morpho market's idle liquidity covers only part of its share of the request", async () => {
+    // about 603 USDC in the vault, 900 in a market that has only 500 idle; asking for 1,000 takes the vault's 603 and 397 from the market
+    const call = chain({ [ROX]: { price: growth(0.03), shares: 600n * 10n ** 18n } }, { apr: 0.06, supplyShares: 900n * 10n ** 6n * 10n ** 6n, borrowFrac: 1 - 500 / 2_000_000 });
+    const r = await aggregate(base(call, { kind: "withdraw", assets: 1_000n * 10n ** 6n }, { venues: [venues[0]!, venues[2]!] }));
+    // the 600 shares are worth a little more than 600 USDC at the fake's share price; the market's leg is the remainder
+    expect(r.route!.allocations.map((a) => a.venueId)).toEqual(["rox", "morpho-ab"]);
+    expect(r.route!.allocations[0]!.usd).toBeGreaterThan(600);
+    expect(r.route!.allocations[0]!.usd + r.route!.allocations[1]!.usd).toBeCloseTo(1000, 6);
+    expect(r.route!.allocations[1]!.usd).toBeLessThan(500); // within the market's idle liquidity
+    expect(r.plan!.legs.reduce((a, l) => a + BigInt(l.assets), 0n)).toBe(1_000n * 10n ** 6n);
+    expect(verifyActionPlan(r.plan!, USDC)).toEqual([]);
   });
   it("redeems a part of an ERC-4626 position in shares, rounded up", async () => {
     const r = await aggregate(base(world(), { kind: "withdraw", assets: 250n * 10n ** 6n }, { down: ["morpho"] }));
@@ -414,7 +435,32 @@ describe("verifyActionPlan", () => {
     const p = await mk();
     const rebuild = (q: ActionPlan) => buildPlan(q.request, q.chainId, q.wallet, q.legs, q.transactions);
     expect(verifyActionPlan(rebuild(edit(p, (q) => (q.transactions[1]!.venue = "elsewhere"))), USDC).join()).toContain("not one of the plan's legs");
-    expect(verifyActionPlan(rebuild(edit(p, (q) => q.transactions.pop())), USDC).join()).toContain("needs one approve and one deposit");
+    expect(verifyActionPlan(rebuild(edit(p, (q) => q.transactions.pop())), USDC).join()).toContain("needs exactly one approve and one deposit");
+  });
+  it("catches a second approve/deposit pair smuggled into a leg, and a plan that names another Morpho market", async () => {
+    const p = await mk();
+    const rebuild = (q: ActionPlan) => buildPlan(q.request, q.chainId, q.wallet, q.legs, q.transactions);
+    const doubled = edit(p, (q) => q.transactions.push({ ...q.transactions[0]! }, { ...q.transactions[1]! }));
+    expect(verifyActionPlan(rebuild(doubled), USDC).join()).toContain("needs exactly one approve and one deposit");
+    const { encodeFunctionData } = await import("viem");
+    const d = decodeFunctionData({ abi: morphoAbi, data: p.transactions[1]!.request.data });
+    const other = { ...(d.args![0] as object), lltv: 1n } as never;
+    const evil = edit(p, (q) => (q.transactions[1]!.request.data = encodeFunctionData({ abi: morphoAbi, functionName: "supply", args: [other, ...(d.args!.slice(1) as never[])] as never })));
+    expect(verifyActionPlan(rebuild(evil), USDC).join()).toContain("names a different Morpho market");
+  });
+  it("catches a withdrawal whose shares or assets differ from the leg", async () => {
+    const { encodeFunctionData } = await import("viem");
+    const rb = (q: ActionPlan) => buildPlan(q.request, q.chainId, q.wallet, q.legs, q.transactions);
+    const rox = (await aggregate(base(world(), { kind: "withdraw", assets: 250n * 10n ** 6n }, { down: ["morpho"] }))).plan!;
+    expect(rox.legs[0]!.shares).toBeDefined();
+    const bigger = JSON.parse(JSON.stringify(rox)) as ActionPlan;
+    bigger.transactions[0]!.request.data = encodeFunctionData({ abi: erc4626, functionName: "redeem", args: [SHARES, ME, ME] });
+    expect(verifyActionPlan(rb(bigger), USDC).join()).toContain("shares, the leg is");
+    const mo = (await aggregate(base(world(), { kind: "withdraw", assets: 100n * 10n ** 6n }, { down: ["rockawayx"] }))).plan!;
+    const d = decodeFunctionData({ abi: morphoAbi, data: mo.transactions[0]!.request.data });
+    const greedy = JSON.parse(JSON.stringify(mo)) as ActionPlan;
+    greedy.transactions[0]!.request.data = encodeFunctionData({ abi: morphoAbi, functionName: "withdraw", args: [d.args![0], 400n * 10n ** 6n, 0n, ME, ME] as never });
+    expect(verifyActionPlan(rb(greedy), USDC).join()).toContain("the leg is 100000000 assets");
   });
   it("catches a withdrawal that pays someone else", async () => {
     const r = await aggregate(base(world(), { kind: "withdraw", assets: 100n * 10n ** 6n }, { down: ["morpho"] }));

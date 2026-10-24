@@ -3,7 +3,7 @@ import { secondsPerBlock } from "../arb/backtest.js";
 import { headerAt, type Call } from "../portfolio/read.js";
 import { DEFAULT_RATE_OPTIONS, rateView, type RateOptions, type Window } from "../yield/model.js";
 import { rd, windowSamples, type Ev } from "../yield/sources.js";
-import { ADAPTERS, NotPreparable, buildPlan, verifyActionPlan, type ActionPlan, type ActionTx, type PlanLeg, type ProtocolId, type Venue } from "./adapters.js";
+import { ADAPTERS, NotPreparable, buildPlan, redeemShares, verifyActionPlan, type ActionPlan, type ActionTx, type PlanLeg, type ProtocolId, type Venue } from "./adapters.js";
 import { routeDeposit, routeWithdraw, type Down, type Route, type RouteParams, type VenueView } from "./route.js";
 
 // One analysis: read every venue of every protocol at ONE block, each behind its own guard, then answer the request. A venue that
@@ -91,14 +91,14 @@ export async function aggregate(o: AggregateOptions): Promise<Report> {
   const simulated = new Set(o.down ?? []);
   const dec = 10 ** o.assetDecimals;
 
-  // a deposit probes every venue with 1 USDC (does it take deposits at all, at what fee); how MUCH each can take is routed separately,
-  // from maxDeposit, so a venue with a small limit stays in the running and takes its share
   const probe = BigInt(dec);
-  // a withdrawal is sized by what is asked (a Morpho market's idle liquidity only has to cover that, not the whole position)
+  // a deposit or a withdrawal probes every venue with a small amount (does it take it at all, at what fee); how MUCH each can take
+  // out or in is routed separately, from maxDeposit / the position / a Morpho market's idle liquidity, so a venue with a limit stays in
+  // the running and takes its share. Queries are sized with the reference amount.
   const sizeFor = (h: { assets: bigint } | null): bigint => {
     if (o.request.kind === "deposit") return o.request.assets < probe ? o.request.assets : probe;
-    if (!h) return reference;
-    return o.request.kind === "withdraw" && o.request.assets !== "all" && o.request.assets < h.assets ? o.request.assets : h.assets;
+    if (o.request.kind === "withdraw") return h ? (h.assets < probe ? h.assets : probe) : probe;
+    return h ? h.assets : reference;
   };
 
   const views: VenueView[] = [];
@@ -108,7 +108,7 @@ export async function aggregate(o: AggregateOptions): Promise<Report> {
     try {
       if (simulated.has(v.protocol) || simulated.has(v.id)) throw new SimulatedOutage(simulated.has(v.id) ? `outage drill (--down ${v.id}): this venue was not contacted` : `outage drill (--down ${v.protocol}): ${v.protocolName} was not contacted`);
       const h = await guarded(a.holding(o.call, v, o.wallet, head.block, head.timestamp), timeoutMs, `${v.name} balance`);
-      const r = await guarded(a.read(v, { call: o.call, wallet: o.wallet, head: { block: head.block, timestamp: head.timestamp }, samples, amount: sizeFor(h), heldShares: h?.shares, assetDecimals: o.assetDecimals, usdc: o.usdc, amountNote: o.request.kind === "deposit" ? " probe deposit" : undefined }), timeoutMs, v.name);
+      const r = await guarded(a.read(v, { call: o.call, wallet: o.wallet, head: { block: head.block, timestamp: head.timestamp }, samples, amount: sizeFor(h), heldShares: h?.shares, assetDecimals: o.assetDecimals, usdc: o.usdc, amountNote: o.request.kind === "deposit" ? " probe deposit" : o.request.kind === "withdraw" ? " probe withdrawal" : undefined }), timeoutMs, v.name);
       views.push({ venue: v, reading: r, rate: rateView(r.windows, rateOpts), holding: h && h.assets > 0n ? h : null });
       evidence.push(...r.evidence);
     } catch (e) {
@@ -157,8 +157,10 @@ export async function aggregate(o: AggregateOptions): Promise<Report> {
           else assets = al.all ? view.holding!.assets : BigInt(Math.round(al.usd * dec));
           if (req.kind === "withdraw" && req.assets !== "all" && n === route.allocations.length - 1 && route.unplacedUsd < 1e-9) assets = req.assets - placed;
           placed += assets;
-          const input = { call: o.call, chainId: o.chainId, wallet: o.wallet, usdc: o.usdc, venue: view.venue, assets, all: al.all && req.kind === "withdraw", holding: view.holding ?? undefined, block: head.block, estimate };
-          legs.push({ venue: view.venue.id, name: view.venue.name, contract: view.venue.source.contract, protocol: view.venue.protocol, assets: assets.toString(), all: input.all });
+          const whole = req.kind === "withdraw" && (al.all || assets >= view.holding!.assets);
+          const input = { call: o.call, chainId: o.chainId, wallet: o.wallet, usdc: o.usdc, venue: view.venue, assets, all: whole, holding: view.holding ?? undefined, block: head.block, estimate };
+          const shares = req.kind === "withdraw" ? (view.venue.protocol === "morpho" ? (whole ? view.holding!.shares : 0n) : redeemShares(assets, view.holding!, whole)) : undefined;
+          legs.push({ venue: view.venue.id, name: view.venue.name, contract: view.venue.source.contract, protocol: view.venue.protocol, assets: assets.toString(), all: whole, ...(shares !== undefined ? { shares: shares.toString() } : {}), ...(view.venue.protocol === "morpho" ? { market: view.venue.source.marketId } : {}) });
           txs.push(...(await (req.kind === "deposit" ? a.prepareDeposit(input) : a.prepareWithdraw(input))));
         }
         plan = buildPlan(req.kind, o.chainId, o.wallet, legs, txs);

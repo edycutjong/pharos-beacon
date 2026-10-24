@@ -1,4 +1,4 @@
-import { decodeFunctionData, encodeFunctionData, getAddress, keccak256, toHex, type Hex } from "viem";
+import { decodeFunctionData, encodeAbiParameters, encodeFunctionData, getAddress, keccak256, toHex, type Hex } from "viem";
 import { MORPHO_BLUE, readMarketParams } from "../liq/morpho.js";
 import type { Call } from "../portfolio/read.js";
 import { DEFAULT_GAS, erc20, erc4626, morpho } from "../yield/plan.js";
@@ -18,6 +18,8 @@ export interface Venue {
   protocolName: string;
   name: string;
   source: Source;
+  /** Set when no one-transaction deposit or withdrawal exists for this venue: the router then never allocates to it. */
+  actionBlocker?: string;
 }
 
 export interface ActionTx {
@@ -54,6 +56,8 @@ export interface PrepareInput {
 export interface Adapter {
   protocol: ProtocolId;
   protocolName: string;
+  /** Why this protocol cannot be acted on in one transaction (it can still be read and compared). */
+  actionBlocker?: string;
   holding(call: Call, v: Venue, wallet: Hex, block: bigint, timestamp: bigint): Promise<Holding | null>;
   read(v: Venue, ctx: ReadCtx): Promise<Reading>;
   prepareDeposit(i: PrepareInput): Promise<ActionTx[]>;
@@ -71,6 +75,9 @@ const tx = (i: PrepareInput, step: number, action: ActionTx["action"], descripti
 
 const base = { holding: (call: Call, v: Venue, wallet: Hex, block: bigint, timestamp: bigint) => holdingOf(call, v.source, wallet, block, timestamp), read: (v: Venue, ctx: ReadCtx) => readSource(v.source, ctx) };
 
+/** The shares a withdrawal of `assets` redeems: all of them for the whole position, else the shares worth the amount, rounded UP so at least the amount comes out. */
+export const redeemShares = (assets: bigint, h: Holding, all?: boolean): bigint => (all || assets >= h.assets ? h.shares : (assets * h.shares + h.assets - 1n) / h.assets);
+
 /** ERC-4626 vaults (RockawayX, and our own test vaults): `deposit(assets, receiver)` and `redeem(shares, receiver, owner)`. */
 const vault = (protocol: ProtocolId, protocolName: string): Adapter => ({
   protocol,
@@ -86,8 +93,7 @@ const vault = (protocol: ProtocolId, protocolName: string): Adapter => ({
   },
   async prepareWithdraw(i) {
     const h = i.holding!;
-    // a partial withdrawal redeems the shares worth the amount, rounded UP so at least the amount comes out
-    const shares = i.all || i.assets >= h.assets ? h.shares : (i.assets * h.shares + h.assets - 1n) / h.assets;
+    const shares = redeemShares(i.assets, h, i.all);
     const data = encodeFunctionData({ abi: erc4626, functionName: "redeem", args: [shares, i.wallet, i.wallet] });
     return [tx(i, 1, "withdraw", `Redeem ${shares} shares of ${i.venue.name} (about ${i.all ? h.assets : i.assets} USDC raw)`, i.venue.source.contract, data, await i.estimate({ from: i.wallet, to: i.venue.source.contract, data }), DEFAULT_GAS.exit)];
   },
@@ -120,6 +126,7 @@ const morphoAdapter: Adapter = {
 const centrifuge: Adapter = {
   protocol: "centrifuge",
   protocolName: "Centrifuge",
+  actionBlocker: "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
   ...base,
   async prepareDeposit(i) {
     throw new NotPreparable(`${i.venue.name} is an asynchronous (ERC-7540) vault: a deposit is a request settled in a later epoch for approved investors, so no one-shot deposit can be prepared`);
@@ -146,7 +153,7 @@ export function protocolOf(s: Source): ProtocolId {
 export const venuesFromSources = (sources: Source[]): Venue[] =>
   sources.map((s) => {
     const a = ADAPTERS[protocolOf(s)];
-    return { id: s.key, protocol: a.protocol, protocolName: a.protocolName, name: s.name, source: s };
+    return { id: s.key, protocol: a.protocol, protocolName: a.protocolName, name: s.name, source: s, ...(a.actionBlocker ? { actionBlocker: a.actionBlocker } : {}) };
   });
 
 // ---------------------------------------------------------------- a plan, and what a wallet checks before signing it
@@ -160,6 +167,10 @@ export interface PlanLeg {
   assets: string;
   /** A withdrawal of the whole position. */
   all: boolean;
+  /** Withdrawals: the shares the transaction redeems (the whole position's, or the shares worth the amount). */
+  shares?: string;
+  /** Morpho: the market id the transaction must name. */
+  market?: Hex;
 }
 
 export interface ActionPlan {
@@ -192,10 +203,13 @@ export function buildPlan(request: ActionPlan["request"], chainId: number, walle
   };
 }
 
+const marketId = (p: { loanToken: Hex; collateralToken: Hex; oracle: Hex; irm: Hex; lltv: bigint }): Hex =>
+  keccak256(encodeAbiParameters([{ type: "address" }, { type: "address" }, { type: "address" }, { type: "address" }, { type: "uint256" }], [p.loanToken, p.collateralToken, p.oracle, p.irm, p.lltv]));
+
 /**
  * What a wallet checks before it signs: it decodes the calldata itself (a description or a fingerprint proves nothing, anyone who
- * edits a plan can recompute both). Money may only move from the owner, into a venue listed in the plan, for the amounts the legs
- * name, and withdrawals may only pay the owner. Returns the problems found.
+ * edits a plan can recompute both). Money may only move from the owner, into the venue and market a leg names, for the amount (or
+ * shares) the leg names, once; withdrawals may only pay the owner. Returns the problems found.
  */
 export function verifyActionPlan(plan: ActionPlan, usdc: Hex): string[] {
   const bad: string[] = [];
@@ -203,7 +217,11 @@ export function verifyActionPlan(plan: ActionPlan, usdc: Hex): string[] {
   const same = (a: unknown, b: string) => String(a).toLowerCase() === b.toLowerCase();
   if (planFingerprint(plan.transactions) !== plan.planId) bad.push("the fingerprint does not match the transactions");
   const want = new Map(plan.legs.map((l) => [l.venue, l]));
-  const seen = new Map<string, { approved: bigint; moved: bigint }>();
+  if (want.size !== plan.legs.length) bad.push("two legs name the same venue");
+  const seen = new Map<string, { approves: number; moves: number }>();
+  const market = (leg: PlanLeg, args: readonly unknown[], step: number) => {
+    if (leg.market && !same(marketId(args[0] as never), leg.market)) bad.push(`step ${step}: names a different Morpho market than the leg's ${leg.market}`);
+  };
   for (const t of plan.transactions) {
     const leg = want.get(t.venue);
     if (!leg) {
@@ -213,28 +231,29 @@ export function verifyActionPlan(plan: ActionPlan, usdc: Hex): string[] {
     if (!same(t.request.from, me)) bad.push(`step ${t.step}: sent from ${t.request.from}, not the owner ${plan.wallet}`);
     if (t.request.value !== "0x0") bad.push(`step ${t.step}: carries value ${t.request.value}`);
     if (t.request.chainId !== toHex(plan.chainId)) bad.push(`step ${t.step}: chain id ${t.request.chainId}`);
-    const acc = seen.get(t.venue) ?? { approved: 0n, moved: 0n };
+    const acc = seen.get(t.venue) ?? { approves: 0, moves: 0 };
     seen.set(t.venue, acc);
     const target = leg.protocol === "morpho" ? MORPHO_BLUE : leg.contract;
     try {
       if (t.action === "approve") {
+        acc.approves++;
         const d = decodeFunctionData({ abi: erc20, data: t.request.data });
         if (d.functionName !== "approve" || !same(t.request.to, usdc)) bad.push(`step ${t.step}: an approval must be a USDC approve()`);
         else {
           if (!same(d.args![0], target)) bad.push(`step ${t.step}: approves ${d.args![0]}, not the venue ${target}`);
-          acc.approved = d.args![1] as bigint;
           if (String(d.args![1]) !== leg.assets) bad.push(`step ${t.step}: approves ${d.args![1]}, the leg is ${leg.assets}`);
         }
       } else if (t.action === "deposit") {
+        acc.moves++;
         if (plan.request !== "deposit") bad.push(`step ${t.step}: a deposit inside a ${plan.request} plan`);
         if (!same(t.request.to, target)) bad.push(`step ${t.step}: goes to ${t.request.to}, not ${leg.name} (${target})`);
         if (leg.protocol === "morpho") {
           const d = decodeFunctionData({ abi: morpho, data: t.request.data });
           if (d.functionName !== "supply") bad.push(`step ${t.step}: calls ${d.functionName}, not supply`);
           else {
+            market(leg, d.args!, t.step);
             if (!same(d.args![3], me)) bad.push(`step ${t.step}: supplies on behalf of someone other than the owner`);
-            if (String(d.args![1]) !== leg.assets) bad.push(`step ${t.step}: supplies ${d.args![1]}, the leg is ${leg.assets}`);
-            acc.moved = d.args![1] as bigint;
+            if (String(d.args![1]) !== leg.assets || String(d.args![2]) !== "0") bad.push(`step ${t.step}: supplies ${d.args![1]} assets / ${d.args![2]} shares, the leg is ${leg.assets} assets`);
           }
         } else {
           const d = decodeFunctionData({ abi: erc4626, data: t.request.data });
@@ -242,31 +261,38 @@ export function verifyActionPlan(plan: ActionPlan, usdc: Hex): string[] {
           else {
             if (!same(d.args![1], me)) bad.push(`step ${t.step}: deposits for someone other than the owner`);
             if (String(d.args![0]) !== leg.assets) bad.push(`step ${t.step}: deposits ${d.args![0]}, the leg is ${leg.assets}`);
-            acc.moved = d.args![0] as bigint;
           }
         }
       } else {
+        acc.moves++;
         if (plan.request !== "withdraw") bad.push(`step ${t.step}: a withdrawal inside a ${plan.request} plan`);
         if (!same(t.request.to, target)) bad.push(`step ${t.step}: goes to ${t.request.to}, not ${leg.name} (${target})`);
         if (leg.protocol === "morpho") {
           const d = decodeFunctionData({ abi: morpho, data: t.request.data });
           if (d.functionName !== "withdraw") bad.push(`step ${t.step}: calls ${d.functionName}, not withdraw`);
-          else if (!same(d.args![3], me) || !same(d.args![4], me)) bad.push(`step ${t.step}: withdraws to or on behalf of someone other than the owner`);
+          else {
+            market(leg, d.args!, t.step);
+            if (!same(d.args![3], me) || !same(d.args![4], me)) bad.push(`step ${t.step}: withdraws to or on behalf of someone other than the owner`);
+            // the whole position leaves by shares (no dust), a part by assets
+            const [assets, shares] = [String(d.args![1]), String(d.args![2])];
+            if (leg.all ? assets !== "0" || shares !== leg.shares : assets !== leg.assets || shares !== "0") bad.push(`step ${t.step}: withdraws ${assets} assets / ${shares} shares, the leg is ${leg.all ? `all (${leg.shares} shares)` : `${leg.assets} assets`}`);
+          }
         } else {
           const d = decodeFunctionData({ abi: erc4626, data: t.request.data });
           if (d.functionName !== "redeem") bad.push(`step ${t.step}: calls ${d.functionName}, not redeem`);
-          else if (!same(d.args![1], me) || !same(d.args![2], me)) bad.push(`step ${t.step}: redeems to or from someone other than the owner`);
+          else {
+            if (!same(d.args![1], me) || !same(d.args![2], me)) bad.push(`step ${t.step}: redeems to or from someone other than the owner`);
+            if (String(d.args![0]) !== leg.shares) bad.push(`step ${t.step}: redeems ${d.args![0]} shares, the leg is ${leg.shares}`);
+          }
         }
       }
     } catch (e) {
       bad.push(`step ${t.step}: calldata is not what a ${t.action} uses (${((e as Error).message ?? "").split("\n")[0]})`);
     }
   }
-  if (plan.request === "deposit") {
-    for (const l of plan.legs) {
-      const s = seen.get(l.venue);
-      if (!s || s.approved !== BigInt(l.assets) || s.moved !== BigInt(l.assets)) bad.push(`leg ${l.name}: needs one approve and one deposit of ${l.assets}`);
-    }
-  } else if (plan.transactions.length !== plan.legs.length) bad.push("a withdrawal plan is one transaction per leg");
+  for (const l of plan.legs) {
+    const s = seen.get(l.venue);
+    if (plan.request === "deposit" ? !s || s.approves !== 1 || s.moves !== 1 : !s || s.approves !== 0 || s.moves !== 1) bad.push(`leg ${l.name}: ${plan.request === "deposit" ? "needs exactly one approve and one deposit" : "needs exactly one withdrawal"}`);
+  }
   return bad;
 }

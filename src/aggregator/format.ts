@@ -16,7 +16,7 @@ export function renderReport(r: Report, dec = 6): string[] {
   L.push(`${chain}, block ${r.block} (${r.secondsPerBlock.toFixed(3)} s/block) · wallet ${r.wallet}`);
   const req = r.request;
   const ask = req.kind === "deposit" ? `deposit ${amount(req.assets, dec)} USDC` : req.kind === "withdraw" ? `withdraw ${req.assets === "all" ? "everything" : `${amount(req.assets, dec)} USDC`}` : req.kind;
-  L.push(`Request: ${ask} · horizon ${r.holdDays} d · rates are share-price growth over ${labels.join(" / ")}, annualised (APR, simple), median of the windows, "conservative" = median − ${r.haircut} × spread · gas ${r.gas.priceWei} wei × ${r.gas.nativeUsd.toFixed(6)} USD per native token (${r.gas.nativeBasis})`);
+  L.push(`Request: ${ask} · horizon ${r.holdDays} d · rates are share-price growth over ${labels.join(" / ")}, annualised (APR, simple), median of the windows, "conservative" = median − ${r.haircut} × spread (a deposit is credited with it), "optimistic" = median + ${r.haircut} × spread (the yield a withdrawal gives up) · gas ${r.gas.priceWei} wei × ${r.gas.nativeUsd.toFixed(6)} USD per native token (${r.gas.nativeBasis})`);
   L.push("");
 
   // ---- protocols: who answered
@@ -43,13 +43,21 @@ export function renderReport(r: Report, dec = 6): string[] {
     L.push(`  ${pad(x.venue.name, w)}${cols.join("")}${padL(pct(x.rate.ref), 9)}${padL(pct(x.rate.pessimistic), 14)}  ${flags}`);
   }
   for (const d of r.down) L.push(`  ${pad(d.venue.name, w)} ${d.simulated ? "SIMULATED OUTAGE" : "UNAVAILABLE"}: ${d.reason}`);
+  const kind = r.request.kind;
   for (const x of r.views) {
     const e = x.reading.entry;
     const t = x.reading.exit;
-    L.push(`  ${x.venue.name}: entry ${e.blockers.length ? `BLOCKED (${e.blockers.join("; ")})` : `open, fee ${e.feeBps ?? "n/a"} bps`} · exit ${x.holding ? (t.blockers.length ? `BLOCKED (${t.blockers.join("; ")})` : `open, fee ${t.feeBps ?? "n/a"} bps`) : "n/a (no position)"}`);
+    const entry = e.blockers.length ? `BLOCKED (${e.blockers.join("; ")})` : `open, fee ${e.feeBps ?? "n/a"} bps`;
+    const exit = x.holding ? (t.blockers.length ? `BLOCKED (${t.blockers.join("; ")})` : `open, fee ${t.feeBps ?? "n/a"} bps`) : "n/a (no position)";
+    L.push(`  ${x.venue.name}: ${kind === "withdraw" ? `exit ${exit}` : kind === "deposit" ? `entry ${entry}` : `entry ${entry} · exit ${exit}`}`);
   }
   if (r.skipped.length) L.push(`  (left out: ${r.skipped.join("; ")})`);
   L.push("");
+
+  if (kind === "rates") {
+    const open = ranked.filter((x) => x.reading.entry.blockers.length === 0 && !x.venue.actionBlocker && x.rate.pessimistic !== null);
+    L.push(open.length ? `Best conservative rate among venues that can take a deposit: ${open[0]!.venue.name} at ${pct(open[0]!.rate.pessimistic)}; the highest rate overall: ${ranked[0]!.venue.name} at ${pct(ranked[0]!.rate.pessimistic)}${ranked[0]!.reading.entry.blockers.length ? " (cannot take a deposit today)" : ""}.` : "No venue can take a deposit today.");
+  }
 
   // ---- positions
   const held = r.views.filter((x) => x.holding);
