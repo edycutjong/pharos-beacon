@@ -1,0 +1,16 @@
+block 21132748 (0.913 s/block): looking for Morpho Blue borrowers in blocks 18293911…21132748 (30 days)
+  discovery 100% (17 of 17 blocks)
+discovery: 17 new blocks scanned (earlier ranges reused from the index); borrowers ever seen per market: 0xc79579a0…: 4, 0xd834016e…: 2, 0xab78d4ff…: 3, 0xba0d2638…: 3, 0x95bc6fe9…: 1, 0x4cbedaf6…: 1
+block 21132748: 13 open positions across 5 market(s)
+# | market | account | health | drop to liquidation | debt | collateral | level
+1 | syzUSD/USDC | 0xA4A5…3DCc | 1.0134 | 1.32% | 1,523,810.62 USDC | 1,547,470.90 syzUSD | critical
+2 | syzUSD/USDC | 0x743D…2A73 | 1.0201 | 1.97% | 22,010.37 USDC | 22,500.00 syzUSD | critical
+3 | syzUSD/USDC | 0xE6a4…fe7C | 1.0333 | 3.22% | 1,343,763.03 USDC | 1,391,416.26 syzUSD | warn
+4 | APT/USDC | 0x966B…B257 | 1.0351 | 3.39% | 70,039.09 USDC | 83,676.46 APT | warn
+5 | syzUSD/USDC | 0xF8B4…B127 | 1.0569 | 5.38% | 130,011.11 USDC | 137,702.12 syzUSD | warn
+[2026-10-24T15:59:10.174Z] CRITICAL Morpho syzUSD/USDC 0xA4A5…3DCc: health factor 1.0134 (debt 1,523,810.62 USDC, collateral 1,547,470.90 syzUSD). Liquidated if syzUSD falls 1.32% further. Act now: repay 67,028.50 USDC or add 71,201.21 syzUSD collateral to get back to 1.06.
+[2026-10-24T15:59:10.175Z] CRITICAL Morpho syzUSD/USDC 0x743D…2A73: health factor 1.0201 (debt 22,010.37 USDC, collateral 22,500.00 syzUSD). Liquidated if syzUSD falls 1.97% further. Act now: repay 828.97 USDC or add 880.58 syzUSD collateral to get back to 1.06.
+[2026-10-24T15:59:10.175Z] WARN Morpho syzUSD/USDC 0xE6a4…fe7C: health factor 1.0333 (debt 1,343,763.03 USDC, collateral 1,391,416.26 syzUSD). Liquidated if syzUSD falls 3.22% further. Act now: repay 33,890.04 USDC or add 35,999.79 syzUSD collateral to get back to 1.06.
+[2026-10-24T15:59:10.175Z] WARN Morpho APT/USDC 0x966B…B257: health factor 1.0351 (debt 70,039.09 USDC, collateral 83,676.46 APT). Liquidated if APT falls 3.39% further. Act now: repay 1,646.09 USDC or add 2,013.93 APT collateral to get back to 1.06.
+[2026-10-24T15:59:10.175Z] WARN Morpho syzUSD/USDC 0xF8B4…B127: health factor 1.0569 (debt 130,011.11 USDC, collateral 137,702.12 syzUSD). Liquidated if syzUSD falls 5.38% further. Act now: repay 378.96 USDC or add 402.55 syzUSD collateral to get back to 1.06.
+proof: tasks/liquidation-watchdog/proof/mainnet-thresholds.json
