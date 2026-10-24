@@ -1,0 +1,29 @@
+Pharos Atlantic testnet (chain 688689), block 31834740 (2.156 s/block) · wallet 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+Holds: Atlantic Steady worth 3.000012 USDC
+Rules: hold at least 3.0 d after a move · net gain at least $0.001000 · destination credited its median rate minus 0.5 × the spread of its windows (the held position: plus) · windows 10m / 30m / 1h · gas 10000000000 wei × native price 0.637424 USD (stand-in: Atlantic PHRS has no market, so the MAINNET PROS price is used (WPROS/USDC pool slot0 at mainnet block 21147566))
+
+Yield sources, measured as share-price growth over each window, annualised (APR, simple):
+  source                 10m      30m       1h   median  conservative  notes
+  Atlantic Spike      30.00%   16.30%      n/a   23.15%        16.30%  JUMPY (spread 13.70%: ranked down) · TVL 0
+  Atlantic Lockup     11.00%   11.00%      n/a   11.00%        11.00%  TVL 0
+  Atlantic Growth      9.00%    9.00%      n/a    9.00%         9.00%  TVL 0
+  Atlantic Steady      4.00%    4.00%      n/a    4.00%         4.00%  HELD · TVL 3.000012
+  (Atlantic Steady, 1h: not readable at block 31833070: 0x43C698f3901F5E727305A52635427a2699a8C70F answered convertToAssets with no data)
+  (Atlantic Growth, 1h: not readable at block 31833070: 0x17Bd4943BD17cBAFfA6E6ec9cBE72340b314062A answered convertToAssets with no data)
+  (Atlantic Lockup, 1h: not readable at block 31833070: 0xf214616884cbF73F37d20468A98C95F22D701d08 answered convertToAssets with no data)
+  (Atlantic Spike, 1h: not readable at block 31833070: 0x31737242239F289b6CD5a4E53A71822f864315EC answered convertToAssets with no data)
+
+Entry / exit, read from the contracts:
+  exit Atlantic Steady: exit fee = 1 − previewRedeem(shares) / convertToAssets(shares) = 0 bps; a simulated redeem(all shares) from the wallet succeeds and returns 3000012 USDC raw → open
+  entry Atlantic Growth: entry fee = 1 − previewDeposit(3000012) / convertToShares(3000012) = 10 bps → no blocker found (read-only check: the deposit itself is only simulated once the wallet has approved it)
+  entry Atlantic Lockup: entry fee = 1 − previewDeposit(3000012) / convertToShares(3000012) = 50 bps; lock-in 7.0 d → no blocker found (read-only check: the deposit itself is only simulated once the wallet has approved it)
+  entry Atlantic Spike: entry fee = 1 − previewDeposit(3000012) / convertToShares(3000012) = 0 bps → no blocker found (read-only check: the deposit itself is only simulated once the wallet has approved it)
+
+Moving $3.00 out of Atlantic Steady (credited at its optimistic 4.00%; destinations at their conservative rate):
+  → Atlantic Growth: 5.00% better · over 3.0 d: gross $0.001233 − costs $0.005997 (gas $0.002997 [470100 units: exit:estimated, approve:estimated, enter:configured], exit fee $0.000000, entry fee $0.003000) = net -$0.004764 at conservative rates, -$0.004764 at median rates · break-even 15 d · not worth it
+  → Atlantic Lockup: 7.00% better · over 7.0 d: gross $0.004027 − costs $0.0180 (gas $0.002997 [470100 units: exit:estimated, approve:estimated, enter:configured], exit fee $0.000000, entry fee $0.0150) = net -$0.0140 at conservative rates, -$0.0140 at median rates · break-even 31 d · not worth it
+      note: Atlantic Lockup locks deposits for 7.0 d, longer than the 3.0 d holding period: the horizon is extended to the lock-in
+  → Atlantic Spike: 12.30% better · over 3.0 d: gross $0.003032 − costs $0.002997 (gas $0.002997 [470100 units: exit:estimated, approve:estimated, enter:configured], exit fee $0.000000, entry fee $0.000000) = net $0.000036 at conservative rates, $0.001725 at median rates · break-even 3.0 d · not worth it
+
+RECOMMENDATION: STAY PUT: the best alternative that could be entered, Atlantic Spike, would net $0.000036 at conservative rates ($0.001725 at median rates) over 3.0 d after $0.002997 of costs, earned back only in 3.0 d; a move must net at least $0.001000 and pay back within the 3.0 d holding period
+no transactions prepared: the recommendation is to stay put.
