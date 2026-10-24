@@ -1,0 +1,57 @@
+Pharos mainnet (chain 1672), block 21146194 (0.912 s/block) · wallets: 0x000000000000000000000000000000000000dEaD
+
+Q: What do I hold?
+A: Wallet 0x000000000000000000000000000000000000dEaD at block 21146194:
+A: Wallet: 0.000120 PROS [F2]
+A: Wallet: 0.001148 WPROS [F3]
+A: Wallet: 0.000904 USDC [F4]
+A: RockawayX vault roxUSDC: 1.0000 roxUSDC = 1.01 USDC [F7, F8]
+A: Morpho Blue syzUSD/USDC: collateral 0.0000 syzUSD, debt 0.00 USDC, supplied 0.001009 USDC [F13, F14, F12]
+A: Morpho Blue APT/USDC: collateral 0.0000 APT, debt 0.00 USDC, supplied 1.00 USDC [F17, F18, F16]
+A: Morpho Blue APC3M/USDC: collateral 0.0000 APC3M, debt 0.00 USDC, supplied 1.00 USDC [F21, F22, F20]
+sources:
+  id | figure | contract | call | block
+  F2 | PROS in wallet | native balance | get_balance | block 21146194
+  F3 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21146194
+  F4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21146194
+  F7 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21146194
+  F8 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21146194
+  F12 | syzUSD/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+  F13 | syzUSD/USDC collateral (syzUSD) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21146194
+  F14 | syzUSD/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21146194
+  F16 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+  F17 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21146194
+  F18 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21146194
+  F20 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+  F21 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21146194
+  F22 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21146194
+
+Q: Where is my USDC?
+A: Wallet 0x000000000000000000000000000000000000dEaD at block 21146194:
+A: USDC: 0.000904 USDC in wallet [F4]
+A: USDC: 1.01 USDC in roxUSDC vault (RockawayX vault) [F8]
+A: USDC: 0.001009 USDC supplied in Morpho Blue syzUSD/USDC [F12]
+A: USDC: 1.00 USDC supplied in Morpho Blue APT/USDC [F16]
+A: USDC: 1.00 USDC supplied in Morpho Blue APC3M/USDC [F20]
+sources:
+  id | figure | contract | call | block
+  F4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21146194
+  F8 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21146194
+  F12 | syzUSD/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+  F16 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+  F20 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+
+Q: What am I earning?
+A: Wallet 0x000000000000000000000000000000000000dEaD at block 21146194:
+A: roxUSDC (RockawayX vault): 1 share grew 0.084% over 7.3 days (1.006428 USDC → 1.007275 USDC) [F24, F9]; 4.32% APY annualised [F24, F9]; on $1.01 [F8] that is about $0.04 a year [F8, F24, F9]
+A: Morpho Blue syzUSD/USDC: supplied 0.001009 USDC [F12]; I did not compute its supply APY (only the position was read).
+A: Morpho Blue APT/USDC: supplied 1.00 USDC [F16]; I did not compute its supply APY (only the position was read).
+A: Morpho Blue APC3M/USDC: supplied 1.00 USDC [F20]; I did not compute its supply APY (only the position was read).
+sources:
+  id | figure | contract | call | block
+  F8 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21146194
+  F9 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21146194
+  F12 | syzUSD/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+  F16 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+  F20 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194
+  F24 | roxUSDC price of 1 share in USDC (earlier) | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 20482680
