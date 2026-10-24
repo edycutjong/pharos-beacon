@@ -93,6 +93,17 @@ describe("time → block", () => {
     expect(await blockAtOrAfter(call, T0 - 50, 400n)).toBe(0n);
     expect(await blockAtOrAfter(call, T0 + 9999, 400n)).toBe(401n);
   });
+  it("finds the exact block on a 21-million-block chain with uneven block times in few calls", async () => {
+    const stamp = (n: number) => T0 + Math.floor(n * 0.91) + (n % 7 === 0 ? 1 : 0) + (n > 15_000_000 ? Math.floor((n - 15_000_000) * 0.1) : 0);
+    let calls = 0;
+    const big = (async (_t: string, a: any) => (calls++, { timestamp: `0x${stamp(a.block === "latest" ? 21_000_000 : Number(a.block)).toString(16)}` })) as any;
+    const target = stamp(12_345_678) - 0.5;
+    const got = Number(await blockAtOrAfter(big, target, 21_000_000n));
+    expect(stamp(got)).toBeGreaterThanOrEqual(target);
+    expect(got === 0 || stamp(got - 1) < target).toBe(true);
+    expect(calls).toBeLessThan(16);
+    console.info(`interpolation search: ${calls} get_block calls`);
+  });
   it("a period [from, to) becomes an inclusive block range", async () => {
     expect(await rangeForTimes(call, T0 + 100, T0 + 200, 400n)).toMatchObject({ fromBlock: 100n, toBlock: 199n });
   });
