@@ -10,15 +10,15 @@
     },
     "command": "tasks/arbitrage-scanner/index.ts scan --network atlantic --min-profit 0.05 --proof atlantic-threshold-skip",
     "git": {
-      "commit": "aa9e1edebfd2",
+      "commit": "cb5174687357",
       "dirty": false
     },
-    "createdAt": "2026-10-24T14:53:53.587Z"
+    "createdAt": "2026-10-24T14:54:15.227Z"
   },
   "scan": {
-    "at": "2026-10-24T14:53:57.961Z",
+    "at": "2026-10-24T14:54:20.330Z",
     "network": "atlantic",
-    "block": "31826818",
+    "block": "31826829",
     "market": {
       "base": "WPHRS",
       "quote": "USDC"
@@ -180,6 +180,6 @@
       "net": "0.029566"
     },
     "decision": "SKIP",
-    "reason": "best round trip arb-pool 0x4c61…a271 → arb-pool 0xe909…b4cd starting with 2.000000 USDC: gross +230.8 bps (0.046154 USDC), costs 0.016588 USDC (fees 0.012120 USDC + impact 0.000140 USDC + slippage buffer 0.002000 USDC + gas 0.002328 USDC) → net 0.029566 USDC < the 0.050000 USDC threshold: the spread does not survive its costs"
+    "reason": "best round trip arb-pool 0x4c61…a271 → arb-pool 0xe909…b4cd starting with 2.000000 USDC: gross +230.8 bps (0.046154 USDC), costs 0.016588 USDC (fees 0.012120 USDC + impact 0.000140 USDC + slippage buffer 0.002000 USDC + gas 0.002328 USDC) → net 0.029566 USDC < the 0.050000 USDC threshold: the spread survives its costs, but the profit is under the threshold"
   }
 }
