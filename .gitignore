@@ -11,3 +11,5 @@ coverage/
 .vitest/
 .vercel
 tasks/x402-agent-buyer/state/
+.digest-state/
+.digest-out/
