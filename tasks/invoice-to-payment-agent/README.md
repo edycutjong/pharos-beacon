@@ -22,7 +22,7 @@ Extra (U1): a **duplicate-invoice guard**. Each invoice gets a fingerprint (invo
 | 1 | "Extracts payee, amount, token or currency, and reference from at least 2 invoice formats." | Three formats: JSON, text, PDF; each prints number, issuer, payee, amount, currency | [`prepared-json.log`](proof/prepared-json.log) (JSON), [`prepared-text.log`](proof/prepared-text.log) (text), [`prepared-pdf.log`](proof/prepared-pdf.log) (PDF, from [`faktur-bumi.pdf`](samples/faktur-bumi.pdf)) |
 | 2 | "Flags mismatches or missing fields instead of guessing." | `FLAGGED` with one line per problem, nothing prepared | [`flagged-totals.log`](proof/flagged-totals.log), [`flagged-no-reference.log`](proof/flagged-no-reference.log), [`flagged-usd.log`](proof/flagged-usd.log), [`flagged-line-items.log`](proof/flagged-line-items.log), [`refused-payee-checksum.log`](proof/refused-payee-checksum.log) |
 | 3 | "Produces a payment summary and an unsigned transaction that includes the invoice reference." | `Send … / reference <number>` summary, then the unsigned transaction whose `data` carries the reference | `unsignedTx.data` in [`prepared-json.json`](proof/prepared-json.json); on chain in every `sent-*` tx input |
-| 4 | "Includes a demo with sample invoices." | Five valid-or-flagged samples in [`samples/`](samples/) and the proofs above, three of them paid live | the live table below |
+| 4 | "Includes a demo with sample invoices." | Eight sample files (three valid invoices, one of them also as a PDF, and five that must be flagged or refused) in [`samples/`](samples/) and the proofs above, three of them paid live | the live table below |
 
 ## Output (pasted from `proof/sent-text.log`)
 
