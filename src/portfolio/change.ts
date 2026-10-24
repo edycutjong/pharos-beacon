@@ -23,6 +23,8 @@ export interface ChangeRow {
   note?: string;
   /** Morpho rows: the "moves" part includes interest accrued on the debt, so it is worded differently. */
   morpho?: boolean;
+  /** Morpho rows where collateral and supply did not move: the change is the debt alone (interest accrued, or a borrow/repay). */
+  debtOnly?: boolean;
 }
 
 export interface Diff { rows: ChangeRow[]; before: Snapshot; after: Snapshot }
@@ -62,6 +64,7 @@ export function diffSnapshots(a: Snapshot, b: Snapshot): Diff {
       const ma = pa as Extract<Position, { kind: "morpho" }> | undefined;
       const mb = pb as Extract<Position, { kind: "morpho" }> | undefined;
       row.morpho = true;
+      row.debtOnly = !!ma && !!mb && ma.collateral.raw === mb.collateral.raw && ma.supplied.raw === mb.supplied.raw;
       row.extra = [ma?.debt, mb?.debt, ma?.supplied, mb?.supplied].filter((f): f is Fact => !!f);
       if (ref.usdPegged) {
         row.usdBefore = ma?.netUsd ?? 0;
@@ -79,10 +82,11 @@ export function diffSnapshots(a: Snapshot, b: Snapshot): Diff {
       if (pA !== null && pB !== null) {
         const amtA = pa ? num(mainAmount(pa)) : 0;
         const amtB = pb ? num(mainAmount(pb)) : 0;
-        row.usdBefore = amtA * pA;
-        row.usdAfter = amtB * pB;
+        // the same USD figure the "hold" answer shows (a vault's is the convertToAssets read), so both answers agree to the cent
+        row.usdBefore = pa && (pa.kind === "token" || pa.kind === "vault") && pa.usd !== null ? pa.usd : amtA * pA;
+        row.usdAfter = pb && (pb.kind === "token" || pb.kind === "vault") && pb.usd !== null ? pb.usd : amtB * pB;
         row.moves = (amtB - amtA) * pA;
-        row.market = amtB * (pB - pA);
+        row.market = row.usdAfter - row.usdBefore - row.moves; // what is left after the owner's moves: the market's part, so the two add up exactly
         row.extra = [pa && ref.kind === "vault" ? (pa as Extract<Position, { kind: "vault" }>).sharePrice : pa && ref.kind === "token" ? (pa as Extract<Position, { kind: "token" }>).priceFact : undefined, pb && ref.kind === "vault" ? (pb as Extract<Position, { kind: "vault" }>).sharePrice : pb && ref.kind === "token" ? (pb as Extract<Position, { kind: "token" }>).priceFact : undefined].filter((f): f is Fact => !!f);
       } else {
         row.note = "no price source was read, so only the amounts are compared";
@@ -101,8 +105,8 @@ const signed = (v: number) => `${v >= 0 || Math.abs(v) < 0.005 ? "+" : "−"}$${
 const money = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const T = {
-  en: { flows: "from balances moving", price: "from prices/rates moving", morphoFlows: "from amounts changing (including interest accrued on the debt)", morphoPrice: "from the collateral price moving", new: "new position", gone: "position closed", total: "Net change in valued positions" },
-  id: { flows: "dari perpindahan saldo", price: "dari perubahan harga/imbal hasil", morphoFlows: "dari perubahan jumlah (termasuk bunga yang bertambah pada utang)", morphoPrice: "dari pergerakan harga jaminan", new: "posisi baru", gone: "posisi ditutup", total: "Perubahan bersih posisi yang dinilai" },
+  en: { flows: "from balances moving", price: "from prices/rates moving", morphoFlows: "from amounts changing (including interest accrued on the debt)", morphoDebtOnly: "from the debt changing (interest accrued, or a borrow/repay)", morphoPrice: "from the collateral price moving", new: "new position", gone: "position closed", total: "Net change in valued positions" },
+  id: { flows: "dari perpindahan saldo", price: "dari perubahan harga/imbal hasil", morphoFlows: "dari perubahan jumlah (termasuk bunga yang bertambah pada utang)", morphoDebtOnly: "dari utang yang berubah (bunga bertambah, atau pinjam/bayar)", morphoPrice: "dari pergerakan harga jaminan", new: "posisi baru", gone: "posisi ditutup", total: "Perubahan bersih posisi yang dinilai" },
 } as const;
 
 interface Citer { ref(...f: Fact[]): string }
@@ -124,7 +128,7 @@ export function explainChange(d: Diff, lang: Lang, c: Citer): string[] {
       const delta = r.usdAfter - r.usdBefore;
       net += delta;
       facts.push(...cites);
-      lines.push(`  ${nameOf(r.position, lang)}${tag}: ${amounts}; ${money(r.usdBefore)} → ${money(r.usdAfter)} (${signed(delta)}): ${signed(r.moves)} ${r.morpho ? t.morphoFlows : t.flows}, ${signed(r.market)} ${r.morpho ? t.morphoPrice : t.price} ${c.ref(...cites)}`);
+      lines.push(`  ${nameOf(r.position, lang)}${tag}: ${amounts}; ${money(r.usdBefore)} → ${money(r.usdAfter)} (${signed(delta)}): ${signed(r.moves)} ${r.morpho ? (r.debtOnly ? t.morphoDebtOnly : t.morphoFlows) : t.flows}, ${signed(r.market)} ${r.morpho ? t.morphoPrice : t.price} ${c.ref(...cites)}`);
     } else {
       lines.push(`  ${nameOf(r.position, lang)}${tag}: ${amounts}${r.note ? ` (${r.note})` : ""} ${c.ref(...cites)}`);
     }

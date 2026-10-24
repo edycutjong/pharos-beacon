@@ -253,7 +253,7 @@ describe("readSnapshot", () => {
     expect(s.positions.some((p) => p.kind === "vault" && p.symbol === "roxUSDC")).toBe(true);
   });
 
-  it("a contract with no code at the block is unreadable, NOT a zero balance (the node answers zero for an empty address)", async () => {
+  it("a contract with no code at the block is unreadable, NOT a zero balance (a call to an empty address returns 0x)", async () => {
     const w = base();
     w.noCode = new Set([MORPHO, JT.share, USDC.address]);
     const s = await snapshot(w);
@@ -269,7 +269,9 @@ describe("readSnapshot", () => {
     w.noCode = new Set([USDC.address, WPROS.address, ROX.share, JT.share, getAddress("0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"), MORPHO, PROS_POOL, getAddress(JT.vault), getAddress("0x51e2A24742Db77604B881d6781Ee16B5b8fcBE29"), getAddress("0x1f4b7011Ee3d53969bb67F59428a9ec0477856E9")]);
     w.native = () => 0n;
     const h = await ask("what do I hold?", w);
-    expect(h.a.text).toMatch(/no positions found among what I could read/);
+    expect(h.a.text).not.toMatch(/no positions found/); // an empty list is not 'you hold nothing' when the sources were unreadable
+    expect(h.a.text).toMatch(/I could not read Wallet: USDC balance/);
+    expect(h.a.cites).toEqual([]);
     const u = await ask("how much USDC do I have?", w);
     expect(u.a.text).toContain("I have no successful read of USDC, so I cannot say what you hold");
     expect(u.a.text).not.toMatch(/You hold no USDC/);
@@ -405,6 +407,26 @@ describe("answers", () => {
     expect(uncited(a)).toEqual([]);
   });
 
+  it("a Morpho position in 'biggest' and 'total' is shown with its parts; several wallets say 'across these wallets'", async () => {
+    const w = base();
+    w.collateral = () => 20_000n * 10n ** 18n;
+    w.borrowShares = () => 10n ** 15n; // debt 1,000 USDC
+    const book = new FactBook();
+    const s1 = await readSnapshot(fakeChain(w), ME, book);
+    const a1 = await answerQuestion("what's my biggest position?", reads([s1], book, w));
+    expect(a1.text).toContain("Your biggest position is Morpho Blue syzUSD/USDC (collateral + supply − debt): $19,000.00 = 20,000.00 USDC collateral + 0.00 USDC supplied − 1,000.00 USDC debt [F");
+    const OTHER = getAddress("0x2222222222222222222222222222222222222222");
+    const s2 = await readSnapshot(fakeChain(base()), OTHER, book);
+    const a2 = await answerQuestion("what's my biggest position?", reads([s1, s2], book, w));
+    expect(a2.text).toContain("The biggest position across these wallets is 0x1111…1111 · Morpho Blue");
+    const idm = await answerQuestion("apa posisi terbesar saya?", reads([s1, s2], book, w));
+    expect(idm.text).toContain("Posisi terbesar di dompet-dompet ini adalah");
+    expect(idm.text).toContain("20,000.00 USDC jaminan + 0.00 USDC disuplai − 1,000.00 USDC utang");
+    const tot = await answerQuestion("what is my total portfolio value?", reads([s1], book, w));
+    expect(tot.text).toMatch(/Morpho Blue syzUSD\/USDC \(collateral \+ supply − debt\): \$19,000\.00 = 20,000\.00 USDC collateral/);
+    expect(uncited(a1)).toEqual([]);
+  });
+
   it("total value sums priced positions only and names the unpriced", async () => {
     const w = base();
     const { a } = await ask("what is my total portfolio value?", w);
@@ -473,6 +495,30 @@ describe("answers", () => {
     expect(a.text).toMatch(/Morpho Blue syzUSD\/USDC: 1,500\.0000 → 2,000\.0000 syzUSD;.*from amounts changing \(including interest accrued on the debt\).*from the collateral price moving/);
     const id = await answerQuestion("apa yang berubah sejak blok 913600?", reads([snap], book, w));
     expect(id.text).toContain("termasuk bunga yang bertambah pada utang");
+  });
+
+  it("a vault row's USD figures are the same ones 'hold' shows, and moves + market add up to the change exactly", async () => {
+    const w = base();
+    w.rox = (b) => (b >= HEAD ? 5_000n * 10n ** 18n + 123_456_789_012_345n : 4_000n * 10n ** 18n);
+    const book = new FactBook();
+    const now = await readSnapshot(fakeChain(w), ME, book);
+    const before = await readSnapshot(fakeChain(w), ME, book, EARLIER);
+    const d = diffSnapshots(before, now);
+    const row = d.rows.find((r) => r.key === "vault:roxUSDC")!;
+    const vNow = now.positions.find((p) => p.kind === "vault")!;
+    if (vNow.kind !== "vault") throw new Error();
+    expect(row.usdAfter).toBe(vNow.usd); // not shares × price recomputed in floating point
+    expect(row.moves! + row.market!).toBeCloseTo(row.usdAfter! - row.usdBefore!, 9);
+  });
+
+  it("a Morpho row where only the debt moved says so (interest accrued, or a borrow/repay)", async () => {
+    const w = base();
+    w.collateral = () => 2_000n * 10n ** 18n;
+    w.borrowShares = (b) => (b >= HEAD ? 6n * 10n ** 14n : 5n * 10n ** 14n);
+    const book = new FactBook();
+    const snap = await readSnapshot(fakeChain(w), ME, book);
+    const a = await answerQuestion("what changed since block 913600?", reads([snap], book, w));
+    expect(a.text).toMatch(/Morpho Blue syzUSD\/USDC: 2,000\.0000 → 2,000\.0000 syzUSD;.*from the debt changing \(interest accrued, or a borrow\/repay\)/);
   });
 
   it("nothing changed → says so", async () => {

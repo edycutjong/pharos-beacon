@@ -1,0 +1,19 @@
+# Reads behind three README statements (2026-10-25, Pharos mainnet via the Chain MCP, scratch scripts not committed)
+
+## 1. The vaults: name, symbol, decimals, totalAssets, convertToAssets of the share token and the vault (block = head)
+rox vault: name RockawayX USDC sym roxUSDC dec 18 totalAssets 11123063997574 c2a(1e6) 0 c2a(1e18) 1007264
+rox share: name RockawayX USDC sym roxUSDC dec 18 supply 11042709763274193518982966
+jtrsy vault: name ERR sym ERR dec ERR totalAssets 1765778147055 c2a(1e6) 1120079 c2a(1e18) 1120079969208816500
+jtrsy share: name Janus Henderson Treasury Fund sym JTRSY dec 6 supply 1576475069278
+hyb vault: name ERR sym ERR dec ERR totalAssets 98398088663 c2a(1e6) 0 c2a(1e18) 988080
+hyb share: name NYLIM US High Yield Bond Fund sym HYB dec 18 supply 99585078635678543757522
+
+## 2. Is the RockawayX vault a MetaMorpho vault? MORPHO() / curator() / fee() / supplyQueueLength() (ERR = the call reverted)
+MORPHO ERR
+curator 0x8747Cf054EfE02ECd4A7A31eB2030cefEB49d846
+fee ERR
+supplyQueueLength ERR
+
+## 3. A call to an address with no code: get_code and eth_call balanceOf(wallet) on the USDC token at block 1,000,000 (before it existed) and at block 21,136,550
+block 1000000: get_code(USDC) = 0x (empty); eth_call balanceOf(wallet) = {"result":"0x"}
+block 21136550: get_code(USDC) = 0x60806040…; eth_call balanceOf(wallet) = {"result":"0x0000000000000000000000000000000000000000000000000000000019b7de48"}

@@ -133,8 +133,8 @@ export async function readSnapshot(call: Call, wallet: Hex, book: FactBook, at?:
   const zeros: Fact[] = [];
   let marketsRead = 0;
 
-  // A node answers a call to an address with no code as zero. Before trusting any read, check that the contract exists at THIS block,
-  // so "you hold none" is never said about a contract that was not deployed yet (or is not a contract at all).
+  // A call to an address with no code returns "0x" (proof/vault-reads.txt). Before trusting any read, check that the contract exists at
+  // THIS block, so the answer says "not deployed yet" instead of a decoding error, and "you hold none" is never said about it.
   const codeChecks = new Map<string, Promise<void>>();
   const needCode = (addr: Hex, what: string): Promise<void> => {
     let p = codeChecks.get(addr);

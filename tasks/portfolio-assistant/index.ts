@@ -3,6 +3,7 @@
 //   npm run portfolio-assistant -- ask "what am I earning?" "where is my USDC?" --wallet 0x… [--wallet 0x…] [--block N] [--window-days 7] [--proof name]
 //   npm run portfolio-assistant -- report --wallet 0x…        (every position, no question)
 // Read-only by construction: no write path exists in this task, and a test greps the sources to keep it that way.
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getAddress, isAddress, type Hex } from "viem";
@@ -43,9 +44,12 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
 
   const mcp = await chainMcp("pharos");
   onExit(() => mcp.close());
-  const call = mcp.call.bind(mcp);
+  let readCalls = 0;
+  const call = ((...a: Parameters<typeof mcp.call>) => (readCalls++, (mcp.call as (...x: unknown[]) => unknown)(...a))) as typeof mcp.call;
   const meta = values.proof ? proofMeta(TASK, mcp) : undefined;
-  const log = (s: string) => console.log(s);
+  const started = Date.now();
+  const lines: string[] = [];
+  const log = (s: string) => (lines.push(s), console.log(s));
 
   const head = await headerAt(call, pinned);
   const spb = await secondsPerBlock(call, head.block);
@@ -91,8 +95,12 @@ export async function main({ onExit }: RunContext, argv = process.argv.slice(2))
       answers: answers.map((a) => ({ question: a.question, lang: a.lang, intent: a.intent.type, refused: a.refused ?? null, text: a.text, cites: a.cites, sources: a.sources })),
       facts: [...book.facts.values()].filter((f) => answers.some((a) => a.cites.includes(f.id))).map((f) => ({ id: f.id, label: f.label, raw: f.raw.toString(), decimals: f.decimals, symbol: f.symbol, contract: f.source.contract, call: f.source.call, block: f.source.block.toString() })),
       unreadable: snapshots.flatMap((s) => s.unreadable.map((u) => ({ wallet: s.wallet, ...u }))),
+      readCalls,
+      seconds: Math.round((Date.now() - started) / 1000),
     };
-    log(`\nproof: ${writeProof(file, body, meta!)}`);
+    // the same run as readable text (the JSON holds the answers as escaped strings)
+    writeFileSync(join(HERE, "proof", `${values.proof}.txt`), lines.join("\n") + "\n");
+    log(`\nproof: ${writeProof(file, body, meta!)} (+ ${values.proof}.txt)`);
   }
   return 0;
 }
