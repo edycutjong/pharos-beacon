@@ -8,10 +8,10 @@
     },
     "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/acme-0042.json --execute --proof duplicate-refused",
     "git": {
-      "commit": "6fff283198de",
+      "commit": "a6bd31a19a5c",
       "dirty": false
     },
-    "createdAt": "2026-10-24T01:30:31.558Z"
+    "createdAt": "2026-10-24T01:38:32.325Z"
   },
   "invoice": "tasks/invoice-to-payment-agent/samples/acme-0042.json",
   "extracted": {
@@ -26,9 +26,9 @@
     "amount": "0.005"
   },
   "outcome": "duplicate-refused",
-  "fingerprint": "91415a4420740ca2",
+  "fingerprint": "ee44523cd8494c8b",
   "firstPayment": {
-    "fingerprint": "91415a4420740ca2",
+    "fingerprint": "ee44523cd8494c8b",
     "number": "INV-2026-0042",
     "issuer": "Acme Design Studio",
     "amount": "0.005",
