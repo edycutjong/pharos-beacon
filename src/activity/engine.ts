@@ -19,7 +19,7 @@ const SWAP_TOPICS = new Set([
   "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67", // Uniswap V3 style Swap(sender, recipient, ...)
 ]);
 const UNLIMITED = 1n << 255n;
-export const MAX_RANGE_BLOCKS = 400_000; // ~4 days of mainnet blocks: 400 get_logs calls per topic position
+export const MAX_RANGE_BLOCKS = 3_000_000; // ~1 month of mainnet blocks: 3,000 get_logs calls per topic position (~1 hour at 100 calls a minute)
 const pad32 = (a: string) => `0x${"0".repeat(24)}${a.slice(2).toLowerCase()}` as Hex;
 const topicAddress = (t: Hex) => getAddress(`0x${t.slice(26)}`);
 const lower = (a: string) => a.toLowerCase();

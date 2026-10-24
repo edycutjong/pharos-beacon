@@ -104,7 +104,7 @@ Fees paid: 0.033894 PROS across the transactions this wallet sent. Counts are it
 - A swap is recognised from a `Swap` event or from the wallet giving one token and getting another in one transaction; a router that does neither shows as a contract
   interaction.
 - Sent transactions are bounded by `--max-txs` (default 400) and the nonce search by `--discover-calls` (default 300); the report says when either limit stopped it.
-- A date range over 400,000 blocks (about 4 days on mainnet) is refused: run it in pieces.
+- A range over 3,000,000 blocks (about a month on mainnet) is refused: run it in pieces. A week is about 610,000 blocks: 1,220 `get_logs` calls, roughly 12 minutes at the hosted limit of 100 calls a minute.
 - First-time counterparties compare with the one previous period only, not with the wallet's whole history.
 - No PDF export.
 - 24 tests in `test/activity.test.ts` (classification, nonce discovery, date → block, report, CSV, highlights) and 15 in `test/audit-log-agent.test.ts` (CLI, bad input, `--compact`, `--out`).
