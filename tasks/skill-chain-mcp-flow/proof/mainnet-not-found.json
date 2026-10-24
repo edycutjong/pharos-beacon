@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "task": "skill-chain-mcp-flow",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/skill-chain-mcp-flow/index.ts 0xdededededededededededededededededededededededededededededededede --proof mainnet-not-found",
+    "git": {
+      "commit": "a8387d5f78ce",
+      "dirty": true
+    },
+    "createdAt": "2026-10-24T02:16:43.477Z"
+  },
+  "verdict": "NOT_FOUND",
+  "rule": "the node returns no transaction for this hash: it was never broadcast to this network, or was dropped",
+  "facts": {
+    "hash": "0xdededededededededededededededededededededededededededededededede",
+    "to": null,
+    "valueWei": "0",
+    "head": "21079681",
+    "tokenTransfers": 0
+  },
+  "explorer": "https://www.pharosscan.xyz/tx/0xdededededededededededededededededededededededededededededededede",
+  "polls": [
+    {
+      "verdict": "NOT_FOUND",
+      "head": "21079681"
+    }
+  ],
+  "flow": [
+    {
+      "step": 1,
+      "tool": "get_transaction",
+      "args": {
+        "hash": "0xdededededededededededededededededededededededededededededededede"
+      },
+      "ms": 95
+    },
+    {
+      "step": 2,
+      "tool": "get_block_number",
+      "args": {},
+      "ms": 34
+    }
+  ]
+}
