@@ -6,7 +6,7 @@
 
 **Keys:** the optimizer holds none and cannot send anything (`src/yield/` and `index.ts` import no signer, read no secret; a test greps for it). A move comes out as **unsigned transactions** for the owner's wallet. [`wallet.ts`](wallet.ts) is the separate stand-in for that wallet on testnet, the only file here that reads a key, and it signs only after `--execute` and after decoding the calldata itself.
 
-**Try it** (keyless, read-only, mainnet; `--block` pins every read so it reproduces the proof text; a full run makes a few hundred read calls and takes 3 to 5 minutes at the hosted server's rate limit):
+**Try it** (keyless, read-only, mainnet; `--block` pins the reads, so the rates, fees and balances reproduce the proof; the gas lines follow the head; a full run makes a few hundred read calls and takes 3 to 5 minutes at the hosted server's rate limit):
 
 ```text
 npm ci
@@ -41,9 +41,9 @@ npm run yield-optimizer -- recommend --wallet 0x62A0e4b7fD967fab5be1a733c09b22eB
 | # | Arena requirement | How it is met | Evidence |
 |---|---|---|---|
 | 1 | "Compares at least 3 yield sources using live on-chain data." | Six sources on mainnet read live at one block: RockawayX (ERC-4626), JTRSY and HYB (Centrifuge), three Morpho Blue USDC markets (of the six markets the Liquidation Watchdog found, two lend WPROS and one holds under 1,000 USDC; the report lists them as left out). Four on Atlantic. Each rate is share-price growth over 3 windows, with the contract, call and block of every price in the proof JSON. | [`mainnet-rox-holder.txt`](proof/mainnet-rox-holder.txt) rows "Yield sources" · `src/yield/sources.ts` `readSource` |
-| 2 | "Accounts for gas, entry/exit fees, and a minimum holding period before recommending a move." | Gas via `estimate_gas` × `get_gas_price` × native price; fees from `previewDeposit`/`convertToShares` and `previewRedeem`/`convertToAssets`; holding period = `--hold-days` (the costs must be earned back inside it; a longer lock-in extends it). The Atlantic vaults have a 0.1 % entry and exit fee and a 7-day lock-in, so all three show in a real decision. | ATLANTIC-TBD · `src/yield/model.ts` `evaluateMove` · tests "nets gas, exit fee and entry fee…", "applies a destination lock-in" |
-| 3 | "Outputs a clear recommendation with expected net gain, or 'stay put' with the reason." | `RECOMMENDATION: MOVE: … net gain $X at conservative rates ($Y at median rates) … earned back in N` or `STAY PUT: <why>` naming the blocker or the best alternative's net and break-even. | [`mainnet-rox-holder.txt`](proof/mainnet-rox-holder.txt) (STAY), [`mainnet-rox-holder-median.txt`](proof/mainnet-rox-holder-median.txt) (MOVE), ATLANTIC-TBD |
-| 4 | "If executing: prepares transactions for user signature only. The agent never holds keys." | The optimizer's output is an unsigned plan (`signed: false`, `eth_sendTransaction` parameters). `src/yield/*` and `index.ts` import no signer, read no secret and cannot send (a test greps their code); the Chain MCP client it opens has no broadcast option. Signing happens in a separate file that stands in for the owner's wallet, behind `--execute`. | [`mainnet-rox-plan.json`](proof/mainnet-rox-plan.json) + [`mainnet-rox-plan-verify.txt`](proof/mainnet-rox-plan-verify.txt) · test "keyless by construction" · ATLANTIC-TBD |
+| 2 | "Accounts for gas, entry/exit fees, and a minimum holding period before recommending a move." | Gas via `estimate_gas` × `get_gas_price` × native price; fees from `previewDeposit`/`convertToShares` and `previewRedeem`/`convertToAssets`; holding period = `--hold-days` (the costs must be earned back inside it; a longer lock-in extends it). The Atlantic vaults have a 0.1 % entry and exit fee and a 7-day lock-in, so all three show in a real decision. | [`atlantic-recommend-move.txt`](proof/atlantic-recommend-move.txt): the Lockup vault's 11 % headline loses to its 0.5 % entry fee (net −$0.002062, break-even 34 d) · [`atlantic-stay-short-hold.txt`](proof/atlantic-stay-short-hold.txt): the same move with a 3-day holding period stays put (break-even 15 d > 3 d) · `src/yield/model.ts` `evaluateMove` · tests "nets gas, exit fee and entry fee…", "applies a destination lock-in" |
+| 3 | "Outputs a clear recommendation with expected net gain, or 'stay put' with the reason." | `RECOMMENDATION: MOVE: … net gain $X at conservative rates ($Y at median rates) … earned back in N` or `STAY PUT: <why>` naming the blocker or the best alternative's net and break-even. | [`mainnet-rox-holder.txt`](proof/mainnet-rox-holder.txt) (STAY), [`mainnet-rox-holder-median.txt`](proof/mainnet-rox-holder-median.txt) (MOVE), [`atlantic-recommend-move.txt`](proof/atlantic-recommend-move.txt) (MOVE), [`atlantic-after-move.txt`](proof/atlantic-after-move.txt) (STAY) |
+| 4 | "If executing: prepares transactions for user signature only. The agent never holds keys." | The optimizer's output is an unsigned plan (`signed: false`, `eth_sendTransaction` parameters). `src/yield/*` and `index.ts` import no signer, read no secret and cannot send (a test greps their code); the Chain MCP client it opens has no broadcast option. Signing happens in a separate file that stands in for the owner's wallet, behind `--execute`. | [`mainnet-rox-plan.json`](proof/mainnet-rox-plan.json) + [`mainnet-rox-plan-verify.txt`](proof/mainnet-rox-plan-verify.txt) · [`atlantic-move-plan.json`](proof/atlantic-move-plan.json) signed and sent by the wallet stand-in ([`atlantic-move-executed.txt`](proof/atlantic-move-executed.txt)) · [`atlantic-tampered-refused.txt`](proof/atlantic-tampered-refused.txt) · test "keyless by construction" |
 
 ## Beyond the requirements
 
@@ -54,23 +54,59 @@ npm run yield-optimizer -- recommend --wallet 0x62A0e4b7fD967fab5be1a733c09b22eB
 
 ## Proof
 
-Each proof JSON records `git.dirty: false` and the commit it ran at (`7cfae0d` for the mainnet runs); the `.txt` next to it is the same run as readable text.
+Each proof JSON records `git.dirty: false` and the commit it ran at (`7cfae0d` for the mainnet runs, `a77f58a` for the Atlantic recommendations, `5064a39`/`9168c0b` for the wallet runs; none of those commits changed `src/yield/`, only proofs and docs came after); the `.txt` next to it is the same run as readable text. The Atlantic runs cannot be re-run to the same numbers: the vaults' rates were set at the times in [`deployments.json`](deployments.json), the windows are relative to the head, and the user wallet now holds Atlantic Growth.
 
 | Run | Command | Result |
 |---|---|---|
-| **Mainnet, RockawayX holder** | `recommend --wallet 0x62A0…0673 --proof mainnet-rox-holder` | **STAY PUT**: the best enterable alternative (Morpho syzUSD/USDC) nets −$1.19 at conservative rates ($19.39 at median); the Centrifuge funds cannot be entered · [`txt`](proof/mainnet-rox-holder.txt) [`json`](proof/mainnet-rox-holder.json) |
-| **Same wallet, jumpiness ignored** | `recommend --wallet 0x62A0…0673 --haircut 0 --plan proof/mainnet-rox-plan.json --proof mainnet-rox-holder-median` | **MOVE** to the Morpho APT/USDC market: net $40.54 over 30 d, break-even 5 min; three unsigned transactions (417,771 + 71,496 estimated, 300,000 configured gas) · [`txt`](proof/mainnet-rox-holder-median.txt) [`plan`](proof/mainnet-rox-plan.json) [`verify`](proof/mainnet-rox-plan-verify.txt) |
+| **Mainnet, RockawayX holder** | `recommend --wallet 0x62A0…0673 --proof mainnet-rox-holder` | **STAY PUT**: the best enterable alternative (Morpho syzUSD/USDC) nets −$1.31 at conservative rates ($19.41 at median); the Centrifuge funds cannot be entered · [`txt`](proof/mainnet-rox-holder.txt) [`json`](proof/mainnet-rox-holder.json) |
+| **Same wallet, jumpiness ignored** | `recommend --wallet 0x62A0…0673 --haircut 0 --plan proof/mainnet-rox-plan.json --proof mainnet-rox-holder-median` | **MOVE** to the Morpho APT/USDC market: net $40.54 over 30 d, break-even 5 min; three unsigned transactions (417,771 and 71,496 gas estimated by the node, 300,000 configured) · [`txt`](proof/mainnet-rox-holder-median.txt) [`plan`](proof/mainnet-rox-plan.json) [`verify`](proof/mainnet-rox-plan-verify.txt) |
 | **Mainnet, JTRSY holder** | `recommend --wallet 0x0665…4bE3 --proof mainnet-jtrsy-holder` | **STAY PUT**: a JTRSY redeem is an asynchronous request, so the position cannot be exited in one transaction · [`txt`](proof/mainnet-jtrsy-holder.txt) |
-| **Atlantic** | ATLANTIC-TBD | ATLANTIC-TBD |
+| **Atlantic, recommend** | `recommend --wallet 0x8D34…D91B --network atlantic --windows 10m,40m,58m --hold-days 30 --min-net-usd 0.001 --plan proof/atlantic-move-plan.json --proof atlantic-recommend-move` | **MOVE** Atlantic Steady → Atlantic Growth: net $0.006331, break-even 15 d; Spike (30 % over the last 10 min) refused as JUMPY, Lockup refused on its fee · [`txt`](proof/atlantic-recommend-move.txt) [`plan`](proof/atlantic-move-plan.json) |
+| **Atlantic, 3-day holding period** | same, `--hold-days 3 --proof atlantic-stay-short-hold` | **STAY PUT**: break-even 15 d does not fit a 3-day hold · [`txt`](proof/atlantic-stay-short-hold.txt) |
+| **Atlantic, the wallet** | `yield-wallet sign proof/atlantic-move-plan.json` (dry run), then `--execute --proof atlantic-move-executed` | exit [`0xacc8…d97b`](https://atlantic.pharosscan.xyz/tx/0xacc8c395773a0a4bd0a111e6e57dad5dea52e9b43cefc34e0fef6c3d8a29d97b), approve [`0x3552…a9168`](https://atlantic.pharosscan.xyz/tx/0x35520591c82318ccbdea5d579724f27366f91fad9a9b4494607628e4a78a9168), deposit [`0xd5f4…efee7`](https://atlantic.pharosscan.xyz/tx/0xd5f486fafd7e7213280f533696f868ead0af7cd35615d3b39cbdf4437e4efee7): all success; Atlantic Steady shares 2999999714611899295 → 0, Atlantic Growth shares 0 → 2993983487982010052 (read back) · [`dry`](proof/atlantic-wallet-dry.txt) [`json`](proof/atlantic-move-executed.json) |
+| **Atlantic, after the move** | `recommend … --proof atlantic-after-move` | **STAY PUT** in Atlantic Growth: moving back or to Lockup/Spike nets negative · [`txt`](proof/atlantic-after-move.txt) |
+| **Atlantic, a tampered plan** | the plan with its redeem edited to pay `0x…00ee` and the fingerprint recomputed, `yield-wallet sign … --execute` | refused before anything is signed, exit code 2 · [`txt`](proof/atlantic-tampered-refused.txt) |
 | The node's wrong read | transcript | [`node-flake.txt`](proof/node-flake.txt) |
 | What "blocked" and "open" rest on | scratch script, transcript only (values at the head of 2026-10-25) | [`vault-reads.txt`](proof/vault-reads.txt) |
 
-ATLANTIC-OUTPUT-TBD
+### Real output (Atlantic, the recommendation that was executed)
+
+```text
+Moving $3.00 out of Atlantic Steady (credited at its optimistic 4.00%; destinations at their conservative rate):
+  → Atlantic Growth: 5.00% better · over 30 d: gross $0.0123 − costs $0.005998 (gas $0.002998 [470100 units: exit:estimated, approve:estimated, enter:configured], exit fee $0.000000, entry fee $0.003000) = net $0.006331 at conservative rates, $0.006331 at median rates · break-even 15 d · WORTH IT
+  → Atlantic Lockup: 6.46% better · over 30 d: gross $0.0159 − costs $0.0180 (…, exit fee $0.000000, entry fee $0.0150) = net -$0.002062 at conservative rates, -$0.000737 at median rates · break-even 34 d · not worth it
+  → Atlantic Spike: 0.06% better · over 30 d: gross $0.000139 − costs $0.002998 (…) = net -$0.002859 at conservative rates, $0.0219 at median rates · break-even 649 d · not worth it
+
+RECOMMENDATION: MOVE: move to Atlantic Growth: net gain $0.006331 at conservative rates ($0.006331 at median rates) over 30 d, after $0.005998 of costs; the costs are earned back in 15 d (holding period 30 d)
+Prepared for the wallet owner's signature (nothing signed, no key read), plan 0x89bd…9805:
+  1. Redeem all shares of Atlantic Steady · to 0x43C6…C70F · gas 98634 (estimated)
+  2. Approve Atlantic Growth to pull 2997012 USDC raw (the exit's previewed proceeds 3000013 less 10 bps) · to 0xcfC8…Fc8B · gas 71466 (estimated)
+  3. Deposit 2997012 USDC raw into Atlantic Growth · to 0x17Bd…062A · gas 300000 (configured)
+```
+
+The rates in that run (10 min / 40 min / 58 min windows): Steady 4.00 / 4.00 / 4.00 %, Growth 9.00 / 9.00 / 9.00 %, Lockup 11.00 / 11.00 / 12.07 %, **Spike 30.00 / 14.09 / 9.92 %** (its rate was raised from 2 % to 30 % about 18 minutes earlier, tx in `deployments.json`), so Spike's latest rate is the highest but its conservative rate is 4.06 % and it is ranked down. The gas planned was 470,100 units (the deposit's 300,000 is a configured default); the three transactions used 66,560 + 55,437 + 132,148 = 254,145 units, so the configured figure over-states the cost, which only makes a MOVE harder to reach.
+
+### Real output (mainnet, the Morpho and vault rows of the default run)
+
+```text
+Yield sources, measured as share-price growth over each window, annualised (APR, simple):
+  source                                 1d       7d      30d   median  conservative  notes
+  Morpho Blue syzUSD/USDC supply      7.10%    5.47%    5.28%    5.47%         4.56%  TVL 3,912,148.440506
+  Morpho Blue APC3M/USDC supply       3.59%    5.33%    5.29%    5.29%         4.42%  TVL 1,209,566.754175
+  Morpho Blue APT/USDC supply         9.40%    4.38%      n/a    6.89%         4.38%  JUMPY (spread 5.02%: ranked down) · TVL 1,000,634.097499
+  RockawayX USDC vault                4.77%    4.23%    3.99%    4.23%         3.84%  HELD · TVL 11,123,205.672192
+  Janus Henderson Treasury Fund       0.00%    3.56%    3.47%    3.47%         1.70%  JUMPY (spread 3.56%: ranked down) · TVL 1,765,778.147055
+  NYLIM US High Yield Bond Fund       0.00%   -0.20%  -10.66%   -0.20%        -5.53%  JUMPY (spread 10.66%: ranked down) · TVL 98,398.088663
+…
+RECOMMENDATION: STAY PUT: the best alternative that could be entered, Morpho Blue syzUSD/USDC supply, would net -$1.31 at conservative rates ($19.41 at median rates) over 30 d after $0.005046 of costs …
+```
+
+(The full text is in [`mainnet-rox-holder.txt`](proof/mainnet-rox-holder.txt); the lines above are copied from it, with the middle cut out.)
 
 ## Limits, stated plainly
 
 - **Yield, not risk.** The optimizer compares net yield. A Morpho market's collateral risk, a fund's NAV risk or a vault's strategy risk is not scored; the table names each source's kind and TVL, nothing more. Do not read a MOVE as safe.
-- **Backward-looking.** A rate is what the share price did, annualised; it is not a forecast. A NAV drop (HYB's −10.65 % APR over 30 days) may be a distribution, which the share price cannot tell apart from a loss.
+- **Backward-looking.** A rate is what the share price did, annualised; it is not a forecast. A NAV drop (HYB's −10.66 % APR over 30 days) may be a distribution, which the share price cannot tell apart from a loss.
 - **The mainnet MOVE is a plan, not a transaction.** No mainnet transaction was sent. The only executed move is on Atlantic, between our own vaults.
 - **Entry is not simulated.** A `deposit` or `supply` can only be simulated after the approve is mined, so entry is judged by `maxDeposit`, the loan token and the preview functions ("no blocker found"); the exit is simulated.
 - **Fees shrink the amount that earns**; that second-order effect (less than 0.01 % of the gain) is not modelled. A single deposit's price impact is modelled only for Morpho (dilution).
