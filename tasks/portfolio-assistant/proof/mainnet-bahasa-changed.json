@@ -10,10 +10,10 @@
     },
     "command": "tasks/portfolio-assistant/index.ts ask berapa saldo USDC saya? di mana USDC saya? apa posisi terbesar saya? apa yang menghasilkan bunga? apakah saya punya utang? berapa total nilai portofolio saya? apa yang berubah sejak blok 21000000? What changed since block 21000000? apa posisi Harbor saya? --wallet 0x67765eA217d0021e35CA973dBae3b54823081a2b --wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 --wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 --block 21136550 --proof mainnet-bahasa-changed",
     "git": {
-      "commit": "9d3adcd4ea1b",
+      "commit": "cc91ab8c1fd7",
       "dirty": false
     },
-    "createdAt": "2026-10-24T17:11:09.485Z"
+    "createdAt": "2026-10-24T17:28:28.324Z"
   },
   "block": "21136550",
   "wallets": [
@@ -28,35 +28,35 @@
       "lang": "id",
       "intent": "balance",
       "refused": null,
-      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\n0x6776…1a2b · 431.4804 USDC di dompet [F4]\n0x0665…4bE3 · 305.7084 USDC di dompet [F31]\nSaya tidak bisa membaca Wallet: PROS price (WPROS/USDC pool) for 0x62A0…0673 at block 21136550: 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647: slot0 answered differently twice for block 21136550. Saya tidak akan menebaknya.",
+      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\n0x6776…1a2b · 431.4804 USDC di dompet [F4]\n0x0665…4bE3 · 305.7084 USDC di dompet [F32]",
       "cites": [
         "F4",
-        "F31"
+        "F32"
       ],
-      "sources": "id | figure | contract | call | block\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF31 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550"
+      "sources": "id | figure | contract | call | block\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF32 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550"
     },
     {
       "question": "di mana USDC saya?",
       "lang": "id",
       "intent": "where",
       "refused": null,
-      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\nUSDC: 0x6776…1a2b · 431.4804 USDC di dompet [F4]\nUSDC: 0x6776…1a2b · utang: 900,765.36 USDC di Morpho Blue APT/USDC (USDC dipinjam, tidak dipegang) [F12]\nUSDC: 0x6776…1a2b · utang: 1,004,931.82 USDC di Morpho Blue APC3M/USDC (USDC dipinjam, tidak dipegang) [F16]\nUSDC: 0x62A0…0673 · 19,469.79 USDC di roxUSDC vault (RockawayX vault) [F24]\nUSDC: 0x0665…4bE3 · 305.7084 USDC di dompet [F31]\nUSDC: 0x0665…4bE3 · 34,510.28 USDC di JTRSY vault (Centrifuge) [F36]\nSaya tidak bisa membaca Wallet: PROS price (WPROS/USDC pool) for 0x62A0…0673 at block 21136550: 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647: slot0 answered differently twice for block 21136550. Saya tidak akan menebaknya.",
+      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\nUSDC: 0x6776…1a2b · 431.4804 USDC di dompet [F4]\nUSDC: 0x6776…1a2b · utang: 900,765.36 USDC di Morpho Blue APT/USDC (USDC dipinjam, tidak dipegang) [F12]\nUSDC: 0x6776…1a2b · utang: 1,004,931.82 USDC di Morpho Blue APC3M/USDC (USDC dipinjam, tidak dipegang) [F16]\nUSDC: 0x62A0…0673 · 19,469.79 USDC di roxUSDC vault (RockawayX vault) [F25]\nUSDC: 0x0665…4bE3 · 305.7084 USDC di dompet [F32]\nUSDC: 0x0665…4bE3 · 34,510.28 USDC di JTRSY vault (Centrifuge) [F37]",
       "cites": [
         "F4",
         "F12",
         "F16",
-        "F24",
-        "F31",
-        "F36"
+        "F25",
+        "F32",
+        "F37"
       ],
-      "sources": "id | figure | contract | call | block\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF24 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550\nF31 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF36 | JTRSY worth in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(shares) | block 21136550"
+      "sources": "id | figure | contract | call | block\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550\nF32 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF37 | JTRSY worth in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(shares) | block 21136550"
     },
     {
       "question": "apa posisi terbesar saya?",
       "lang": "id",
       "intent": "biggest",
       "refused": null,
-      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\nPosisi terbesar Anda adalah 0x6776…1a2b · Morpho Blue APT/USDC (jaminan + suplai − utang): $1,007,891.76 [F10, F13, F12]\nPeringkat #2: 0x6776…1a2b · Morpho Blue APC3M/USDC (jaminan + suplai − utang) $544,652.84 [F14, F17, F16]\nPeringkat #3: 0x0665…4bE3 · JTRSY (Centrifuge) $34,510.28 [F36]\nPeringkat #4: 0x62A0…0673 · roxUSDC (RockawayX vault) $19,469.79 [F24]\nPeringkat #5: 0x6776…1a2b · USDC di dompet $431.48 [F4]\n  0x62A0…0673 · PROS di dompet: tidak dinilai (tidak ada sumber harga yang dibaca)\nSaya tidak bisa membaca Wallet: PROS price (WPROS/USDC pool) for 0x62A0…0673 at block 21136550: 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647: slot0 answered differently twice for block 21136550. Saya tidak akan menebaknya.",
+      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\nPosisi terbesar Anda adalah 0x6776…1a2b · Morpho Blue APT/USDC (jaminan + suplai − utang): $1,007,891.76 [F10, F13, F12]\nPeringkat #2: 0x6776…1a2b · Morpho Blue APC3M/USDC (jaminan + suplai − utang) $544,652.84 [F14, F17, F16]\nPeringkat #3: 0x0665…4bE3 · JTRSY (Centrifuge) $34,510.28 [F37]\nPeringkat #4: 0x62A0…0673 · roxUSDC (RockawayX vault) $19,469.79 [F25]\nPeringkat #5: 0x6776…1a2b · USDC di dompet $431.48 [F4]",
       "cites": [
         "F10",
         "F13",
@@ -64,27 +64,27 @@
         "F14",
         "F17",
         "F16",
-        "F36",
-        "F24",
+        "F37",
+        "F25",
         "F4"
       ],
-      "sources": "id | figure | contract | call | block\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF10 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF13 | APT/USDC collateral valued in USDC | 0xd7E33079D91c5fA12798C1e7b28A7877045aa7C3 | price() | block 21136550\nF14 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF17 | APC3M/USDC collateral valued in USDC | 0x4Eb6fcFfc4D1B27eA773EDc062D5AdFC94A81FaE | price() | block 21136550\nF24 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550\nF36 | JTRSY worth in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(shares) | block 21136550"
+      "sources": "id | figure | contract | call | block\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF10 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF13 | APT/USDC collateral valued in USDC | 0xd7E33079D91c5fA12798C1e7b28A7877045aa7C3 | price() | block 21136550\nF14 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF17 | APC3M/USDC collateral valued in USDC | 0x4Eb6fcFfc4D1B27eA773EDc062D5AdFC94A81FaE | price() | block 21136550\nF25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550\nF37 | JTRSY worth in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(shares) | block 21136550"
     },
     {
       "question": "apa yang menghasilkan bunga?",
       "lang": "id",
       "intent": "earning",
       "refused": null,
-      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\n0x62A0…0673 · roxUSDC (RockawayX vault): 1 share tumbuh 0.084% selama 7.3 hari (1.006414 USDC → 1.007258 USDC) [F39, F25]; 4.29% APY disetahunkan [F39, F25]; dari $19,469.79 [F24] itu sekitar $835.36 setahun [F24, F39, F25]\n0x0665…4bE3 · JTRSY (Centrifuge): 1 share tumbuh 0.071% selama 7.3 hari (1.119288 USDC → 1.120079 USDC) [F40, F37]; 3.60% APY disetahunkan [F40, F37]; dari $34,510.28 [F36] itu sekitar $1,243.70 setahun [F36, F40, F37]\nSaya tidak bisa membaca Wallet: PROS price (WPROS/USDC pool) for 0x62A0…0673 at block 21136550: 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647: slot0 answered differently twice for block 21136550. Saya tidak akan menebaknya.",
+      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\n0x62A0…0673 · roxUSDC (RockawayX vault): 1 share tumbuh 0.084% selama 7.3 hari (1.006414 USDC → 1.007258 USDC) [F40, F26]; 4.29% APY disetahunkan [F40, F26]; dari $19,469.79 [F25] itu sekitar $835.36 setahun [F25, F40, F26]\n0x0665…4bE3 · JTRSY (Centrifuge): 1 share tumbuh 0.071% selama 7.3 hari (1.119288 USDC → 1.120079 USDC) [F41, F38]; 3.60% APY disetahunkan [F41, F38]; dari $34,510.28 [F37] itu sekitar $1,243.70 setahun [F37, F41, F38]",
       "cites": [
-        "F39",
-        "F25",
-        "F24",
         "F40",
-        "F37",
-        "F36"
+        "F26",
+        "F25",
+        "F41",
+        "F38",
+        "F37"
       ],
-      "sources": "id | figure | contract | call | block\nF24 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550\nF25 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550\nF36 | JTRSY worth in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(shares) | block 21136550\nF37 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21136550\nF39 | roxUSDC price of 1 share in USDC (earlier) | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 20471891\nF40 | JTRSY price of 1 share in USDC (earlier) | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 20471891"
+      "sources": "id | figure | contract | call | block\nF25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550\nF26 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550\nF37 | JTRSY worth in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(shares) | block 21136550\nF38 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21136550\nF40 | roxUSDC price of 1 share in USDC (earlier) | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 20471891\nF41 | JTRSY price of 1 share in USDC (earlier) | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 20471891"
     },
     {
       "question": "apakah saya punya utang?",
@@ -107,7 +107,7 @@
       "lang": "id",
       "intent": "total",
       "refused": null,
-      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\nTotal nilai: $1,607,422.89 [F10, F13, F12, F14, F17, F16, F36, F24, F4, F31, F3, F1, F2]\n  0x6776…1a2b · Morpho Blue APT/USDC (jaminan + suplai − utang): $1,007,891.76 [F10, F13, F12]\n  0x6776…1a2b · Morpho Blue APC3M/USDC (jaminan + suplai − utang): $544,652.84 [F14, F17, F16]\n  0x0665…4bE3 · JTRSY (Centrifuge): $34,510.28 [F36]\n  0x62A0…0673 · roxUSDC (RockawayX vault): $19,469.79 [F24]\n  0x6776…1a2b · USDC di dompet: $431.48 [F4]\n  0x0665…4bE3 · USDC di dompet: $305.71 [F31]\n  0x6776…1a2b · WPROS di dompet: $144.14 [F3, F1]\n  0x6776…1a2b · PROS di dompet: $16.89 [F2, F1]\n  0x62A0…0673 · PROS di dompet: tidak dinilai (tidak ada sumber harga yang dibaca)\nSaya tidak bisa membaca Wallet: PROS price (WPROS/USDC pool) for 0x62A0…0673 at block 21136550: 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647: slot0 answered differently twice for block 21136550. Saya tidak akan menebaknya.",
+      "text": "Dompet 0x67765eA217d0021e35CA973dBae3b54823081a2b pada blok 21136550:\nDompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:\nDompet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 pada blok 21136550:\nTotal nilai: $1,607,423.18 [F10, F13, F12, F14, F17, F16, F37, F25, F4, F32, F3, F1, F2, F19, F18]\n  0x6776…1a2b · Morpho Blue APT/USDC (jaminan + suplai − utang): $1,007,891.76 [F10, F13, F12]\n  0x6776…1a2b · Morpho Blue APC3M/USDC (jaminan + suplai − utang): $544,652.84 [F14, F17, F16]\n  0x0665…4bE3 · JTRSY (Centrifuge): $34,510.28 [F37]\n  0x62A0…0673 · roxUSDC (RockawayX vault): $19,469.79 [F25]\n  0x6776…1a2b · USDC di dompet: $431.48 [F4]\n  0x0665…4bE3 · USDC di dompet: $305.71 [F32]\n  0x6776…1a2b · WPROS di dompet: $144.14 [F3, F1]\n  0x6776…1a2b · PROS di dompet: $16.89 [F2, F1]\n  0x62A0…0673 · PROS di dompet: $0.29 [F19, F18]",
       "cites": [
         "F10",
         "F13",
@@ -115,101 +115,105 @@
         "F14",
         "F17",
         "F16",
-        "F36",
-        "F24",
+        "F37",
+        "F25",
         "F4",
-        "F31",
+        "F32",
         "F3",
         "F1",
-        "F2"
+        "F2",
+        "F19",
+        "F18"
       ],
-      "sources": "id | figure | contract | call | block\nF1 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF2 | PROS in wallet | native balance | get_balance | block 21136550\nF3 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF10 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF13 | APT/USDC collateral valued in USDC | 0xd7E33079D91c5fA12798C1e7b28A7877045aa7C3 | price() | block 21136550\nF14 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF17 | APC3M/USDC collateral valued in USDC | 0x4Eb6fcFfc4D1B27eA773EDc062D5AdFC94A81FaE | price() | block 21136550\nF24 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550\nF31 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF36 | JTRSY worth in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(shares) | block 21136550"
+      "sources": "id | figure | contract | call | block\nF1 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF2 | PROS in wallet | native balance | get_balance | block 21136550\nF3 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF10 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF13 | APT/USDC collateral valued in USDC | 0xd7E33079D91c5fA12798C1e7b28A7877045aa7C3 | price() | block 21136550\nF14 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF17 | APC3M/USDC collateral valued in USDC | 0x4Eb6fcFfc4D1B27eA773EDc062D5AdFC94A81FaE | price() | block 21136550\nF18 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF19 | PROS in wallet | native balance | get_balance | block 21136550\nF25 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550\nF32 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF37 | JTRSY worth in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(shares) | block 21136550"
     },
     {
       "question": "apa yang berubah sejak blok 21000000?",
       "lang": "id",
       "intent": "changed",
       "refused": null,
-      "text": "Sejak blok 21000000 → 21136550 (0x6776…1a2b):\n  Morpho Blue APC3M/USDC: 1,500,000.6465 → 1,500,000.6465 APC3M; $543,786.26 → $544,652.84 (+$866.59): −$171.42 dari perubahan jumlah (termasuk bunga yang bertambah pada utang), +$1,038.00 dari pergerakan harga jaminan [F55, F15, F56, F16, F54, F14]\n  Morpho Blue APT/USDC: 1,894,576.6198 → 1,894,576.6198 APT; $1,007,394.06 → $1,007,891.76 (+$497.69): −$334.03 dari perubahan jumlah (termasuk bunga yang bertambah pada utang), +$831.72 dari pergerakan harga jaminan [F51, F11, F52, F12, F50, F10]\n  WPROS di dompet: 223.0067 → 223.0067 WPROS; $138.45 → $144.14 (+$5.69): +$0.00 dari perpindahan saldo, +$5.69 dari perubahan harga/imbal hasil [F43, F3, F41, F1]\n  PROS di dompet: 26.1290 → 26.1290 PROS; $16.22 → $16.89 (+$0.67): +$0.00 dari perpindahan saldo, +$0.67 dari perubahan harga/imbal hasil [F42, F2, F41, F1]\nPerubahan bersih posisi yang dinilai: +$1,370.64 [F55, F15, F56, F16, F54, F14, F51, F11, F52, F12, F50, F10, F43, F3, F41, F1, F42, F2]\nSejak blok 21000000 → 21136550 (0x62A0…0673):\n  roxUSDC (RockawayX vault): 19,294.5390 → 19,329.4840 roxUSDC; $19,431.13 → $19,469.78 (+$38.65): +$35.19 dari perpindahan saldo, +$3.46 dari perubahan harga/imbal hasil [F64, F23, F66, F25]\n  WPROS di dompet (posisi ditutup): 54.0320 → 0.0000 WPROS; $33.54 → $0.00 (−$33.54): −$33.54 dari perpindahan saldo, +$0.00 dari perubahan harga/imbal hasil [F60, F19, F58]\n  PROS di dompet: 0.448944 → 0.443016 PROS (no price source was read, so only the amounts are compared) [F59, F18]\nPerubahan bersih posisi yang dinilai: +$5.11 [F64, F23, F66, F25, F60, F19, F58]\nSejak blok 21000000 → 21136550 (0x0665…4bE3):\n  JTRSY (Centrifuge): 30,810.55 → 30,810.55 JTRSY; $34,505.29 → $34,510.25 (+$4.96): +$0.00 dari perpindahan saldo, +$4.96 dari perubahan harga/imbal hasil [F76, F35, F78, F37]\n  USDC di dompet: 310.14 → 305.71 USDC; $310.14 → $305.71 (−$4.43): −$4.43 dari perpindahan saldo, +$0.00 dari perubahan harga/imbal hasil [F72, F31]\nPerubahan bersih posisi yang dinilai: +$0.53 [F76, F35, F78, F37, F72, F31]\nSaya tidak bisa membaca Wallet: PROS price (WPROS/USDC pool) for 0x62A0…0673 at block 21136550: 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647: slot0 answered differently twice for block 21136550. Saya tidak akan menebaknya.",
+      "text": "Sejak blok 21000000 → 21136550 (0x6776…1a2b):\n  Morpho Blue APC3M/USDC: 1,500,000.6465 → 1,500,000.6465 APC3M; $543,786.26 → $544,652.84 (+$866.59): −$171.42 dari perubahan jumlah (termasuk bunga yang bertambah pada utang), +$1,038.00 dari pergerakan harga jaminan [F56, F15, F57, F16, F55, F14]\n  Morpho Blue APT/USDC: 1,894,576.6198 → 1,894,576.6198 APT; $1,007,394.06 → $1,007,891.76 (+$497.69): −$334.03 dari perubahan jumlah (termasuk bunga yang bertambah pada utang), +$831.72 dari pergerakan harga jaminan [F52, F11, F53, F12, F51, F10]\n  WPROS di dompet: 223.0067 → 223.0067 WPROS; $138.45 → $144.14 (+$5.69): +$0.00 dari perpindahan saldo, +$5.69 dari perubahan harga/imbal hasil [F44, F3, F42, F1]\n  PROS di dompet: 26.1290 → 26.1290 PROS; $16.22 → $16.89 (+$0.67): +$0.00 dari perpindahan saldo, +$0.67 dari perubahan harga/imbal hasil [F43, F2, F42, F1]\nPerubahan bersih posisi yang dinilai: +$1,370.64 [F56, F15, F57, F16, F55, F14, F52, F11, F53, F12, F51, F10, F44, F3, F42, F1, F43, F2]\nSejak blok 21000000 → 21136550 (0x62A0…0673):\n  roxUSDC (RockawayX vault): 19,294.5390 → 19,329.4840 roxUSDC; $19,431.13 → $19,469.78 (+$38.65): +$35.19 dari perpindahan saldo, +$3.46 dari perubahan harga/imbal hasil [F65, F24, F67, F26]\n  WPROS di dompet (posisi ditutup): 54.0320 → 0.0000 WPROS; $33.54 → $0.00 (−$33.54): −$33.54 dari perpindahan saldo, +$0.00 dari perubahan harga/imbal hasil [F61, F20, F59]\n  PROS di dompet: 0.448944 → 0.443016 PROS; $0.28 → $0.29 (+$0.01): +$0.00 dari perpindahan saldo, +$0.01 dari perubahan harga/imbal hasil [F60, F19, F59, F18]\nPerubahan bersih posisi yang dinilai: +$5.12 [F65, F24, F67, F26, F61, F20, F59, F60, F19, F18]\nSejak blok 21000000 → 21136550 (0x0665…4bE3):\n  JTRSY (Centrifuge): 30,810.55 → 30,810.55 JTRSY; $34,505.29 → $34,510.25 (+$4.96): +$0.00 dari perpindahan saldo, +$4.96 dari perubahan harga/imbal hasil [F77, F36, F79, F38]\n  USDC di dompet: 310.14 → 305.71 USDC; $310.14 → $305.71 (−$4.43): −$4.43 dari perpindahan saldo, +$0.00 dari perubahan harga/imbal hasil [F73, F32]\nPerubahan bersih posisi yang dinilai: +$0.53 [F77, F36, F79, F38, F73, F32]",
       "cites": [
-        "F55",
-        "F15",
         "F56",
+        "F15",
+        "F57",
         "F16",
-        "F54",
+        "F55",
         "F14",
-        "F51",
-        "F11",
         "F52",
+        "F11",
+        "F53",
         "F12",
-        "F50",
+        "F51",
         "F10",
-        "F43",
+        "F44",
         "F3",
-        "F41",
-        "F1",
         "F42",
+        "F1",
+        "F43",
         "F2",
-        "F64",
-        "F23",
-        "F66",
-        "F25",
+        "F65",
+        "F24",
+        "F67",
+        "F26",
+        "F61",
+        "F20",
+        "F59",
         "F60",
         "F19",
-        "F58",
-        "F59",
         "F18",
-        "F76",
-        "F35",
-        "F78",
-        "F37",
-        "F72",
-        "F31"
+        "F77",
+        "F36",
+        "F79",
+        "F38",
+        "F73",
+        "F32"
       ],
-      "sources": "id | figure | contract | call | block\nF1 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF2 | PROS in wallet | native balance | get_balance | block 21136550\nF3 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF10 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF11 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF14 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF15 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF18 | PROS in wallet | native balance | get_balance | block 21136550\nF19 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF23 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21136550\nF25 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550\nF31 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF35 | JTRSY shares | 0xC18e6f730896971a79D748E8deA61067A9Bc6040 | balanceOf(wallet) | block 21136550\nF37 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21136550\nF41 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21000000\nF42 | PROS in wallet | native balance | get_balance | block 21000000\nF43 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21000000\nF50 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21000000\nF51 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21000000\nF52 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21000000\nF54 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21000000\nF55 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21000000\nF56 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21000000\nF58 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21000000\nF59 | PROS in wallet | native balance | get_balance | block 21000000\nF60 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21000000\nF64 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21000000\nF66 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21000000\nF72 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21000000\nF76 | JTRSY shares | 0xC18e6f730896971a79D748E8deA61067A9Bc6040 | balanceOf(wallet) | block 21000000\nF78 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21000000"
+      "sources": "id | figure | contract | call | block\nF1 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF2 | PROS in wallet | native balance | get_balance | block 21136550\nF3 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF10 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF11 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF14 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF15 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF18 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF19 | PROS in wallet | native balance | get_balance | block 21136550\nF20 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF24 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21136550\nF26 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550\nF32 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF36 | JTRSY shares | 0xC18e6f730896971a79D748E8deA61067A9Bc6040 | balanceOf(wallet) | block 21136550\nF38 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21136550\nF42 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21000000\nF43 | PROS in wallet | native balance | get_balance | block 21000000\nF44 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21000000\nF51 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21000000\nF52 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21000000\nF53 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21000000\nF55 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21000000\nF56 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21000000\nF57 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21000000\nF59 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21000000\nF60 | PROS in wallet | native balance | get_balance | block 21000000\nF61 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21000000\nF65 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21000000\nF67 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21000000\nF73 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21000000\nF77 | JTRSY shares | 0xC18e6f730896971a79D748E8deA61067A9Bc6040 | balanceOf(wallet) | block 21000000\nF79 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21000000"
     },
     {
       "question": "What changed since block 21000000?",
       "lang": "en",
       "intent": "changed",
       "refused": null,
-      "text": "Since block 21000000 → 21136550 (0x6776…1a2b):\n  Morpho Blue APC3M/USDC: 1,500,000.6465 → 1,500,000.6465 APC3M; $543,786.26 → $544,652.84 (+$866.59): −$171.42 from amounts changing (including interest accrued on the debt), +$1,038.00 from the collateral price moving [F94, F15, F95, F16, F93, F14]\n  Morpho Blue APT/USDC: 1,894,576.6198 → 1,894,576.6198 APT; $1,007,394.06 → $1,007,891.76 (+$497.69): −$334.03 from amounts changing (including interest accrued on the debt), +$831.72 from the collateral price moving [F90, F11, F91, F12, F89, F10]\n  WPROS in wallet: 223.0067 → 223.0067 WPROS; $138.45 → $144.14 (+$5.69): +$0.00 from balances moving, +$5.69 from prices/rates moving [F82, F3, F80, F1]\n  PROS in wallet: 26.1290 → 26.1290 PROS; $16.22 → $16.89 (+$0.67): +$0.00 from balances moving, +$0.67 from prices/rates moving [F81, F2, F80, F1]\nNet change in valued positions: +$1,370.64 [F94, F15, F95, F16, F93, F14, F90, F11, F91, F12, F89, F10, F82, F3, F80, F1, F81, F2]\nSince block 21000000 → 21136550 (0x62A0…0673):\n  roxUSDC (RockawayX vault): 19,294.5390 → 19,329.4840 roxUSDC; $19,333.57 → $19,469.78 (+$136.21): +$35.02 from balances moving, +$101.19 from prices/rates moving [F103, F23, F105, F25]\n  WPROS in wallet (position closed): 54.0320 → 0.0000 WPROS; $33.54 → $0.00 (−$33.54): −$33.54 from balances moving, +$0.00 from prices/rates moving [F99, F19, F97]\n  PROS in wallet: 0.448944 → 0.443016 PROS (no price source was read, so only the amounts are compared) [F98, F18]\nNet change in valued positions: +$102.66 [F103, F23, F105, F25, F99, F19, F97]\nSince block 21000000 → 21136550 (0x0665…4bE3):\n  JTRSY (Centrifuge): 30,810.55 → 30,810.55 JTRSY; $34,505.29 → $34,510.25 (+$4.96): +$0.00 from balances moving, +$4.96 from prices/rates moving [F115, F35, F117, F37]\n  USDC in wallet: 310.14 → 305.71 USDC; $310.14 → $305.71 (−$4.43): −$4.43 from balances moving, +$0.00 from prices/rates moving [F111, F31]\nNet change in valued positions: +$0.53 [F115, F35, F117, F37, F111, F31]\nI could not read Wallet: PROS price (WPROS/USDC pool) for 0x62A0…0673 at block 21136550: 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647: slot0 answered differently twice for block 21136550. I will not guess it.",
+      "text": "Since block 21000000 → 21136550 (0x6776…1a2b):\n  Morpho Blue APC3M/USDC: 1,500,000.6465 → 1,500,000.6465 APC3M; $543,786.26 → $544,652.84 (+$866.59): −$171.42 from amounts changing (including interest accrued on the debt), +$1,038.00 from the collateral price moving [F95, F15, F96, F16, F94, F14]\n  Morpho Blue APT/USDC: 1,894,576.6198 → 1,894,576.6198 APT; $1,007,394.06 → $1,007,891.76 (+$497.69): −$334.03 from amounts changing (including interest accrued on the debt), +$831.72 from the collateral price moving [F91, F11, F92, F12, F90, F10]\n  WPROS in wallet: 223.0067 → 223.0067 WPROS; $138.45 → $144.14 (+$5.69): +$0.00 from balances moving, +$5.69 from prices/rates moving [F83, F3, F81, F1]\n  PROS in wallet: 26.1290 → 26.1290 PROS; $16.22 → $16.89 (+$0.67): +$0.00 from balances moving, +$0.67 from prices/rates moving [F82, F2, F81, F1]\nNet change in valued positions: +$1,370.64 [F95, F15, F96, F16, F94, F14, F91, F11, F92, F12, F90, F10, F83, F3, F81, F1, F82, F2]\nSince block 21000000 → 21136550 (0x62A0…0673):\n  roxUSDC (RockawayX vault): 19,294.5390 → 19,329.4840 roxUSDC; $19,431.40 → $19,469.78 (+$38.38): +$35.19 from balances moving, +$3.19 from prices/rates moving [F104, F24, F106, F26]\n  WPROS in wallet (position closed): 54.0320 → 0.0000 WPROS; $33.54 → $0.00 (−$33.54): −$33.54 from balances moving, +$0.00 from prices/rates moving [F100, F20, F98]\n  PROS in wallet: 0.448944 → 0.443016 PROS; $0.28 → $0.29 (+$0.01): +$0.00 from balances moving, +$0.01 from prices/rates moving [F99, F19, F98, F18]\nNet change in valued positions: +$4.85 [F104, F24, F106, F26, F100, F20, F98, F99, F19, F18]\nSince block 21000000 → 21136550 (0x0665…4bE3):\n  JTRSY (Centrifuge): 30,810.55 → 30,810.55 JTRSY; $34,505.29 → $34,510.25 (+$4.96): +$0.00 from balances moving, +$4.96 from prices/rates moving [F116, F36, F118, F38]\n  USDC in wallet: 310.14 → 305.71 USDC; $310.14 → $305.71 (−$4.43): −$4.43 from balances moving, +$0.00 from prices/rates moving [F112, F32]\nNet change in valued positions: +$0.53 [F116, F36, F118, F38, F112, F32]",
       "cites": [
-        "F94",
-        "F15",
         "F95",
+        "F15",
+        "F96",
         "F16",
-        "F93",
+        "F94",
         "F14",
-        "F90",
-        "F11",
         "F91",
+        "F11",
+        "F92",
         "F12",
-        "F89",
+        "F90",
         "F10",
-        "F82",
+        "F83",
         "F3",
-        "F80",
-        "F1",
         "F81",
+        "F1",
+        "F82",
         "F2",
-        "F103",
-        "F23",
-        "F105",
-        "F25",
+        "F104",
+        "F24",
+        "F106",
+        "F26",
+        "F100",
+        "F20",
+        "F98",
         "F99",
         "F19",
-        "F97",
-        "F98",
         "F18",
-        "F115",
-        "F35",
-        "F117",
-        "F37",
-        "F111",
-        "F31"
+        "F116",
+        "F36",
+        "F118",
+        "F38",
+        "F112",
+        "F32"
       ],
-      "sources": "id | figure | contract | call | block\nF1 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF2 | PROS in wallet | native balance | get_balance | block 21136550\nF3 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF10 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF11 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF14 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF15 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF18 | PROS in wallet | native balance | get_balance | block 21136550\nF19 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF23 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21136550\nF25 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550\nF31 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF35 | JTRSY shares | 0xC18e6f730896971a79D748E8deA61067A9Bc6040 | balanceOf(wallet) | block 21136550\nF37 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21136550\nF80 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21000000\nF81 | PROS in wallet | native balance | get_balance | block 21000000\nF82 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21000000\nF89 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21000000\nF90 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21000000\nF91 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21000000\nF93 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21000000\nF94 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21000000\nF95 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21000000\nF97 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21000000\nF98 | PROS in wallet | native balance | get_balance | block 21000000\nF99 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21000000\nF103 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21000000\nF105 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21000000\nF111 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21000000\nF115 | JTRSY shares | 0xC18e6f730896971a79D748E8deA61067A9Bc6040 | balanceOf(wallet) | block 21000000\nF117 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21000000"
+      "sources": "id | figure | contract | call | block\nF1 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF2 | PROS in wallet | native balance | get_balance | block 21136550\nF3 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF10 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF11 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF12 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF14 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21136550\nF15 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21136550\nF16 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21136550\nF18 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21136550\nF19 | PROS in wallet | native balance | get_balance | block 21136550\nF20 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21136550\nF24 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21136550\nF26 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550\nF32 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21136550\nF36 | JTRSY shares | 0xC18e6f730896971a79D748E8deA61067A9Bc6040 | balanceOf(wallet) | block 21136550\nF38 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21136550\nF81 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21000000\nF82 | PROS in wallet | native balance | get_balance | block 21000000\nF83 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21000000\nF90 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21000000\nF91 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21000000\nF92 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21000000\nF94 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21000000\nF95 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21000000\nF96 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21000000\nF98 | WPROS price in USDC | 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 | slot0() | block 21000000\nF99 | PROS in wallet | native balance | get_balance | block 21000000\nF100 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21000000\nF104 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21000000\nF106 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21000000\nF112 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21000000\nF116 | JTRSY shares | 0xC18e6f730896971a79D748E8deA61067A9Bc6040 | balanceOf(wallet) | block 21000000\nF118 | JTRSY price of 1 share in USDC | 0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434 | convertToAssets(1 share) | block 21000000"
     },
     {
       "question": "apa posisi Harbor saya?",
@@ -344,6 +348,16 @@
     },
     {
       "id": "F18",
+      "label": "WPROS price in USDC",
+      "raw": "646350",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+      "call": "slot0()",
+      "block": "21136550"
+    },
+    {
+      "id": "F19",
       "label": "PROS in wallet",
       "raw": "443016140605618707",
       "decimals": 18,
@@ -353,7 +367,7 @@
       "block": "21136550"
     },
     {
-      "id": "F19",
+      "id": "F20",
       "label": "WPROS in wallet",
       "raw": "0",
       "decimals": 18,
@@ -363,7 +377,7 @@
       "block": "21136550"
     },
     {
-      "id": "F23",
+      "id": "F24",
       "label": "roxUSDC shares",
       "raw": "19329483983960707748291",
       "decimals": 18,
@@ -373,7 +387,7 @@
       "block": "21136550"
     },
     {
-      "id": "F24",
+      "id": "F25",
       "label": "roxUSDC worth in USDC",
       "raw": "19469794899",
       "decimals": 6,
@@ -383,7 +397,7 @@
       "block": "21136550"
     },
     {
-      "id": "F25",
+      "id": "F26",
       "label": "roxUSDC price of 1 share in USDC",
       "raw": "1007258",
       "decimals": 6,
@@ -393,7 +407,7 @@
       "block": "21136550"
     },
     {
-      "id": "F31",
+      "id": "F32",
       "label": "USDC in wallet",
       "raw": "305708431",
       "decimals": 6,
@@ -403,7 +417,7 @@
       "block": "21136550"
     },
     {
-      "id": "F35",
+      "id": "F36",
       "label": "JTRSY shares",
       "raw": "30810551610",
       "decimals": 6,
@@ -413,7 +427,7 @@
       "block": "21136550"
     },
     {
-      "id": "F36",
+      "id": "F37",
       "label": "JTRSY worth in USDC",
       "raw": "34510281698",
       "decimals": 6,
@@ -423,7 +437,7 @@
       "block": "21136550"
     },
     {
-      "id": "F37",
+      "id": "F38",
       "label": "JTRSY price of 1 share in USDC",
       "raw": "1120079",
       "decimals": 6,
@@ -433,7 +447,7 @@
       "block": "21136550"
     },
     {
-      "id": "F39",
+      "id": "F40",
       "label": "roxUSDC price of 1 share in USDC (earlier)",
       "raw": "1006414",
       "decimals": 6,
@@ -443,7 +457,7 @@
       "block": "20471891"
     },
     {
-      "id": "F40",
+      "id": "F41",
       "label": "JTRSY price of 1 share in USDC (earlier)",
       "raw": "1119288",
       "decimals": 6,
@@ -453,7 +467,7 @@
       "block": "20471891"
     },
     {
-      "id": "F41",
+      "id": "F42",
       "label": "WPROS price in USDC",
       "raw": "620816",
       "decimals": 6,
@@ -463,7 +477,7 @@
       "block": "21000000"
     },
     {
-      "id": "F42",
+      "id": "F43",
       "label": "PROS in wallet",
       "raw": "26129017566312050902",
       "decimals": 18,
@@ -473,7 +487,7 @@
       "block": "21000000"
     },
     {
-      "id": "F43",
+      "id": "F44",
       "label": "WPROS in wallet",
       "raw": "223006656529264203225",
       "decimals": 18,
@@ -483,7 +497,7 @@
       "block": "21000000"
     },
     {
-      "id": "F50",
+      "id": "F51",
       "label": "APT/USDC supplied (USDC)",
       "raw": "0",
       "decimals": 6,
@@ -493,7 +507,7 @@
       "block": "21000000"
     },
     {
-      "id": "F51",
+      "id": "F52",
       "label": "APT/USDC collateral (APT)",
       "raw": "1894576619794796892558442",
       "decimals": 18,
@@ -503,7 +517,7 @@
       "block": "21000000"
     },
     {
-      "id": "F52",
+      "id": "F53",
       "label": "APT/USDC debt (USDC)",
       "raw": "900431330397",
       "decimals": 6,
@@ -513,7 +527,7 @@
       "block": "21000000"
     },
     {
-      "id": "F54",
+      "id": "F55",
       "label": "APC3M/USDC supplied (USDC)",
       "raw": "0",
       "decimals": 6,
@@ -523,7 +537,7 @@
       "block": "21000000"
     },
     {
-      "id": "F55",
+      "id": "F56",
       "label": "APC3M/USDC collateral (APC3M)",
       "raw": "1500000646489000000000000",
       "decimals": 18,
@@ -533,7 +547,7 @@
       "block": "21000000"
     },
     {
-      "id": "F56",
+      "id": "F57",
       "label": "APC3M/USDC debt (USDC)",
       "raw": "1004760409454",
       "decimals": 6,
@@ -543,7 +557,7 @@
       "block": "21000000"
     },
     {
-      "id": "F58",
+      "id": "F59",
       "label": "WPROS price in USDC",
       "raw": "620816",
       "decimals": 6,
@@ -553,7 +567,7 @@
       "block": "21000000"
     },
     {
-      "id": "F59",
+      "id": "F60",
       "label": "PROS in wallet",
       "raw": "448943897605618707",
       "decimals": 18,
@@ -563,7 +577,7 @@
       "block": "21000000"
     },
     {
-      "id": "F60",
+      "id": "F61",
       "label": "WPROS in wallet",
       "raw": "54032034448625425954",
       "decimals": 18,
@@ -573,7 +587,7 @@
       "block": "21000000"
     },
     {
-      "id": "F64",
+      "id": "F65",
       "label": "roxUSDC shares",
       "raw": "19294538971608466755329",
       "decimals": 18,
@@ -583,7 +597,7 @@
       "block": "21000000"
     },
     {
-      "id": "F66",
+      "id": "F67",
       "label": "roxUSDC price of 1 share in USDC",
       "raw": "1007079",
       "decimals": 6,
@@ -593,7 +607,7 @@
       "block": "21000000"
     },
     {
-      "id": "F72",
+      "id": "F73",
       "label": "USDC in wallet",
       "raw": "310135638",
       "decimals": 6,
@@ -603,7 +617,7 @@
       "block": "21000000"
     },
     {
-      "id": "F76",
+      "id": "F77",
       "label": "JTRSY shares",
       "raw": "30810551610",
       "decimals": 6,
@@ -613,7 +627,7 @@
       "block": "21000000"
     },
     {
-      "id": "F78",
+      "id": "F79",
       "label": "JTRSY price of 1 share in USDC",
       "raw": "1119918",
       "decimals": 6,
@@ -623,7 +637,7 @@
       "block": "21000000"
     },
     {
-      "id": "F80",
+      "id": "F81",
       "label": "WPROS price in USDC",
       "raw": "620816",
       "decimals": 6,
@@ -633,7 +647,7 @@
       "block": "21000000"
     },
     {
-      "id": "F81",
+      "id": "F82",
       "label": "PROS in wallet",
       "raw": "26129017566312050902",
       "decimals": 18,
@@ -643,7 +657,7 @@
       "block": "21000000"
     },
     {
-      "id": "F82",
+      "id": "F83",
       "label": "WPROS in wallet",
       "raw": "223006656529264203225",
       "decimals": 18,
@@ -653,7 +667,7 @@
       "block": "21000000"
     },
     {
-      "id": "F89",
+      "id": "F90",
       "label": "APT/USDC supplied (USDC)",
       "raw": "0",
       "decimals": 6,
@@ -663,7 +677,7 @@
       "block": "21000000"
     },
     {
-      "id": "F90",
+      "id": "F91",
       "label": "APT/USDC collateral (APT)",
       "raw": "1894576619794796892558442",
       "decimals": 18,
@@ -673,7 +687,7 @@
       "block": "21000000"
     },
     {
-      "id": "F91",
+      "id": "F92",
       "label": "APT/USDC debt (USDC)",
       "raw": "900431330397",
       "decimals": 6,
@@ -683,7 +697,7 @@
       "block": "21000000"
     },
     {
-      "id": "F93",
+      "id": "F94",
       "label": "APC3M/USDC supplied (USDC)",
       "raw": "0",
       "decimals": 6,
@@ -693,7 +707,7 @@
       "block": "21000000"
     },
     {
-      "id": "F94",
+      "id": "F95",
       "label": "APC3M/USDC collateral (APC3M)",
       "raw": "1500000646489000000000000",
       "decimals": 18,
@@ -703,7 +717,7 @@
       "block": "21000000"
     },
     {
-      "id": "F95",
+      "id": "F96",
       "label": "APC3M/USDC debt (USDC)",
       "raw": "1004760409454",
       "decimals": 6,
@@ -713,7 +727,7 @@
       "block": "21000000"
     },
     {
-      "id": "F97",
+      "id": "F98",
       "label": "WPROS price in USDC",
       "raw": "620816",
       "decimals": 6,
@@ -723,7 +737,7 @@
       "block": "21000000"
     },
     {
-      "id": "F98",
+      "id": "F99",
       "label": "PROS in wallet",
       "raw": "448943897605618707",
       "decimals": 18,
@@ -733,7 +747,7 @@
       "block": "21000000"
     },
     {
-      "id": "F99",
+      "id": "F100",
       "label": "WPROS in wallet",
       "raw": "54032034448625425954",
       "decimals": 18,
@@ -743,7 +757,7 @@
       "block": "21000000"
     },
     {
-      "id": "F103",
+      "id": "F104",
       "label": "roxUSDC shares",
       "raw": "19294538971608466755329",
       "decimals": 18,
@@ -753,9 +767,9 @@
       "block": "21000000"
     },
     {
-      "id": "F105",
+      "id": "F106",
       "label": "roxUSDC price of 1 share in USDC",
-      "raw": "1002023",
+      "raw": "1007093",
       "decimals": 6,
       "symbol": "USDC",
       "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
@@ -763,7 +777,7 @@
       "block": "21000000"
     },
     {
-      "id": "F111",
+      "id": "F112",
       "label": "USDC in wallet",
       "raw": "310135638",
       "decimals": 6,
@@ -773,7 +787,7 @@
       "block": "21000000"
     },
     {
-      "id": "F115",
+      "id": "F116",
       "label": "JTRSY shares",
       "raw": "30810551610",
       "decimals": 6,
@@ -783,7 +797,7 @@
       "block": "21000000"
     },
     {
-      "id": "F117",
+      "id": "F118",
       "label": "JTRSY price of 1 share in USDC",
       "raw": "1119918",
       "decimals": 6,
@@ -793,12 +807,5 @@
       "block": "21000000"
     }
   ],
-  "unreadable": [
-    {
-      "wallet": "0x62A0e4b7fD967fab5be1a733c09b22eBC4510673",
-      "protocol": "Wallet",
-      "what": "PROS price (WPROS/USDC pool)",
-      "reason": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647: slot0 answered differently twice for block 21136550"
-    }
-  ]
+  "unreadable": []
 }
