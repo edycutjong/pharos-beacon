@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "task": "invoice-to-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "none"
+    },
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-usd.json --proof flagged-usd",
+    "git": {
+      "commit": "83359689e9ac",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:30:15.486Z"
+  },
+  "invoice": "tasks/invoice-to-payment-agent/samples/bad-usd.json",
+  "extracted": {
+    "format": "json",
+    "flags": [],
+    "notes": [],
+    "via": "json fields",
+    "number": "US-5521",
+    "issuer": "Hudson Supply",
+    "payee": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "currency": "USD",
+    "amount": "120.00"
+  },
+  "outcome": "flagged",
+  "flags": [
+    "currency USD is not a token on Atlantic (PHRS, USDC, USDT, WBTC, WETH, WPHRS): pass --pay-in <token> to settle it, I will not guess a rate"
+  ]
+}

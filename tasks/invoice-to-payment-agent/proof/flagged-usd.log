@@ -1,0 +1,9 @@
+invoice: tasks/invoice-to-payment-agent/samples/bad-usd.json (json) · read by json fields
+  number    US-5521
+  issuer    Hudson Supply
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    120.00 USD
+
+FLAGGED: nothing was prepared. The invoice needs a human:
+  ! currency USD is not a token on Atlantic (PHRS, USDC, USDT, WBTC, WETH, WPHRS): pass --pay-in <token> to settle it, I will not guess a rate
+proof: tasks/invoice-to-payment-agent/proof/flagged-usd.json
