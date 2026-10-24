@@ -8,10 +8,10 @@
     },
     "command": "tasks/x402-agent-buyer/index.ts run partner --fresh --proof partner-seller",
     "git": {
-      "commit": "01c4efad1af1",
+      "commit": "adc1e36edb97",
       "dirty": false
     },
-    "createdAt": "2026-10-24T00:28:15.619Z"
+    "createdAt": "2026-10-24T01:01:38.609Z"
   },
   "task": "partner",
   "goal": "Compare Atlantic from three sellers: our gas snapshot and another developer's network snapshot and activity summary.",
@@ -37,7 +37,7 @@
       "type": "sign",
       "want": "ours",
       "purchase": "partner/ours",
-      "nonce": "0xebc2e3e0f03b3cc8aa7e1e1180236d40e4a8a16c4210cc7cb9229cd261b501a3",
+      "nonce": "0x4f2063394dfe369c539a4a0c129d82a407298ed0d0a857364d3e4412d99abe83",
       "price": "0.001 USDC"
     },
     {
@@ -51,16 +51,16 @@
       "want": "ours",
       "row": {
         "n": 1,
-        "at": "2026-10-24T00:28:25.605Z",
+        "at": "2026-10-24T01:01:48.739Z",
         "task": "partner",
         "purchase": "partner/ours",
         "endpoint": "https://pharos.edycu.dev/api/x402-paywalled-api/gas-snapshot",
         "bought": "Atlantic gas price from our API",
         "price": "0.001 USDC",
         "amount": "1000",
-        "tx": "0x1d891d5d8de3c907d16399ab4a8fff8cc31cc84ce96bd4f7ba4faf9865c12fc5",
-        "explorer": "https://atlantic.pharosscan.xyz/tx/0x1d891d5d8de3c907d16399ab4a8fff8cc31cc84ce96bd4f7ba4faf9865c12fc5",
-        "block": 31802983,
+        "tx": "0x104dca5edf05c1ecb424a152961b7eff1d906e238c253b38016ca922682398dd",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x104dca5edf05c1ecb424a152961b7eff1d906e238c253b38016ca922682398dd",
+        "block": 31804035,
         "runningTotal": "0.001 USDC",
         "runningTotalAtomic": "1000"
       }
@@ -68,14 +68,14 @@
     {
       "type": "ask",
       "want": "theirs-snapshot",
-      "path": "https://pharos-x402-paywalled-api.shoupeorg.workers.dev/paid/network-snapshot?block=31802980",
+      "path": "https://pharos-x402-paywalled-api.shoupeorg.workers.dev/paid/network-snapshot?block=31804032",
       "price": "0.001 USDC"
     },
     {
       "type": "sign",
       "want": "theirs-snapshot",
       "purchase": "partner/theirs-snapshot",
-      "nonce": "0xe9a5bd574f7bfb36a6259b47a82f338ed75193f04f6e5f9e0c0c4eb0d503207f",
+      "nonce": "0x2286f9f6632bf1672241059272287f98b9a0d9f94031817f97b70ccfc4f58149",
       "price": "0.001 USDC"
     },
     {
@@ -83,7 +83,7 @@
       "want": "theirs-snapshot",
       "n": 1,
       "status": 502,
-      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0xe9a5bd574f7bfb36a6259b47a82f338ed75193f04f6e5f9e0c0c4eb0d503207f\"}"
+      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0x2286f9f6632bf1672241059272287f98b9a0d9f94031817f97b70ccfc4f58149\"}"
     },
     {
       "type": "failed",
@@ -95,7 +95,7 @@
       "want": "theirs-snapshot",
       "n": 2,
       "status": 502,
-      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0xe9a5bd574f7bfb36a6259b47a82f338ed75193f04f6e5f9e0c0c4eb0d503207f\"}"
+      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0x2286f9f6632bf1672241059272287f98b9a0d9f94031817f97b70ccfc4f58149\"}"
     },
     {
       "type": "failed",
@@ -107,7 +107,7 @@
       "want": "theirs-snapshot",
       "n": 3,
       "status": 502,
-      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0xe9a5bd574f7bfb36a6259b47a82f338ed75193f04f6e5f9e0c0c4eb0d503207f\"}"
+      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0x2286f9f6632bf1672241059272287f98b9a0d9f94031817f97b70ccfc4f58149\"}"
     },
     {
       "type": "failed",
@@ -118,7 +118,7 @@
       "type": "reconcile",
       "want": "theirs-snapshot",
       "nonceUsed": false,
-      "text": "authorization 0xe9a5bd57… not used yet and still valid"
+      "text": "authorization 0x2286f9f6… not used yet and still valid"
     },
     {
       "type": "failed",
@@ -128,14 +128,14 @@
     {
       "type": "ask",
       "want": "theirs-activity",
-      "path": "https://pharos-x402-paywalled-api.shoupeorg.workers.dev/paid/activity-summary?block=31802980",
+      "path": "https://pharos-x402-paywalled-api.shoupeorg.workers.dev/paid/activity-summary?block=31804032",
       "price": "0.002 USDC"
     },
     {
       "type": "sign",
       "want": "theirs-activity",
       "purchase": "partner/theirs-activity",
-      "nonce": "0xbe7972412e1091d7a18e2c2520101c2fe418178ba92f15b4cec6a53238edeeb1",
+      "nonce": "0x9b3a15df0fb2eefcb4d87b21b3177dcfea08937e8a669e14d3fb0c9c71267a26",
       "price": "0.002 USDC"
     },
     {
@@ -143,7 +143,7 @@
       "want": "theirs-activity",
       "n": 1,
       "status": 502,
-      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0xbe7972412e1091d7a18e2c2520101c2fe418178ba92f15b4cec6a53238edeeb1\"}"
+      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0x9b3a15df0fb2eefcb4d87b21b3177dcfea08937e8a669e14d3fb0c9c71267a26\"}"
     },
     {
       "type": "failed",
@@ -155,7 +155,7 @@
       "want": "theirs-activity",
       "n": 2,
       "status": 502,
-      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0xbe7972412e1091d7a18e2c2520101c2fe418178ba92f15b4cec6a53238edeeb1\"}"
+      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0x9b3a15df0fb2eefcb4d87b21b3177dcfea08937e8a669e14d3fb0c9c71267a26\"}"
     },
     {
       "type": "failed",
@@ -167,7 +167,7 @@
       "want": "theirs-activity",
       "n": 3,
       "status": 502,
-      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0xbe7972412e1091d7a18e2c2520101c2fe418178ba92f15b4cec6a53238edeeb1\"}"
+      "body": "{\"error\":\"Authorization parties or amount mismatch\",\"state\":\"PENDING_RECONCILIATION\",\"authId\":\"0x317bca01bb101c0f1e86c21576a4e14d92b02975:0x9b3a15df0fb2eefcb4d87b21b3177dcfea08937e8a669e14d3fb0c9c71267a26\"}"
     },
     {
       "type": "failed",
@@ -178,7 +178,7 @@
       "type": "reconcile",
       "want": "theirs-activity",
       "nonceUsed": false,
-      "text": "authorization 0xbe797241… not used yet and still valid"
+      "text": "authorization 0x9b3a15df… not used yet and still valid"
     },
     {
       "type": "failed",
@@ -202,7 +202,7 @@
             "want": "ours",
             "status": "paid",
             "price": "0.001 USDC",
-            "tx": "0x1d891d5d8de3c907d16399ab4a8fff8cc31cc84ce96bd4f7ba4faf9865c12fc5"
+            "tx": "0x104dca5edf05c1ecb424a152961b7eff1d906e238c253b38016ca922682398dd"
           },
           {
             "want": "theirs-snapshot",
@@ -231,7 +231,7 @@
         "want": "ours",
         "status": "paid",
         "price": "0.001 USDC",
-        "tx": "0x1d891d5d8de3c907d16399ab4a8fff8cc31cc84ce96bd4f7ba4faf9865c12fc5"
+        "tx": "0x104dca5edf05c1ecb424a152961b7eff1d906e238c253b38016ca922682398dd"
       },
       {
         "want": "theirs-snapshot",
