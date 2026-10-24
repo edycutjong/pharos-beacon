@@ -25,7 +25,7 @@ One interface over several Pharos mainnet protocols. A request (a query or an ac
                                    src/yield/sources.ts (readers, shared with the Yield Optimizer)
                                               │
                                     Pharos Chain MCP (hosted, mainnet)
-                          eth_call · get_block · get_block_number · get_gas_price · estimate_gas
+                          eth_call · get_block · get_block_number · get_gas_price · estimate_gas · get_chain_info
 ```
 
 ## The interface
@@ -53,7 +53,7 @@ Each venue is read inside its own `try` with a timeout. An error (RPC error, rev
 
 ## Actions (requirement 2)
 
-An action is a plan of unsigned transactions (`from` = the owner, `value` 0, chain id). Before a plan is shown, `verifyActionPlan` decodes the calldata itself, as a wallet would: each leg has exactly one approve and one deposit (or one withdrawal); an approval is a USDC `approve()` whose spender is the venue and whose amount equals the leg; a deposit is made for the owner for the leg's amount; a Morpho transaction names the market hash of its leg; a withdrawal pays the owner and redeems the leg's shares (or withdraws the leg's assets); every transaction belongs to a leg of the plan. A plan that fails its own check is not shown. The check is a self-consistency check against the plan's own legs (it catches an adapter bug or edited calldata); a real wallet must also check the legs against its own list of known venues and markets. `src/aggregator/` and the CLI import no signer, ask for no key, and have no way to send (a test greps for it).
+An action is a plan of unsigned transactions (`from` = the owner, `value` 0, chain id). Before a plan is shown, `verifyActionPlan` decodes the calldata itself, as a wallet would: each leg has exactly one approve and one deposit (or one withdrawal); an approval is a USDC `approve()` whose spender is the venue and whose amount equals the leg; a deposit is made for the owner for the leg's amount; a Morpho transaction names the market hash of its leg; a withdrawal pays the owner and redeems the leg's shares (or withdraws the leg's assets); every transaction belongs to a leg of the plan. A plan that fails its own check is not shown. The check is a self-consistency check against the plan's own legs (it catches an adapter bug or edited calldata); a real wallet must also check the legs against its own list of known venues and markets. `src/aggregator/` and the CLI import no signer, ask for no key, and have no code path that sends (a test greps for it).
 
 ## What it does not do
 

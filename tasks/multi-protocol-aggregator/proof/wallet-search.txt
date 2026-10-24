@@ -29,5 +29,5 @@ Only 0x…dEaD (the burn address) has a position in two protocols (three Morpho 
 Code size at block 21146194 (Chain MCP get_code):
 0xBa3b260596D8412318Ee6ef5476291F6C8E3b68a  11784 bytes  (a contract)
 0x000000000000000000000000000000000000dEaD  0 bytes      (no code; the conventional burn address)
-0x62A0e4b7fD967fab5be1a733c09b22eBC4510673  0 bytes      (an externally owned account)
+0x62A0e4b7fD967fab5be1a733c09b22eBC4510673  0 bytes      (no code at that block)
 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3  5311 bytes   (a contract)
