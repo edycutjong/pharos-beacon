@@ -70,5 +70,5 @@ A watchdog for one account is the minimum; this one watches **every borrower it 
 - Discord receives the closest alert plus a count; the console receives every alert (up to 20 per scan).
 - `watch` follows the market-wide set; it cannot follow one named account (`position` is a single read), and an account whose last `Borrow` is older than the window is not in the set.
 - A shock is a what-if on one number (the collateral price), not a forecast.
-- Tests: 26 in `test/liquidation-watchdog.test.ts` (health maths, accrual, remedy minimality, thresholds and hysteresis, alert text, discovery windows and cache, reads through a fake Chain MCP, CLI input checks); 938 in the repo.
+- Tests: 26 in `test/liquidation-watchdog.test.ts` (health maths, accrual, remedy minimality, thresholds and hysteresis, alert text, discovery windows and cache, reads through a fake Chain MCP, CLI input checks); 940 in the repo.
 - Engine changes after the proofs (QA round 1: the watch re-discovery and level scoping, the remedy cap, the shock table's level label) are covered by tests; only the shock proof was re-recorded. The other proofs ran at commits `1443263`, `fd0afe6` and `a8dac2d` (the same engine code: the commits between them only added proof files); the engine differs from them only in those places.
