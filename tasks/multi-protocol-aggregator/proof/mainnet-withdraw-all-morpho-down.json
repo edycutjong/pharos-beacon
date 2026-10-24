@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts withdraw --wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 --amount all --down morpho --block 21146194 --proof mainnet-withdraw-all-morpho-down",
     "git": {
-      "commit": "bf85688ddc8f",
+      "commit": "766bf3879e9c",
       "dirty": false
     },
-    "createdAt": "2026-10-24T21:17:07.309Z"
+    "createdAt": "2026-10-24T21:33:49.089Z"
   },
   "network": "pharos",
   "chainId": 1672,
@@ -768,7 +768,8 @@
           "gasUsd": 0.0016011902906663995,
           "forgoneYieldUsd": 73.8751029477358,
           "positionUsd": 19470.11025,
-          "atUsd": 19470.11025
+          "atUsd": 19470.11025,
+          "rateUnknown": 0
         },
         "ratePct": "4.62%"
       }
@@ -820,7 +821,7 @@
     ],
     "planId": "0xd6ee24ce6d353c229b409e42ddf0db2552b19d2adc33d79d61d8929c49c27181"
   },
-  "planNote": null,
+  "planNote": "\"all\" covers only the venues that answered: Morpho Blue syzUSD/USDC supply, Morpho Blue APT/USDC supply, Morpho Blue APC3M/USDC supply did not, so whatever the wallet holds there is not in this plan",
   "funded": null,
   "evidence": [
     {

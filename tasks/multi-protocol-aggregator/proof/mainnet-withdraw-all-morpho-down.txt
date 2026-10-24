@@ -35,3 +35,4 @@ ROUTE (withdraw):
 
 Prepared for the wallet owner's signature (nothing signed, no key read), plan 0xd6ee…7181, wallet-side calldata check passed:
   1. Redeem 19329483983960707748291 shares of RockawayX USDC vault (about 19470110250 USDC raw) · to 0x047c…02E5 · gas 417771 (estimated)
+"all" covers only the venues that answered: Morpho Blue syzUSD/USDC supply, Morpho Blue APT/USDC supply, Morpho Blue APC3M/USDC supply did not, so whatever the wallet holds there is not in this plan.
