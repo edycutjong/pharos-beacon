@@ -127,7 +127,7 @@ export async function extractInvoice(text: string, format: Format, llm?: LlmJson
         const v = typeof j[k] === "string" ? (j[k] as string).trim() : typeof j[k] === "number" ? String(j[k]) : "";
         if (!v || !text.toLowerCase().includes(v.toLowerCase().replace(/^0+(?=\d)/, ""))) continue;
         // an amount must stand alone in the text ("10" is not found inside "100.00")
-        if (k === "amount" && !new RegExp(`(?<![\\d.,])${v.replace(/\./g, "\\.")}(?![\\d.,]*\\d)`).test(text)) continue;
+        if (k === "amount" && !new RegExp(`(?<![\\d.,])${v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\d.,]*\\d)`).test(text)) continue;
         if (k === "amount") x.amount = amountFrom(v, "the amount", x.flags);
         else x[k] = k === "currency" ? v.toUpperCase() : v;
       }
