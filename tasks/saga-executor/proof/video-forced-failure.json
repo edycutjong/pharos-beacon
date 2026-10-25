@@ -1,0 +1,548 @@
+{
+  "meta": {
+    "task": "saga-executor",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/saga-executor/index.ts run --id saga-video-fail3 --execute --no-preflight --proof video-forced-failure",
+    "git": {
+      "commit": "ffa87a7ba9a9",
+      "dirty": false
+    },
+    "createdAt": "2026-10-25T00:07:36.672Z"
+  },
+  "command": "run",
+  "policy": {
+    "maxAttempts": 3,
+    "backoffMs": 2000,
+    "bumpPercent": 25,
+    "receiptTimeoutMs": 30000
+  },
+  "inject": [],
+  "journal": {
+    "version": 1,
+    "id": "saga-video-fail3",
+    "wallet": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "params": {
+      "wallet": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "pool": "0x88176Fb095C178446816F5a1D7C32E35af1Fdac8",
+      "vault": "0xEAd78727Ab9523622C4fE706D15059A551502671",
+      "tokenIn": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+      "tokenOut": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+      "symbolIn": "WPHRS",
+      "symbolOut": "USDC",
+      "decimalsIn": "18",
+      "decimalsOut": "6",
+      "amountIn": "1000000000000000",
+      "slippageBps": "50",
+      "fixedGas": "400000"
+    },
+    "network": "atlantic",
+    "status": "rolled-back",
+    "startedAt": "2026-10-25T00:07:36.620Z",
+    "updatedAt": "2026-10-25T00:08:41.779Z",
+    "snapshot": {
+      "balIn": "62800000000000000",
+      "balOut": "582001",
+      "allowInPool": "0",
+      "allowOutPool": "0",
+      "allowOutVault": "0",
+      "shares": "900000"
+    },
+    "data": {
+      "native0": "16486477846999784277",
+      "swap.balIn0": "62800000000000000",
+      "swap.balOut0": "582001",
+      "swap.quote": "100000",
+      "swap.out": "100000",
+      "deposit.shares0": "900000"
+    },
+    "actions": [
+      {
+        "id": "approve-in",
+        "phase": "forward",
+        "step": "approve-in",
+        "title": "approve the pool to pull 0.001 WPHRS",
+        "state": "verified",
+        "attempts": [
+          {
+            "n": 1,
+            "hash": "0xcc04badfa263f528bd81d801bd33fd4aed90028f692b475152e0433e304cbdf0",
+            "raw": "0x02f8af830a82315e80847735940083061a8094838800b758277cc111b2d48ab01e5e164f8e947180b844095ea7b300000000000000000000000088176fb095c178446816f5a1d7c32e35af1fdac800000000000000000000000000000000000000000000000000038d7ea4c68000c080a04112d3d5aecfc89438b97142e0d8018d94fd6205dcc6dfaaaf9c62c63dc1454aa02dd5cf65f277d9dae2b5f548027d99abf9b3e470712648767edd4d5b096435c8",
+            "nonce": 94,
+            "gas": "400000",
+            "maxFeePerGas": "2000000000",
+            "maxPriorityFeePerGas": "0",
+            "state": "mined",
+            "gasUsed": "46710",
+            "blockNumber": "31841618"
+          }
+        ],
+        "landed": true,
+        "detail": "allowance(WPHRS → pool) read back = 0.001 WPHRS"
+      },
+      {
+        "id": "swap",
+        "phase": "forward",
+        "step": "swap",
+        "title": "swap 0.001 WPHRS for USDC in the pool",
+        "state": "verified",
+        "attempts": [
+          {
+            "n": 1,
+            "hash": "0xe4e4b7a5a566a24768e8190ed40d09a7ce1cda7ba60ff9d158df33fcde2e3f64",
+            "raw": "0x02f8af830a82315f80847735940083061a809488176fb095c178446816f5a1d7c32e35af1fdac880b844d004f0f7000000000000000000000000838800b758277cc111b2d48ab01e5e164f8e947100000000000000000000000000000000000000000000000000038d7ea4c68000c001a0e14df2d67e368cecb10520bf69d3776a1f3e4aa5b10f0d47c1843ae8ba599ef7a041d043e8581c2284f627a6c236b6db6b94f5ccc22cf446fce70d165f1673b2c9",
+            "nonce": 95,
+            "gas": "400000",
+            "maxFeePerGas": "2000000000",
+            "maxPriorityFeePerGas": "0",
+            "state": "mined",
+            "gasUsed": "70289",
+            "blockNumber": "31841623"
+          }
+        ],
+        "landed": true,
+        "detail": "Swap event: 0.001 WPHRS → 0.1 USDC (quote 0.1, floor 0.0995); balances read back: WPHRS 0.0618, USDC 0.682001"
+      },
+      {
+        "id": "approve-out",
+        "phase": "forward",
+        "step": "approve-out",
+        "title": "approve the vault to pull the swap output (USDC)",
+        "state": "verified",
+        "attempts": [
+          {
+            "n": 1,
+            "hash": "0x792c3c65c0a6a3a4e4f82c9c843b66b0f8d3ba22d371c2de1efcb2329cc27611",
+            "raw": "0x02f8af830a82316080847735940083061a8094cfc8330f4bcab529c625d12781b1c19466a9fc8b80b844095ea7b3000000000000000000000000ead78727ab9523622c4fe706d15059a55150267100000000000000000000000000000000000000000000000000000000000186a0c001a0cc90d03710ccb08b268d8ff3731ef44ef7eb3613c669c399a589619f9b9beb42a05264eafd027e4bc16edc3b762d730cfd9179b863daa756d5d58e2b1a4732d45d",
+            "nonce": 96,
+            "gas": "400000",
+            "maxFeePerGas": "2000000000",
+            "maxPriorityFeePerGas": "0",
+            "state": "mined",
+            "gasUsed": "55437",
+            "blockNumber": "31841627"
+          }
+        ],
+        "landed": true,
+        "detail": "allowance(USDC → vault) read back = 0.1 USDC"
+      },
+      {
+        "id": "deposit",
+        "phase": "forward",
+        "step": "deposit",
+        "title": "deposit the swap output (USDC) into the vault",
+        "state": "failed",
+        "attempts": [
+          {
+            "n": 1,
+            "hash": "0xc1676823e4332d82857f66f02b77c6eb1d6ed3e7c744667b7e415c62ebceb706",
+            "raw": "0x02f88e830a82316180847735940083061a8094ead78727ab9523622c4fe706d15059a55150267180a4b6b55f2500000000000000000000000000000000000000000000000000000000000186a0c001a058bb63aae2ea045941688a7085ece86456475e89f365a2cfe9b3f905d38d339ca06e8ceef846166f25da6dbf3c5f6a23464dd39c36515824e964874e5d914fd0ee",
+            "nonce": 97,
+            "gas": "400000",
+            "maxFeePerGas": "2000000000",
+            "maxPriorityFeePerGas": "0",
+            "state": "reverted",
+            "gasUsed": "23657",
+            "blockNumber": "31841632"
+          }
+        ],
+        "failure": {
+          "kind": "revert",
+          "reason": "the transaction reverted on chain (0xc1676823e4332d82857f66f02b77c6eb1d6ed3e7c744667b7e415c62ebceb706)"
+        }
+      },
+      {
+        "id": "undo-approve-out",
+        "phase": "undo",
+        "step": "approve-out",
+        "title": "revoke the vault's USDC allowance",
+        "state": "verified",
+        "attempts": [
+          {
+            "n": 1,
+            "hash": "0x38d2778d313df1c7670fbc0307e6deb1f62371ba4a6b87eb2cdbf6ba71565310",
+            "raw": "0x02f8af830a82316280847735940083061a8094cfc8330f4bcab529c625d12781b1c19466a9fc8b80b844095ea7b3000000000000000000000000ead78727ab9523622c4fe706d15059a5515026710000000000000000000000000000000000000000000000000000000000000000c001a00bde686f88b29d82b86607be5ae46d1779bad4be6f8db559f01b259fee9f5041a077221c7a3dcc461a3c68212b3b8e57d0e0e97dd94755b5cd04bc6ba380993796",
+            "nonce": 98,
+            "gas": "400000",
+            "maxFeePerGas": "2000000000",
+            "maxPriorityFeePerGas": "0",
+            "state": "mined",
+            "gasUsed": "33501",
+            "blockNumber": "31841635"
+          }
+        ],
+        "landed": true,
+        "detail": "allowance(USDC → vault) read back = 0 USDC"
+      },
+      {
+        "id": "undo-swap-approve",
+        "phase": "undo",
+        "step": "swap",
+        "title": "approve the pool to take the USDC back",
+        "state": "verified",
+        "attempts": [
+          {
+            "n": 1,
+            "hash": "0x3bb27b32ae52b0376f5c1c38581dda3a5fedff79f280fcfc553fc965c57d008b",
+            "raw": "0x02f8af830a82316380847735940083061a8094cfc8330f4bcab529c625d12781b1c19466a9fc8b80b844095ea7b300000000000000000000000088176fb095c178446816f5a1d7c32e35af1fdac800000000000000000000000000000000000000000000000000000000000186a0c001a0bb6126bf95efb6c1a86b10d2866f6fc43d7234f73c5075e2ad6a22aea6b301d0a00adea0e7e6c080cba44e2171a44d38d51c6cc73efa5c8876819e3e77a4230318",
+            "nonce": 99,
+            "gas": "400000",
+            "maxFeePerGas": "2000000000",
+            "maxPriorityFeePerGas": "0",
+            "state": "mined",
+            "gasUsed": "55437",
+            "blockNumber": "31841640"
+          }
+        ],
+        "landed": true,
+        "detail": "allowance(USDC → pool) read back = 0.1 USDC"
+      },
+      {
+        "id": "undo-swap",
+        "phase": "undo",
+        "step": "swap",
+        "title": "swap the USDC back to WPHRS",
+        "state": "verified",
+        "attempts": [
+          {
+            "n": 1,
+            "hash": "0x77e18e6b0918587c901dbb41da48fd4f9203ff69a1e11e5e1d1608fd4bd72fe8",
+            "raw": "0x02f8af830a82316480847735940083061a809488176fb095c178446816f5a1d7c32e35af1fdac880b844d004f0f7000000000000000000000000cfc8330f4bcab529c625d12781b1c19466a9fc8b00000000000000000000000000000000000000000000000000000000000186a0c001a09875bda9b5cdaf5843809eaea006801769acb21db612b14c3da44dd5f41c4d9ba058368fc697543294f33ede76bfab9514458cf5921cebee8e9b8a273ed321efd9",
+            "nonce": 100,
+            "gas": "400000",
+            "maxFeePerGas": "2000000000",
+            "maxPriorityFeePerGas": "0",
+            "state": "mined",
+            "gasUsed": "70058",
+            "blockNumber": "31841659"
+          }
+        ],
+        "landed": true,
+        "detail": "balances read back: WPHRS 0.0628 (before the swap 0.0628), USDC 0.582001 (before 0.582001)"
+      },
+      {
+        "id": "undo-swap-revoke",
+        "phase": "undo",
+        "step": "swap",
+        "title": "revoke the pool's USDC allowance",
+        "state": "skipped",
+        "attempts": [],
+        "detail": "the state this would produce already holds"
+      },
+      {
+        "id": "undo-approve-in",
+        "phase": "undo",
+        "step": "approve-in",
+        "title": "revoke the pool's WPHRS allowance",
+        "state": "skipped",
+        "attempts": [],
+        "detail": "the state this would produce already holds"
+      }
+    ],
+    "log": [
+      {
+        "t": "2026-10-25T00:07:37.961Z",
+        "action": "saga",
+        "event": "STARTED",
+        "detail": "saga saga-video-fail3: approve-in → swap → approve-out → deposit"
+      },
+      {
+        "t": "2026-10-25T00:07:37.974Z",
+        "action": "approve-in",
+        "event": "RUNNING",
+        "detail": "step 1/4 approve-in: approve the pool to pull 0.001 WPHRS"
+      },
+      {
+        "t": "2026-10-25T00:07:38.409Z",
+        "action": "approve-in",
+        "event": "SIGNED",
+        "detail": "attempt 1/3 nonce 94 0xcc04badfa263f528bd81d801bd33fd4aed90028f692b475152e0433e304cbdf0 maxFee 2000000000 wei"
+      },
+      {
+        "t": "2026-10-25T00:07:38.462Z",
+        "action": "approve-in",
+        "event": "SENT",
+        "detail": "0xcc04badfa263f528bd81d801bd33fd4aed90028f692b475152e0433e304cbdf0"
+      },
+      {
+        "t": "2026-10-25T00:07:41.050Z",
+        "action": "approve-in",
+        "event": "MINED",
+        "detail": "0xcc04badfa263f528bd81d801bd33fd4aed90028f692b475152e0433e304cbdf0 block 31841618 status 1 gas 46710"
+      },
+      {
+        "t": "2026-10-25T00:07:41.331Z",
+        "action": "approve-in",
+        "event": "VERIFIED",
+        "detail": "allowance(WPHRS → pool) read back = 0.001 WPHRS"
+      },
+      {
+        "t": "2026-10-25T00:07:41.342Z",
+        "action": "swap",
+        "event": "RUNNING",
+        "detail": "step 2/4 swap: swap 0.001 WPHRS for USDC in the pool"
+      },
+      {
+        "t": "2026-10-25T00:07:42.395Z",
+        "action": "swap",
+        "event": "SIGNED",
+        "detail": "attempt 1/3 nonce 95 0xe4e4b7a5a566a24768e8190ed40d09a7ce1cda7ba60ff9d158df33fcde2e3f64 maxFee 2000000000 wei"
+      },
+      {
+        "t": "2026-10-25T00:07:42.457Z",
+        "action": "swap",
+        "event": "SENT",
+        "detail": "0xe4e4b7a5a566a24768e8190ed40d09a7ce1cda7ba60ff9d158df33fcde2e3f64"
+      },
+      {
+        "t": "2026-10-25T00:07:45.051Z",
+        "action": "swap",
+        "event": "MINED",
+        "detail": "0xe4e4b7a5a566a24768e8190ed40d09a7ce1cda7ba60ff9d158df33fcde2e3f64 block 31841623 status 1 gas 70289"
+      },
+      {
+        "t": "2026-10-25T00:07:45.392Z",
+        "action": "swap",
+        "event": "VERIFIED",
+        "detail": "Swap event: 0.001 WPHRS → 0.1 USDC (quote 0.1, floor 0.0995); balances read back: WPHRS 0.0618, USDC 0.682001"
+      },
+      {
+        "t": "2026-10-25T00:07:45.401Z",
+        "action": "approve-out",
+        "event": "RUNNING",
+        "detail": "step 3/4 approve-out: approve the vault to pull the swap output (USDC)"
+      },
+      {
+        "t": "2026-10-25T00:07:45.661Z",
+        "action": "approve-out",
+        "event": "SIGNED",
+        "detail": "attempt 1/3 nonce 96 0x792c3c65c0a6a3a4e4f82c9c843b66b0f8d3ba22d371c2de1efcb2329cc27611 maxFee 2000000000 wei"
+      },
+      {
+        "t": "2026-10-25T00:07:45.721Z",
+        "action": "approve-out",
+        "event": "SENT",
+        "detail": "0x792c3c65c0a6a3a4e4f82c9c843b66b0f8d3ba22d371c2de1efcb2329cc27611"
+      },
+      {
+        "t": "2026-10-25T00:07:48.307Z",
+        "action": "approve-out",
+        "event": "MINED",
+        "detail": "0x792c3c65c0a6a3a4e4f82c9c843b66b0f8d3ba22d371c2de1efcb2329cc27611 block 31841627 status 1 gas 55437"
+      },
+      {
+        "t": "2026-10-25T00:07:48.556Z",
+        "action": "approve-out",
+        "event": "VERIFIED",
+        "detail": "allowance(USDC → vault) read back = 0.1 USDC"
+      },
+      {
+        "t": "2026-10-25T00:07:48.563Z",
+        "action": "deposit",
+        "event": "RUNNING",
+        "detail": "step 4/4 deposit: deposit the swap output (USDC) into the vault"
+      },
+      {
+        "t": "2026-10-25T00:07:49.470Z",
+        "action": "deposit",
+        "event": "SIGNED",
+        "detail": "attempt 1/3 nonce 97 0xc1676823e4332d82857f66f02b77c6eb1d6ed3e7c744667b7e415c62ebceb706 maxFee 2000000000 wei"
+      },
+      {
+        "t": "2026-10-25T00:07:49.510Z",
+        "action": "deposit",
+        "event": "SENT",
+        "detail": "0xc1676823e4332d82857f66f02b77c6eb1d6ed3e7c744667b7e415c62ebceb706"
+      },
+      {
+        "t": "2026-10-25T00:07:52.078Z",
+        "action": "deposit",
+        "event": "REVERTED",
+        "detail": "0xc1676823e4332d82857f66f02b77c6eb1d6ed3e7c744667b7e415c62ebceb706 mined in block 31841632 with status 0: permanent"
+      },
+      {
+        "t": "2026-10-25T00:07:52.088Z",
+        "action": "deposit",
+        "event": "FAILED",
+        "detail": "revert: the transaction reverted on chain (0xc1676823e4332d82857f66f02b77c6eb1d6ed3e7c744667b7e415c62ebceb706)"
+      },
+      {
+        "t": "2026-10-25T00:07:52.093Z",
+        "action": "saga",
+        "event": "COMPENSATING",
+        "detail": "step deposit failed permanently (revert): rolling back what landed"
+      },
+      {
+        "t": "2026-10-25T00:07:52.100Z",
+        "action": "saga",
+        "event": "ROLLBACK-PLAN",
+        "detail": "undo approve-out, swap, approve-in (newest first)"
+      },
+      {
+        "t": "2026-10-25T00:07:52.108Z",
+        "action": "undo-approve-out",
+        "event": "RUNNING",
+        "detail": "step 3/4 undo undo-approve-out: revoke the vault's USDC allowance"
+      },
+      {
+        "t": "2026-10-25T00:07:52.412Z",
+        "action": "undo-approve-out",
+        "event": "SIGNED",
+        "detail": "attempt 1/3 nonce 98 0x38d2778d313df1c7670fbc0307e6deb1f62371ba4a6b87eb2cdbf6ba71565310 maxFee 2000000000 wei"
+      },
+      {
+        "t": "2026-10-25T00:07:52.458Z",
+        "action": "undo-approve-out",
+        "event": "SENT",
+        "detail": "0x38d2778d313df1c7670fbc0307e6deb1f62371ba4a6b87eb2cdbf6ba71565310"
+      },
+      {
+        "t": "2026-10-25T00:07:55.028Z",
+        "action": "undo-approve-out",
+        "event": "MINED",
+        "detail": "0x38d2778d313df1c7670fbc0307e6deb1f62371ba4a6b87eb2cdbf6ba71565310 block 31841635 status 1 gas 33501"
+      },
+      {
+        "t": "2026-10-25T00:07:55.215Z",
+        "action": "undo-approve-out",
+        "event": "VERIFIED",
+        "detail": "allowance(USDC → vault) read back = 0 USDC"
+      },
+      {
+        "t": "2026-10-25T00:07:55.241Z",
+        "action": "undo-swap-approve",
+        "event": "RUNNING",
+        "detail": "step 2/4 undo undo-swap-approve: approve the pool to take the USDC back"
+      },
+      {
+        "t": "2026-10-25T00:07:55.484Z",
+        "action": "undo-swap-approve",
+        "event": "SIGNED",
+        "detail": "attempt 1/3 nonce 99 0x3bb27b32ae52b0376f5c1c38581dda3a5fedff79f280fcfc553fc965c57d008b maxFee 2000000000 wei"
+      },
+      {
+        "t": "2026-10-25T00:07:56.092Z",
+        "action": "undo-swap-approve",
+        "event": "SENT",
+        "detail": "0x3bb27b32ae52b0376f5c1c38581dda3a5fedff79f280fcfc553fc965c57d008b"
+      },
+      {
+        "t": "2026-10-25T00:07:58.666Z",
+        "action": "undo-swap-approve",
+        "event": "MINED",
+        "detail": "0x3bb27b32ae52b0376f5c1c38581dda3a5fedff79f280fcfc553fc965c57d008b block 31841640 status 1 gas 55437"
+      },
+      {
+        "t": "2026-10-25T00:07:58.998Z",
+        "action": "undo-swap-approve",
+        "event": "VERIFIED",
+        "detail": "allowance(USDC → pool) read back = 0.1 USDC"
+      },
+      {
+        "t": "2026-10-25T00:07:59.012Z",
+        "action": "undo-swap",
+        "event": "RUNNING",
+        "detail": "step 2/4 undo undo-swap: swap the USDC back to WPHRS"
+      },
+      {
+        "t": "2026-10-25T00:08:36.346Z",
+        "action": "undo-swap",
+        "event": "SIGNED",
+        "detail": "attempt 1/3 nonce 100 0x77e18e6b0918587c901dbb41da48fd4f9203ff69a1e11e5e1d1608fd4bd72fe8 maxFee 2000000000 wei"
+      },
+      {
+        "t": "2026-10-25T00:08:36.728Z",
+        "action": "undo-swap",
+        "event": "SENT",
+        "detail": "0x77e18e6b0918587c901dbb41da48fd4f9203ff69a1e11e5e1d1608fd4bd72fe8"
+      },
+      {
+        "t": "2026-10-25T00:08:39.307Z",
+        "action": "undo-swap",
+        "event": "MINED",
+        "detail": "0x77e18e6b0918587c901dbb41da48fd4f9203ff69a1e11e5e1d1608fd4bd72fe8 block 31841659 status 1 gas 70058"
+      },
+      {
+        "t": "2026-10-25T00:08:39.724Z",
+        "action": "undo-swap",
+        "event": "VERIFIED",
+        "detail": "balances read back: WPHRS 0.0628 (before the swap 0.0628), USDC 0.582001 (before 0.582001)"
+      },
+      {
+        "t": "2026-10-25T00:08:39.742Z",
+        "action": "undo-swap-revoke",
+        "event": "RUNNING",
+        "detail": "step 2/4 undo undo-swap-revoke: revoke the pool's USDC allowance"
+      },
+      {
+        "t": "2026-10-25T00:08:40.032Z",
+        "action": "undo-swap-revoke",
+        "event": "SKIPPED",
+        "detail": "the state this would produce already holds"
+      },
+      {
+        "t": "2026-10-25T00:08:40.041Z",
+        "action": "undo-approve-in",
+        "event": "RUNNING",
+        "detail": "step 1/4 undo undo-approve-in: revoke the pool's WPHRS allowance"
+      },
+      {
+        "t": "2026-10-25T00:08:40.343Z",
+        "action": "undo-approve-in",
+        "event": "SKIPPED",
+        "detail": "the state this would produce already holds"
+      },
+      {
+        "t": "2026-10-25T00:08:41.769Z",
+        "action": "saga",
+        "event": "ROLLED-BACK",
+        "detail": "balance invariant holds for all 6 reads"
+      }
+    ],
+    "failedAt": "deposit",
+    "checks": [
+      {
+        "name": "WPHRS balance",
+        "expected": "0.0628",
+        "after": "0.0628",
+        "ok": true
+      },
+      {
+        "name": "USDC balance",
+        "expected": "0.582001",
+        "after": "0.582001",
+        "ok": true
+      },
+      {
+        "name": "WPHRS allowance to pool",
+        "expected": "0",
+        "after": "0",
+        "ok": true
+      },
+      {
+        "name": "USDC allowance to pool",
+        "expected": "0",
+        "after": "0",
+        "ok": true
+      },
+      {
+        "name": "USDC allowance to vault",
+        "expected": "0",
+        "after": "0",
+        "ok": true
+      },
+      {
+        "name": "vault shares",
+        "expected": "0.9",
+        "after": "0.9",
+        "ok": true
+      }
+    ]
+  },
+  "nativeAfterWei": "16486122757999784277"
+}
