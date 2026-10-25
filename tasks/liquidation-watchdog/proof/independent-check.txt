@@ -1,0 +1,6 @@
+== independent (python, public RPC, no interest accrual) ==
+lltv 0.915 price 1090587263939170158000000 collateral 1547470.901193805 debt(stale totals) 1523691.873914 HF 1.013460567599744
+== watchdog (Chain MCP, interest accrued) ==
+block 21133259 · Morpho syzUSD/USDC 0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86 · LLTV 91.50% · interest accrued to the head block
+# | market | account | health | drop to liquidation | debt | collateral | level
+1 | syzUSD/USDC | 0xA4A5…3DCc | 1.0134 | 1.32% | 1,523,813.04 USDC | 1,547,470.90 syzUSD | critical

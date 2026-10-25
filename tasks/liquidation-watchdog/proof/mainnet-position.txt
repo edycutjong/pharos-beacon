@@ -1,0 +1,5 @@
+block 21132805 · Morpho syzUSD/USDC 0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86 · LLTV 91.50% · interest accrued to the head block
+# | market | account | health | drop to liquidation | debt | collateral | level
+1 | syzUSD/USDC | 0xA4A5…3DCc | 1.0134 | 1.32% | 1,523,810.91 USDC | 1,547,470.90 syzUSD | critical
+[2026-10-24T15:59:13.586Z] CRITICAL Morpho syzUSD/USDC 0xA4A5…3DCc: health factor 1.0134 (debt 1,523,810.91 USDC, collateral 1,547,470.90 syzUSD). Liquidated if syzUSD falls 1.32% further. Act now: repay 335,973.18 USDC or add 437,693.38 syzUSD collateral to get back to 1.30.
+proof: tasks/liquidation-watchdog/proof/mainnet-position.json

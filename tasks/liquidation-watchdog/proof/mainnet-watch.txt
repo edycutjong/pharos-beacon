@@ -1,0 +1,15 @@
+block 21132982 (0.913 s/block): looking for Morpho Blue borrowers in blocks 18293834…21132982 (30 days)
+  discovery 100% (24 of 24 blocks)
+discovery: 24 new blocks scanned (earlier ranges reused from the index); borrowers ever seen per market: 0xc79579a0…: 4, 0xd834016e…: 2, 0xab78d4ff…: 3, 0xba0d2638…: 3, 0x95bc6fe9…: 1, 0x4cbedaf6…: 1
+--- poll 1 of 3 ---
+block 21132982: 13 open positions, closest 1.0134, 6 new alert(s)
+[2026-10-24T16:02:15.279Z] CRITICAL Morpho syzUSD/USDC 0xA4A5…3DCc: health factor 1.0134 (debt 1,523,811.72 USDC, collateral 1,547,470.90 syzUSD). Liquidated if syzUSD falls 1.32% further. Act now: repay 335,973.99 USDC or add 437,694.45 syzUSD collateral to get back to 1.30.
+[2026-10-24T16:02:15.280Z] CRITICAL Morpho syzUSD/USDC 0x743D…2A73: health factor 1.0201 (debt 22,010.38 USDC, collateral 22,500.00 syzUSD). Liquidated if syzUSD falls 1.97% further. Act now: repay 4,739.40 USDC or add 6,174.31 syzUSD collateral to get back to 1.30.
+[2026-10-24T16:02:15.280Z] CRITICAL Morpho syzUSD/USDC 0xE6a4…fe7C: health factor 1.0333 (debt 1,343,764.00 USDC, collateral 1,391,416.26 syzUSD). Liquidated if syzUSD falls 3.22% further. Act now: repay 275,713.72 USDC or add 359,189.59 syzUSD collateral to get back to 1.30.
+[2026-10-24T16:02:15.280Z] CRITICAL Morpho APT/USDC 0x966B…B257: health factor 1.0351 (debt 70,039.13 USDC, collateral 83,676.46 APT). Liquidated if APT falls 3.39% further. Act now: repay 14,272.53 USDC or add 21,415.60 APT collateral to get back to 1.30.
+[2026-10-24T16:02:15.280Z] CRITICAL Morpho syzUSD/USDC 0xF8B4…B127: health factor 1.0569 (debt 130,011.21 USDC, collateral 137,702.12 syzUSD). Liquidated if syzUSD falls 5.38% further. Act now: repay 24,311.14 USDC or add 31,671.65 syzUSD collateral to get back to 1.30.
+[2026-10-24T16:02:15.280Z] CRITICAL Morpho APC3M/USDC 0xF06a…AA89: health factor 1.0693 (debt 1,661.65 USDC, collateral 2,000.00 APC3M). Liquidated if APC3M falls 6.48% further. Act now: repay 294.84 USDC or add 431.42 APC3M collateral to get back to 1.30.
+--- poll 2 of 3 ---
+block 21133038: 13 open positions, closest 1.0134, 0 new alert(s)
+--- poll 3 of 3 ---
+block 21133097: 13 open positions, closest 1.0134, 0 new alert(s)
