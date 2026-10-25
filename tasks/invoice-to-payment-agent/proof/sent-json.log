@@ -1,0 +1,56 @@
+invoice: tasks/invoice-to-payment-agent/samples/acme-0042.json (json) · read by json fields
+  number    INV-2026-0042
+  issuer    Acme Design Studio
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    0.005 PHRS
+fingerprint 91415a4420740ca2 (invoice number + issuer + amount + currency)
+
+checks
+  PASS  recipient 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)
+  PASS  token     PHRS, the native coin (18 decimals)
+  PASS  amount    0.005 PHRS = 5000000000000000 base units
+  PASS  reference "INV-2026-0042" appended to the transaction data (13 bytes)
+  PASS  balance   0x317b…2975 holds 14.917193901999979 PHRS, needs 0.0050573 (amount + max fee)
+
+Send 0.005 PHRS
+  from      0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  to        0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  network   Pharos Atlantic Testnet (chain 688689)
+  reference INV-2026-0042
+  max fee   0.0000573 PHRS (gas 28650)
+  status    UNSIGNED: nothing is signed or sent until you approve it
+
+unsigned transaction
+{
+  "chainId": 688689,
+  "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+  "value": "5000000000000000",
+  "data": "0x494e562d323032362d30303432",
+  "nonce": 113,
+  "gas": "28650",
+  "maxFeePerGas": "2000000000",
+  "maxPriorityFeePerGas": "0"
+}
+
+wallet signing request
+{
+  "method": "eth_sendTransaction",
+  "params": [
+    {
+      "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+      "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "value": "0x11c37937e08000",
+      "data": "0x494e562d323032362d30303432",
+      "gas": "0x6fea",
+      "maxFeePerGas": "0x77359400",
+      "maxPriorityFeePerGas": "0x0",
+      "nonce": "0x71",
+      "chainId": "0xa8231",
+      "type": "0x2"
+    }
+  ]
+}
+
+SENT success in block 31804824
+https://atlantic.pharosscan.xyz/tx/0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6
+proof: tasks/invoice-to-payment-agent/proof/sent-json.json

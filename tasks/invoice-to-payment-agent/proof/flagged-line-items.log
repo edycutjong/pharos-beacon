@@ -1,0 +1,9 @@
+invoice: tasks/invoice-to-payment-agent/samples/bad-line-items.json (json) · read by json fields
+  number    LI-31
+  issuer    Sum Mismatch Ltd
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    0.01 PHRS
+
+FLAGGED: nothing was prepared. The invoice needs a human:
+  ! the line items add up to 0.008 but the invoice total says 0.01
+proof: tasks/invoice-to-payment-agent/proof/flagged-line-items.json

@@ -1,0 +1,6 @@
+INVOICE #QX-9
+From: Quick Print Co
+Pay to: 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+Subtotal: 20 USDC
+Total due: 25 USDC
+Amount due: 30 USDC

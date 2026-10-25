@@ -1,0 +1,9 @@
+invoice: tasks/invoice-to-payment-agent/samples/bad-no-reference.json (json) · read by json fields
+  number    —
+  issuer    Anon Vendor
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    0.001 PHRS
+
+FLAGGED: nothing was prepared. The invoice needs a human:
+  ! missing field: invoice number / reference
+proof: tasks/invoice-to-payment-agent/proof/flagged-no-reference.json

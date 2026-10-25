@@ -1,0 +1,31 @@
+{
+  "meta": {
+    "task": "invoice-to-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "none"
+    },
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/bad-no-reference.json --proof flagged-no-reference",
+    "git": {
+      "commit": "48977460f4ac",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:38:29.078Z"
+  },
+  "invoice": "tasks/invoice-to-payment-agent/samples/bad-no-reference.json",
+  "extracted": {
+    "format": "json",
+    "flags": [],
+    "notes": [],
+    "via": "json fields",
+    "issuer": "Anon Vendor",
+    "payee": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "currency": "PHRS",
+    "amount": "0.001"
+  },
+  "outcome": "flagged",
+  "flags": [
+    "missing field: invoice number / reference"
+  ]
+}

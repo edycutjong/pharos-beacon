@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "task": "invoice-to-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "none"
+    },
+    "command": "tasks/invoice-to-payment-agent/index.ts tasks/invoice-to-payment-agent/samples/acme-0042.json --execute --proof duplicate-refused",
+    "git": {
+      "commit": "a6bd31a19a5c",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:38:32.325Z"
+  },
+  "invoice": "tasks/invoice-to-payment-agent/samples/acme-0042.json",
+  "extracted": {
+    "format": "json",
+    "flags": [],
+    "notes": [],
+    "via": "json fields",
+    "number": "INV-2026-0042",
+    "issuer": "Acme Design Studio",
+    "payee": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "currency": "PHRS",
+    "amount": "0.005"
+  },
+  "outcome": "duplicate-refused",
+  "fingerprint": "ee44523cd8494c8b",
+  "firstPayment": {
+    "fingerprint": "ee44523cd8494c8b",
+    "number": "INV-2026-0042",
+    "issuer": "Acme Design Studio",
+    "amount": "0.005",
+    "token": "PHRS",
+    "hash": "0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6",
+    "url": "https://atlantic.pharosscan.xyz/tx/0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6",
+    "at": "2026-10-24T01:30:21.466Z"
+  }
+}

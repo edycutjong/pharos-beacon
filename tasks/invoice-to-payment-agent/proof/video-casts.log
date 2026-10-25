@@ -1,0 +1,81 @@
+===== cast w1-pdf (verbatim terminal output of the recording)
+$ npm run -s invoice-to-payment-agent -- tasks/invoice-to-payment-agent/samples/faktur-bumi.pdf --state /tmp/inv-demo.json
+invoice: tasks/invoice-to-payment-agent/samples/faktur-bumi.pdf (pdf) · read by labelled lines
+  number    BM/2026/10/088
+  issuer    CV Bumi Digital
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    0.002 PHRS
+fingerprint b9e62b05657d0bc6 (invoice number + issuer + amount + currency)
+
+checks
+  PASS  recipient 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)
+  PASS  token     PHRS, the native coin (18 decimals)
+  PASS  amount    0.002 PHRS = 2000000000000000 base units
+  PASS  reference "BM/2026/10/088" appended to the transaction data (14 bytes)
+  PASS  balance   0x317b…2975 holds 14.899066863999979 PHRS, needs 0.002057338 (amount + max fee)
+
+Send 0.002 PHRS
+  from      0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  to        0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  network   Pharos Atlantic Testnet (chain 688689)
+  reference BM/2026/10/088
+  max fee   0.000057338 PHRS (gas 28669)
+  status    UNSIGNED: nothing is signed or sent until you approve it
+
+unsigned transaction
+{
+  "chainId": 688689,
+  "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+  "value": "2000000000000000",
+  "data": "0x424d2f323032362f31302f303838",
+  "nonce": 118,
+  "gas": "28669",
+  "maxFeePerGas": "2000000000",
+  "maxPriorityFeePerGas": "0"
+}
+
+wallet signing request
+{
+  "method": "eth_sendTransaction",
+  "params": [
+    {
+      "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+      "to": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+      "value": "0x71afd498d0000",
+      "data": "0x424d2f323032362f31302f303838",
+      "gas": "0x6ffd",
+      "maxFeePerGas": "0x77359400",
+      "maxPriorityFeePerGas": "0x0",
+      "nonce": "0x76",
+      "chainId": "0xa8231",
+      "type": "0x2"
+    }
+  ]
+}
+
+NOT SIGNED. Nothing was sent. Re-run with --execute to sign it with the testnet key and send it.
+$ 
+===== cast w2-flag (verbatim terminal output of the recording)
+$ npm run -s invoice-to-payment-agent -- tasks/invoice-to-payment-agent/samples/bad-totals.txt
+invoice: tasks/invoice-to-payment-agent/samples/bad-totals.txt (text) · read by labelled lines
+  number    QX-9
+  issuer    Quick Print Co
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    — USDC
+
+FLAGGED: nothing was prepared. The invoice needs a human:
+  ! the invoice states different totals (25 vs 30): refusing to pick one
+$ 
+===== cast w3-dup (verbatim terminal output of the recording)
+$ npm run -s invoice-to-payment-agent -- tasks/invoice-to-payment-agent/samples/acme-0042.json
+invoice: tasks/invoice-to-payment-agent/samples/acme-0042.json (json) · read by json fields
+  number    INV-2026-0042
+  issuer    Acme Design Studio
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    0.005 PHRS
+fingerprint ee44523cd8494c8b (invoice number + issuer + amount + currency)
+
+DUPLICATE: invoice INV-2026-0042 was already paid (0.005 PHRS) in 0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6
+https://atlantic.pharosscan.xyz/tx/0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6
+refused: it would be paid twice.
+$ 

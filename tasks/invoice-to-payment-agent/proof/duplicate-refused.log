@@ -1,0 +1,11 @@
+invoice: tasks/invoice-to-payment-agent/samples/acme-0042.json (json) · read by json fields
+  number    INV-2026-0042
+  issuer    Acme Design Studio
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    0.005 PHRS
+fingerprint ee44523cd8494c8b (invoice number + issuer + amount + currency)
+
+DUPLICATE: invoice INV-2026-0042 was already paid (0.005 PHRS) in 0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6
+https://atlantic.pharosscan.xyz/tx/0xc966df7cf33505b8848c7024e95b5c87fa5525dbf8cdd1fe80129f47986780d6
+refused: it would be paid twice.
+proof: tasks/invoice-to-payment-agent/proof/duplicate-refused.json

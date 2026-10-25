@@ -1,0 +1,9 @@
+invoice: tasks/invoice-to-payment-agent/samples/bad-totals.txt (text) · read by labelled lines
+  number    QX-9
+  issuer    Quick Print Co
+  payee     0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+  amount    — USDC
+
+FLAGGED: nothing was prepared. The invoice needs a human:
+  ! the invoice states different totals (25 vs 30): refusing to pick one
+proof: tasks/invoice-to-payment-agent/proof/flagged-totals.json
