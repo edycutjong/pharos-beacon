@@ -22,7 +22,7 @@ Extra (U1): a **duplicate-invoice guard**. Each invoice gets a fingerprint (invo
 | 1 | "Extracts payee, amount, token or currency, and reference from at least 2 invoice formats." | Three formats: JSON, text, PDF; each prints number, issuer, payee, amount, currency | [`prepared-json.log`](proof/prepared-json.log) (JSON), [`prepared-text.log`](proof/prepared-text.log) (text), [`prepared-pdf.log`](proof/prepared-pdf.log) (PDF, from [`faktur-bumi.pdf`](samples/faktur-bumi.pdf)) |
 | 2 | "Flags mismatches or missing fields instead of guessing." | `FLAGGED` with one line per problem (a bad payee checksum is `REFUSED` by the preparer), nothing prepared | [`flagged-totals.log`](proof/flagged-totals.log), [`flagged-no-reference.log`](proof/flagged-no-reference.log), [`flagged-usd.log`](proof/flagged-usd.log), [`flagged-line-items.log`](proof/flagged-line-items.log), [`refused-payee-checksum.log`](proof/refused-payee-checksum.log) (a `REFUSED` run from the shared preparer, not `FLAGGED`) |
 | 3 | "Produces a payment summary and an unsigned transaction that includes the invoice reference." | `Send … / reference <number>` summary, then the unsigned transaction whose `data` carries the reference | `unsignedTx.data` in [`prepared-json.json`](proof/prepared-json.json); on chain in every `sent-*` tx input |
-| 4 | "Includes a demo with sample invoices." | Nine files in [`samples/`](samples/) (three valid invoices: JSON, text and PDF, with the PDF's text twin `faktur-bumi.txt`; and five that must be flagged or refused) in [`samples/`](samples/) and the proofs above, three of them paid live | the live table below |
+| 4 | "Includes a demo with sample invoices." | Nine files in [`samples/`](samples/) (three valid invoices: JSON, text and PDF, with the PDF's text twin `faktur-bumi.txt`; and five that must be flagged or refused) and the proofs above, three of them paid live | the live table below |
 
 ## Output (pasted from `proof/sent-text.log`)
 
@@ -71,7 +71,7 @@ FLAGGED: nothing was prepared. The invoice needs a human:
   ! the invoice states different totals (25 vs 30): refusing to pick one
 ```
 
-The same invoice is never paid twice (`proof/duplicate-refused.log`, the acme invoice run again):
+A paid invoice is refused a second time by the local ledger (`proof/duplicate-refused.log`, the acme invoice run again):
 
 ```text
 invoice: tasks/invoice-to-payment-agent/samples/acme-0042.json (json) · read by json fields
@@ -109,4 +109,4 @@ Payer wallet 1 `0x317b…2975` → our wallet 2 `0x8D34…D91B` (`PRIVATE_KEY_2`
 
 ## Tests
 
-8 tests in [`test/invoice.test.ts`](../../test/invoice.test.ts) (the three readers; the main flags: missing reference, totals, line items, ambiguous amount, two payees, bad JSON, non-token currency, field and currency conflicts, several invoices; `--pay-in`; the LLM gap-filler that may not invent; the fingerprint and ledger; the duplicate refusal through the CLI). The shared preparer has its own 8 tests in `test/pay.test.ts`. `npm test` and `npm run typecheck` are green.
+8 tests in [`test/invoice.test.ts`](../../test/invoice.test.ts) (the three readers; the main flags: missing reference, totals, line items, ambiguous amount, two payees, bad JSON, non-token currency, field and currency conflicts, several invoices; `--pay-in`; the LLM gap-filler that may not invent; the fingerprint and ledger; the duplicate refusal through the CLI). The shared preparer's 20 tests are in `test/pay.test.ts` (NL Payment Agent). `npm test` and `npm run typecheck` are green.

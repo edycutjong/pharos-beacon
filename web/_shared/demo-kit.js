@@ -76,7 +76,7 @@
   // ---- requirements, show me, tabs, copy ----
   function drawReqs(rows) {
     $("reqs").innerHTML = rows
-      .map((r) => `<li><span class="rn">${esc(r[0])}</span><span class="rt">${esc(r[1])}<small>${r[2]}</small></span><span class="st ${esc(r[3])}">${esc(r[3])}</span><a class="showme" href="#${esc(r[4])}" data-target="${esc(r[4])}">show me ↓</a></li>`)
+      .map((r) => `<li><span class="rn">${esc(r[0])}</span><span class="rt">${esc(r[1])}<small>${r[2]}</small></span><span class="st ${esc(r[3])}">${r[3] === "cli" ? "met \u00b7 CLI proof" : esc(r[3])}</span><a class="showme" href="#${esc(r[4])}" data-target="${esc(r[4])}">show me ↓</a></li>`)
       .join("");
   }
   document.addEventListener("click", (e) => {

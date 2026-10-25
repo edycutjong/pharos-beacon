@@ -322,12 +322,29 @@ describe("plumbing", () => {
         return f <= 5_000n && t >= 5_000n ? [mk(1_000n, 5_000)] : f <= 3_000n && t >= 3_000n ? [mk(10_000n, 3_000)] : [];
       },
       blockTime: async (b) => 1_800_000_000 + Number(b),
+      txFrom: async () => FAC,
     };
-    const r = await recentPayments(src, PAY_TO, { limit: 2 });
+    const r = await recentPayments(src, PAY_TO, { limit: 2, facilitator: FAC });
     expect(r.payments.map((p) => [p.block, p.route, p.usdc])).toEqual([[5_000, "gas-snapshot", "0.001"], [3_000, "whale-brief", "0.01"]]);
     expect(calls[0]).toEqual([4_501n, 5_500n]);
     expect(calls).toHaveLength(3); // stopped once it had two
     expect(r.payments[0]!.explorer).toMatch(/^https:\/\/atlantic\.pharosscan\.xyz\/tx\/0x/);
+  });
+  it("lists only x402 settlements: a Transfer to the payee that the facilitator did not send is left out, whatever its amount", async () => {
+    const SAGA = getAddress("0x8817000000000000000000000000000000000001");
+    const mk = (from: Hex, value: bigint, block: number) => ({ ...transferLog(from, PAY_TO, value), blockNumber: `0x${block.toString(16)}`, transactionHash: `0x${String(block).padStart(64, "0")}` }) as never;
+    const senders: Record<string, Hex> = { [`0x${"1".padStart(64, "0")}`]: SAGA, [`0x${"2".padStart(64, "0")}`]: SAGA, [`0x${"3".padStart(64, "0")}`]: FAC };
+    const src: LogSource = {
+      blockNumber: async () => 10n,
+      // block 1: a Saga swap of exactly a route's price (0.001); block 2: 0.1 USDC from Saga; block 3: a real settlement
+      logs: async () => [mk(SAGA, 1_000n, 1), mk(SAGA, 100_000n, 2), mk(BUYER, 1_000n, 3)],
+      blockTime: async (b) => 1_800_000_000 + Number(b),
+      txFrom: async (tx) => senders[tx]!,
+    };
+    const r = await recentPayments(src, PAY_TO, { limit: 10, maxWindows: 1, facilitator: FAC });
+    expect(r.payments.map((p) => p.block)).toEqual([3]);
+    const none = await recentPayments({ ...src, txFrom: async () => SAGA }, PAY_TO, { maxWindows: 1, facilitator: FAC });
+    expect(none.payments).toEqual([]);
   });
 });
 
