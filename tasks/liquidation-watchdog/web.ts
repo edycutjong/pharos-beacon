@@ -1,4 +1,4 @@
-// Live demo endpoint for the Liquidation Watchdog (api/router.ts → this file). Read-only: it re-reads the 13 Morpho Blue borrowers of the
+// Live demo endpoint for the Liquidation Watchdog (api/router.ts → this file). Read-only: it re-reads the 13 Morpho Blue positions (12 accounts) of the
 // recorded mainnet scan (seed.ts) through the Chain MCP, ranks them, applies the thresholds and an optional collateral-price shock. Nothing
 // is signed and nothing is sent (no Discord either). The CLI finds borrowers itself; a cold discovery takes minutes, so the page does not.
 //   GET ?action=info
@@ -60,14 +60,14 @@ export async function run(p: RunParams, emit: Emit, deps: Deps): Promise<void> {
     s.begin("markets");
     const ids = [...new Set(SEED.map(([m]) => m))] as Hex[];
     const snaps = new Map<string, MarketSnapshot>();
-    for (const id of ids) snaps.set(id, await snapshotMarket(conn.call, id, BigInt(block.timestamp)));
+    for (const id of ids) snaps.set(id, await snapshotMarket(conn.call, id, BigInt(block.timestamp), head));
     s.end("markets", "ok", `${ids.length} markets`);
     s.begin("positions");
     const t = checkThresholds({ warn: p.warn, critical: p.critical, rearm: 0.02 });
     const rows: Row[] = [];
     for (const [m, u] of SEED) {
       const snap = snaps.get(m)!;
-      const pos = evaluate(getAddress(u), await readPosition(conn.call, m as Hex, getAddress(u)), snap, p.shock);
+      const pos = evaluate(getAddress(u), await readPosition(conn.call, m as Hex, getAddress(u), head), snap, p.shock);
       if (pos.debt === 0n) continue;
       rows.push({ snap, p: pos, hf: pos.hfNumber, level: levelOf(pos.hfNumber, t) });
     }
@@ -77,7 +77,7 @@ export async function run(p: RunParams, emit: Emit, deps: Deps): Promise<void> {
     s.end("rank", "ok", "ranked");
     emit({ type: "done", totalMs: Date.now() - t0, view: viewOf(rows, head, p) });
   } catch (e) {
-    s.end(s.current ?? "head", "failed", (e as Error).message.slice(0, 160));
+    s.end(s.current ?? "rank", "failed", (e as Error).message.slice(0, 160));
     throw e;
   } finally {
     await conn.close().catch(() => {});

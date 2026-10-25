@@ -2,6 +2,7 @@
 // aggregate() over six venues of three protocols at one block and renders the same report. A deposit or withdrawal is only ever an
 // UNSIGNED plan for the owner's wallet: this file imports no signer. `down` is the simulated-outage drill and is labelled SIMULATED.
 //   GET ?action=info
+// A bad `down` venue id or a refused withdrawal is only known after the reads, so it ends the stream with an error event.
 //   GET ?action=run&kind=rates|positions|deposit|withdraw[&wallet=0x…][&amount=250|all][&down=morpho,…][&holdDays=30][&block=N]   NDJSON
 import { getAddress, isAddress, parseUnits, type Hex } from "viem";
 import { pharos } from "../../src/lib/networks.js";
@@ -64,7 +65,7 @@ export async function run(p: RunParams, emit: Emit, deps: Deps): Promise<void> {
       : { kind: p.kind };
     const report = await aggregate({
       call, chainId: pharos.id, network: "pharos", wallet: p.wallet, venues, usdc: USDC_MAINNET, assetDecimals: 6, windows: parseWindows("1d,7d,30d"), holdDays: p.holdDays,
-      nativeUsd, request, block: p.block, rate: { ...DEFAULT_RATE_OPTIONS, haircut: 0.5 }, down: p.down, venueTimeoutMs: 120_000, assumeFunded: p.kind === "deposit", skipped: m.skipped,
+      nativeUsd, request, block: p.block, rate: { ...DEFAULT_RATE_OPTIONS, haircut: 0.5 }, down: p.down, venueTimeoutMs: 60_000, assumeFunded: p.kind === "deposit", skipped: m.skipped,
     }).catch((e) => {
       if (e instanceof InsufficientFunds) throw new InputError(`refused: ${e.message}`);
       throw e;
@@ -75,7 +76,7 @@ export async function run(p: RunParams, emit: Emit, deps: Deps): Promise<void> {
     s.end("route", report.route ? "ok" : "skip", report.route ? `${report.route.allocations.length} venue${report.route.allocations.length === 1 ? "" : "s"}` : "no routing for a query");
     const lines = renderReport(report);
     const view: View = {
-      tone: p.down.length ? "warn" : "ok",
+      tone: p.down.length || report.down.length ? "warn" : "ok",
       verdict: brief(report.route ? report.route.explanation[0] ?? "Routed" : `${report.views.length} venues read at block ${report.block}`),
       note: `Pharos mainnet block ${report.block}. Three protocols (RockawayX, Morpho Blue, Centrifuge) behind one Adapter interface. Async funds are shown, never chosen. Nothing is signed: a deposit or withdrawal is an unsigned plan for the owner's wallet.${p.down.length ? " A venue marked SIMULATED is a drill, not a real outage." : ""}`,
       tables: report.plan ? [{ head: ["Step", "Action", "Venue", "Gas"], rows: report.plan.transactions.map((x) => [String(x.step), x.description, x.venue, `${x.gas.units.toLocaleString("en-US")} (${x.gas.basis})`]) }] : [],

@@ -69,7 +69,7 @@ export async function run(p: RunParams, emit: Emit, deps: Deps): Promise<void> {
         ["Sources", record.sources.map((x) => `${x.id} mid ${x.mid.toFixed(6)}`).join(" · ")],
         ["Block", `${record.block} (the head, read first)`],
         ["Threshold", `net ≥ ${p.minProfit} USDC · slippage ${p.slippageBps} bps · gas ${p.gasUnits.toLocaleString("en-US")} units`],
-        ["Chain MCP reads", `${t.total() + 0} calls`],
+        ["Chain MCP reads", `${t.total()} calls`],
         ["Signed", "nothing: this page has no key"],
       ],
       summary: `${record.decision}: ${record.reason.slice(0, 160)}`,

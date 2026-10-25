@@ -1,4 +1,4 @@
-// The 13 Morpho Blue borrowers of the recorded mainnet scan (proof/mainnet-shock-5pct.json, block 21134223). The demo page re-reads exactly these live,
+// The 13 open Morpho Blue positions (12 accounts) of the recorded mainnet scan (proof/mainnet-shock-5pct.json, block 21134223). The demo page re-reads exactly these live,
 // because a cold discovery of borrowers takes minutes (the CLI caches it); the CLI finds borrowers itself.
 export const SEED: [string, string][] = [
   [

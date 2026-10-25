@@ -24,14 +24,15 @@ export function parseRun(url: URL): RunParams {
   return { wallet: getAddress(wallet), q: question, ...(block ? { block: BigInt(block) } : {}), windowDays: numParam(q, "windowDays", 7, 1, 30) };
 }
 
-const phaseOf = (tool: string) => (tool === "get_block_number" || tool === "get_block" ? "header" : tool === "get_logs" ? "history" : "reads");
+/** The header read comes first, then everything (including the earlier-block reads) is one "reads" phase. */
+const phaseOf = (tool: string, _a: unknown, cur: string | undefined) => (cur === undefined ? "header" : cur === "header" && tool !== "get_block_number" && tool !== "get_block" ? "reads" : cur);
 const labelOf = (phase: string, n: number) => `${n} call${n === 1 ? "" : "s"}`;
 
 export async function run(p: RunParams, emit: Emit, deps: Deps): Promise<void> {
   const t0 = Date.now();
   const conn = await deps.connect();
   emit({ type: "start", network: "pharos", endpoint: conn.endpoint });
-  const t = trackPhases(conn.call, emit, (tool) => phaseOf(tool), labelOf);
+  const t = trackPhases(conn.call, emit, phaseOf, labelOf);
   try {
     const call = t.call;
     const head = await headerAt(call, p.block);

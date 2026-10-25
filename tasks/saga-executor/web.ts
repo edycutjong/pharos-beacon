@@ -21,7 +21,7 @@ const VAULT: Hex = "0xEAd78727Ab9523622C4fE706D15059A551502671";
 const WHICH = ["success", "forced-failure", "crash-resume"] as const;
 const TITLE: Record<(typeof WHICH)[number], string> = {
   success: "All four steps verified, deposit landed",
-  "forced-failure": "Step 4 reverts (vault closed): three steps rolled back, newest first",
+  "forced-failure": "Step 4 reverts (vault closed): the earlier steps are undone, newest first",
   "crash-resume": "Killed right after the swap was sent; resumed from the journal, swap not sent twice",
 };
 
@@ -63,13 +63,19 @@ export async function run(p: RunParams, emit: Emit): Promise<void> {
   }
   emit({ type: "start", network: "atlantic", endpoint: "public Atlantic RPC" });
   const call = atlanticRpcCall();
-  s.begin("vault");
-  const open = BigInt((await call("eth_call", { transaction: { to: VAULT, data: encodeFunctionData({ abi: vaultAbi, functionName: "open" }) } })).result as Hex) === 1n;
-  s.end("vault", "ok", open ? "open" : "CLOSED");
-  s.begin("quote");
-  const amountIn = parseUnits(p.amount, WPHRS.decimals);
-  const out = BigInt((await call("eth_call", { transaction: { to: POOL, data: encodeFunctionData({ abi: poolAbi, functionName: "quote", args: [WPHRS.address, amountIn] }) } })).result as Hex);
-  s.end("quote", "ok", `${formatUnits(out, USDC.decimals)} USDC`);
+  let open: boolean;
+  let out: bigint;
+  try {
+    s.begin("vault");
+    open = BigInt((await call("eth_call", { transaction: { to: VAULT, data: encodeFunctionData({ abi: vaultAbi, functionName: "open" }) } })).result as Hex) === 1n;
+    s.end("vault", "ok", open ? "open" : "CLOSED");
+    s.begin("quote");
+    out = BigInt((await call("eth_call", { transaction: { to: POOL, data: encodeFunctionData({ abi: poolAbi, functionName: "quote", args: [WPHRS.address, parseUnits(p.amount, WPHRS.decimals)] }) } })).result as Hex);
+    s.end("quote", "ok", `${formatUnits(out, USDC.decimals)} USDC`);
+  } catch (e) {
+    s.end(s.current ?? "vault", "failed", (e as Error).message.slice(0, 160));
+    throw e;
+  }
   const usdc = formatUnits(out, USDC.decimals);
   const view: View = {
     tone: open ? "ok" : "warn",
