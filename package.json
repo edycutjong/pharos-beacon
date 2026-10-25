@@ -40,7 +40,8 @@
     "x402-agent-buyer": "tsx tasks/x402-agent-buyer/index.ts",
     "natural-language-payment-agent": "tsx tasks/natural-language-payment-agent/index.ts",
     "invoice-to-payment-agent": "tsx tasks/invoice-to-payment-agent/index.ts",
-    "saga-executor": "tsx tasks/saga-executor/index.ts"
+    "saga-executor": "tsx tasks/saga-executor/index.ts",
+    "arbitrage-scanner": "tsx tasks/arbitrage-scanner/index.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,185 @@
+{
+  "meta": {
+    "task": "arbitrage-scanner",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/arbitrage-scanner/index.ts scan --network atlantic --min-profit 0.05 --proof atlantic-threshold-skip",
+    "git": {
+      "commit": "cb5174687357",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T14:54:15.227Z"
+  },
+  "scan": {
+    "at": "2026-10-24T14:54:20.330Z",
+    "network": "atlantic",
+    "block": "31826829",
+    "market": {
+      "base": "WPHRS",
+      "quote": "USDC"
+    },
+    "sources": [
+      {
+        "id": "arb-pool 0x4c61…a271",
+        "kind": "arb-pool",
+        "address": "0x4c614696467128e14ba15e82dce543335184a271",
+        "mid": 0.6499999999999999,
+        "feeBps": 30
+      },
+      {
+        "id": "arb-pool 0xe909…b4cd",
+        "kind": "arb-pool",
+        "address": "0xe9091a1d8c41b9b995d77e1fe939df97e169b4cd",
+        "mid": 0.665,
+        "feeBps": 30
+      }
+    ],
+    "config": {
+      "sizes": [
+        "0.250000",
+        "0.500000",
+        "1.000000",
+        "2.000000"
+      ],
+      "minProfit": "0.050000",
+      "slippageBps": 10,
+      "gasUnits": "350000",
+      "gasPriceGwei": "10"
+    },
+    "candidates": [
+      {
+        "buyOn": "arb-pool 0x4c61…a271",
+        "sellOn": "arb-pool 0xe909…b4cd",
+        "USDCIn": "0.250000",
+        "WPHRSBought": "0.38346153",
+        "USDCBack": "0.254235",
+        "grossBps": 230.77,
+        "gross": "0.005769",
+        "fees": "0.001515",
+        "impact": "0.000019",
+        "slippageBuffer": "0.000250",
+        "gas": "0.002328",
+        "net": "0.001657"
+      },
+      {
+        "buyOn": "arb-pool 0x4c61…a271",
+        "sellOn": "arb-pool 0xe909…b4cd",
+        "USDCIn": "0.500000",
+        "WPHRSBought": "0.76692307",
+        "USDCBack": "0.508472",
+        "grossBps": 230.77,
+        "gross": "0.011538",
+        "fees": "0.003030",
+        "impact": "0.000036",
+        "slippageBuffer": "0.000500",
+        "gas": "0.002328",
+        "net": "0.005644"
+      },
+      {
+        "buyOn": "arb-pool 0x4c61…a271",
+        "sellOn": "arb-pool 0xe909…b4cd",
+        "USDCIn": "1.000000",
+        "WPHRSBought": "1.53384615",
+        "USDCBack": "1.016946",
+        "grossBps": 230.77,
+        "gross": "0.023077",
+        "fees": "0.006060",
+        "impact": "0.000071",
+        "slippageBuffer": "0.001000",
+        "gas": "0.002328",
+        "net": "0.013618"
+      },
+      {
+        "buyOn": "arb-pool 0x4c61…a271",
+        "sellOn": "arb-pool 0xe909…b4cd",
+        "USDCIn": "2.000000",
+        "WPHRSBought": "3.06769230",
+        "USDCBack": "2.033894",
+        "grossBps": 230.77,
+        "gross": "0.046154",
+        "fees": "0.012120",
+        "impact": "0.000140",
+        "slippageBuffer": "0.002000",
+        "gas": "0.002328",
+        "net": "0.029566"
+      },
+      {
+        "buyOn": "arb-pool 0xe909…b4cd",
+        "sellOn": "arb-pool 0x4c61…a271",
+        "USDCIn": "0.250000",
+        "WPHRSBought": "0.37481203",
+        "USDCBack": "0.242896",
+        "grossBps": -225.56,
+        "gross": "-0.005639",
+        "fees": "0.001481",
+        "impact": "-0.000016",
+        "slippageBuffer": "0.000250",
+        "gas": "0.002275",
+        "net": "-0.009629"
+      },
+      {
+        "buyOn": "arb-pool 0xe909…b4cd",
+        "sellOn": "arb-pool 0x4c61…a271",
+        "USDCIn": "0.500000",
+        "WPHRSBought": "0.74962406",
+        "USDCBack": "0.485793",
+        "grossBps": -225.56,
+        "gross": "-0.011278",
+        "fees": "0.002962",
+        "impact": "-0.000033",
+        "slippageBuffer": "0.000500",
+        "gas": "0.002275",
+        "net": "-0.016982"
+      },
+      {
+        "buyOn": "arb-pool 0xe909…b4cd",
+        "sellOn": "arb-pool 0x4c61…a271",
+        "USDCIn": "1.000000",
+        "WPHRSBought": "1.49924812",
+        "USDCBack": "0.971587",
+        "grossBps": -225.56,
+        "gross": "-0.022556",
+        "fees": "0.005924",
+        "impact": "-0.000067",
+        "slippageBuffer": "0.001000",
+        "gas": "0.002275",
+        "net": "-0.031688"
+      },
+      {
+        "buyOn": "arb-pool 0xe909…b4cd",
+        "sellOn": "arb-pool 0x4c61…a271",
+        "USDCIn": "2.000000",
+        "WPHRSBought": "2.99849624",
+        "USDCBack": "1.943174",
+        "grossBps": -225.56,
+        "gross": "-0.045113",
+        "fees": "0.011847",
+        "impact": "-0.000134",
+        "slippageBuffer": "0.002000",
+        "gas": "0.002275",
+        "net": "-0.061101"
+      }
+    ],
+    "best": {
+      "buyOn": "arb-pool 0x4c61…a271",
+      "sellOn": "arb-pool 0xe909…b4cd",
+      "USDCIn": "2.000000",
+      "WPHRSBought": "3.06769230",
+      "USDCBack": "2.033894",
+      "grossBps": 230.77,
+      "gross": "0.046154",
+      "fees": "0.012120",
+      "impact": "0.000140",
+      "slippageBuffer": "0.002000",
+      "gas": "0.002328",
+      "net": "0.029566"
+    },
+    "decision": "SKIP",
+    "reason": "best round trip arb-pool 0x4c61…a271 → arb-pool 0xe909…b4cd starting with 2.000000 USDC: gross +230.8 bps (0.046154 USDC), costs 0.016588 USDC (fees 0.012120 USDC + impact 0.000140 USDC + slippage buffer 0.002000 USDC + gas 0.002328 USDC) → net 0.029566 USDC < the 0.050000 USDC threshold: the spread survives its costs, but the profit is under the threshold"
+  }
+}

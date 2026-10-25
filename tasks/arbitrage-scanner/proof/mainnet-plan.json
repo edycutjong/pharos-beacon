@@ -1,0 +1,254 @@
+{
+  "meta": {
+    "task": "arbitrage-scanner",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/arbitrage-scanner/index.ts scan --show-plan --proof mainnet-plan",
+    "git": {
+      "commit": "2a9771db3f7b",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T15:05:39.359Z"
+  },
+  "scan": {
+    "at": "2026-10-24T15:05:42.746Z",
+    "network": "pharos",
+    "block": "21129343",
+    "market": {
+      "base": "WPROS",
+      "quote": "USDC"
+    },
+    "sources": [
+      {
+        "id": "uniswap-v3-style 0x912c…f647",
+        "kind": "uniswap-v3-style",
+        "address": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+        "mid": 0.6494031674279868,
+        "feeBps": 1
+      },
+      {
+        "id": "dodo-v2-pmm 0xac99…7196",
+        "kind": "dodo-v2-pmm",
+        "address": "0xac998dD78829aDe9f654e0BE7a4D7F60D8B37196",
+        "mid": 0.662334,
+        "feeBps": 23.999999999999996
+      }
+    ],
+    "config": {
+      "sizes": [
+        "0.010000",
+        "0.050000",
+        "0.100000",
+        "0.250000",
+        "0.500000"
+      ],
+      "minProfit": "0.001000",
+      "slippageBps": 10,
+      "gasUnits": "350000",
+      "gasPriceGwei": "10"
+    },
+    "candidates": [
+      {
+        "buyOn": "uniswap-v3-style 0x912c…f647",
+        "sellOn": "dodo-v2-pmm 0xac99…7196",
+        "USDCIn": "0.010000",
+        "WPROSBought": "0.01539721",
+        "USDCBack": "0.010147",
+        "grossBps": 199.12,
+        "gross": "0.000199",
+        "fees": "0.000031",
+        "impact": "0.000021",
+        "slippageBuffer": "0.000010",
+        "gas": "0.002319",
+        "net": "-0.002182"
+      },
+      {
+        "buyOn": "uniswap-v3-style 0x912c…f647",
+        "sellOn": "dodo-v2-pmm 0xac99…7196",
+        "USDCIn": "0.050000",
+        "WPROSBought": "0.07698606",
+        "USDCBack": "0.050320",
+        "grossBps": 199.12,
+        "gross": "0.000996",
+        "fees": "0.000156",
+        "impact": "0.000520",
+        "slippageBuffer": "0.000050",
+        "gas": "0.002319",
+        "net": "-0.002049"
+      },
+      {
+        "buyOn": "uniswap-v3-style 0x912c…f647",
+        "sellOn": "dodo-v2-pmm 0xac99…7196",
+        "USDCIn": "0.100000",
+        "WPROSBought": "0.15397212",
+        "USDCBack": "0.099626",
+        "grossBps": 199.12,
+        "gross": "0.001991",
+        "fees": "0.000309",
+        "impact": "0.002056",
+        "slippageBuffer": "0.000100",
+        "gas": "0.002319",
+        "net": "-0.002793"
+      },
+      {
+        "buyOn": "uniswap-v3-style 0x912c…f647",
+        "sellOn": "dodo-v2-pmm 0xac99…7196",
+        "USDCIn": "0.250000",
+        "WPROSBought": "0.38493021",
+        "USDCBack": "0.241750",
+        "grossBps": 199.12,
+        "gross": "0.004978",
+        "fees": "0.000752",
+        "impact": "0.012476",
+        "slippageBuffer": "0.000250",
+        "gas": "0.002319",
+        "net": "-0.010819"
+      },
+      {
+        "buyOn": "uniswap-v3-style 0x912c…f647",
+        "sellOn": "dodo-v2-pmm 0xac99…7196",
+        "USDCIn": "0.500000",
+        "WPROSBought": "0.76986013",
+        "USDCBack": "0.460942",
+        "grossBps": 199.12,
+        "gross": "0.009956",
+        "fees": "0.001437",
+        "impact": "0.047577",
+        "slippageBuffer": "0.000500",
+        "gas": "0.002319",
+        "net": "-0.041877"
+      },
+      {
+        "buyOn": "dodo-v2-pmm 0xac99…7196",
+        "sellOn": "uniswap-v3-style 0x912c…f647",
+        "USDCIn": "0.010000",
+        "WPROSBought": "0.01502250",
+        "USDCBack": "0.009754",
+        "grossBps": -195.23,
+        "gross": "-0.000195",
+        "fees": "0.000031",
+        "impact": "0.000020",
+        "slippageBuffer": "0.000010",
+        "gas": "0.002273",
+        "net": "-0.002529"
+      },
+      {
+        "buyOn": "dodo-v2-pmm 0xac99…7196",
+        "sellOn": "uniswap-v3-style 0x912c…f647",
+        "USDCIn": "0.050000",
+        "WPROSBought": "0.07451223",
+        "USDCBack": "0.048383",
+        "grossBps": -195.23,
+        "gross": "-0.000976",
+        "fees": "0.000155",
+        "impact": "0.000486",
+        "slippageBuffer": "0.000050",
+        "gas": "0.002273",
+        "net": "-0.003940"
+      },
+      {
+        "buyOn": "dodo-v2-pmm 0xac99…7196",
+        "sellOn": "uniswap-v3-style 0x912c…f647",
+        "USDCIn": "0.100000",
+        "WPROSBought": "0.14755047",
+        "USDCBack": "0.095810",
+        "grossBps": -195.23,
+        "gross": "-0.001952",
+        "fees": "0.000310",
+        "impact": "0.001928",
+        "slippageBuffer": "0.000100",
+        "gas": "0.002273",
+        "net": "-0.006563"
+      },
+      {
+        "buyOn": "dodo-v2-pmm 0xac99…7196",
+        "sellOn": "uniswap-v3-style 0x912c…f647",
+        "USDCIn": "0.250000",
+        "WPROSBought": "0.35824593",
+        "USDCBack": "0.232622",
+        "grossBps": -195.23,
+        "gross": "-0.004881",
+        "fees": "0.000774",
+        "impact": "0.011723",
+        "slippageBuffer": "0.000250",
+        "gas": "0.002273",
+        "net": "-0.019901"
+      },
+      {
+        "buyOn": "dodo-v2-pmm 0xac99…7196",
+        "sellOn": "uniswap-v3-style 0x912c…f647",
+        "USDCIn": "0.500000",
+        "WPROSBought": "0.68365596",
+        "USDCBack": "0.443923",
+        "grossBps": -195.23,
+        "gross": "-0.009762",
+        "fees": "0.001545",
+        "impact": "0.044770",
+        "slippageBuffer": "0.000500",
+        "gas": "0.002273",
+        "net": "-0.058850"
+      }
+    ],
+    "best": {
+      "buyOn": "uniswap-v3-style 0x912c…f647",
+      "sellOn": "dodo-v2-pmm 0xac99…7196",
+      "USDCIn": "0.050000",
+      "WPROSBought": "0.07698606",
+      "USDCBack": "0.050320",
+      "grossBps": 199.12,
+      "gross": "0.000996",
+      "fees": "0.000156",
+      "impact": "0.000520",
+      "slippageBuffer": "0.000050",
+      "gas": "0.002319",
+      "net": "-0.002049"
+    },
+    "decision": "SKIP",
+    "reason": "best round trip uniswap-v3-style 0x912c…f647 → dodo-v2-pmm 0xac99…7196 starting with 0.050000 USDC: gross +199.1 bps (0.000996 USDC), costs 0.003045 USDC (fees 0.000156 USDC + impact 0.000520 USDC + slippage buffer 0.000050 USDC + gas 0.002319 USDC) → net -0.002049 USDC < the 0.001000 USDC threshold: the spread does not survive its costs"
+  },
+  "plan": {
+    "signed": false,
+    "legs": [
+      {
+        "venue": "uniswap-v3-style 0x912c…f647",
+        "side": "USDC in",
+        "amountIn": "0.050000",
+        "minOut": "0.07690908",
+        "calls": [
+          {
+            "step": "pool.swap",
+            "to": "0x912c9aDe24D44d8922f0866D8Dcb079f1363f647",
+            "data": "0x128acb08000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b029750000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c350000000000000000000000000fffd8963efd1fc6a506488495d951d5263988d2500000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+            "note": "a V3-style pool pays out through a callback contract (no router is documented for it), so this is the pool call a helper would make; minOut 76909081505253007 is checked by that helper"
+          }
+        ]
+      },
+      {
+        "venue": "dodo-v2-pmm 0xac99…7196",
+        "side": "WPROS in",
+        "amountIn": "0.07698606",
+        "minOut": "0.050269",
+        "calls": [
+          {
+            "step": "transfer in",
+            "to": "0x52c48d4213107b20bc583832b0d951fb9ca8f0b0",
+            "data": "0xa9059cbb000000000000000000000000ac998dd78829ade9f654e0be7a4d7f60d8b371960000000000000000000000000000000000000000000000000111826baa551ee9",
+            "note": "DODO pools take the input by transfer, then sell*()"
+          },
+          {
+            "step": "sellBase",
+            "to": "0xac998dD78829aDe9f654e0BE7a4D7F60D8B37196",
+            "data": "0xbd6015b4000000000000000000000000317bca01bb101c0f1e86c21576a4e14d92b02975",
+            "note": "pays out at least 50269 raw units"
+          }
+        ]
+      }
+    ]
+  },
+  "planFor": "SKIP (shown for inspection)"
+}

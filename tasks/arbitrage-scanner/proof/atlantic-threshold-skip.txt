@@ -1,0 +1,16 @@
+scan at block 31826829 (atlantic) — WPHRS/USDC
+  source arb-pool 0x4c61…a271               mid 0.650000 USDC per WPHRS · fee 30.00 bps
+  source arb-pool 0xe909…b4cd               mid 0.665000 USDC per WPHRS · fee 30.00 bps
+  route             in  gross bps      gross       fees     impact       slip        gas         NET
+  A→B         0.250000      230.8   0.005769   0.001515   0.000019   0.000250   0.002328    0.001657
+  A→B         0.500000      230.8   0.011538   0.003030   0.000036   0.000500   0.002328    0.005644
+  A→B         1.000000      230.8   0.023077   0.006060   0.000071   0.001000   0.002328    0.013618
+  A→B         2.000000      230.8   0.046154   0.012120   0.000140   0.002000   0.002328    0.029566
+  B→A         0.250000     -225.6  -0.005639   0.001481  -0.000016   0.000250   0.002275   -0.009629
+  B→A         0.500000     -225.6  -0.011278   0.002962  -0.000033   0.000500   0.002275   -0.016982
+  B→A         1.000000     -225.6  -0.022556   0.005924  -0.000067   0.001000   0.002275   -0.031688
+  B→A         2.000000     -225.6  -0.045113   0.011847  -0.000134   0.002000   0.002275   -0.061101
+  (route A→B = buy WPHRS on source A, sell on B)
+SKIP: best round trip arb-pool 0x4c61…a271 → arb-pool 0xe909…b4cd starting with 2.000000 USDC: gross +230.8 bps (0.046154 USDC), costs 0.016588 USDC (fees 0.012120 USDC + impact 0.000140 USDC + slippage buffer 0.002000 USDC + gas 0.002328 USDC) → net 0.029566 USDC < the 0.050000 USDC threshold: the spread survives its costs, but the profit is under the threshold
+logged to state/scans.jsonl
+proof: tasks/arbitrage-scanner/proof/atlantic-threshold-skip.json

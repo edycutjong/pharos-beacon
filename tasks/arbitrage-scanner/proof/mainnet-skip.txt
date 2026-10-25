@@ -1,0 +1,18 @@
+scan at block 21128786 (pharos) — WPROS/USDC
+  source uniswap-v3-style 0x912c…f647       mid 0.652567 USDC per WPROS · fee 1.00 bps
+  source dodo-v2-pmm 0xac99…7196            mid 0.662334 USDC per WPROS · fee 24.00 bps
+  route             in  gross bps      gross       fees     impact       slip        gas         NET
+  A→B         0.010000      149.7   0.000150   0.000031   0.000022   0.000010   0.002319   -0.002232
+  A→B         0.050000      149.7   0.000748   0.000156   0.000514   0.000050   0.002319   -0.002291
+  A→B         0.100000      149.7   0.001497   0.000308   0.002037   0.000100   0.002319   -0.003267
+  A→B         0.250000      149.7   0.003742   0.000749   0.012358   0.000250   0.002319   -0.011934
+  A→B         0.500000      149.7   0.007484   0.001431   0.047138   0.000500   0.002319   -0.043904
+  B→A         0.010000     -147.5  -0.000147   0.000031   0.000020   0.000010   0.002284   -0.002492
+  B→A         0.050000     -147.5  -0.000737   0.000155   0.000489   0.000050   0.002284   -0.003715
+  B→A         0.100000     -147.5  -0.001475   0.000310   0.001939   0.000100   0.002284   -0.006108
+  B→A         0.250000     -147.5  -0.003687   0.000774   0.011784   0.000250   0.002284   -0.018779
+  B→A         0.500000     -147.5  -0.007373   0.001545   0.044996   0.000500   0.002284   -0.056698
+  (route A→B = buy WPROS on source A, sell on B)
+SKIP: best round trip uniswap-v3-style 0x912c…f647 → dodo-v2-pmm 0xac99…7196 starting with 0.010000 USDC: gross +149.7 bps (0.000150 USDC), costs 0.002382 USDC (fees 0.000031 USDC + impact 0.000022 USDC + slippage buffer 0.000010 USDC + gas 0.002319 USDC) → net -0.002232 USDC < the 0.001000 USDC threshold: the spread does not survive its costs
+logged to state/scans.jsonl
+proof: tasks/arbitrage-scanner/proof/mainnet-skip.json
