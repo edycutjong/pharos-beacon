@@ -67,7 +67,7 @@ describe("state", () => {
     const f = join(dir(), "pay.json");
     const since = new Date(Math.max(Date.now() - uptime() * 1000 + 120_000, Date.now() - 6 * 3_600_000)).toISOString();
     writeFileSync(`${f}.lock`, JSON.stringify({ pid: process.pid, token: "other", since }));
-    await expect(withLock(f, async () => "x")).rejects.toThrow(new RegExp(`held by another run \\(pid \\d+, since ${since.replace(/[.]/g, "\\.")}`));
+    await expect(withLock(f, async () => "x")).rejects.toThrow(new RegExp(`held by another run \\(pid \\d+, since ${since.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
   });
 
   it("takes over the lock of a run that died (crash, kill -9), and of a half-written lock", async () => {
