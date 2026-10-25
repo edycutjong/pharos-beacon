@@ -51,8 +51,8 @@
 
   // ---- NDJSON ----
   /** Read a streamed run; resolves when the stream ends. A non-2xx answer throws with the server's own message. */
-  async function stream(url, onEvent, signal) {
-    const res = await fetch(url, { signal, cache: "no-store" });
+  async function stream(url, onEvent, signal, init) {
+    const res = await fetch(url, { signal, cache: "no-store", ...(init || {}) });
     if (!res.ok || !res.body) {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.error || `HTTP ${res.status}`);

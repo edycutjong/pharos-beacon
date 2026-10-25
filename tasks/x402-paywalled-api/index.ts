@@ -30,6 +30,7 @@ export function formatEvent(e: RunEvent): string | undefined {
       return `  error: ${e.message}`;
     case "done": {
       const out = [`${e.outcome.toUpperCase()} in ${e.totalMs} ms: ${e.summary}`];
+      if (e.tx && e.outcome === "paid") out.push(`  200 OK · PAYMENT-RESPONSE: success, tx ${e.tx}`);
       if (e.tx) out.push(`  settle tx ${e.explorer} (block ${e.block})`);
       if (e.receipt) out.push(`  receipt check: ${e.receipt.reason}`);
       if (e.data && e.outcome !== "refused") out.push(`  data: ${JSON.stringify(e.data)}`);

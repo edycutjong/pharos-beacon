@@ -1,0 +1,50 @@
+name: Weekly digest
+
+# The Weekly Digest Agent on a real schedule: every Monday 01:00 UTC it describes the week that just finished (Mon-Sun UTC) for the
+# wallet in the repository variable DIGEST_WALLET and posts it to the Discord webhook in the secret DISCORD_WEBHOOK_URL. The state file
+# (last period + its numbers) rides in the Actions cache, so the next run compares with this one without re-reading it, and a manual
+# re-run in the same week delivers nothing twice. Read-only: the job has no key and sends nothing but the Discord message.
+on:
+  schedule:
+    - cron: "0 1 * * 1"
+  workflow_dispatch:
+    inputs:
+      cadence:
+        description: "weekly | daily | monthly | Nd"
+        default: "weekly"
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    if: vars.DIGEST_WALLET != ''
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: .digest-state
+          key: digest-state-${{ github.run_id }}
+          restore-keys: digest-state-
+      - name: Build and deliver the digest
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: >
+          npm run weekly-digest-agent --
+          --wallet "${{ vars.DIGEST_WALLET }}"
+          --cadence "${{ inputs.cadence || 'weekly' }}"
+          --state .digest-state/state.json --out .digest-out
+          --deliver "${{ secrets.DISCORD_WEBHOOK_URL != '' && 'discord' || 'none' }}"
+      - name: Publish as the job summary
+        if: hashFiles('.digest-out/*.md') != ''
+        run: cat .digest-out/*.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: weekly-digest
+          path: .digest-out

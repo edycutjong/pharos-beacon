@@ -1,5 +1,5 @@
 import { explorerTx } from "../lib/networks.js";
-import { counterparties, dayUtc, fmtLeg, fmtWei, totalsOf, type Activity, type Item, type Leg, type TokenTotal } from "./engine.js";
+import { counterparties, dayUtc, isZero, fmtLeg, fmtWei, totalsOf, type Activity, type Item, type Leg, type TokenTotal } from "./engine.js";
 
 // The Weekly Digest: the activity engine on a period schedule. It turns one period (and the one before it) into key numbers with a
 // comparison, the top three notable events, who is new, and a short text for a chat channel. A period is a whole UTC day / week / month
@@ -35,8 +35,10 @@ export function periodAt(nowTs: number, cadence: Cadence, back = 0): Period {
   const len = cadence === "daily" ? 1 : cadence === "weekly" ? 7 : Number(cadence.slice(0, -1));
   // Weeks end on a Monday 00:00 UTC (the epoch, 1970-01-01, was a Thursday: day 4 → Monday is day 0 of the week at +4 days offset).
   const dayNo = Math.floor(nowTs / DAY);
-  const anchor = cadence === "weekly" ? dayNo - ((dayNo + 3) % 7) : dayNo;
-  const end = (cadence === "weekly" || cadence === "daily" ? anchor : dayNo) * DAY - back * len * DAY;
+  // Periods sit on a fixed grid so the same period is returned all through its successor: weeks end on a Monday, N-day periods on multiples of N
+  // days since 1970-01-01, daily on every midnight. (A sliding "last N days" would be a new period every day and break "once per period".)
+  const anchor = cadence === "weekly" ? dayNo - ((dayNo + 3) % 7) : cadence === "daily" ? dayNo : dayNo - (dayNo % len);
+  const end = anchor * DAY - back * len * DAY;
   const start = end - len * DAY;
   return { fromTs: start, toTs: end, label: label(start, end) };
 }
@@ -81,8 +83,8 @@ export function metricsOf(a: Activity, period: string): Metrics {
   };
 }
 
-const pct = (cur: number, prev: number) => (prev === 0 ? (cur === 0 ? "0%" : "new") : `${cur >= prev ? "+" : "-"}${Math.round((Math.abs(cur - prev) / prev) * 100)}%`);
-const delta = (cur: number, prev: number) => `${cur - prev >= 0 ? "+" : ""}${cur - prev}`;
+const pct = (cur: number, prev: number) => (cur === prev ? "0%" : prev === 0 ? "new" : `${cur > prev ? "+" : "-"}${Math.round((Math.abs(cur - prev) / prev) * 100)}%`);
+const delta = (cur: number, prev: number) => (cur === prev ? "0" : `${cur > prev ? "+" : ""}${cur - prev}`);
 
 export interface CompareRow { metric: string; current: string; previous: string; change: string }
 
@@ -95,7 +97,7 @@ export function compare(cur: Metrics, prev: Metrics | undefined, symbol: string)
   const cf = BigInt(cur.feesWei), pf = prev ? BigInt(prev.feesWei) : undefined;
   rows.push({
     metric: `Fees paid (${symbol})`, current: fmtWei(cf, symbol).replace(` ${symbol}`, ""), previous: pf === undefined ? "n/a" : fmtWei(pf, symbol).replace(` ${symbol}`, ""),
-    change: pf === undefined ? "n/a" : pf === 0n ? (cf === 0n ? "0%" : "new") : `${cf >= pf ? "+" : "-"}${Number(((cf > pf ? cf - pf : pf - cf) * 100n) / pf)}%`,
+    change: pf === undefined ? "n/a" : pf === 0n ? (cf === 0n ? "0%" : "new") : `${cf >= pf ? "+" : "-"}${Math.round(Number(((cf > pf ? cf - pf : pf - cf) * 10_000n) / pf) / 100)}%`,
   });
   const newCp = prev ? cur.counterparties.filter((c) => !prev.counterparties.includes(c)).length : undefined;
   rows.push(n("Counterparties", cur.counterparties.length, prev?.counterparties.length));
@@ -115,37 +117,62 @@ export function tokenFlow(cur: Metrics, prev: Metrics | undefined): { token: str
 
 export interface Notable { tx: string; kind: string; score: number; why: string }
 
-const SCORE = { unlimited: 100, failed: 40, newCounterparty: 60, largestOut: 50, largestIn: 35, swap: 30 } as const;
+// Importance classes first (what a wallet's owner would want to read first), then the size of the event up to 9.9 points: its share of that token's
+// volume in the same direction during the period. A mint (a transfer in from the zero address) is the least interesting kind.
+const SCORE = { unlimited: 100, failed: 95, largestOut: 80, newCounterparty: 70, swap: 60, largestIn: 50, mint: 30 } as const;
 
-/** The three events to read first. Fixed weights per kind, plus up to 30 points for the share of that token's period volume. Ties go to the earlier block. */
+/** The three events to read first, at most two of one kind so the list is not three of the same. Ties go to the earlier block. */
 export function topEvents(a: Activity, prev?: Metrics, limit = 3): Notable[] {
   const known = prev ? new Set(prev.counterparties) : undefined;
-  const volume = new Map<string, bigint>();
-  for (const it of a.items) for (const l of [...it.out, ...it.in]) if (l.nft === undefined) volume.set(String(l.token).toLowerCase(), (volume.get(String(l.token).toLowerCase()) ?? 0n) + l.amountRaw);
-  const share = (l: Leg) => {
-    const v = volume.get(String(l.token).toLowerCase()) ?? 0n;
-    return v === 0n ? 0 : Number((l.amountRaw * 30n) / v);
+  const volume = new Map<string, bigint>(); // `${direction}:${token}` → total raw units in the period
+  const key = (dir: string, l: Leg) => `${dir}:${String(l.token).toLowerCase()}`;
+  for (const it of a.items) {
+    for (const l of it.out) if (l.nft === undefined) volume.set(key("out", l), (volume.get(key("out", l)) ?? 0n) + l.amountRaw);
+    for (const l of it.in) if (l.nft === undefined) volume.set(key("in", l), (volume.get(key("in", l)) ?? 0n) + l.amountRaw);
+  }
+  const share = (dir: string, l: Leg) => {
+    const v = volume.get(key(dir, l)) ?? 0n;
+    return v === 0n ? 0 : Number((l.amountRaw * 99n) / v) / 10;
   };
   const cand: (Notable & { block: bigint })[] = [];
   const put = (it: Item, kind: string, score: number, why: string) => cand.push({ tx: it.tx, kind, score, why, block: it.block });
   const firstSeen = new Set<string>();
   for (const it of a.items) {
-    const leg = (it.category === "transfer-out" ? it.out[0] : it.category === "transfer-in" ? it.in[0] : undefined);
+    const out = it.category === "transfer-out" ? it.out[0] : undefined;
+    const inn = it.category === "transfer-in" ? it.in[0] : undefined;
+    const leg = out ?? inn;
     if (it.unlimited) put(it, "unlimited approval", SCORE.unlimited, `Unlimited approval: ${it.counterparty} can move ${it.out[0]!.symbol} without a cap`);
     if (it.status === "reverted") put(it, "failed transaction", SCORE.failed, `A ${it.method ?? it.category} transaction failed (reverted)`);
     const cp = it.counterparty?.toLowerCase();
-    if (known && cp && !known.has(cp) && !firstSeen.has(cp)) {
+    if (known && cp && it.category !== "approval" && !isZero(cp) && !known.has(cp) && !firstSeen.has(cp)) { // a bare approval to a new spender is not worth a top-three slot
       firstSeen.add(cp);
-      put(it, "new counterparty", SCORE.newCounterparty + (leg ? share(leg) : 0), `First time dealing with ${it.counterparty}${leg ? ` (${it.category === "transfer-in" ? "received" : "sent"} ${fmtLeg(leg)})` : ` (${it.method ?? it.category})`}`);
+      put(it, "new counterparty", SCORE.newCounterparty + (leg && leg.nft === undefined ? share(out ? "out" : "in", leg) : 0), `First time dealing with ${it.counterparty}${leg ? ` (${inn ? "received" : "sent"} ${fmtLeg(leg)})` : ` (${it.method ?? it.category})`}`);
     }
-    if (it.category === "transfer-out" && leg && leg.nft === undefined) put(it, "large outflow", SCORE.largestOut + share(leg), `Sent ${fmtLeg(leg)} to ${it.counterparty}`);
-    if (it.category === "transfer-in" && leg && leg.nft === undefined) put(it, "large inflow", SCORE.largestIn + share(leg), `Received ${fmtLeg(leg)} from ${it.counterparty}`);
-    if (it.category === "swap") put(it, "swap", SCORE.swap + (it.out[0] ? share(it.out[0]) : 0), `Swapped ${it.out.map(fmtLeg).join(" + ")} for ${it.in.map(fmtLeg).join(" + ")}`);
+    if (out && out.nft === undefined) put(it, "large outflow", SCORE.largestOut + share("out", out), `Sent ${fmtLeg(out)} to ${it.counterparty}`);
+    if (inn && inn.nft === undefined) {
+      if (it.counterparty && isZero(it.counterparty)) put(it, "mint", SCORE.mint + share("in", inn), `Received ${fmtLeg(inn)} minted to the wallet (sent from the zero address)`);
+      else put(it, "large inflow", SCORE.largestIn + share("in", inn), `Received ${fmtLeg(inn)} from ${it.counterparty}`);
+    }
+    if (it.category === "swap") put(it, "swap", SCORE.swap + (it.out[0] ? share("out", it.out[0]) : 0), `Swapped ${it.out.map(fmtLeg).join(" + ")} for ${it.in.map(fmtLeg).join(" + ")}`);
   }
-  // One entry per transaction (its best-scoring reading), then the top N.
+  // One entry per transaction (its best-scoring reading), best first, at most two of a kind.
   const best = new Map<string, Notable & { block: bigint }>();
   for (const c of cand) if (!best.has(c.tx) || best.get(c.tx)!.score < c.score) best.set(c.tx, c);
-  return [...best.values()].sort((x, y) => y.score - x.score || (x.block < y.block ? -1 : 1)).slice(0, limit).map(({ block: _b, ...n }) => n);
+  const sorted = [...best.values()].sort((x, y) => y.score - x.score || (x.block < y.block ? -1 : 1));
+  const perKind = new Map<string, number>();
+  const picked: (Notable & { block: bigint })[] = [];
+  for (const c of sorted) {
+    if ((perKind.get(c.kind) ?? 0) >= 2) continue;
+    perKind.set(c.kind, (perKind.get(c.kind) ?? 0) + 1);
+    picked.push(c);
+    if (picked.length === limit) break;
+  }
+  // Backfill: when the two-per-kind cap leaves fewer than `limit`, fill from what was skipped (best first).
+  if (picked.length < limit) for (const c of sorted) {
+    if (picked.length === limit) break;
+    if (!picked.includes(c)) picked.push(c);
+  }
+  return picked.map(({ block: _b, ...n }) => n);
 }
 
 // ---------- the digest text ----------
@@ -177,7 +204,7 @@ export function digestMarkdown(d: DigestInput): string {
   }
   L.push("## Key numbers", "", row(["Metric", "This period", "Previous period", "Change"]), "|---|---|---|---|", ...compare(m, d.previous, sym).map((r) => row([r.metric, r.current, r.previous, r.change])), "");
   const flow = tokenFlow(m, d.previous);
-  if (flow.length) L.push("### Token flow", "", row(["Token", "In", "Out", "In (previous)", "Out (previous)"]), "|---|---|---|---|---|", ...flow.map((f) => row([f.symbol, f.inNow, f.outNow, f.inPrev, f.outPrev])), "");
+  if (flow.length) L.push("### Token flow (plain transfers; swaps are not counted here)", "", row(["Token", "In", "Out", "In (previous)", "Out (previous)"]), "|---|---|---|---|---|", ...flow.map((f) => row([f.symbol, f.inNow, f.outNow, f.inPrev, f.outPrev])), "");
   L.push("## Top 3 notable events", "");
   if (d.events.length === 0) L.push("_None: no activity to rank._", "");
   else L.push(...d.events.map((e, i) => `${i + 1}. **${e.kind}:** ${e.why}. [${e.tx.slice(0, 10)}…](${explorerTx(a.network, e.tx)})`), "");
@@ -187,7 +214,7 @@ export function digestMarkdown(d: DigestInput): string {
     L.push("## Who is new", "", fresh.length ? `New this period (${fresh.length}): ${fresh.slice(0, 8).map((c) => `\`${c}\``).join(", ")}${fresh.length > 8 ? `, and ${fresh.length - 8} more` : ""}.` : "No new counterparties.", gone.length ? `Seen last period but not this one: ${gone.length}.` : "", "");
   }
   const c = a.coverage;
-  L.push("## Coverage", "", `${c.logsRead} matching event logs over ${c.logWindows} \`get_logs\` windows; ${c.sentExpected === null ? "the chain's nonce for the range could not be read" : `outgoing transactions found ${c.sentFound} of ${c.sentExpected} by the chain's nonce`}; block scan ${c.blockScan.mode}${c.blockScan.mode === "off" ? "" : ` (${c.blockScan.scanned} of ${c.blockScan.of} blocks)`}. Token amounts are units, not money.`, "");
+  L.push("## Coverage", "", `${c.logsRead} matching event logs over ${c.logWindows} \`get_logs\` windows; ${c.sentExpected === null ? "the chain's nonce for the range could not be read" : `outgoing transactions found ${c.sentFound} of ${c.sentExpected} by the chain's nonce`}${c.discovery.used ? `; the nonce search read ${c.discovery.nonceCalls} nonces and opened ${c.discovery.blocksRead} block${c.discovery.blocksRead === 1 ? "" : "s"} to find sends without events${c.discovery.truncated ? " (stopped at its limit)" : ""}` : ""}; block scan ${c.blockScan.mode}${c.blockScan.mode === "off" ? "" : ` (${c.blockScan.scanned} of ${c.blockScan.of} blocks)`}. Token amounts are units, not money.`, "");
   return L.join("\n");
 }
 
@@ -207,3 +234,27 @@ export function digestChat(d: DigestInput): string {
   if (text.length > 1900) text = `${text.slice(0, 1890)}…`;
   return text;
 }
+
+/** A narrow plain-text view (62 columns) of the digest for a terminal or a video. */
+export function digestCompact(d: DigestInput): string {
+  const m = d.metrics;
+  const p = d.previous;
+  const w = d.activity.wallet;
+  const row = (label: string, cur: number, prev: number | undefined) => `${label.padEnd(15)}${String(cur).padStart(5)}${prev === undefined ? "" : `   was ${String(prev).padStart(4)}  ${pct(cur, prev)}`}`;
+  const L = [
+    `${d.cadence} digest · ${w.slice(0, 6)}…${w.slice(-4)} · ${d.activity.network === "pharos" ? "pharos" : "atlantic"}`,
+    `${d.period.label} UTC`,
+    "",
+    row("transactions", m.txs, p?.txs), row("transfers in", m.transfersIn, p?.transfersIn), row("transfers out", m.transfersOut, p?.transfersOut), row("swaps", m.swaps, p?.swaps), row("approvals", m.approvals, p?.approvals),
+    row("failed", m.failed, p?.failed),
+    `${"fees".padEnd(15)}${fmtWei(BigInt(m.feesWei), d.activity.nativeSymbol)}${p ? `  (was ${fmtWei(BigInt(p.feesWei), d.activity.nativeSymbol)})` : ""}`,
+    ...(p ? [`${"new parties".padEnd(15)}${String(m.counterparties.filter((c) => !p.counterparties.includes(c)).length).padStart(5)}`] : []),
+    "",
+    "top 3 events",
+  ];
+  for (const [i, e] of d.events.entries()) L.push(`${i + 1}. ${e.kind}`, `   ${clipText(e.why.replace(/0x([0-9a-fA-F]{4})[0-9a-fA-F]{32}([0-9a-fA-F]{4})/g, "0x$1…$2"), 58)}`);
+  if (d.events.length === 0) L.push("none");
+  return L.join("\n");
+}
+
+const clipText = (s: string, n: number) => (s.length <= n ? s : `${s.slice(0, n - 1)}…`);

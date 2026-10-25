@@ -8,7 +8,7 @@ about 5 minutes for a day: 192 `get_logs` windows for the day, about as many aga
 previous-period read; `--proof label` writes `proof/<label>.json`.
 **Uses:** Chain MCP ✅ (`get_chain_info`, `get_block_number`, `get_block`, `get_logs`, `get_transaction`, `get_transaction_receipt`, `get_code`, `eth_call`,
 `get_transaction_count`) · SkillEngine: not used · Docs MCP: not used. It never sends a transaction. The same engine (`src/activity/`) is reused by the
-Weekly Digest Agent, which lives on the next branch of the stack.
+Weekly Digest Agent, which lives in `tasks/weekly-digest-agent/`.
 
 ## Try it (a couple of minutes, keyless, read-only)
 
@@ -45,7 +45,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
 
 - **Highlights** sit at the top of the report: **first-time counterparties** (anyone the wallet dealt with that it did not in the previous period of the
   same length, which the agent reads by default), the **largest outflow** of each of the three most-sent tokens, and every **unlimited approval**. The third-party wallet's day
-  shows 3 first-time counterparties (the swap pools, i.e. the contracts that emitted the Swap events) and 3 unlimited approvals to one spender.
+  shows 3 first-time counterparties (the swap pools, i.e. the contracts that emitted the Swap events) and 3 unlimited approvals to one spender. That report ([`audit-0x28ed4a-2026-10-23_2026-10-23.md`](proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.md)) has no largest outflow because the wallet made no plain token transfers out that day; the largest-outflow highlight is shown by the Atlantic report [`audit-0x317bca-31798000-31808000.md`](proof/reports/audit-0x317bca-31798000-31808000.md), which was run with `--baseline none`, so it has no first-time-counterparty check. No single report shows all three highlights.
 - **The nonce check** ("21 of 21" sent transactions found) is a completeness check for what the wallet sent; on our Atlantic wallet the logs alone found 3 of
   10 sent transactions (the recorded video cast, range 31804700–31806500, prints that line) and the nonce search found the other 7: 55 nonce reads and 7 blocks opened over the 10,001-block proof range, instead of walking every block.
 

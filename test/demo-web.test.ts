@@ -12,6 +12,7 @@ describe("demo plumbing", () => {
     expect(blockTag(undefined)).toBe("latest");
     expect(blockTag("31560420")).toBe("0x1e192e4");
     expect(blockTag(16)).toBe("0x10");
+    expect(blockTag("pending")).toBe("pending");
     expect(() => blockTag("soon")).toThrow(ChainToolError);
   });
 
