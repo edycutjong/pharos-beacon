@@ -8,7 +8,7 @@
 import { createPublicClient, formatUnits, getAddress, http, isAddressEqual, pad, type Hex, type RpcLog } from "viem";
 import { X402_USDC, atlantic, explorerTx } from "../../src/lib/networks.js";
 import { TRANSFER_TOPIC } from "../../src/whale/scan.js";
-import { PAID_ROUTES } from "./config.js";
+import { PAID_ROUTES, QUOTE } from "./config.js";
 
 export interface Payment {
   tx: Hex;
@@ -29,7 +29,14 @@ export interface LogSource {
   txFrom(tx: Hex): Promise<Hex>;
 }
 
-const routeFor = (amount: bigint) => Object.entries(PAID_ROUTES).find(([, r]) => r.amount === amount)?.[0] ?? "other";
+// A settlement log carries only the amount, not the route. Fixed prices can collide with a quoted whale-range price
+// (0.01 USDC = whale-brief, or whale-range for 1,001-2,000 blocks), so every route the amount fits is named.
+export const routeFor = (amount: bigint) => {
+  const fits = Object.entries(PAID_ROUTES).filter(([name, r]) => (name === QUOTE.route ? false : r.amount === amount)).map(([name]) => name);
+  const windows = amount / QUOTE.perWindow;
+  if (amount % QUOTE.perWindow === 0n && windows >= 1n && windows <= BigInt(QUOTE.maxWindows)) fits.push(QUOTE.route);
+  return fits.length ? fits.join(" or ") : "other";
+};
 
 export function toPayment(l: RpcLog): Payment {
   const amount = BigInt(l.data);
