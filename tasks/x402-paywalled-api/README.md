@@ -1,7 +1,7 @@
 # x402 Paywalled API — Medium
 
 **Task:** [x402 Paywalled API](https://pharos-agent-arena.vercel.app/tasks/x402-paywalled-api) (Payments · Medium · 100 pts): an API that charges per request with x402 on Pharos Atlantic.
-**Live demo:** [pharos.edycu.dev/x402-paywalled-api](https://pharos.edycu.dev/x402-paywalled-api). Press *Run live*. No wallet is needed: a demo buyer on the server pays with test USDC. (The quoted `whale-range` route is on branch `task/x402-paywalled-api`; the live page gets it once that branch is pushed and deployed.)
+**Live demo:** [pharos.edycu.dev/x402-paywalled-api](https://pharos.edycu.dev/x402-paywalled-api). Press *Run live*. No wallet is needed: a demo buyer on the server pays with test USDC. The quoted `whale-range` route is live too: `GET /api/x402-paywalled-api/whale-range?blocks=2500` answers 402 with 0.015 USDC.
 **Run** (Atlantic testnet only; keys in `~/.config/pharos/x402.env` and `testnet.env`):
 `npm run x402-paywalled-api -- pay a|b|under|replay|free|quote [--base https://pharos.edycu.dev] [--json] [--proof name]` ·
 `npm run x402-paywalled-api -- serve [--port 4021]` (the same API on your machine; then `pay … --base http://localhost:4021`).
@@ -88,7 +88,7 @@ PAID in 3247 ms: Paid 0.001 USDC, settled on chain, receipt checked, data return
 ## Limits
 
 - The Atlantic reads (gas snapshot, settle receipt, run log) use the Atlantic JSON-RPC, not the Chain MCP: the hosted Chain MCP serves mainnet only, and the local stdio Atlantic server that the CLI tasks use cannot run inside a Vercel Function. The whale brief (mainnet) is read through the hosted Chain MCP.
-- The run log is read from the chain, so it shows settled payments only (refused runs move nothing). The public RPC answers one 1,000-block log query at a time, so it looks back about 12 hours (24 windows).
+- The run log is read from the chain, so it shows settled x402 payments only: a USDC Transfer to the payee whose transaction was sent by the facilitator signer (other transfers to the same address, such as the Saga wallet's, and refused runs are not listed). The public RPC answers one 1,000-block log query at a time, so it looks back about 12 hours (24 windows).
 - The demo rate limit (one paid run every 10 s) is per server instance; Vercel may run more than one.
 - The Atlantic public RPC rate-limits bursts (seen once, above); a settle the facilitator refuses before sending moves nothing and a retry works; a response lost after the transfer mined (seen once on the deployed API, see `tasks/x402-agent-buyer/proof/prod-gas.json`) needs a chain check before any retry.
 - The quoted route's headline range is mainnet history read through the hosted Chain MCP, three `get_logs` calls for 2,500 blocks; the price covers that work, not the data's value.
