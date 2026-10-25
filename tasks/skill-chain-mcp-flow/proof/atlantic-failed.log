@@ -1,0 +1,9 @@
+VERDICT FAILED
+rule    the receipt status is 0x0: the transaction was mined and reverted, so nothing it was meant to do happened (gas was still spent)
+tx      0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d
+from    0x317bca01bb101c0f1e86c21576a4e14d92b02975  →  to 0x838800b758277cc111b2d48ab01e5e164f8e9471
+value   0 native
+mined   block 31806038, head 31806040, status reverted, gas used 23971
+network atlantic (chain 688689)
+explorer https://atlantic.pharosscan.xyz/tx/0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d
+proof: tasks/skill-chain-mcp-flow/proof/atlantic-failed.json

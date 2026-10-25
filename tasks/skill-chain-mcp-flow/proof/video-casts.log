@@ -1,0 +1,52 @@
+# Output of the three casts shown in the video (recorded 2026-10-24, real runs; ANSI codes removed).
+# c1: the transaction was sent just before the run, so the first answer is WAIT. Atlantic tx: https://atlantic.pharosscan.xyz/tx/0x36b975feddbc9271f15724c3baca96f5fae379eb8f5375d05e66c6f0f06873f5
+
+## c1-follow
+$ npm run skill-chain-mcp-flow -- 0x36b975feddbc9271f15724c3baca96f5fae379eb8f5375d05e66c6f0f06873f5 --network atlantic --follow 60
+
+> beacon@0.2.0 skill-chain-mcp-flow
+> tsx tasks/skill-chain-mcp-flow/index.ts 0x36b975feddbc9271f15724c3baca96f5fae379eb8f5375d05e66c6f0f06873f5 --network atlantic --follow 60
+
+WAIT  10/12 confirmations at head 31806118; asking again in 2 s
+VERDICT SETTLED
+rule    mined with status 0x1 and 13 confirmations, at least the 12 this tier needs
+tx      0x36b975feddbc9271f15724c3baca96f5fae379eb8f5375d05e66c6f0f06873f5
+from    0x317bca01bb101c0f1e86c21576a4e14d92b02975  →  to 0x8d347c72431ed6e033d5f43e56c0987e97f5d91b
+value   1 native
+mined   block 31806109, head 31806121, status success, gas used 21000
+depth   13 confirmations of 12 required (1 native value → tier 2 of 3 (below 100))
+network atlantic (chain 688689)
+explorer https://atlantic.pharosscan.xyz/tx/0x36b975feddbc9271f15724c3baca96f5fae379eb8f5375d05e66c6f0f06873f5
+⠙$
+
+## c2-mismatch
+$ npm run skill-chain-mcp-flow -- 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0 --expect-to 0x000000000000000000000000000000000000dEaD
+
+> beacon@0.2.0 skill-chain-mcp-flow
+> tsx tasks/skill-chain-mcp-flow/index.ts 0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0 --expect-to 0x000000000000000000000000000000000000dEaD
+
+VERDICT MISMATCH
+rule    expected recipient 0x000000000000000000000000000000000000dEaD but the transaction went to 0x52acdeb49056518578c7af788ae2c367132e2db5
+tx      0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
+from    0xda12bd94cded64c0927272674df0ed4c0ec1f88c  →  to 0x52acdeb49056518578c7af788ae2c367132e2db5
+value   0 native
+mined   block 21079587, head 21079932, status success, gas used 46040
+network pharos (chain 1672)
+explorer https://www.pharosscan.xyz/tx/0x25ab34a78eca00c179f7ac76c860dc93ffaf4d67292d3f048d88cc53902accd0
+⠙$
+
+## c3-failed
+$ npm run skill-chain-mcp-flow -- 0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d --network atlantic
+
+> beacon@0.2.0 skill-chain-mcp-flow
+> tsx tasks/skill-chain-mcp-flow/index.ts 0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d --network atlantic
+
+VERDICT FAILED
+rule    the receipt status is 0x0: the transaction was mined and reverted, so nothing it was meant to do happened (gas was still spent)
+tx      0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d
+from    0x317bca01bb101c0f1e86c21576a4e14d92b02975  →  to 0x838800b758277cc111b2d48ab01e5e164f8e9471
+value   0 native
+mined   block 31806038, head 31806143, status reverted, gas used 23971
+network atlantic (chain 688689)
+explorer https://atlantic.pharosscan.xyz/tx/0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d
+⠙$

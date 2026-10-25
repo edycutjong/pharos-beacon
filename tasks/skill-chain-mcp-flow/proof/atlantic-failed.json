@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "task": "skill-chain-mcp-flow",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/skill-chain-mcp-flow/index.ts 0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d --network atlantic --proof atlantic-failed",
+    "git": {
+      "commit": "0b76793ee91f",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T02:17:17.808Z"
+  },
+  "verdict": "FAILED",
+  "rule": "the receipt status is 0x0: the transaction was mined and reverted, so nothing it was meant to do happened (gas was still spent)",
+  "confirmations": 3,
+  "facts": {
+    "hash": "0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d",
+    "from": "0x317bca01bb101c0f1e86c21576a4e14d92b02975",
+    "to": "0x838800b758277cc111b2d48ab01e5e164f8e9471",
+    "valueWei": "0",
+    "head": "31806040",
+    "tokenTransfers": 0,
+    "block": "31806038",
+    "status": "reverted",
+    "gasUsed": "23971"
+  },
+  "explorer": "https://atlantic.pharosscan.xyz/tx/0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d",
+  "polls": [
+    {
+      "verdict": "FAILED",
+      "confirmations": 3,
+      "head": "31806040"
+    }
+  ],
+  "flow": [
+    {
+      "step": 1,
+      "tool": "get_transaction",
+      "args": {
+        "hash": "0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d"
+      },
+      "ms": 34
+    },
+    {
+      "step": 2,
+      "tool": "get_block_number",
+      "args": {},
+      "ms": 25
+    },
+    {
+      "step": 3,
+      "tool": "get_transaction_receipt",
+      "args": {
+        "hash": "0x5ab577af2e458a5f631e615c44dd111544333324408a10dd7fac299559a70b1d"
+      },
+      "ms": 38
+    }
+  ]
+}

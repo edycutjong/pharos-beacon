@@ -1,0 +1,11 @@
+VERDICT WAIT
+rule    mined with status 0x1 but 3 confirmation(s) is below the 12 this tier needs
+tx      0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b
+from    0x317bca01bb101c0f1e86c21576a4e14d92b02975  →  to 0x8d347c72431ed6e033d5f43e56c0987e97f5d91b
+value   1 native
+mined   block 31806026, head 31806028, status success, gas used 21000
+depth   3 confirmations of 12 required (1 native value → tier 2 of 3 (below 100))
+wait    9 more block(s), about 15.8 s at the observed 1.75 s per block
+network atlantic (chain 688689)
+explorer https://atlantic.pharosscan.xyz/tx/0x62dd81a1e9e79ba5e96e858fa62f68d391ebebbc935b9405647c8c8bbde5534b
+proof: tasks/skill-chain-mcp-flow/proof/atlantic-wait.json
