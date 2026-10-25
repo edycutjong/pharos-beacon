@@ -325,7 +325,7 @@ describe("plumbing", () => {
       txFrom: async () => FAC,
     };
     const r = await recentPayments(src, PAY_TO, { limit: 2, facilitator: FAC });
-    expect(r.payments.map((p) => [p.block, p.route, p.usdc])).toEqual([[5_000, "gas-snapshot", "0.001"], [3_000, "whale-brief", "0.01"]]);
+    expect(r.payments.map((p) => [p.block, p.route, p.usdc])).toEqual([[5_000, "gas-snapshot", "0.001"], [3_000, "whale-brief or whale-range", "0.01"]]);
     expect(calls[0]).toEqual([4_501n, 5_500n]);
     expect(calls).toHaveLength(3); // stopped once it had two
     expect(r.payments[0]!.explorer).toMatch(/^https:\/\/atlantic\.pharosscan\.xyz\/tx\/0x/);
@@ -355,5 +355,17 @@ describe("terminal output", () => {
     const paid = formatEvent({ type: "done", outcome: "paid", summary: "ok", totalMs: 1, tx, explorer: `https://atlantic.pharosscan.xyz/tx/${tx}`, block: 5 } as never);
     expect(paid).toContain(`200 OK · PAYMENT-RESPONSE: success, tx ${tx}`);
     expect(formatEvent({ type: "done", outcome: "refused", summary: "no", totalMs: 1 } as never)).not.toContain("PAYMENT-RESPONSE");
+  });
+});
+
+describe("routeFor", () => {
+  it("names every route a settled amount fits, since the log carries no route", async () => {
+    const { routeFor } = await import("../tasks/x402-paywalled-api/runs.js");
+    expect(routeFor(1_000n)).toBe("gas-snapshot");
+    expect(routeFor(5_000n)).toBe("whale-range");
+    expect(routeFor(10_000n)).toBe("whale-brief or whale-range");
+    expect(routeFor(15_000n)).toBe("whale-range");
+    expect(routeFor(20_000n)).toBe("other");
+    expect(routeFor(7_000n)).toBe("other");
   });
 });
