@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "task": "x402-agent-buyer",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "http://localhost:4021 (x402 API) + Atlantic RPC (receipt and authorization checks)"
+    },
+    "command": "tasks/x402-agent-buyer/index.ts run retry --simulate-failure before --base http://localhost:4021/ --fresh --proof retry-before",
+    "git": {
+      "commit": "3d033d99fcce",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T00:59:15.378Z"
+  },
+  "task": "retry",
+  "goal": "One purchase, with a network failure after the payment is signed.",
+  "base": "http://localhost:4021",
+  "simulateFailure": "before",
+  "events": [
+    {
+      "type": "task",
+      "task": "retry",
+      "budget": "0.01 USDC",
+      "perCallCap": "0.01 USDC",
+      "wants": 1,
+      "base": "http://localhost:4021",
+      "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+    },
+    {
+      "type": "ask",
+      "want": "gas",
+      "path": "gas-snapshot",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "sign",
+      "want": "gas",
+      "purchase": "retry/gas",
+      "nonce": "0xf5a6ded67f617ae07a0574379152a468056002eca67ce2b8f7119695db4b102a",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "attempt",
+      "want": "gas",
+      "n": 1,
+      "error": "simulated network failure: the request never left"
+    },
+    {
+      "type": "reconcile",
+      "want": "gas",
+      "nonceUsed": false,
+      "text": "authorization 0xf5a6ded6… not used yet and still valid"
+    },
+    {
+      "type": "attempt",
+      "want": "gas",
+      "n": 2,
+      "status": 200
+    },
+    {
+      "type": "paid",
+      "want": "gas",
+      "row": {
+        "n": 1,
+        "at": "2026-10-24T00:59:20.671Z",
+        "task": "retry",
+        "purchase": "retry/gas",
+        "endpoint": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
+        "bought": "Atlantic gas price now",
+        "price": "0.001 USDC",
+        "amount": "1000",
+        "tx": "0x09b33dbf18471e12cf66377387ab740d96ff49cc47765816a7260205a197e1d1",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x09b33dbf18471e12cf66377387ab740d96ff49cc47765816a7260205a197e1d1",
+        "block": 31803937,
+        "runningTotal": "0.001 USDC",
+        "runningTotalAtomic": "1000"
+      }
+    },
+    {
+      "type": "done",
+      "summary": {
+        "task": "retry",
+        "outcome": "finished",
+        "paid": 1,
+        "refused": 0,
+        "spent": "0.001 USDC",
+        "spentAtomic": "1000",
+        "saved": "0 USDC",
+        "budget": "0.01 USDC",
+        "left": "0.009 USDC",
+        "results": [
+          {
+            "want": "gas",
+            "status": "paid",
+            "price": "0.001 USDC",
+            "tx": "0x09b33dbf18471e12cf66377387ab740d96ff49cc47765816a7260205a197e1d1"
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "task": "retry",
+    "outcome": "finished",
+    "paid": 1,
+    "refused": 0,
+    "spent": "0.001 USDC",
+    "spentAtomic": "1000",
+    "saved": "0 USDC",
+    "budget": "0.01 USDC",
+    "left": "0.009 USDC",
+    "results": [
+      {
+        "want": "gas",
+        "status": "paid",
+        "price": "0.001 USDC",
+        "tx": "0x09b33dbf18471e12cf66377387ab740d96ff49cc47765816a7260205a197e1d1"
+      }
+    ]
+  }
+}

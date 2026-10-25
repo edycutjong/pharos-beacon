@@ -88,3 +88,11 @@ dce49aac980b2479f06353f8d7f8fb7ff3545bd8:tasks/batch-executor/proof/all-success-
 12114d44675c0f613d4fadfed5c4ed51c0f6b064:tasks/batch-executor/proof/all-success-mix.json:generic-api-key:165
 12114d44675c0f613d4fadfed5c4ed51c0f6b064:tasks/batch-executor/proof/all-success-mix.json:generic-api-key:189
 12114d44675c0f613d4fadfed5c4ed51c0f6b064:tasks/batch-executor/proof/all-success-mix.json:generic-api-key:213
+# x402-agent-buyer: ledger purchase names in earlier budget proofs; not secrets (the field was renamed)
+00bdc409142e2a9baddb73375385dfbb5d375b61:tasks/x402-agent-buyer/proof/budget.json:generic-api-key:94
+00bdc409142e2a9baddb73375385dfbb5d375b61:tasks/x402-agent-buyer/proof/budget.payments.jsonl:generic-api-key:2
+76c9f27d506b068fe8eb9b97e999d056359ba7fc:tasks/x402-agent-buyer/proof/budget.payments.jsonl:generic-api-key:2
+12aaf69e01eeb5fd4de0ff58567886dfcd370d48:tasks/x402-agent-buyer/proof/budget.payments.jsonl:generic-api-key:2
+12aaf69e01eeb5fd4de0ff58567886dfcd370d48:tasks/x402-agent-buyer/proof/budget.json:generic-api-key:77
+12aaf69e01eeb5fd4de0ff58567886dfcd370d48:tasks/x402-agent-buyer/proof/budget.json:generic-api-key:94
+f71bede509f0d116e172f7f1147fee1699a6175a:.gitleaksignore:generic-api-key:91

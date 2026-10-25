@@ -1,0 +1,110 @@
+{
+  "meta": {
+    "task": "x402-agent-buyer",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "https://pharos.edycu.dev (x402 API) + Atlantic RPC (receipt and authorization checks)"
+    },
+    "command": "tasks/x402-agent-buyer/index.ts run retry --base https://pharos.edycu.dev/ --fresh --proof prod-gas-ok",
+    "git": {
+      "commit": "f1a5bca2fa4b",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:00:46.507Z"
+  },
+  "task": "retry",
+  "goal": "One purchase, with a network failure after the payment is signed.",
+  "base": "https://pharos.edycu.dev",
+  "simulateFailure": null,
+  "events": [
+    {
+      "type": "task",
+      "task": "retry",
+      "budget": "0.01 USDC",
+      "perCallCap": "0.01 USDC",
+      "wants": 1,
+      "base": "https://pharos.edycu.dev",
+      "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+    },
+    {
+      "type": "ask",
+      "want": "gas",
+      "path": "gas-snapshot",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "sign",
+      "want": "gas",
+      "purchase": "retry/gas",
+      "nonce": "0x6aaf019586f0431761e8ef90f06543a5e07c4ed2687611753449382e64777844",
+      "price": "0.001 USDC"
+    },
+    {
+      "type": "attempt",
+      "want": "gas",
+      "n": 1,
+      "status": 200
+    },
+    {
+      "type": "paid",
+      "want": "gas",
+      "row": {
+        "n": 1,
+        "at": "2026-10-24T01:00:57.735Z",
+        "task": "retry",
+        "purchase": "retry/gas",
+        "endpoint": "https://pharos.edycu.dev/api/x402-paywalled-api/gas-snapshot",
+        "bought": "Atlantic gas price now",
+        "price": "0.001 USDC",
+        "amount": "1000",
+        "tx": "0x557afe0805b8f22eac783142f5ca5d49c6ac28b9f1000afc3891af0ad3780ae2",
+        "explorer": "https://atlantic.pharosscan.xyz/tx/0x557afe0805b8f22eac783142f5ca5d49c6ac28b9f1000afc3891af0ad3780ae2",
+        "block": 31804005,
+        "runningTotal": "0.001 USDC",
+        "runningTotalAtomic": "1000"
+      }
+    },
+    {
+      "type": "done",
+      "summary": {
+        "task": "retry",
+        "outcome": "finished",
+        "paid": 1,
+        "refused": 0,
+        "spent": "0.001 USDC",
+        "spentAtomic": "1000",
+        "saved": "0 USDC",
+        "budget": "0.01 USDC",
+        "left": "0.009 USDC",
+        "results": [
+          {
+            "want": "gas",
+            "status": "paid",
+            "price": "0.001 USDC",
+            "tx": "0x557afe0805b8f22eac783142f5ca5d49c6ac28b9f1000afc3891af0ad3780ae2"
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "task": "retry",
+    "outcome": "finished",
+    "paid": 1,
+    "refused": 0,
+    "spent": "0.001 USDC",
+    "spentAtomic": "1000",
+    "saved": "0 USDC",
+    "budget": "0.01 USDC",
+    "left": "0.009 USDC",
+    "results": [
+      {
+        "want": "gas",
+        "status": "paid",
+        "price": "0.001 USDC",
+        "tx": "0x557afe0805b8f22eac783142f5ca5d49c6ac28b9f1000afc3891af0ad3780ae2"
+      }
+    ]
+  }
+}
