@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "task": "natural-language-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/natural-language-payment-agent/index.ts send 0.0005 to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B --followup WPHRS --proof followup-prepared-erc20",
+    "git": {
+      "commit": "5f4ce404e6b0",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:37:50.312Z"
+  },
+  "turns": [
+    "send 0.0005 to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+    "WPHRS"
+  ],
+  "parsed": {
+    "draft": {
+      "amount": "0.0005",
+      "token": "WPHRS",
+      "recipient": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+    },
+    "questions": [],
+    "lang": "en",
+    "parser": "gemini-3.5-flash"
+  },
+  "outcome": "prepared-unsigned",
+  "checks": [
+    {
+      "name": "recipient",
+      "ok": true,
+      "detail": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B (valid, checksum ok)"
+    },
+    {
+      "name": "token",
+      "ok": true,
+      "detail": "WPHRS at 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (SkillEngine tokens.json)"
+    },
+    {
+      "name": "decimals",
+      "ok": true,
+      "detail": "decimals() = 18 read on chain"
+    },
+    {
+      "name": "amount",
+      "ok": true,
+      "detail": "0.0005 WPHRS = 500000000000000 base units"
+    },
+    {
+      "name": "balance",
+      "ok": true,
+      "detail": "0x317b…2975 holds 0.00081 WPHRS, needs 0.0005"
+    }
+  ],
+  "unsignedTx": {
+    "chainId": 688689,
+    "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+    "value": "0",
+    "data": "0xa9059cbb0000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b0000000000000000000000000000000000000000000000000001c6bf52634000",
+    "nonce": 116,
+    "gas": "45932",
+    "maxFeePerGas": "2000000000",
+    "maxPriorityFeePerGas": "0"
+  },
+  "walletRequest": {
+    "method": "eth_sendTransaction",
+    "params": [
+      {
+        "from": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+        "to": "0x838800b758277CC111B2d48Ab01e5E164f8E9471",
+        "value": "0x0",
+        "data": "0xa9059cbb0000000000000000000000008d347c72431ed6e033d5f43e56c0987e97f5d91b0000000000000000000000000000000000000000000000000001c6bf52634000",
+        "gas": "0xb36c",
+        "maxFeePerGas": "0x77359400",
+        "maxPriorityFeePerGas": "0x0",
+        "nonce": "0x74",
+        "chainId": "0xa8231",
+        "type": "0x2"
+      }
+    ]
+  }
+}

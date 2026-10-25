@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "task": "natural-language-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/natural-language-payment-agent/index.ts send 5 WPHRS to alice.eth --proof refused-name",
+    "git": {
+      "commit": "6d3209c50cd8",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:36:56.468Z"
+  },
+  "turns": [
+    "send 5 WPHRS to alice.eth"
+  ],
+  "parsed": {
+    "draft": {
+      "amount": "5",
+      "token": "WPHRS",
+      "recipient": "alice.eth"
+    },
+    "questions": [],
+    "lang": "en",
+    "parser": "gemini-3.5-flash"
+  },
+  "outcome": "refused",
+  "checks": [
+    {
+      "name": "recipient",
+      "ok": false,
+      "detail": "\"alice.eth\" is a name, and Pharos has no name service to resolve it: give a 0x address"
+    },
+    {
+      "name": "token",
+      "ok": true,
+      "detail": "WPHRS at 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (SkillEngine tokens.json)"
+    },
+    {
+      "name": "decimals",
+      "ok": true,
+      "detail": "decimals() = 18 read on chain"
+    },
+    {
+      "name": "amount",
+      "ok": true,
+      "detail": "5 WPHRS = 5000000000000000000 base units"
+    }
+  ]
+}

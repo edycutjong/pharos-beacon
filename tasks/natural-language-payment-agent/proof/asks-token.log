@@ -1,0 +1,9 @@
+you: send 100 to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B
+parser: gemini-3.5-flash · language: en
+understood: {"amount":"100","recipient":"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"}
+
+I need one more thing before I prepare anything:
+  ? Which token? Atlantic has PHRS, USDC, USDT, WBTC, WETH, WPHRS (PHRS is the native coin).
+
+Answer with: --followup "<your answer>"
+proof: tasks/natural-language-payment-agent/proof/asks-token.json

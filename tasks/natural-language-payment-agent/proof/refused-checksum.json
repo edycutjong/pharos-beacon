@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "task": "natural-language-payment-agent",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/natural-language-payment-agent/index.ts send 5 WPHRS to 0x8d347c72431ed6E033d5f43E56c0987E97f5D91B --proof refused-checksum",
+    "git": {
+      "commit": "aed5cc74e63e",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T01:37:01.792Z"
+  },
+  "turns": [
+    "send 5 WPHRS to 0x8d347c72431ed6E033d5f43E56c0987E97f5D91B"
+  ],
+  "parsed": {
+    "draft": {
+      "amount": "5",
+      "token": "WPHRS",
+      "recipient": "0x8d347c72431ed6E033d5f43E56c0987E97f5D91B"
+    },
+    "questions": [],
+    "lang": "en",
+    "parser": "gemini-3.5-flash"
+  },
+  "outcome": "refused",
+  "checks": [
+    {
+      "name": "recipient",
+      "ok": false,
+      "detail": "0x8d347c72431ed6E033d5f43E56c0987E97f5D91B has mixed-case letters that fail the EIP-55 checksum (a typo?): refusing"
+    },
+    {
+      "name": "token",
+      "ok": true,
+      "detail": "WPHRS at 0x838800b758277CC111B2d48Ab01e5E164f8E9471 (SkillEngine tokens.json)"
+    },
+    {
+      "name": "decimals",
+      "ok": true,
+      "detail": "decimals() = 18 read on chain"
+    },
+    {
+      "name": "amount",
+      "ok": true,
+      "detail": "5 WPHRS = 5000000000000000000 base units"
+    }
+  ]
+}
