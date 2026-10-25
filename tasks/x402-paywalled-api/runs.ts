@@ -1,9 +1,11 @@
 // The run log without a database: the last payments are read back from the chain. Every settled x402 payment is a USDC
-// Transfer log to the payee, so the log is exactly what the chain says was paid. Refused runs move no money and are not in it.
+// Transfer log to the payee sent by our facilitator signer (EIP-3009 transferWithAuthorization is submitted by the
+// facilitator, not the payer). Any other Transfer to the same address (the payee is also the Saga wallet) is not an x402
+// payment and is left out. Refused runs move no money and are not in it.
 // The Atlantic RPC answers eth_getLogs for at most 1,000 blocks (~29 min) per call, so the scan walks back window by window,
 // one at a time (the public RPC refuses parallel log queries: "request too fast per second"), and stops at `limit` payments
 // or after `maxWindows` windows (24 ≈ the last 12 hours, ~0.3 s per window).
-import { createPublicClient, formatUnits, getAddress, http, pad, type Hex, type RpcLog } from "viem";
+import { createPublicClient, formatUnits, getAddress, http, isAddressEqual, pad, type Hex, type RpcLog } from "viem";
 import { X402_USDC, atlantic, explorerTx } from "../../src/lib/networks.js";
 import { TRANSFER_TOPIC } from "../../src/whale/scan.js";
 import { PAID_ROUTES } from "./config.js";
@@ -23,6 +25,8 @@ export interface LogSource {
   blockNumber(): Promise<bigint>;
   logs(fromBlock: bigint, toBlock: bigint, payTo: Hex): Promise<RpcLog[]>;
   blockTime(block: bigint): Promise<number>;
+  /** The `from` of a transaction: for an x402 settlement this is the facilitator signer. */
+  txFrom(tx: Hex): Promise<Hex>;
 }
 
 const routeFor = (amount: bigint) => Object.entries(PAID_ROUTES).find(([, r]) => r.amount === amount)?.[0] ?? "other";
@@ -52,15 +56,21 @@ export function rpcLogSource(): LogSource {
         params: [{ address: X402_USDC.address, topics: [TRANSFER_TOPIC, null, pad(payTo)], fromBlock: `0x${fromBlock.toString(16)}`, toBlock: `0x${toBlock.toString(16)}` }],
       }) as Promise<RpcLog[]>,
     blockTime: async (b) => Number((await c.getBlock({ blockNumber: b })).timestamp),
+    txFrom: async (tx) => (await c.getTransaction({ hash: tx })).from,
   };
 }
 
-export async function recentPayments(src: LogSource, payTo: Hex, o: { limit?: number; maxWindows?: number; parallel?: number; window?: bigint } = {}) {
+export async function recentPayments(src: LogSource, payTo: Hex, o: { limit?: number; maxWindows?: number; parallel?: number; window?: bigint; facilitator: Hex }) {
   const limit = o.limit ?? 10;
   const maxWindows = o.maxWindows ?? 24;
   const parallel = o.parallel ?? 1;
   const window = o.window ?? 1000n;
   const latest = await src.blockNumber();
+  const senders = new Map<Hex, boolean>();
+  const isSettlement = async (p: Payment) => {
+    if (!senders.has(p.tx)) senders.set(p.tx, isAddressEqual(await src.txFrom(p.tx), o.facilitator));
+    return senders.get(p.tx)!;
+  };
   const found: Payment[] = [];
   let scanned = 0;
   let to = latest;
@@ -73,7 +83,9 @@ export async function recentPayments(src: LogSource, payTo: Hex, o: { limit?: nu
     }
     scanned += batch.length;
     const pages = await Promise.all(batch.map(([f, t]) => src.logs(f, t, payTo)));
-    for (const page of pages) found.push(...page.filter((l) => l.data && l.data !== "0x").map(toPayment));
+    for (const page of pages) {
+      for (const p of page.filter((l) => l.data && l.data !== "0x").map(toPayment)) if (await isSettlement(p)) found.push(p);
+    }
   }
   found.sort((a, b) => b.block - a.block);
   const top = found.slice(0, limit);

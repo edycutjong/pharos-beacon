@@ -146,14 +146,14 @@ async function runs(): Promise<Response> {
   if (runsCache && Date.now() - runsCache.at < 15_000) return jsonResponse(runsCache.body);
   let found;
   try {
-    found = await recentPayments(rpcLogSource(), payTo());
+    found = await recentPayments(rpcLogSource(), payTo(), { facilitator: getFacilitator().address });
   } catch (e) {
     // viem's message carries the whole request; the first line (and the RPC's own reason) is enough.
     const m = (e as Error).message;
     const detail = /Details: (.*)/.exec(m)?.[1];
     return jsonResponse({ error: `could not read the payments from Atlantic: ${detail ?? m.split("\n")[0]}` }, 503, { "retry-after": "10" });
   }
-  const body = { ...found, readAt: new Date().toISOString(), source: "USDC Transfer logs to the payee, Atlantic eth_getLogs" };
+  const body = { ...found, readAt: new Date().toISOString(), source: "USDC Transfer logs to the payee sent by the facilitator signer, Atlantic eth_getLogs" };
   runsCache = { at: Date.now(), body };
   return jsonResponse(body);
 }

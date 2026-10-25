@@ -79,7 +79,7 @@ kbd{font:500 11px var(--f-mono);border:1px solid var(--rule);border-radius:4px;p
   <section class="block" id="log">
     <div class="sec-head"><span class="num">02</span><h2>Run log</h2><p>Last 10 payments, read back from the chain</p></div>
     <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Route</th><th>Paid</th><th>Payer</th><th>Settle tx</th><th>Block</th></tr></thead><tbody id="log-body"></tbody></table></div>
-    <p class="foot-note" id="log-note">Every settled payment is a USDC Transfer to the payee, so this log is what the chain says was paid; refused runs move nothing and are not in it. No database.</p>
+    <p class="foot-note" id="log-note">Only x402 settlements are listed: a USDC Transfer to the payee whose transaction was sent by our facilitator signer. Other transfers to the same address are left out, and refused runs move nothing. No database.</p>
   </section>
 
   <section class="block" id="ours">
@@ -274,9 +274,9 @@ async function loadRuns() {
     const res = await fetch(`${API}/runs`, { cache: "no-store" });
     const d = await res.json();
     if (!res.ok) throw new Error(d.error || `HTTP ${res.status}`);
-    if (!d.payments.length) { tb.innerHTML = `<tr><td colspan="6" style="color:var(--ink-2)">No payments in the last ${Number(d.scannedBlocks).toLocaleString()} blocks. Press Run live; it pays 0.001 test USDC on Atlantic.</td></tr>`; return; }
+    if (!d.payments.length) { tb.innerHTML = `<tr><td colspan="6" style="color:var(--ink-2)">No x402 payment in the last ${Number(d.scannedBlocks).toLocaleString()} blocks (about 12 h). Recorded: <a href="https://atlantic.pharosscan.xyz/tx/0x42f1683455bf8e4db65b1f62347c936a1bdf4b7d87bebc7499690f0710eaa085" rel="noopener">tx 0x42f1…a085 ↗</a> (<a href="https://github.com/edycutjong/pharos-beacon/blob/main/tasks/x402-paywalled-api/proof/a.json" rel="noopener">proof/a.json</a>). Press Run live; it pays 0.001 test USDC on Atlantic.</td></tr>`; return; }
     tb.innerHTML = d.payments.map(p => `<tr><td class="m">${esc(p.time ? p.time.slice(0, 19).replace("T", " ") : "—")}</td><td class="m">/${esc(p.route)}</td><td class="m">${esc(p.usdc)} USDC</td><td class="m">${esc(short(p.payer))}</td><td class="m"><a href="${esc(p.explorer)}" rel="noopener">${esc(short(p.tx))} ↗</a></td><td class="m">${Number(p.block).toLocaleString()}</td></tr>`).join("");
-    $("log-note").textContent = `Read from Atlantic at block ${Number(d.latestBlock).toLocaleString()} (the last ${Number(d.scannedBlocks).toLocaleString()} blocks). Every settled payment is a USDC Transfer to the payee, so this log is what the chain says was paid; refused runs move nothing and are not in it. No database.`;
+    $("log-note").textContent = `Read from Atlantic at block ${Number(d.latestBlock).toLocaleString()} (the last ${Number(d.scannedBlocks).toLocaleString()} blocks). Only x402 settlements are listed: a USDC Transfer to the payee whose transaction was sent by our facilitator signer. Other transfers to the same address are left out, and refused runs move nothing. No database.`;
   } catch (e) {
     tb.innerHTML = `<tr><td colspan="6" style="color:var(--warn)">Could not read the log from the chain just now (${esc(e.message)}). It reloads after the next paid run.</td></tr>`;
   }
