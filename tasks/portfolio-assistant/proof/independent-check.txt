@@ -1,0 +1,14 @@
+Cross-check of the debt/health figures, 2026-10-25, against the Liquidation Watchdog's CLI (tasks/liquidation-watchdog). It shares the Morpho read code (src/liq/morpho.ts) with the Portfolio Assistant, so it checks the wiring and the block-to-block consistency, not the formula (the formula's own recompute is tasks/liquidation-watchdog/proof/independent-check.py).
+It reads the same two Morpho Blue positions of 0x6776…1a2b a little later (head 21137896 / 21137899, the proofs are pinned at 21136550),
+so the debt is a few USDC higher (interest accrues every second) and the health factors agree to four decimals.
+
+$ npm run liquidation-watchdog -- position --market 0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea --user 0x67765eA217d0021e35CA973dBae3b54823081a2b
+block 21137896 · Morpho APT/USDC 0xd834016e…e5aea · LLTV 86.00% · interest accrued to the head block
+1 | APT/USDC | 0x6776…1a2b | 1.8223 | 45.12% | 900,768.87 USDC | 1,894,576.62 APT | ok
+
+$ npm run liquidation-watchdog -- position --market 0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc --user 0x67765eA217d0021e35CA973dBae3b54823081a2b
+block 21137899 · Morpho APC3M/USDC 0xba0d2638…d91bc · LLTV 86.00% · interest accrued to the head block
+1 | APC3M/USDC | 0x6776…1a2b | 1.3261 | 24.59% | 1,004,933.50 USDC | 1,500,000.65 APC3M | ok
+
+Portfolio Assistant at block 21136550 (proof/mainnet-watchlist-en.json, question "Do I owe anything?"):
+APT/USDC: debt 900,765.36 USDC, health factor 1.8223, may fall 45.1% · APC3M/USDC: debt 1,004,931.82 USDC, health factor 1.3261, may fall 24.6%

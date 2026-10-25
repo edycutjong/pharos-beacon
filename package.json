@@ -42,7 +42,8 @@
     "invoice-to-payment-agent": "tsx tasks/invoice-to-payment-agent/index.ts",
     "saga-executor": "tsx tasks/saga-executor/index.ts",
     "arbitrage-scanner": "tsx tasks/arbitrage-scanner/index.ts",
-    "liquidation-watchdog": "tsx tasks/liquidation-watchdog/index.ts"
+    "liquidation-watchdog": "tsx tasks/liquidation-watchdog/index.ts",
+    "portfolio-assistant": "tsx tasks/portfolio-assistant/index.ts"
   },
   "keywords": [],
   "author": "",
