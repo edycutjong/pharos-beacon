@@ -1,0 +1,33 @@
+How the wallets in the aggregator proofs were found (a one-off scan, run on 2026-10-25 through the Pharos Chain MCP; the script is not kept in the repo)
+
+Scope: every account that appeared as `onBehalf` (topic 3) in a Morpho Blue `Supply(bytes32,address,address,uint256,uint256)` event
+(0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb) over the last ~3.2 million blocks before block 21,151,926 (about 34 days): blocks
+17,951,926 to 20,751,926 in 400,000-block chunks (the lines starting with "range" below), plus the most recent 400,000 blocks in a
+first pass (9 Supply logs, 2 accounts: 0x6Ea606…9071 and 0xBa3b26…b68a). For each account the scan then read position(id, account) in the six
+Morpho markets the Liquidation Watchdog knows and balanceOf(account) of the RockawayX, JTRSY and HYB share tokens. It does NOT prove no other
+address holds two protocols: it covers only suppliers seen in that window, and the RockawayX / fund wallets of the earlier tasks came from
+tasks/portfolio-assistant/proof/wallet-search.txt (a different scan).
+
+range 20351926n 20751926n logs 10 accounts so far 3
+range 19951926n 20351926n logs 8 accounts so far 5
+range 19551926n 19951926n logs 7 accounts so far 5
+range 19151926n 19551926n logs 6 accounts so far 5
+range 18751926n 19151926n logs 11 accounts so far 5
+range 18351926n 18751926n logs 8 accounts so far 6
+range 17951926n 18351926n logs 11 accounts so far 6
+0xBa3b260596D8412318Ee6ef5476291F6C8E3b68a morpho 0xc79579 shares 3873956161634213496
+0xc18C67DcC3dBd439FFfBB49b367b24bdFbe7F709 morpho 0xd83401 shares 999761106312313438 | morpho 0xba0d26 shares 1204002793431447345
+0x6Ea606Ec600F47411Bf56DF699cF695A0b0E9071 -
+0xC98B8Bb7168FadcB7B262481dD9246d14cc3eB63 morpho 0xab78d4 shares 24999999980987060216217038
+0x000000000000000000000000000000000000dEaD morpho 0xc79579 shares 1000000000 | morpho 0xd83401 shares 1000000000000 | morpho 0xba0d26 shares 1000000000000 | roxUSDC 1000000000000000000
+0xE8bA2cca3126385d7309c69FdD21e20694edC701 morpho 0xc79579 shares 900000000000 | morpho 0x95bc6f shares 500000000000000000000000 | morpho 0x4cbeda shares 600000000000
+
+Reading the lines: "morpho 0x<id prefix> shares N" = supplyShares of that market (Morpho counts 1e6 shares per raw USDC unit at the start); "roxUSDC N" = RockawayX share balance (18 decimals).
+Only 0x…dEaD (the burn address) has a position in two protocols (three Morpho markets and RockawayX: 1 share ≈ 1.007 USDC at block 21146194, see mainnet-withdraw-two-protocols.txt).
+0xBa3b26…b68a supplies the syzUSD market (0xc79579…) with 3.87e18 shares ≈ 3,912,147.53 USDC (mainnet-withdraw-morpho-supplier.txt).
+
+Code size at block 21146194 (Chain MCP get_code):
+0xBa3b260596D8412318Ee6ef5476291F6C8E3b68a  11784 bytes  (a contract)
+0x000000000000000000000000000000000000dEaD  0 bytes      (no code; the conventional burn address)
+0x62A0e4b7fD967fab5be1a733c09b22eBC4510673  0 bytes      (no code at that block)
+0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3  5311 bytes   (a contract)

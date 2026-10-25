@@ -1,0 +1,10 @@
+Pharos mainnet (chain 1672), block 21136550 (0.910 s/block) · wallets: 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673
+
+Q: apa yang menghasilkan bunga?
+A: Dompet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 pada blok 21136550:
+A: roxUSDC (RockawayX vault): 1 share tumbuh 0.084% selama 7.3 hari (1.006414 USDC → 1.007258 USDC) [F12, F9]; 4.29% APY disetahunkan [F12, F9]; dari $19,469.79 [F8] itu sekitar $835.36 setahun [F8, F12, F9]
+sources:
+  id | figure | contract | call | block
+  F8 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21136550
+  F9 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21136550
+  F12 | roxUSDC price of 1 share in USDC (earlier) | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 20471891

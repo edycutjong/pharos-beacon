@@ -1,0 +1,245 @@
+{
+  "meta": {
+    "task": "portfolio-assistant",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/portfolio-assistant/index.ts ask What do I hold? Where is my USDC? What am I earning? --wallet 0x000000000000000000000000000000000000dEaD --block 21146194 --proof mainnet-two-protocols",
+    "git": {
+      "commit": "5dd203ed05f6",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T23:11:16.834Z"
+  },
+  "block": "21146194",
+  "wallets": [
+    "0x000000000000000000000000000000000000dEaD"
+  ],
+  "windowDays": 7,
+  "answers": [
+    {
+      "question": "What do I hold?",
+      "lang": "en",
+      "intent": "list",
+      "refused": null,
+      "text": "Wallet 0x000000000000000000000000000000000000dEaD at block 21146194:\nWallet: 0.000120 PROS [F2]\nWallet: 0.001148 WPROS [F3]\nWallet: 0.000904 USDC [F4]\nRockawayX vault roxUSDC: 1.0000 roxUSDC = 1.01 USDC [F7, F8]\nMorpho Blue syzUSD/USDC: collateral 0.0000 syzUSD, debt 0.00 USDC, supplied 0.001009 USDC [F13, F14, F12]\nMorpho Blue APT/USDC: collateral 0.0000 APT, debt 0.00 USDC, supplied 1.00 USDC [F17, F18, F16]\nMorpho Blue APC3M/USDC: collateral 0.0000 APC3M, debt 0.00 USDC, supplied 1.00 USDC [F21, F22, F20]",
+      "cites": [
+        "F2",
+        "F3",
+        "F4",
+        "F7",
+        "F8",
+        "F13",
+        "F14",
+        "F12",
+        "F17",
+        "F18",
+        "F16",
+        "F21",
+        "F22",
+        "F20"
+      ],
+      "sources": "id | figure | contract | call | block\nF2 | PROS in wallet | native balance | get_balance | block 21146194\nF3 | WPROS in wallet | 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0 | balanceOf(wallet) | block 21146194\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21146194\nF7 | roxUSDC shares | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | balanceOf(wallet) | block 21146194\nF8 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21146194\nF12 | syzUSD/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194\nF13 | syzUSD/USDC collateral (syzUSD) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21146194\nF14 | syzUSD/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21146194\nF16 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194\nF17 | APT/USDC collateral (APT) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21146194\nF18 | APT/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21146194\nF20 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194\nF21 | APC3M/USDC collateral (APC3M) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).collateral | block 21146194\nF22 | APC3M/USDC debt (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).borrowShares × market() | block 21146194"
+    },
+    {
+      "question": "Where is my USDC?",
+      "lang": "en",
+      "intent": "where",
+      "refused": null,
+      "text": "Wallet 0x000000000000000000000000000000000000dEaD at block 21146194:\nUSDC: 0.000904 USDC in wallet [F4]\nUSDC: 1.01 USDC in roxUSDC vault (RockawayX vault) [F8]\nUSDC: 0.001009 USDC supplied in Morpho Blue syzUSD/USDC [F12]\nUSDC: 1.00 USDC supplied in Morpho Blue APT/USDC [F16]\nUSDC: 1.00 USDC supplied in Morpho Blue APC3M/USDC [F20]",
+      "cites": [
+        "F4",
+        "F8",
+        "F12",
+        "F16",
+        "F20"
+      ],
+      "sources": "id | figure | contract | call | block\nF4 | USDC in wallet | 0xC879C018dB60520F4355C26eD1a6D572cdAC1815 | balanceOf(wallet) | block 21146194\nF8 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21146194\nF12 | syzUSD/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194\nF16 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194\nF20 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194"
+    },
+    {
+      "question": "What am I earning?",
+      "lang": "en",
+      "intent": "earning",
+      "refused": null,
+      "text": "Wallet 0x000000000000000000000000000000000000dEaD at block 21146194:\nroxUSDC (RockawayX vault): 1 share grew 0.084% over 7.3 days (1.006428 USDC → 1.007275 USDC) [F24, F9]; 4.32% APY annualised [F24, F9]; on $1.01 [F8] that is about $0.04 a year [F8, F24, F9]\nMorpho Blue syzUSD/USDC: supplied 0.001009 USDC [F12]; I did not compute its supply APY (only the position was read).\nMorpho Blue APT/USDC: supplied 1.00 USDC [F16]; I did not compute its supply APY (only the position was read).\nMorpho Blue APC3M/USDC: supplied 1.00 USDC [F20]; I did not compute its supply APY (only the position was read).",
+      "cites": [
+        "F24",
+        "F9",
+        "F8",
+        "F12",
+        "F16",
+        "F20"
+      ],
+      "sources": "id | figure | contract | call | block\nF8 | roxUSDC worth in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(shares) | block 21146194\nF9 | roxUSDC price of 1 share in USDC | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 21146194\nF12 | syzUSD/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194\nF16 | APT/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194\nF20 | APC3M/USDC supplied (USDC) | 0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb | position(id,wallet).supplyShares × market() | block 21146194\nF24 | roxUSDC price of 1 share in USDC (earlier) | 0x047cD0a91E9B92ED979189a6C8A120bf280f02E5 | convertToAssets(1 share) | block 20482680"
+    }
+  ],
+  "facts": [
+    {
+      "id": "F2",
+      "label": "PROS in wallet",
+      "raw": "120000000000000",
+      "decimals": 18,
+      "symbol": "PROS",
+      "contract": "native",
+      "call": "get_balance",
+      "block": "21146194"
+    },
+    {
+      "id": "F3",
+      "label": "WPROS in wallet",
+      "raw": "1147943463071515",
+      "decimals": 18,
+      "symbol": "WPROS",
+      "contract": "0x52C48d4213107b20bC583832b0d951FB9CA8F0B0",
+      "call": "balanceOf(wallet)",
+      "block": "21146194"
+    },
+    {
+      "id": "F4",
+      "label": "USDC in wallet",
+      "raw": "904",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "call": "balanceOf(wallet)",
+      "block": "21146194"
+    },
+    {
+      "id": "F7",
+      "label": "roxUSDC shares",
+      "raw": "1000000000000000000",
+      "decimals": 18,
+      "symbol": "roxUSDC",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "balanceOf(wallet)",
+      "block": "21146194"
+    },
+    {
+      "id": "F8",
+      "label": "roxUSDC worth in USDC",
+      "raw": "1007275",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "convertToAssets(shares)",
+      "block": "21146194"
+    },
+    {
+      "id": "F9",
+      "label": "roxUSDC price of 1 share in USDC",
+      "raw": "1007275",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "convertToAssets(1 share)",
+      "block": "21146194"
+    },
+    {
+      "id": "F12",
+      "label": "syzUSD/USDC supplied (USDC)",
+      "raw": "1009",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).supplyShares × market()",
+      "block": "21146194"
+    },
+    {
+      "id": "F13",
+      "label": "syzUSD/USDC collateral (syzUSD)",
+      "raw": "0",
+      "decimals": 18,
+      "symbol": "syzUSD",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).collateral",
+      "block": "21146194"
+    },
+    {
+      "id": "F14",
+      "label": "syzUSD/USDC debt (USDC)",
+      "raw": "0",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).borrowShares × market()",
+      "block": "21146194"
+    },
+    {
+      "id": "F16",
+      "label": "APT/USDC supplied (USDC)",
+      "raw": "1000872",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).supplyShares × market()",
+      "block": "21146194"
+    },
+    {
+      "id": "F17",
+      "label": "APT/USDC collateral (APT)",
+      "raw": "0",
+      "decimals": 18,
+      "symbol": "APT",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).collateral",
+      "block": "21146194"
+    },
+    {
+      "id": "F18",
+      "label": "APT/USDC debt (USDC)",
+      "raw": "0",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).borrowShares × market()",
+      "block": "21146194"
+    },
+    {
+      "id": "F20",
+      "label": "APC3M/USDC supplied (USDC)",
+      "raw": "1004620",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).supplyShares × market()",
+      "block": "21146194"
+    },
+    {
+      "id": "F21",
+      "label": "APC3M/USDC collateral (APC3M)",
+      "raw": "0",
+      "decimals": 18,
+      "symbol": "APC3M",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).collateral",
+      "block": "21146194"
+    },
+    {
+      "id": "F22",
+      "label": "APC3M/USDC debt (USDC)",
+      "raw": "0",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+      "call": "position(id,wallet).borrowShares × market()",
+      "block": "21146194"
+    },
+    {
+      "id": "F24",
+      "label": "roxUSDC price of 1 share in USDC (earlier)",
+      "raw": "1006428",
+      "decimals": 6,
+      "symbol": "USDC",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "convertToAssets(1 share)",
+      "block": "20482680"
+    }
+  ],
+  "unreadable": [],
+  "readCalls": 112,
+  "seconds": 63
+}

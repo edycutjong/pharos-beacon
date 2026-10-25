@@ -1,0 +1,968 @@
+{
+  "meta": {
+    "task": "multi-protocol-aggregator",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/multi-protocol-aggregator/index.ts deposit --wallet 0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3 --amount 250 --down morpho --block 21146194 --proof mainnet-deposit-250-morpho-down",
+    "git": {
+      "commit": "d42bfb0d80d8",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T21:10:53.566Z"
+  },
+  "network": "pharos",
+  "chainId": 1672,
+  "wallet": "0x0665FDe254598e307b63f3aAe3cCd881a62d4bE3",
+  "block": "21146194",
+  "timestamp": "1792869882",
+  "secondsPerBlock": 0.91151,
+  "windows": [
+    {
+      "label": "1d",
+      "seconds": 86400
+    },
+    {
+      "label": "7d",
+      "seconds": 604800
+    },
+    {
+      "label": "30d",
+      "seconds": 2592000
+    }
+  ],
+  "holdDays": 30,
+  "haircut": 0.5,
+  "gas": {
+    "priceWei": "10000000000",
+    "nativeUsd": 0.6404761162665599,
+    "nativeBasis": "PROS in USDC from the WPROS/USDC pool 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 slot0 at block 21146194"
+  },
+  "request": {
+    "kind": "deposit",
+    "assets": "250000000"
+  },
+  "referenceAssets": "1000000000",
+  "views": [
+    {
+      "venue": {
+        "id": "roxUSDC",
+        "protocol": "rockawayx",
+        "protocolName": "RockawayX",
+        "name": "RockawayX USDC vault",
+        "source": {
+          "key": "roxUSDC",
+          "name": "RockawayX USDC vault",
+          "kind": "erc4626",
+          "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+          "share": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5"
+        }
+      },
+      "reading": {
+        "source": {
+          "key": "roxUSDC",
+          "name": "RockawayX USDC vault",
+          "kind": "erc4626",
+          "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+          "share": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 18
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 1.007275220948
+        },
+        "tvl": "11123205672192",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.047671169146071175
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.042287841872115095
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.039919306616567715
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 1.0071434445279999
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 1.00642862905
+            }
+          },
+          {
+            "label": "30d",
+            "then": {
+              "block": "18302561",
+              "timestamp": "1790116424",
+              "price": 1.0037766400300001
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": 0,
+          "maxDeposit": "0",
+          "blockers": [
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted)"
+          ],
+          "note": "entry fee = 1 − previewDeposit(1000000) / convertToShares(1000000) = 0 bps"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": null,
+          "lockedUntil": null,
+          "blockers": [],
+          "note": ""
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "asset()",
+            "block": "21146194"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "1.007275221",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "convertToAssets(10^24)",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "1.007143445",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "1.006428629",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "share price 30d ago (USDC per share)",
+            "value": "1.003776640",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "same call, pinned",
+            "block": "18302561"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "11123205672192",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "totalAssets()",
+            "block": "21146194"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "0",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "maxDeposit(wallet)",
+            "block": "21146194"
+          },
+          {
+            "what": "previewDeposit(amount) (shares raw)",
+            "value": "992777325603946044",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "previewDeposit(1000000)",
+            "block": "21146194"
+          },
+          {
+            "what": "convertToShares(amount) (shares raw)",
+            "value": "992777325603946044",
+            "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+            "call": "convertToShares(1000000)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0.047671169146071175
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.042287841872115095
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.039919306616567715
+          }
+        ],
+        "read": 3,
+        "ref": 0.042287841872115095,
+        "spread": 0.00775186252950346,
+        "jumpy": false,
+        "pessimistic": 0.03841191060736336,
+        "optimistic": 0.04616377313686683,
+        "thin": false
+      },
+      "holding": null
+    },
+    {
+      "venue": {
+        "id": "JTRSY",
+        "protocol": "centrifuge",
+        "protocolName": "Centrifuge",
+        "name": "Janus Henderson Treasury Fund",
+        "source": {
+          "key": "JTRSY",
+          "name": "Janus Henderson Treasury Fund",
+          "kind": "centrifuge",
+          "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+          "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
+      },
+      "reading": {
+        "source": {
+          "key": "JTRSY",
+          "name": "Janus Henderson Treasury Fund",
+          "kind": "centrifuge",
+          "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+          "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 6
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 1.120079969208
+        },
+        "tvl": "1765778147055",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.03555267571587697
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.03474527768916172
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 1.120079969208
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 1.1192883981669999
+            }
+          },
+          {
+            "label": "30d",
+            "then": {
+              "block": "18302561",
+              "timestamp": "1790116424",
+              "price": 1.116692298746
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": null,
+          "maxDeposit": "0",
+          "blockers": [
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
+            "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
+          ],
+          "note": "previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": "0",
+          "lockedUntil": null,
+          "blockers": [
+            "redeem is an asynchronous request (previewRedeem reverts): it settles in a later epoch, not in one transaction"
+          ],
+          "note": "previewRedeem reverts (eth_call: execution reverted: (code 3)): the redeem is an asynchronous request, so its fee and delay cannot be read"
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "asset()",
+            "block": "21146194"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "1.120079969",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "convertToAssets(10^12)",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "1.120079969",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "1.119288398",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "share price 30d ago (USDC per share)",
+            "value": "1.116692299",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "same call, pinned",
+            "block": "18302561"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "1765778147055",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "totalAssets()",
+            "block": "21146194"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "0",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "maxDeposit(wallet)",
+            "block": "21146194"
+          },
+          {
+            "what": "maxRedeem(wallet) (share raw)",
+            "value": "0",
+            "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+            "call": "maxRedeem(wallet)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": 0.03555267571587697
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": 0.03474527768916172
+          }
+        ],
+        "read": 3,
+        "ref": 0.03474527768916172,
+        "spread": 0.03555267571587697,
+        "jumpy": true,
+        "pessimistic": 0.016968939831223235,
+        "optimistic": 0.052521615547100206,
+        "thin": false
+      },
+      "holding": {
+        "shares": "30810551610",
+        "assets": "34510281698"
+      }
+    },
+    {
+      "venue": {
+        "id": "HYB",
+        "protocol": "centrifuge",
+        "protocolName": "Centrifuge",
+        "name": "NYLIM US High Yield Bond Fund",
+        "source": {
+          "key": "HYB",
+          "name": "NYLIM US High Yield Bond Fund",
+          "kind": "centrifuge",
+          "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+          "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
+        },
+        "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
+      },
+      "reading": {
+        "source": {
+          "key": "HYB",
+          "name": "NYLIM US High Yield Bond Fund",
+          "kind": "centrifuge",
+          "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+          "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
+        },
+        "basis": {
+          "assetDecimals": 6,
+          "shareDecimals": 18
+        },
+        "now": {
+          "block": "21146194",
+          "timestamp": "1792869882",
+          "price": 0.988080644327
+        },
+        "tvl": "98398088663",
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": -0.002022572782257938
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": -0.10660285293783545
+          }
+        ],
+        "samples": [
+          {
+            "label": "1d",
+            "then": {
+              "block": "21051406",
+              "timestamp": "1792783326",
+              "price": 0.988080644327
+            }
+          },
+          {
+            "label": "7d",
+            "then": {
+              "block": "20482680",
+              "timestamp": "1792242572",
+              "price": 0.988120399132
+            }
+          },
+          {
+            "label": "30d",
+            "then": {
+              "block": "18302561",
+              "timestamp": "1790116424",
+              "price": 0.997363770759
+            }
+          }
+        ],
+        "entry": {
+          "feeBps": null,
+          "maxDeposit": "0",
+          "blockers": [
+            "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
+            "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
+          ],
+          "note": "previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read"
+        },
+        "exit": {
+          "feeBps": null,
+          "depth": null,
+          "lockedUntil": null,
+          "blockers": [],
+          "note": ""
+        },
+        "lockSeconds": 0,
+        "evidence": [
+          {
+            "what": "vault asset",
+            "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "asset()",
+            "block": "21146194"
+          },
+          {
+            "what": "share price now (USDC per share)",
+            "value": "0.988080644",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "convertToAssets(10^24)",
+            "block": "21146194"
+          },
+          {
+            "what": "share price 1d ago (USDC per share)",
+            "value": "0.988080644",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "same call, pinned",
+            "block": "21051406"
+          },
+          {
+            "what": "share price 7d ago (USDC per share)",
+            "value": "0.988120399",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "same call, pinned",
+            "block": "20482680"
+          },
+          {
+            "what": "share price 30d ago (USDC per share)",
+            "value": "0.997363771",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "same call, pinned",
+            "block": "18302561"
+          },
+          {
+            "what": "totalAssets (USDC raw)",
+            "value": "98398088663",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "totalAssets()",
+            "block": "21146194"
+          },
+          {
+            "what": "maxDeposit(wallet) (USDC raw)",
+            "value": "0",
+            "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+            "call": "maxDeposit(wallet)",
+            "block": "21146194"
+          }
+        ]
+      },
+      "rate": {
+        "windows": [
+          {
+            "label": "1d",
+            "seconds": 86400,
+            "apr": 0
+          },
+          {
+            "label": "7d",
+            "seconds": 604800,
+            "apr": -0.002022572782257938
+          },
+          {
+            "label": "30d",
+            "seconds": 2592000,
+            "apr": -0.10660285293783545
+          }
+        ],
+        "read": 3,
+        "ref": -0.002022572782257938,
+        "spread": 0.10660285293783545,
+        "jumpy": true,
+        "pessimistic": -0.05532399925117566,
+        "optimistic": 0.051278853686659784,
+        "thin": false
+      },
+      "holding": null
+    }
+  ],
+  "down": [
+    {
+      "venue": {
+        "id": "morpho-c79579",
+        "protocol": "morpho",
+        "protocolName": "Morpho Blue",
+        "name": "Morpho Blue syzUSD/USDC supply",
+        "source": {
+          "key": "morpho-c79579",
+          "name": "Morpho Blue syzUSD/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86"
+        }
+      },
+      "reason": "outage drill (--down morpho): Morpho Blue was not contacted",
+      "simulated": true
+    },
+    {
+      "venue": {
+        "id": "morpho-d83401",
+        "protocol": "morpho",
+        "protocolName": "Morpho Blue",
+        "name": "Morpho Blue APT/USDC supply",
+        "source": {
+          "key": "morpho-d83401",
+          "name": "Morpho Blue APT/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea"
+        }
+      },
+      "reason": "outage drill (--down morpho): Morpho Blue was not contacted",
+      "simulated": true
+    },
+    {
+      "venue": {
+        "id": "morpho-ba0d26",
+        "protocol": "morpho",
+        "protocolName": "Morpho Blue",
+        "name": "Morpho Blue APC3M/USDC supply",
+        "source": {
+          "key": "morpho-ba0d26",
+          "name": "Morpho Blue APC3M/USDC supply",
+          "kind": "morpho",
+          "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+          "marketId": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc"
+        }
+      },
+      "reason": "outage drill (--down morpho): Morpho Blue was not contacted",
+      "simulated": true
+    }
+  ],
+  "venues": [
+    {
+      "id": "roxUSDC",
+      "protocol": "rockawayx",
+      "protocolName": "RockawayX",
+      "name": "RockawayX USDC vault",
+      "source": {
+        "key": "roxUSDC",
+        "name": "RockawayX USDC vault",
+        "kind": "erc4626",
+        "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+        "share": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5"
+      }
+    },
+    {
+      "id": "JTRSY",
+      "protocol": "centrifuge",
+      "protocolName": "Centrifuge",
+      "name": "Janus Henderson Treasury Fund",
+      "source": {
+        "key": "JTRSY",
+        "name": "Janus Henderson Treasury Fund",
+        "kind": "centrifuge",
+        "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+        "share": "0xC18e6f730896971a79D748E8deA61067A9Bc6040"
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
+    },
+    {
+      "id": "HYB",
+      "protocol": "centrifuge",
+      "protocolName": "Centrifuge",
+      "name": "NYLIM US High Yield Bond Fund",
+      "source": {
+        "key": "HYB",
+        "name": "NYLIM US High Yield Bond Fund",
+        "kind": "centrifuge",
+        "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+        "share": "0x4827C7ecce4f07ADfe44A97165f06A199e7d2505"
+      },
+      "actionBlocker": "an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists"
+    },
+    {
+      "id": "morpho-c79579",
+      "protocol": "morpho",
+      "protocolName": "Morpho Blue",
+      "name": "Morpho Blue syzUSD/USDC supply",
+      "source": {
+        "key": "morpho-c79579",
+        "name": "Morpho Blue syzUSD/USDC supply",
+        "kind": "morpho",
+        "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "marketId": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86"
+      }
+    },
+    {
+      "id": "morpho-d83401",
+      "protocol": "morpho",
+      "protocolName": "Morpho Blue",
+      "name": "Morpho Blue APT/USDC supply",
+      "source": {
+        "key": "morpho-d83401",
+        "name": "Morpho Blue APT/USDC supply",
+        "kind": "morpho",
+        "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "marketId": "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea"
+      }
+    },
+    {
+      "id": "morpho-ba0d26",
+      "protocol": "morpho",
+      "protocolName": "Morpho Blue",
+      "name": "Morpho Blue APC3M/USDC supply",
+      "source": {
+        "key": "morpho-ba0d26",
+        "name": "Morpho Blue APC3M/USDC supply",
+        "kind": "morpho",
+        "contract": "0x18573fA18fd17dDfD790B4a5B5b2977aad3b4Efb",
+        "marketId": "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc"
+      }
+    }
+  ],
+  "skipped": [
+    "0xab78d4ff…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC",
+    "0x95bc6fe9…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC",
+    "0x4cbedaf6…: only 603840 USDC raw supplied (below 1000000000)"
+  ],
+  "route": {
+    "request": "deposit",
+    "amountUsd": 250,
+    "allocations": [],
+    "options": [
+      {
+        "venueId": "roxUSDC",
+        "name": "RockawayX USDC vault",
+        "protocolName": "RockawayX",
+        "eligible": false,
+        "reasons": [
+          "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted)"
+        ],
+        "capacityUsd": 0,
+        "scoreUsd": null,
+        "parts": {},
+        "ratePct": "3.84%"
+      },
+      {
+        "venueId": "JTRSY",
+        "name": "Janus Henderson Treasury Fund",
+        "protocolName": "Centrifuge",
+        "eligible": false,
+        "reasons": [
+          "Janus Henderson Treasury Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
+          "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
+          "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
+        ],
+        "capacityUsd": 0,
+        "scoreUsd": null,
+        "parts": {},
+        "ratePct": "1.70%"
+      },
+      {
+        "venueId": "HYB",
+        "name": "NYLIM US High Yield Bond Fund",
+        "protocolName": "Centrifuge",
+        "eligible": false,
+        "reasons": [
+          "NYLIM US High Yield Bond Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists",
+          "maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors)",
+          "deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move"
+        ],
+        "capacityUsd": 0,
+        "scoreUsd": null,
+        "parts": {},
+        "ratePct": "-5.53%"
+      }
+    ],
+    "explanation": [
+      "No venue can take $250.00 today: RockawayX USDC vault: maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault is full, paused or restricted); Janus Henderson Treasury Fund: Janus Henderson Treasury Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists / maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors) / deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move; NYLIM US High Yield Bond Fund: NYLIM US High Yield Bond Fund is an asynchronous (ERC-7540) vault: deposits and redeems are requests settled in a later epoch, so no one-transaction plan exists / maxDeposit(wallet) = 0 USDC raw, below the 1000000 probe deposit (the vault takes deposits only as asynchronous requests from approved investors) / deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move",
+      "SIMULATED OUTAGE: Morpho Blue syzUSD/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it.",
+      "SIMULATED OUTAGE: Morpho Blue APT/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it.",
+      "SIMULATED OUTAGE: Morpho Blue APC3M/USDC supply (Morpho Blue): outage drill (--down morpho): Morpho Blue was not contacted. Routed without it."
+    ],
+    "unplacedUsd": 250
+  },
+  "plan": null,
+  "planNote": "no transactions prepared: no venue can take the request",
+  "funded": {
+    "balance": "305708431",
+    "assumed": false
+  },
+  "evidence": [
+    {
+      "what": "vault asset",
+      "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "asset()",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "1.007275221",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "convertToAssets(10^24)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "1.007143445",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "1.006428629",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "share price 30d ago (USDC per share)",
+      "value": "1.003776640",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "same call, pinned",
+      "block": "18302561"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "11123205672192",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "totalAssets()",
+      "block": "21146194"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "0",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "maxDeposit(wallet)",
+      "block": "21146194"
+    },
+    {
+      "what": "previewDeposit(amount) (shares raw)",
+      "value": "992777325603946044",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "previewDeposit(1000000)",
+      "block": "21146194"
+    },
+    {
+      "what": "convertToShares(amount) (shares raw)",
+      "value": "992777325603946044",
+      "contract": "0x047cD0a91E9B92ED979189a6C8A120bf280f02E5",
+      "call": "convertToShares(1000000)",
+      "block": "21146194"
+    },
+    {
+      "what": "vault asset",
+      "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "asset()",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "1.120079969",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "convertToAssets(10^12)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "1.120079969",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "1.119288398",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "share price 30d ago (USDC per share)",
+      "value": "1.116692299",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "same call, pinned",
+      "block": "18302561"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "1765778147055",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "totalAssets()",
+      "block": "21146194"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "0",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "maxDeposit(wallet)",
+      "block": "21146194"
+    },
+    {
+      "what": "maxRedeem(wallet) (share raw)",
+      "value": "0",
+      "contract": "0x160e0DD4C4f693b05Eca83Bc2Ec6fD51954fc434",
+      "call": "maxRedeem(wallet)",
+      "block": "21146194"
+    },
+    {
+      "what": "vault asset",
+      "value": "0xC879C018dB60520F4355C26eD1a6D572cdAC1815",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "asset()",
+      "block": "21146194"
+    },
+    {
+      "what": "share price now (USDC per share)",
+      "value": "0.988080644",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "convertToAssets(10^24)",
+      "block": "21146194"
+    },
+    {
+      "what": "share price 1d ago (USDC per share)",
+      "value": "0.988080644",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "same call, pinned",
+      "block": "21051406"
+    },
+    {
+      "what": "share price 7d ago (USDC per share)",
+      "value": "0.988120399",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "same call, pinned",
+      "block": "20482680"
+    },
+    {
+      "what": "share price 30d ago (USDC per share)",
+      "value": "0.997363771",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "same call, pinned",
+      "block": "18302561"
+    },
+    {
+      "what": "totalAssets (USDC raw)",
+      "value": "98398088663",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "totalAssets()",
+      "block": "21146194"
+    },
+    {
+      "what": "maxDeposit(wallet) (USDC raw)",
+      "value": "0",
+      "contract": "0x74189E017D3AEfEe48F3cC5Bf592694B2a016DA8",
+      "call": "maxDeposit(wallet)",
+      "block": "21146194"
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Saga Executor</title>
+<meta name="description" content="Saga Executor on Pharos Atlantic: four dependent steps, each verified; when one fails, the earlier ones are rolled back. Read the live plan and replay the recorded runs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+<style>
+/* page additions: the custom-transaction form, verdict line, links in tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)} .strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+.verdict{margin:0 0 14px;font-weight:700;font-size:17px}
+.verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)} .verdict.bad{color:var(--bad)}
+details.custom{justify-self:stretch;border:1px solid var(--rule);border-radius:4px;background:var(--sheet);padding:8px 12px}
+details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.form input,.form select{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0}
+.form .wide{grid-column:1/-1}
+.form .btn{justify-self:start}
+@media (max-width:520px){.form{grid-template-columns:1fr}}
+#recorded .log td{white-space:normal;vertical-align:top;overflow-wrap:anywhere}
+#recorded .log td a{white-space:nowrap}
+.panel-body{overflow-x:auto}
+</style>
+<style>
+.form textarea{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0;min-height:120px;resize:vertical}
+.data td{vertical-align:top}
+@media (max-width:820px){.title{grid-template-columns:1fr}}
+pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Pharos Atlantic testnet · own test contracts</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/saga-executor" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">HARD · 200 PTS</span>
+      <h1>Saga Executor</h1>
+      <p class="lede">Four steps that depend on each other: approve, swap, approve, deposit. Each one is checked by reading the chain back before the next starts; a transient failure is retried, a permanent one rolls back what landed, newest first, and a crash-safe journal lets a killed run resume without sending a swap twice. The pool and the vault are our own test contracts, because we found none on Atlantic.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Scenario"><button class="btn" type="button" data-s="plan" aria-pressed="true">Live: the plan, read from our Atlantic pool and vault now</button><button class="btn" type="button" data-s="success" aria-pressed="false">Recorded: all four steps verified</button><button class="btn" type="button" data-s="forced-failure" aria-pressed="false">Recorded: step 4 fails, rollback</button><button class="btn" type="button" data-s="crash-resume" aria-pressed="false">Recorded: killed mid-swap, resumed</button></div>
+      
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">Live: the plan, read from our Atlantic pool and vault now</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real read comes back. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. The live scenario reads our own Atlantic pool and vault; the recorded scenarios replay runs made earlier with the saga wallet's key. This page cannot run a saga: it has no key.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+  <p class="foot-note">Atlantic reads go through the public Atlantic RPC because the Atlantic Chain MCP runs locally over stdio and this page runs on Vercel. Recorded rows are replayed from the proof files and labelled RECORDED; the transaction hashes link to the explorer.</p>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 5 of 5 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">02</span><h2>Run log</h2><p>Your runs on this visit (kept in this browser only)</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Input</th><th>Result</th><th>Total</th></tr></thead><tbody id="log-body"><tr><td colspan="4" style="color:var(--ink-2)">No runs yet. Press Run live.</td></tr></tbody></table></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours"><article><h3>Crash-safe</h3><p>A journal is written before each send, so a killed run resumes from it and checks the chain before it sends again: the swap is never sent twice.</p></article><article><h3>Verified by reading back</h3><p>A step is done when the allowance, the Swap event, the balances or the vault shares read back as expected, not when the receipt arrives.</p></article><article><h3>Rollback that checks itself</h3><p>Undo runs newest first and ends by comparing balances with the start, so a rollback that left something behind says so.</p></article></div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/saga-executor</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: no key, nothing signed. Keys for the CLI live in a local env file, never in code.</span></footer>
+</div>
+
+<script src="/_shared/demo-kit.js"></script>
+<script src="/_shared/run-kit.js"></script>
+<script>
+RunKit({
+  api: "/api/saga-executor",
+  idleFoot: "Each lamp lights when the real read comes back. Times are measured, not animated.",
+  runningFoot: "Reading Atlantic\u2026",
+  steps: (id) => (id === "plan" ? [{ id: "vault", name: "Vault state" }, { id: "quote", name: "Pool quote" }] : [{ id: "replay", name: "Recorded journal" }]),
+  scenarios: [{ id: "plan", label: "Live: the plan, read from our Atlantic pool and vault now", request: { qs: "mode=plan" } }, { id: "success", label: "Recorded: all four steps verified", request: { qs: "mode=recorded&which=success" } }, { id: "forced-failure", label: "Recorded: step 4 fails, rollback", request: { qs: "mode=recorded&which=forced-failure" } }, { id: "crash-resume", label: "Recorded: killed mid-swap, resumed", request: { qs: "mode=recorded&which=crash-resume" } }],
+  fromForm: null,
+  reqs: [["01", "At least 3 dependent steps, each verified (receipt checked) before the next starts.", "4 steps. runAction waits for the receipt, rejects status 0, then runs the step's verify (a chain read-back) before the next action is touched; step 3 and 4 build their calldata from step 2's recorded output.", "met", "output"], ["02", "A defined retry policy for transient failures, e.g. a gas spike or dropped transaction.", "The retry policy (3 sends, backoff 2 s \u00d7 2\u207f\u207b\u00b9, +25 % fee, same nonce) is in the engine and its recorded retry run (proof/retry.json) is in the repo; this page does not replay that run.", "partly", "output"], ["03", "A defined compensation/rollback path when a step permanently fails, and a demo of it.", "undo(step) per step (revoke approval, swap back, withdraw), run newest first, each verified. Demo: the vault owner closes the vault; the deposit fails; the saga undoes approve-out, the swap (approve, swap back) and finds the approve-in allowance already spent. ", "met", "output"], ["04", "A state log showing exactly which step the saga is in at any time.", "A state log showing exactly which step the saga is in: the journal rows of every recorded run (RUNNING, MINED, VERIFIED, REFUSED, FAILED, COMPENSATING, RESUMED), and the CLI's status command.", "met", "output"], ["05", "Shows one fully successful run and one forced-failure run with recovery.", "The one fully successful run and the forced-failure run with rollback are the recorded Atlantic runs, replayed here with every transaction linked; a new run needs the saga wallet's key, so the page replays rather than executes.", "partly", "output"]],
+});
+</script>
+</body>
+</html>

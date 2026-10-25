@@ -1,0 +1,39 @@
+Pharos mainnet (chain 1672), block 21146194 (0.912 s/block) · wallet 0x000000000000000000000000000000000000dEaD
+Request: withdraw 1.5 USDC · horizon 30 d · rates are share-price growth over 1d / 7d / 30d, annualised (APR, simple), median of the windows, "conservative" = median − 0.5 × spread (a deposit is credited with it), "optimistic" = median + 0.5 × spread (the yield a withdrawal gives up) · gas 10000000000 wei × 0.640476 USD per native token (PROS in USDC from the WPROS/USDC pool 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 slot0 at block 21146194)
+
+Protocols behind the one interface:
+  RockawayX      UP · 1 of 1 venue answered
+  Centrifuge     UP · 2 of 2 venues answered
+  Morpho Blue    UP · 3 of 3 venues answered
+
+Rates and entry / exit, read from the contracts:
+  venue                                  1d       7d      30d   median  conservative  notes
+  Morpho Blue syzUSD/USDC supply      7.10%    5.47%    5.28%    5.47%         4.56%  TVL 3,912,148.440506 · YOU HOLD 0.001009
+  Morpho Blue APC3M/USDC supply       3.59%    5.33%    5.29%    5.29%         4.42%  TVL 1,209,566.754175 · YOU HOLD 1.00462
+  Morpho Blue APT/USDC supply         9.40%    4.38%      n/a    6.89%         4.38%  JUMPY (spread 5.02%) · TVL 1,000,634.097499 · YOU HOLD 1.000872
+  RockawayX USDC vault                4.77%    4.23%    3.99%    4.23%         3.84%  TVL 11,123,205.672192 · YOU HOLD 1.007275
+  Janus Henderson Treasury Fund       0.00%    3.56%    3.47%    3.47%         1.70%  JUMPY (spread 3.56%) · TVL 1,765,778.147055
+  NYLIM US High Yield Bond Fund       0.00%   -0.20%  -10.66%   -0.20%        -5.53%  JUMPY (spread 10.66%) · TVL 98,398.088663
+  RockawayX USDC vault: exit open, fee 0 bps
+  Janus Henderson Treasury Fund: exit n/a (no position)
+  NYLIM US High Yield Bond Fund: exit n/a (no position)
+  Morpho Blue syzUSD/USDC supply: exit open, fee 0 bps
+  Morpho Blue APT/USDC supply: exit open, fee 0 bps
+  Morpho Blue APC3M/USDC supply: exit open, fee 0 bps
+  (left out: 0xab78d4ff…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x95bc6fe9…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x4cbedaf6…: only 603840 USDC raw supplied (below 1000000000))
+
+Positions of the wallet:
+  RockawayX USDC vault (RockawayX): 1.007275 USDC · 1 shares
+  Morpho Blue syzUSD/USDC supply (Morpho Blue): 0.001009 USDC · 1,000 shares
+  Morpho Blue APT/USDC supply (Morpho Blue): 1.000872 USDC · 1,000,000 shares
+  Morpho Blue APC3M/USDC supply (Morpho Blue): 1.00462 USDC · 1,000,000 shares
+
+ROUTE (withdraw):
+  Chose RockawayX USDC vault (RockawayX) first: taking $1.01 out costs $0.005423 over 30 d = exit fee $0.000000 + gas $0.001601 + yield given up $0.003822 at its optimistic 4.62%.
+  Next cheapest: Morpho Blue APC3M/USDC supply would cost $0.006690 for $1.00; it keeps earning 6.16%.
+  No single venue holds the whole amount, so it is split: $1.01 from RockawayX USDC vault, $0.4927 from Morpho Blue APC3M/USDC supply.
+  → $1.01 from RockawayX USDC vault + $0.4927 from Morpho Blue APC3M/USDC supply
+
+Prepared for the wallet owner's signature (nothing signed, no key read), plan 0x8a30…96f4, wallet-side calldata check passed:
+  1. Redeem 1000000000000000000 shares of RockawayX USDC vault (about 1007275 USDC raw) · to 0x047c…02E5 · gas 214937 (estimated)
+  2. Withdraw 492725 USDC raw from Morpho Blue APC3M/USDC supply · to 0x1857…4Efb · gas 123397 (estimated)

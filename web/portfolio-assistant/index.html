@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beacon Portfolio Assistant</title>
+<meta name="description" content="Portfolio Assistant on Pharos: ask a wallet a question in English or Bahasa Indonesia; every number cites its contract, call and block. Run it live.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/_shared/beacon.css">
+<style>
+/* page additions: the custom-transaction form, verdict line, links in tables */
+.title{grid-template-columns:minmax(0,1fr) minmax(0,560px)}
+.lamp .meta{padding:0 6px;overflow-wrap:anywhere}
+.strip-foot.warn{color:var(--warn)} .strip-foot.bad{color:var(--bad)}
+.log td a,.data td a{font-family:var(--f-mono);font-size:12px}
+.data td.mono{font-family:var(--f-mono);font-size:12.5px;word-break:break-all}
+.ev .v a{font-family:var(--f-mono)}
+.foot-note{color:var(--ink-2);font-size:13px;margin:10px 0 0}
+.verdict{margin:0 0 14px;font-weight:700;font-size:17px}
+.verdict.ok{color:var(--ok)} .verdict.warn{color:var(--warn)} .verdict.bad{color:var(--bad)}
+details.custom{justify-self:stretch;border:1px solid var(--rule);border-radius:4px;background:var(--sheet);padding:8px 12px}
+details.custom summary{cursor:pointer;font-weight:700;font-size:13.5px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--ink-2)}
+.form input,.form select{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0}
+.form .wide{grid-column:1/-1}
+.form .btn{justify-self:start}
+@media (max-width:520px){.form{grid-template-columns:1fr}}
+#recorded .log td{white-space:normal;vertical-align:top;overflow-wrap:anywhere}
+#recorded .log td a{white-space:nowrap}
+.panel-body{overflow-x:auto}
+</style>
+<style>
+.form textarea{font:12.5px var(--f-mono);padding:8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);min-width:0;min-height:120px;resize:vertical}
+.data td{vertical-align:top}
+@media (max-width:820px){.title{grid-template-columns:1fr}}
+pre.raw{white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="/" aria-label="Beacon demos home">
+      <svg width="30" height="34" viewBox="0 0 30 34" aria-hidden="true"><path d="M11 12h8l2 20H9z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 6h10v6H10z" fill="var(--signal)"/><path d="M15 1v3M3 9l4 1M27 9l-4 1" stroke="var(--signal)" stroke-width="2" stroke-linecap="round"/><path d="M10.2 20h9.6M9.6 26h10.8" stroke="currentColor" stroke-width="2"/></svg>
+      <b>Beacon</b><small>Agent Arena · Season of AI</small>
+    </a>
+    <span class="net mono" id="net"><span class="dot" aria-hidden="true"></span>Pharos mainnet · read-only</span>
+    <nav aria-label="Project links"><a href="https://github.com/edycutjong/pharos-beacon/tree/main/tasks/portfolio-assistant" rel="noopener">Repo ↗</a><a href="/">All demos</a></nav>
+  </header>
+
+  <div class="title">
+    <div class="reveal">
+      <span class="chip tier">HARD · 200 PTS</span>
+      <h1>Portfolio Assistant</h1>
+      <p class="lede">Ask a wallet a plain question: what do I hold, where is my USDC, what am I earning, do I owe anything. In English or Bahasa Indonesia. Rules classify the question (no LLM), the answer reads RockawayX, two Centrifuge fund vaults (JTRSY, HYB) and Morpho Blue through the Chain MCP, and every figure carries an [F…] id that names the contract, the call and the block. What it cannot read, it says.</p>
+    </div>
+    <div class="controls reveal" id="controls">
+      <button class="btn run" id="run" type="button"><span id="run-label">Run live </span><span aria-hidden="true">→</span></button>
+      <div class="scen" role="group" aria-label="Scenario"><button class="btn" type="button" data-s="where" aria-pressed="true">A real RockawayX holder: where is my USDC? (pinned block)</button><button class="btn" type="button" data-s="hold" aria-pressed="false">Same wallet: what do I hold?</button><button class="btn" type="button" data-s="bahasa" aria-pressed="false">Same wallet in Bahasa Indonesia: what earns interest?</button><button class="btn" type="button" data-s="noguess" aria-pressed="false">A question it must not guess (price prediction)</button><button class="btn" type="button" data-s="two" aria-pressed="false">The burn address 0x…dEaD, which holds two protocols: what am I earning?</button></div>
+      <details class="custom" id="custom"><summary>Ask your own wallet</summary><form class="form" id="form"><label class="wide">Wallet (any address on Pharos mainnet; read-only)<input name="wallet" required pattern="0x[0-9a-fA-F]{40}" placeholder="0x…" autocomplete="off"></label><label class="wide">Question<input name="q" required maxlength="200" placeholder="what am I earning?" autocomplete="off"></label><button class="btn" type="submit">Run this</button></form></details>
+    </div>
+  </div>
+
+  <div class="strip reveal" id="strip" aria-live="polite">
+    <div class="strip-head"><span class="caps">Sequence · <span id="scen-name">A real RockawayX holder: where is my USDC? (pinned block)</span></span><span class="total" id="total">idle · press Run live</span></div>
+    <div class="lamps-scroll"><ol class="lamps" id="lamps"></ol></div>
+    <p class="strip-foot" id="foot">Each lamp lights when the real read comes back. Times are measured, not animated.</p>
+  </div>
+
+  <div class="pair">
+    <div class="panel" id="output">
+      <div class="panel-head"><span class="caps">Output</span>
+        <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="read" type="button">Readable</button><button class="tab" role="tab" aria-selected="false" data-t="raw" type="button">Raw JSON</button></div>
+      </div>
+      <div class="panel-body" id="out-body"><p class="empty">No run yet. Run live reads one wallet and answers one question. Read-only: the task has no write path, and the page has no key.</p></div>
+    </div>
+    <div class="panel" id="evidence">
+      <div class="panel-head"><span class="caps">Evidence</span><span class="mono" style="color:var(--ink-2)" id="run-id">—</span></div>
+      <ul class="ev" id="ev"><li><span class="caps">Status</span><span class="v" style="font-family:var(--f-body)">Waiting for the first run.</span></li></ul>
+    </div>
+  </div>
+  <p class="foot-note">Pharos mainnet through the hosted Chain MCP. A pinned block makes a sample repeatable; your own wallet is read at the head. A read takes about 10 to 60 seconds because every figure is read twice.</p>
+
+  <section class="block" id="requirements">
+    <div class="sec-head"><span class="num">01</span><h2>Requirements</h2><p>Verbatim from the task page · 5 of 5 shown on this page</p></div>
+    <ol class="reqs" id="reqs"></ol>
+  </section>
+
+  <section class="block" id="log">
+    <div class="sec-head"><span class="num">02</span><h2>Run log</h2><p>Your runs on this visit (kept in this browser only)</p></div>
+    <div class="log-wrap"><table class="log"><thead><tr><th>Time (UTC)</th><th>Input</th><th>Result</th><th>Total</th></tr></thead><tbody id="log-body"><tr><td colspan="4" style="color:var(--ink-2)">No runs yet. Press Run live.</td></tr></tbody></table></div>
+  </section>
+
+  <section class="block" id="ours">
+    <div class="sec-head"><span class="num">03</span><h2>What's ours</h2><p>Beyond the requirement list</p></div>
+    <div class="ours"><article><h3>Cited to the block</h3><p>Every number carries an [F…] id; the sources table gives the contract, the call and the block, so a figure can be re-checked by hand.</p></article><article><h3>English and Bahasa Indonesia</h3><p>The same rules answer both; a wallet owner can ask in their own language.</p></article><article><h3>An honest “I don't know”</h3><p>A protocol with no reader, a price prediction or a token it does not know is declined with the reason, never guessed.</p></article></div>
+    <div class="built"><p><span class="caps">How this was built</span><br>Built with Claude as a coding assistant. The design, the failure cases and the extra feature were chosen by me; the commit history shows the iterations.</p></div>
+  </section>
+
+  <footer id="keys"><span class="mono">edycutjong/pharos-beacon · tasks/portfolio-assistant</span><span class="mono" id="deployed">deployed from …</span><span>Read-only page: no key, nothing signed. Keys for the CLI live in a local env file, never in code.</span></footer>
+</div>
+
+<script src="/_shared/demo-kit.js"></script>
+<script src="/_shared/run-kit.js"></script>
+<script>
+RunKit({
+  api: "/api/portfolio-assistant",
+  idleFoot: "Each lamp lights when the real read comes back. Times are measured, not animated.",
+  runningFoot: "Reading the wallet\u2026",
+  steps: () => [{id:'header',name:'Header'},{id:'reads',name:'Wallet + positions'},{id:'answer',name:'Answer'}],
+  scenarios: [{ id: "where", label: "A real RockawayX holder: where is my USDC? (pinned block)", request: { qs: "wallet=0x62A0e4b7fD967fab5be1a733c09b22eBC4510673&q=where%20is%20my%20USDC%3F&block=21146194" } }, { id: "hold", label: "Same wallet: what do I hold?", request: { qs: "wallet=0x62A0e4b7fD967fab5be1a733c09b22eBC4510673&q=what%20do%20I%20hold%3F&block=21146194" } }, { id: "bahasa", label: "Same wallet in Bahasa Indonesia: what earns interest?", request: { qs: "wallet=0x62A0e4b7fD967fab5be1a733c09b22eBC4510673&q=apa%20yang%20menghasilkan%20bunga%3F&block=21146194" } }, { id: "noguess", label: "A question it must not guess (price prediction)", request: { qs: "wallet=0x62A0e4b7fD967fab5be1a733c09b22eBC4510673&q=Will%20PROS%20go%20up%20next%20week%3F&block=21146194" } }, { id: "two", label: "The burn address 0x\u2026dEaD, which holds two protocols: what am I earning?", request: { qs: "wallet=0x000000000000000000000000000000000000dEaD&q=what%20am%20I%20earning%3F&block=21146194" } }, { id: "custom", label: "Your input", request: null }],
+  fromForm: fd => ({ qs: new URLSearchParams({ wallet: fd.get("wallet").trim(), q: fd.get("q").trim() }).toString() }),
+  reqs: [["01", "Reads positions from at least 2 protocols or vaults, plus wallet token balances.", "Wallet balances: native PROS + WPROS, USDC, LINK, WETH (balanceOf/get_balance). Vaults: roxUSDC (RockawayX), JTRSY and HYB (fund vaults) via the share balanceOf and convertToAssets. Morpho Blue: position() in six markets (supply, collateral, debt) with the market's totals and oracle. ", "met", "output"], ["02", "Answers at least 5 different natural-language question types correctly.", "Eight types: how much \u00b7 where \u00b7 biggest \u00b7 earning \u00b7 owe \u00b7 total \u00b7 hold \u00b7 changed, in English and Bahasa Indonesia. ", "met", "output"], ["03", "Shows numbers with sources: which contract and block each figure came from.", "Every figure ends with [F\u2026]; the sources table gives contract, call and block.", "met", "output"], ["04", "Says clearly when it doesn't know or can't read a protocol, rather than guessing.", "Declines a protocol it has no reader for (Harbor), a price prediction / advice, and a token it does not read (DOGE). ", "met", "output"], ["05", "Read-only: never initiates transactions.", "The task imports no signer and calls only read tools on the hosted mainnet server (get_chain_info at connect, get_block_number, get_block, get_balance, get_code, eth_call). A test greps src/portfolio/ and the task for signer, send and broadcast names.", "met", "output"]],
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "task": "liquidation-watchdog",
+    "network": "pharos",
+    "chainId": 1672,
+    "mcp": {
+      "endpoint": "https://mcp.pharos.xyz/mcp",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/liquidation-watchdog/index.ts position --market 0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86 --user 0xA4A57DcF7B15456b7053f10A377Bdb437C073DCc --proof video-position",
+    "git": {
+      "commit": "73287d334a61",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T23:17:25.036Z"
+  },
+  "block": "21161583",
+  "market": "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+  "user": "0xA4A57DcF7B15456b7053f10A377Bdb437C073DCc",
+  "thresholds": {
+    "warn": 1.3,
+    "critical": 1.1,
+    "rearm": 0.02
+  },
+  "position": {
+    "collateral": "1547470901193805025792539",
+    "debt": "1523935574838",
+    "hf": "1013358498552121586",
+    "level": "critical"
+  },
+  "table": "# | market | account | health | drop to liquidation | debt | collateral | level\n1 | syzUSD/USDC | 0xA4A5…3DCc | 1.0134 | 1.32% | 1,523,935.57 USDC | 1,547,470.90 syzUSD | critical"
+}
