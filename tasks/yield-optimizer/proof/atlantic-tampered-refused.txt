@@ -1,0 +1,5 @@
+# a plan whose redeem was edited to pay 0x…00ee, with the fingerprint recomputed by the attacker (2026-10-24, Atlantic)
+$ npm run yield-wallet -- sign /tmp/p125/tampered.json --execute
+refusing to sign, the calldata does not match a safe move:
+  - step 1 redeems to or from someone other than the owner
+exit code: 2

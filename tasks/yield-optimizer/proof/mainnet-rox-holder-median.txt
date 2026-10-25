@@ -1,0 +1,38 @@
+Pharos mainnet (chain 1672), block 21146191 (0.912 s/block) · wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673
+Holds: RockawayX USDC vault worth 19,470.110182 USDC
+Rules: hold at least 30 d after a move · net gain at least $1.00 · destination credited its median rate minus 0 × the spread of its windows (the held position: plus) · windows 1d / 7d / 30d · gas 10000000000 wei × native price 0.639336 USD (PROS in USDC from the WPROS/USDC pool 0x912c9aDe24D44d8922f0866D8Dcb079f1363f647 slot0 at block 21146117)
+
+Yield sources, measured as share-price growth over each window, annualised (APR, simple):
+  source                                 1d       7d      30d   median  conservative  notes
+  Morpho Blue APT/USDC supply         9.40%    4.38%      n/a    6.89%         6.89%  JUMPY (spread 5.02%: ranked down) · TVL 1,000,634.091239
+  Morpho Blue syzUSD/USDC supply      7.10%    5.47%    5.28%    5.47%         5.47%  TVL 3,912,148.419095
+  Morpho Blue APC3M/USDC supply       3.59%    5.33%    5.29%    5.29%         5.29%  TVL 1,209,566.751439
+  RockawayX USDC vault                4.77%    4.23%    3.99%    4.23%         4.23%  HELD · TVL 11,123,205.626568
+  Janus Henderson Treasury Fund       0.00%    3.56%    3.47%    3.47%         3.47%  JUMPY (spread 3.56%: ranked down) · TVL 1,765,778.147055
+  NYLIM US High Yield Bond Fund       0.00%   -0.20%  -10.66%   -0.20%        -0.20%  JUMPY (spread 10.66%: ranked down) · TVL 98,398.088663
+  (Morpho Blue APT/USDC supply, 30d: not readable at block 18302589: market 0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea does not exist on Morpho Blue 0x18573fA18fd17dDfD790B4a5B5b2977aad)
+  (left out: 0xab78d4ff…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x95bc6fe9…: lends 0x52C48d4213107b20bC583832b0d951FB9CA8F0B0, not USDC; 0x4cbedaf6…: only 603840 USDC raw supplied (below 1000000000))
+
+Entry / exit, read from the contracts:
+  exit RockawayX USDC vault: exit fee = 1 − previewRedeem(shares) / convertToAssets(shares) = 0 bps; a simulated redeem(all shares) from the wallet succeeds and returns 19470110182 USDC raw (maxRedeem(wallet) reports 0, which this vault does not enforce) → open
+  entry Janus Henderson Treasury Fund: previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read → BLOCKED: maxDeposit(wallet) = 0 USDC raw, below the 19470110182 being moved (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move
+  entry NYLIM US High Yield Bond Fund: previewDeposit reverts (eth_call: execution reverted: (code 3)): the deposit is an asynchronous request, so its fee cannot be read → BLOCKED: maxDeposit(wallet) = 0 USDC raw, below the 19470110182 being moved (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move
+  entry Morpho Blue syzUSD/USDC supply: Morpho Blue supply charges no entry fee (supply() has no fee parameter) → no blocker found (read-only check: the deposit itself is only simulated once the wallet has approved it)
+  entry Morpho Blue APT/USDC supply: Morpho Blue supply charges no entry fee (supply() has no fee parameter) → no blocker found (read-only check: the deposit itself is only simulated once the wallet has approved it)
+  entry Morpho Blue APC3M/USDC supply: Morpho Blue supply charges no entry fee (supply() has no fee parameter) → no blocker found (read-only check: the deposit itself is only simulated once the wallet has approved it)
+
+Moving $19,470.11 out of RockawayX USDC vault (credited at its optimistic 4.23%; destinations at their conservative rate):
+  → Janus Henderson Treasury Fund: cannot be valued (maxDeposit(wallet) = 0 USDC raw, below the 19470110182 being moved (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move)
+  → NYLIM US High Yield Bond Fund: cannot be valued (maxDeposit(wallet) = 0 USDC raw, below the 19470110182 being moved (the vault takes deposits only as asynchronous requests from approved investors); deposit is an asynchronous request (previewDeposit reverts), so it cannot be one transaction in a one-shot move)
+  → Morpho Blue syzUSD/USDC supply: 1.21% better · over 30 d: gross $19.41 − costs $0.005046 (gas $0.005046 [789267 units: exit:estimated, approve:estimated, enter:configured], exit fee $0.000000, entry fee $0.000000) = net $19.41 at conservative rates, $19.41 at median rates · break-even 11 min · WORTH IT
+      note: your deposit would dilute Morpho Blue syzUSD/USDC supply's rate to 99.50% of what it pays today
+  → Morpho Blue APT/USDC supply: 2.53% better · over 30 d: gross $40.55 − costs $0.005046 (gas $0.005046 [789267 units: exit:estimated, approve:estimated, enter:configured], exit fee $0.000000, entry fee $0.000000) = net $40.54 at conservative rates, $40.54 at median rates · break-even 5 min · WORTH IT
+      note: your deposit would dilute Morpho Blue APT/USDC supply's rate to 98.09% of what it pays today
+  → Morpho Blue APC3M/USDC supply: 0.98% better · over 30 d: gross $15.67 − costs $0.005046 (gas $0.005046 [789267 units: exit:estimated, approve:estimated, enter:configured], exit fee $0.000000, entry fee $0.000000) = net $15.67 at conservative rates, $15.67 at median rates · break-even 14 min · WORTH IT
+      note: your deposit would dilute Morpho Blue APC3M/USDC supply's rate to 98.42% of what it pays today
+
+RECOMMENDATION: MOVE: move to Morpho Blue APT/USDC supply: net gain $40.54 at conservative rates ($40.54 at median rates) over 30 d, after $0.005046 of costs; the costs are earned back in 5 min (holding period 30 d)
+Prepared for the wallet owner's signature (nothing signed, no key read), plan 0x6c85…753f:
+  1. Redeem all shares of RockawayX USDC vault · to 0x047c…02E5 · gas 417771 (estimated)
+  2. Approve Morpho Blue APT/USDC supply to pull 19450640071 USDC raw (the exit's previewed proceeds 19470110182 less 10 bps) · to 0xC879…1815 · gas 71496 (estimated)
+  3. Supply 19450640071 USDC raw into Morpho Blue APT/USDC supply · to 0x1857…4Efb · gas 300000 (configured)

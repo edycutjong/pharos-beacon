@@ -20,3 +20,5 @@ tasks/arbitrage-scanner/state/
 tasks/arbitrage-scanner/contracts/out/
 tasks/arbitrage-scanner/contracts/cache/
 tasks/liquidation-watchdog/state/
+tasks/yield-optimizer/contracts/out/
+tasks/yield-optimizer/contracts/cache/

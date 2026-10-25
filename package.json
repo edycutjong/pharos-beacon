@@ -43,7 +43,9 @@
     "saga-executor": "tsx tasks/saga-executor/index.ts",
     "arbitrage-scanner": "tsx tasks/arbitrage-scanner/index.ts",
     "liquidation-watchdog": "tsx tasks/liquidation-watchdog/index.ts",
-    "portfolio-assistant": "tsx tasks/portfolio-assistant/index.ts"
+    "portfolio-assistant": "tsx tasks/portfolio-assistant/index.ts",
+    "yield-optimizer": "tsx tasks/yield-optimizer/index.ts",
+    "yield-wallet": "tsx tasks/yield-optimizer/wallet.ts"
   },
   "keywords": [],
   "author": "",
