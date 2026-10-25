@@ -10,10 +10,10 @@
     },
     "command": "tasks/multi-protocol-aggregator/index.ts withdraw --wallet 0x62A0e4b7fD967fab5be1a733c09b22eBC4510673 --amount all --down morpho --block 21146194 --proof video-outage",
     "git": {
-      "commit": "c3c1490c71ff",
-      "dirty": true
+      "commit": "0096dc15a57b",
+      "dirty": false
     },
-    "createdAt": "2026-10-24T23:45:17.046Z"
+    "createdAt": "2026-10-24T23:58:30.849Z"
   },
   "network": "pharos",
   "chainId": 1672,
