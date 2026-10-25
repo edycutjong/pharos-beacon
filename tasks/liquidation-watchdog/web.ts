@@ -30,7 +30,7 @@ export function viewOf(rows: Row[], head: bigint, p: RunParams): View {
   return {
     tone: alerts.length ? (alerts.some((r) => r.level !== "warn") ? "bad" : "warn") : "ok",
     verdict: `${alerts.length} of ${rows.length} positions at or below ${p.warn.toFixed(2)}${p.shock > 0 ? ` after a ${pct(p.shock, 1)} collateral drop` : ""}`,
-    note: `Block ${head} on Pharos mainnet. Health = collateral × oracle price × LLTV ÷ debt, Morpho Blue's own rule, interest accrued to the head block. Dust positions (debt under 1 unit) are listed but never alerted. This page reads the 13 borrowers of the recorded scan; the CLI discovers borrowers itself.`,
+    note: `Block ${head} on Pharos mainnet. Health = collateral × oracle price × LLTV ÷ debt, Morpho Blue's own rule, interest accrued to the head block. Dust positions (debt under 1 unit) are listed but never alerted. This page reads the 13 open positions (12 accounts) of the recorded scan; the CLI discovers borrowers itself.`,
     tables: [{
       head: ["#", "Market", "Account", "Health", "Drop to liquidation", "Debt", "Level"],
       rows: rows.map((r, i) => [String(i + 1), marketLabel(r.snap), { t: short(r.p.user), href: `https://www.pharosscan.xyz/address/${r.p.user}` }, fmtHf(r.hf), pct(dropToLiquidation(r.hf)),
