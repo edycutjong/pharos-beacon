@@ -1,0 +1,24 @@
+{
+  "network": "atlantic",
+  "chainId": 688689,
+  "note": "Test contracts owned by this repo (tasks/saga-executor/contracts/src/SagaTest.sol). Atlantic has no DEX or vault, so the saga runs against these. They move the real Atlantic test USDC and WPHRS.",
+  "deployer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+  "tokens": {
+    "WPHRS": { "address": "0x838800b758277CC111B2d48Ab01e5E164f8E9471", "decimals": 18 },
+    "USDC": { "address": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B", "decimals": 6 }
+  },
+  "pool": {
+    "address": "0x88176Fb095C178446816F5a1D7C32E35af1Fdac8",
+    "deployTx": "0x7027250bc69190d64c6422d64b9b28fcbf14fc4768fc60896fecca24178a05bd",
+    "rate": "1 WPHRS = 100 USDC, no fee (rateNum 100000000, rateDen 1e18)",
+    "seed": [
+      { "token": "USDC", "amount": "3000000", "tx": "0x08e20ecc924505590a9041e17972a37be9c4cf4902014adba4bee15a14620632" },
+      { "token": "WPHRS", "amount": "5000000000000000", "tx": "0x94851a76b0d443720371661e99ca9e502145b920ab5e8ee8330ff27ec41b68f3" }
+    ]
+  },
+  "vault": {
+    "address": "0xEAd78727Ab9523622C4fE706D15059A551502671",
+    "deployTx": "0x80ba12b667c8e5cf7b8866415a6f284f2b5b1239846327a09ceeda6b4f949441",
+    "owner": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975"
+  }
+}

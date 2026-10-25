@@ -13,3 +13,6 @@ coverage/
 tasks/x402-agent-buyer/state/
 .digest-state/
 .digest-out/
+tasks/saga-executor/state/
+tasks/saga-executor/contracts/out/
+tasks/saga-executor/contracts/cache/

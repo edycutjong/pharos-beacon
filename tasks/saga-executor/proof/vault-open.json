@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "task": "saga-executor",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "local stdio PharosNetwork/pharos-mcp@9a3750c",
+      "server": "pharos-mcp-server",
+      "version": "0.1.0"
+    },
+    "command": "tasks/saga-executor/index.ts vault open --execute --proof vault-open",
+    "git": {
+      "commit": "3ed4edb08367",
+      "dirty": false
+    },
+    "createdAt": "2026-10-24T13:34:35.074Z"
+  },
+  "command": "vault open",
+  "vault": "0xEAd78727Ab9523622C4fE706D15059A551502671",
+  "owner": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+  "tx": "0x687faad07b6093188d43e1f0a31cd9fcd67e2484ef6d8b2d702a719b32b2faae",
+  "explorer": "https://atlantic.pharosscan.xyz/tx/0x687faad07b6093188d43e1f0a31cd9fcd67e2484ef6d8b2d702a719b32b2faae",
+  "receipt": {
+    "status": "success",
+    "blockNumber": "31824470",
+    "gasUsed": "47748"
+  },
+  "openAfter": true
+}

@@ -1,0 +1,76 @@
+starting saga saga-fail-mined · wallet 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B · 0.001 WPHRS → USDC → vault · retries 3, backoff 2000 ms ×2, receipt timeout 30 s
+pre-flight simulation OFF: every transaction is sent with a fixed 400000 gas limit, so one that would revert is mined with status 0
+13:51:27  saga              STARTED        saga saga-fail-mined: approve-in → swap → approve-out → deposit
+13:51:27  approve-in        RUNNING        step 1/4 approve-in: approve the pool to pull 0.001 WPHRS
+13:51:27  approve-in        SIGNED         attempt 1/3 nonce 56 0x1532db9b4fed4ec8a1306ab2881400094321a7f5ec657e74bff69386188b2c88 maxFee 2000000000 wei
+13:51:27  approve-in        SENT           0x1532db9b4fed4ec8a1306ab2881400094321a7f5ec657e74bff69386188b2c88
+13:51:30  approve-in        MINED          0x1532db9b4fed4ec8a1306ab2881400094321a7f5ec657e74bff69386188b2c88 block 31824957 status 1 gas 46710
+13:51:30  approve-in        VERIFIED       allowance(WPHRS → pool) read back = 0.001 WPHRS
+13:51:30  swap              RUNNING        step 2/4 swap: swap 0.001 WPHRS for USDC in the pool
+13:51:32  swap              SIGNED         attempt 1/3 nonce 57 0xe61b2ccf02c5fa99d99e66023223372d78cfc322fb8e68b8c6a59bc512ce69af maxFee 2000000000 wei
+13:51:32  swap              SENT           0xe61b2ccf02c5fa99d99e66023223372d78cfc322fb8e68b8c6a59bc512ce69af
+13:51:35  swap              MINED          0xe61b2ccf02c5fa99d99e66023223372d78cfc322fb8e68b8c6a59bc512ce69af block 31824963 status 1 gas 70289
+13:51:35  swap              VERIFIED       Swap event: 0.001 WPHRS → 0.1 USDC (quote 0.1, floor 0.0995); balances read back: WPHRS 0.0648, USDC 0.679
+13:51:35  approve-out       RUNNING        step 3/4 approve-out: approve the vault to pull the swap output (USDC)
+13:51:35  approve-out       SIGNED         attempt 1/3 nonce 58 0xc40021aad62c3f7a31273987718898210fa799a65774a0a24c412ef6cac58ce1 maxFee 2000000000 wei
+13:51:35  approve-out       SENT           0xc40021aad62c3f7a31273987718898210fa799a65774a0a24c412ef6cac58ce1
+13:51:38  approve-out       MINED          0xc40021aad62c3f7a31273987718898210fa799a65774a0a24c412ef6cac58ce1 block 31824967 status 1 gas 55437
+13:51:38  approve-out       VERIFIED       allowance(USDC → vault) read back = 0.1 USDC
+13:51:38  deposit           RUNNING        step 4/4 deposit: deposit the swap output (USDC) into the vault
+13:51:39  deposit           SIGNED         attempt 1/3 nonce 59 0xf84a8476aa65cbabb44b9415c1d33faa2573b7f623a3a4033643c5c932e0ec05 maxFee 2000000000 wei
+13:51:39  deposit           SENT           0xf84a8476aa65cbabb44b9415c1d33faa2573b7f623a3a4033643c5c932e0ec05
+13:51:41  deposit           REVERTED       0xf84a8476aa65cbabb44b9415c1d33faa2573b7f623a3a4033643c5c932e0ec05 mined in block 31824971 with status 0: permanent
+13:51:41  deposit           FAILED         revert: the transaction reverted on chain (0xf84a8476aa65cbabb44b9415c1d33faa2573b7f623a3a4033643c5c932e0ec05)
+13:51:41  saga              COMPENSATING   step deposit failed permanently (revert): rolling back what landed
+13:51:41  saga              ROLLBACK-PLAN  undo approve-out, swap, approve-in (newest first)
+13:51:41  undo-approve-out  RUNNING        step 3/4 undo undo-approve-out: revoke the vault's USDC allowance
+13:51:42  undo-approve-out  SIGNED         attempt 1/3 nonce 60 0xc8fb6db0f6ab0a87f2d1f7e3df25699dc286755eb09fab91f4cf7b6298e3c241 maxFee 2000000000 wei
+13:51:42  undo-approve-out  SENT           0xc8fb6db0f6ab0a87f2d1f7e3df25699dc286755eb09fab91f4cf7b6298e3c241
+13:51:44  undo-approve-out  MINED          0xc8fb6db0f6ab0a87f2d1f7e3df25699dc286755eb09fab91f4cf7b6298e3c241 block 31824974 status 1 gas 33501
+13:51:44  undo-approve-out  VERIFIED       allowance(USDC → vault) read back = 0 USDC
+13:51:44  undo-swap-approve RUNNING        step 2/4 undo undo-swap-approve: approve the pool to take the USDC back
+13:51:45  undo-swap-approve SIGNED         attempt 1/3 nonce 61 0xf03c38b12683d0da392cbe251d5ee4743e1f425a2325b4a1ae723560b9ce27c8 maxFee 2000000000 wei
+13:51:45  undo-swap-approve SENT           0xf03c38b12683d0da392cbe251d5ee4743e1f425a2325b4a1ae723560b9ce27c8
+13:51:47  undo-swap-approve MINED          0xf03c38b12683d0da392cbe251d5ee4743e1f425a2325b4a1ae723560b9ce27c8 block 31824978 status 1 gas 55437
+13:51:48  undo-swap-approve VERIFIED       allowance(USDC → pool) read back = 0.1 USDC
+13:51:48  undo-swap         RUNNING        step 2/4 undo undo-swap: swap the USDC back to WPHRS
+13:52:25  undo-swap         SIGNED         attempt 1/3 nonce 62 0x6123c34b291298b6a1551b8a22f78056b995b1e6f5efe331063a64284891a3cb maxFee 2000000000 wei
+13:52:25  undo-swap         SENT           0x6123c34b291298b6a1551b8a22f78056b995b1e6f5efe331063a64284891a3cb
+13:52:28  undo-swap         MINED          0x6123c34b291298b6a1551b8a22f78056b995b1e6f5efe331063a64284891a3cb block 31825005 status 1 gas 70058
+13:52:28  undo-swap         VERIFIED       balances read back: WPHRS 0.0658 (before the swap 0.0658), USDC 0.579 (before 0.579)
+13:52:28  undo-swap-revoke  RUNNING        step 2/4 undo undo-swap-revoke: revoke the pool's USDC allowance
+13:52:28  undo-swap-revoke  SKIPPED        the state this would produce already holds
+13:52:28  undo-approve-in   RUNNING        step 1/4 undo undo-approve-in: revoke the pool's WPHRS allowance
+13:52:28  undo-approve-in   SKIPPED        the state this would produce already holds
+13:52:30  saga              ROLLED-BACK    balance invariant holds for all 6 reads
+
+saga saga-fail-mined: ROLLED-BACK
+action                    state     tries       tx
+approve-in                verified  1 attempt   0x1532db9b4fed4ec8a1306ab2881400094321a7f5ec657e74bff69386188b2c88
+swap                      verified  1 attempt   0xe61b2ccf02c5fa99d99e66023223372d78cfc322fb8e68b8c6a59bc512ce69af
+approve-out               verified  1 attempt   0xc40021aad62c3f7a31273987718898210fa799a65774a0a24c412ef6cac58ce1
+deposit                   failed    1 attempt   0xf84a8476aa65cbabb44b9415c1d33faa2573b7f623a3a4033643c5c932e0ec05
+undo undo-approve-out     verified  1 attempt   0xc8fb6db0f6ab0a87f2d1f7e3df25699dc286755eb09fab91f4cf7b6298e3c241
+undo undo-swap-approve    verified  1 attempt   0xf03c38b12683d0da392cbe251d5ee4743e1f425a2325b4a1ae723560b9ce27c8
+undo undo-swap            verified  1 attempt   0x6123c34b291298b6a1551b8a22f78056b995b1e6f5efe331063a64284891a3cb
+undo undo-swap-revoke     skipped               
+undo undo-approve-in      skipped               
+
+balance invariant (every touched balance must equal its pre-saga value):
+PASS  WPHRS balance            0.0658    expected 0.0658
+PASS  USDC balance             0.579     expected 0.579
+PASS  WPHRS allowance to pool  0         expected 0
+PASS  USDC allowance to pool   0         expected 0
+PASS  USDC allowance to vault  0         expected 0
+PASS  vault shares             0.6       expected 0.6
+
+PHRS spent on gas this saga: 0.000355089 (not refundable)
+transactions:
+  approve-in        https://atlantic.pharosscan.xyz/tx/0x1532db9b4fed4ec8a1306ab2881400094321a7f5ec657e74bff69386188b2c88
+  swap              https://atlantic.pharosscan.xyz/tx/0xe61b2ccf02c5fa99d99e66023223372d78cfc322fb8e68b8c6a59bc512ce69af
+  approve-out       https://atlantic.pharosscan.xyz/tx/0xc40021aad62c3f7a31273987718898210fa799a65774a0a24c412ef6cac58ce1
+  deposit           https://atlantic.pharosscan.xyz/tx/0xf84a8476aa65cbabb44b9415c1d33faa2573b7f623a3a4033643c5c932e0ec05
+  undo undo-approve-out  https://atlantic.pharosscan.xyz/tx/0xc8fb6db0f6ab0a87f2d1f7e3df25699dc286755eb09fab91f4cf7b6298e3c241
+  undo undo-swap-approve https://atlantic.pharosscan.xyz/tx/0xf03c38b12683d0da392cbe251d5ee4743e1f425a2325b4a1ae723560b9ce27c8
+  undo undo-swap         https://atlantic.pharosscan.xyz/tx/0x6123c34b291298b6a1551b8a22f78056b995b1e6f5efe331063a64284891a3cb
+proof: tasks/saga-executor/proof/forced-failure-mined.json
