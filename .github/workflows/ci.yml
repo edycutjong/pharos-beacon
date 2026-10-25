@@ -20,7 +20,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: npm test
+      - name: Tests with coverage (fails under the thresholds in vitest.config.ts)
+        run: |
+          set -o pipefail
+          npm run test:coverage | tee coverage-summary.txt
+      - name: Coverage summary
+        if: always()
+        run: |
+          {
+            echo "### Test coverage (v8, src + tasks)"
+            echo '```'
+            sed -n '/Coverage summary/,$p' coverage-summary.txt 2>/dev/null || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Read-only and keyless: evaluates the mainnet policy through the hosted Pharos Chain MCP.
   live-mainnet-dry-run:

@@ -49,7 +49,8 @@ Reviewing one task? It's in the table below; shared code is in `src/lib/`.
 
 ```bash
 npm ci
-npm test            # 1110 tests: guardian, gatekeeper, dry-run executor, read-contract-state, watcher, event monitor, alert bot, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, doc-grounded builder agent, gas optimizer, whale watcher, wallet risk checker, trend watcher, recurring payment agent, batch executor, x402, payment and invoice agents, settlement verdict, activity engine and digest, saga executor, arbitrage scanner, liquidation watchdog, portfolio assistant, Chain MCP and Docs MCP clients, signer, shared helpers
+npm test            # 1252 tests: guardian, gatekeeper, dry-run executor, read-contract-state, watcher, event monitor, alert bot, doc-search CLI, onboarding log, dApp support agent, docs + chain agent, doc-grounded builder agent, gas optimizer, whale watcher, wallet risk checker, trend watcher, recurring payment agent, batch executor, x402, payment and invoice agents, settlement verdict, activity engine and digest, saga executor, arbitrage scanner, liquidation watchdog, portfolio assistant, Chain MCP and Docs MCP clients, signer, shared helpers
+npm run test:coverage   # 1252 tests · 87.18% lines, 83.95% statements (v8, src + tasks)
 npm run guard -- tasks/threshold-guardian/policies/wpros-watch.json   # mainnet via hosted Chain MCP, read-only, no key needed
 npm run read-contract-state   # USDC on mainnet: name, symbol, decimals, supply, balances at one block, no key needed
 npm run setup:mcp   # builds the sponsor Chain MCP server locally for Atlantic testnet reads (pinned commit)

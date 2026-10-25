@@ -4,6 +4,7 @@
   "description": "Agent tools for Pharos, built for the Pharos Season of AI Agent Arena",
   "scripts": {
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "smoke": "tsx scripts/smoke.ts",
     "smoke:docs": "tsx scripts/docs-smoke.ts",
     "ping": "tsx scripts/ping-tx.ts",
@@ -63,6 +64,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "@vitest/coverage-v8": "^5.0.5",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",
     "vitest": "^5.0.5"
