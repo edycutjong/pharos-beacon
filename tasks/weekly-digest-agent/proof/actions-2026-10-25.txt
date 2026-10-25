@@ -1,0 +1,14 @@
+GitHub Actions run of the Weekly Digest workflow (.github/workflows/weekly-digest.yml)
+https://github.com/edycutjong/pharos-beacon/actions/runs/40160251629
+event: workflow_dispatch (a manual dispatch of the scheduled job, not the cron) · conclusion: success
+started 2026-10-25T03:59:57Z, finished 2026-10-25T04:27:46Z (27 min 49 s) · commit 5c261d7bb8c4f09f270f7c40e7b0afb8ef71a02f
+The first cron run is Monday 2026-10-26 01:00 UTC (cron "0 1 * * 1"); its outcome is not recorded here.
+Excerpt of the job log (selected lines copied unchanged without the log's step prefix; the webhook URL is a masked secret and is not shown):
+
+2026-10-25T04:00:17.9020021Z weekly digest for 0xe7368221de15a7C5e0a50A95317B06E6d08C3861 on pharos (chain 1672) via https://mcp.pharos.xyz/mcp
+2026-10-25T04:00:17.9023647Z clock 2026-10-25T04:00:14.769Z · period 2026-10-12 to 2026-10-18 UTC · previous 2026-10-05 to 2026-10-11
+2026-10-25T04:00:24.6766256Z blocks 20009079–20610966 (601888 blocks, pinned at head 21181010)
+2026-10-25T04:27:42.6828822Z 48 transactions this period, up from 16 the period before: 4 transfers in, 9 out, 21 swaps, 8 approvals, 6 other contract calls.
+2026-10-25T04:27:42.6857679Z 97 matching event logs over 1204 `get_logs` windows; outgoing transactions found 44 of 44 by the chain's nonce; block scan off. Token amounts are units, not money.
+2026-10-25T04:27:42.9267077Z delivered to discord (message id 1563771012267511929)
+2026-10-25T04:27:43.8251551Z Cache saved with key: digest-state-40160251629
