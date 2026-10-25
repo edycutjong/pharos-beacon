@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "task": "x402-paywalled-api",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "http://localhost:4021 (x402 API) + Atlantic RPC (receipt check)"
+    },
+    "command": "tasks/x402-paywalled-api/index.ts pay a --base http://localhost:4021/ --proof a",
+    "git": {
+      "commit": "6e8ccd5beda1",
+      "dirty": false
+    },
+    "createdAt": "2026-10-23T23:18:15.498Z"
+  },
+  "scenario": "a",
+  "base": "http://localhost:4021",
+  "events": [
+    {
+      "type": "start",
+      "scenario": "a",
+      "route": "GET /api/x402-paywalled-api/gas-snapshot",
+      "url": "http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
+      "price": "0.001 USDC",
+      "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+      "steps": [
+        "req",
+        "q",
+        "sign",
+        "verify",
+        "settle",
+        "ok"
+      ]
+    },
+    {
+      "type": "step",
+      "id": "req",
+      "state": "ok",
+      "label": "sent",
+      "ms": 47
+    },
+    {
+      "type": "step",
+      "id": "q",
+      "state": "refused",
+      "label": "402 · 0.001 USDC",
+      "ms": 0,
+      "detail": {
+        "amount": "1000",
+        "asset": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+        "payTo": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "network": "eip155:688689",
+        "message": "This route costs 0.001 USDC (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B. Sign an EIP-3009 transferWithAuthorization for exactly that amount and send it in the PAYMENT-SIGNATURE header."
+      }
+    },
+    {
+      "type": "step",
+      "id": "sign",
+      "state": "ok",
+      "label": "EIP-3009 signed",
+      "ms": 4,
+      "detail": {
+        "value": "1000"
+      }
+    },
+    {
+      "type": "step",
+      "id": "verify",
+      "state": "ok",
+      "label": "/verify valid",
+      "ms": 606
+    },
+    {
+      "type": "step",
+      "id": "settle",
+      "state": "ok",
+      "label": "/settle tx mined",
+      "ms": 2435,
+      "detail": {
+        "tx": "0x42f1683455bf8e4db65b1f62347c936a1bdf4b7d87bebc7499690f0710eaa085"
+      }
+    },
+    {
+      "type": "step",
+      "id": "ok",
+      "state": "ok",
+      "label": "200 · receipt ok",
+      "ms": 112,
+      "detail": {
+        "httpMs": 3083,
+        "receipt": "status 1 · USDC Transfer 0.001 USDC to the payee"
+      }
+    },
+    {
+      "type": "done",
+      "scenario": "a",
+      "totalMs": 3247,
+      "raw": [
+        {
+          "dir": "→",
+          "line": "GET http://localhost:4021/api/x402-paywalled-api/gas-snapshot"
+        },
+        {
+          "dir": "←",
+          "line": "402 Payment Required",
+          "headers": {
+            "PAYMENT-REQUIRED": "{\"scheme\":\"exact\",\"network\":\"eip155:688689\",\"amount\":\"1000\",\"asset\":\"0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B\",\"payTo\":\"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\",\"maxTimeoutSeconds\":120,\"extra\":{\"name\":\"USDC\",\"version\":\"2\"}}"
+          },
+          "body": {
+            "status": 402,
+            "reason": "Payment required",
+            "message": "This route costs 0.001 USDC (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B. Sign an EIP-3009 transferWithAuthorization for exactly that amount and send it in the PAYMENT-SIGNATURE header.",
+            "price": "0.001 USDC",
+            "amount": "1000",
+            "network": "eip155:688689",
+            "payTo": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+          }
+        },
+        {
+          "dir": "→",
+          "line": "GET http://localhost:4021/api/x402-paywalled-api/gas-snapshot",
+          "headers": {
+            "PAYMENT-SIGNATURE": "eyJ4NDAyVmVyc2lvbiI6Miwi… (signed 0.001 USDC)"
+          }
+        },
+        {
+          "dir": "←",
+          "line": "200 OK",
+          "headers": {
+            "PAYMENT-RESPONSE": "{\"success\":true,\"payer\":\"0x317bca01Bb101C0F1E86C21576a4e14D92B02975\",\"transaction\":\"0x42f1683455bf8e4db65b1f62347c936a1bdf4b7d87bebc7499690f0710eaa085\",\"network\":\"eip155:688689\"}",
+            "Server-Timing": "verify;dur=606;desc=\"facilitator /verify\", data;dur=37;desc=\"route handler\", settle;dur=2435;desc=\"facilitator /settle\""
+          },
+          "body": {
+            "network": "Pharos Atlantic testnet (eip155:688689)",
+            "source": "Atlantic JSON-RPC (eth_getBlockByNumber, eth_gasPrice, eth_maxPriorityFeePerGas)",
+            "block": 31800720,
+            "blockTime": "2026-10-23T23:18:12.000Z",
+            "baseFeeGwei": "1",
+            "gasPriceGwei": "10",
+            "priorityFeeGwei": "0",
+            "plainTransferCostPHRS": "0.00021"
+          }
+        }
+      ],
+      "outcome": "paid",
+      "summary": "Paid 0.001 USDC, settled on chain, receipt checked, data returned.",
+      "tx": "0x42f1683455bf8e4db65b1f62347c936a1bdf4b7d87bebc7499690f0710eaa085",
+      "explorer": "https://atlantic.pharosscan.xyz/tx/0x42f1683455bf8e4db65b1f62347c936a1bdf4b7d87bebc7499690f0710eaa085",
+      "block": 31800721,
+      "receipt": {
+        "ok": true,
+        "reason": "status 1 · USDC Transfer 0.001 USDC to the payee",
+        "status": "success",
+        "block": 31800721
+      },
+      "data": {
+        "network": "Pharos Atlantic testnet (eip155:688689)",
+        "source": "Atlantic JSON-RPC (eth_getBlockByNumber, eth_gasPrice, eth_maxPriorityFeePerGas)",
+        "block": 31800720,
+        "blockTime": "2026-10-23T23:18:12.000Z",
+        "baseFeeGwei": "1",
+        "gasPriceGwei": "10",
+        "priorityFeeGwei": "0",
+        "plainTransferCostPHRS": "0.00021"
+      }
+    }
+  ]
+}

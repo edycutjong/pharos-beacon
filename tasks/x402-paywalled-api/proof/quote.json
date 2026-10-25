@@ -1,0 +1,244 @@
+{
+  "meta": {
+    "task": "x402-paywalled-api",
+    "network": "atlantic",
+    "chainId": 688689,
+    "mcp": {
+      "endpoint": "http://localhost:4021 (x402 API) + Atlantic RPC (receipt check)"
+    },
+    "command": "tasks/x402-paywalled-api/index.ts pay quote --base http://localhost:4021/ --proof quote",
+    "git": {
+      "commit": "73376185d26d",
+      "dirty": false
+    },
+    "createdAt": "2026-10-23T23:19:15.423Z"
+  },
+  "scenario": "quote",
+  "base": "http://localhost:4021",
+  "events": [
+    {
+      "type": "start",
+      "scenario": "quote",
+      "route": "GET /api/x402-paywalled-api/whale-range",
+      "url": "http://localhost:4021/api/x402-paywalled-api/whale-range?blocks=2500",
+      "price": "0.015 USDC (quoted)",
+      "payer": "0x317bca01Bb101C0F1E86C21576a4e14D92B02975",
+      "steps": [
+        "req",
+        "q",
+        "sign",
+        "verify",
+        "settle",
+        "ok"
+      ]
+    },
+    {
+      "type": "step",
+      "id": "req",
+      "state": "ok",
+      "label": "sent",
+      "ms": 14
+    },
+    {
+      "type": "step",
+      "id": "q",
+      "state": "refused",
+      "label": "402 · 0.015 USDC",
+      "ms": 0,
+      "detail": {
+        "amount": "15000",
+        "asset": "0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B",
+        "payTo": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B",
+        "network": "eip155:688689",
+        "message": "This route costs 0.015 USDC (2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each) (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B. Sign an EIP-3009 transferWithAuthorization for exactly that amount and send it in the PAYMENT-SIGNATURE header."
+      }
+    },
+    {
+      "type": "step",
+      "id": "sign",
+      "state": "ok",
+      "label": "EIP-3009 signed",
+      "ms": 4,
+      "detail": {
+        "value": "15000"
+      }
+    },
+    {
+      "type": "step",
+      "id": "verify",
+      "state": "ok",
+      "label": "/verify valid",
+      "ms": 814
+    },
+    {
+      "type": "step",
+      "id": "settle",
+      "state": "ok",
+      "label": "/settle tx mined",
+      "ms": 2543,
+      "detail": {
+        "tx": "0xb3a7b3be9d2372a99489c72167dab95614fea1e4bd8787da91fccb3da6fc9a3f"
+      }
+    },
+    {
+      "type": "step",
+      "id": "ok",
+      "state": "ok",
+      "label": "200 · receipt ok",
+      "ms": 129,
+      "detail": {
+        "httpMs": 5316,
+        "receipt": "status 1 · USDC Transfer 0.015 USDC to the payee"
+      }
+    },
+    {
+      "type": "done",
+      "scenario": "quote",
+      "totalMs": 5465,
+      "raw": [
+        {
+          "dir": "→",
+          "line": "GET http://localhost:4021/api/x402-paywalled-api/whale-range?blocks=2500"
+        },
+        {
+          "dir": "←",
+          "line": "402 Payment Required",
+          "headers": {
+            "PAYMENT-REQUIRED": "{\"scheme\":\"exact\",\"network\":\"eip155:688689\",\"amount\":\"15000\",\"asset\":\"0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B\",\"payTo\":\"0x8D347c72431ed6E033d5f43E56c0987E97f5D91B\",\"maxTimeoutSeconds\":120,\"extra\":{\"name\":\"USDC\",\"version\":\"2\"}}"
+          },
+          "body": {
+            "status": 402,
+            "reason": "Payment required",
+            "message": "This route costs 0.015 USDC (2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each) (test USDC 0xcfC8330f4BCAB529c625D12781b1C19466A9Fc8B on Pharos Atlantic, eip155:688689), paid to 0x8D347c72431ed6E033d5f43E56c0987E97f5D91B. Sign an EIP-3009 transferWithAuthorization for exactly that amount and send it in the PAYMENT-SIGNATURE header.",
+            "price": "0.015 USDC",
+            "amount": "15000",
+            "quote": {
+              "blocks": 2500,
+              "windows": 3,
+              "perWindow": "0.005 USDC",
+              "perWindowAmount": "5000",
+              "rule": "0.005 USDC per started 1000 blocks, up to 3",
+              "why": "2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each"
+            },
+            "network": "eip155:688689",
+            "payTo": "0x8D347c72431ed6E033d5f43E56c0987E97f5D91B"
+          }
+        },
+        {
+          "dir": "→",
+          "line": "GET http://localhost:4021/api/x402-paywalled-api/whale-range?blocks=2500",
+          "headers": {
+            "PAYMENT-SIGNATURE": "eyJ4NDAyVmVyc2lvbiI6Miwi… (signed 0.015 USDC)"
+          }
+        },
+        {
+          "dir": "←",
+          "line": "200 OK",
+          "headers": {
+            "PAYMENT-RESPONSE": "{\"success\":true,\"payer\":\"0x317bca01Bb101C0F1E86C21576a4e14D92B02975\",\"transaction\":\"0xb3a7b3be9d2372a99489c72167dab95614fea1e4bd8787da91fccb3da6fc9a3f\",\"network\":\"eip155:688689\"}",
+            "Server-Timing": "verify;dur=814;desc=\"facilitator /verify\", data;dur=1954;desc=\"route handler\", settle;dur=2543;desc=\"facilitator /settle\""
+          },
+          "body": {
+            "network": "Pharos mainnet (chain 1672), read-only",
+            "source": "Pharos Chain MCP https://mcp.pharos.xyz/mcp: get_block_number, get_logs",
+            "token": "USDC 0xc879c018db60520f4355c26ed1a6d572cdac1815",
+            "blocks": "21065300–21067799",
+            "transfers": 547,
+            "largest": [
+              {
+                "from": "0xc9490f10A0228093E848e3Eb1482229C6f450db0",
+                "to": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+                "block": 21066264,
+                "tx": "0xbf899f27e8fb30db1edd700e8565d573d28ac1a2ea1551e51b7ed9693a0a314d",
+                "usdc": "53271.360795"
+              },
+              {
+                "from": "0xcBf02a5AeEA5C97c41760D1c3CcAB268a61BEae6",
+                "to": "0xc9490f10A0228093E848e3Eb1482229C6f450db0",
+                "block": 21066039,
+                "tx": "0xd8c3019e6917982b81445b301193459be128f0b6a16014b16e4b5122cc0f41a9",
+                "usdc": "53271.360795"
+              },
+              {
+                "from": "0xd6F1fA2756C0FB5b2E8a86D9570adf99c2c768B5",
+                "to": "0xfd78EE919681417d192449715b2594ab58f5D002",
+                "block": 21065672,
+                "tx": "0x17e9acb32d0f3e578bf45371aeda688219ee6a8d46798f2f04ad62137bee30df",
+                "usdc": "53271.360795"
+              },
+              {
+                "from": "0xfd78EE919681417d192449715b2594ab58f5D002",
+                "to": "0x0000000000000000000000000000000000000000",
+                "block": 21065672,
+                "tx": "0x17e9acb32d0f3e578bf45371aeda688219ee6a8d46798f2f04ad62137bee30df",
+                "usdc": "53271.360795"
+              },
+              {
+                "from": "0x0000000000000000000000000000000000000000",
+                "to": "0x08cd62babd8Dac7404504792Df30C12fC5384Df5",
+                "block": 21066089,
+                "tx": "0xc8a1ed5e3829d2402af958b98227cdd0ced25fec6285f26b01ff35a259b11f6f",
+                "usdc": "1001.721471"
+              }
+            ]
+          }
+        }
+      ],
+      "outcome": "paid",
+      "summary": "Paid 0.015 USDC, settled on chain, receipt checked, data returned.",
+      "tx": "0xb3a7b3be9d2372a99489c72167dab95614fea1e4bd8787da91fccb3da6fc9a3f",
+      "explorer": "https://atlantic.pharosscan.xyz/tx/0xb3a7b3be9d2372a99489c72167dab95614fea1e4bd8787da91fccb3da6fc9a3f",
+      "block": 31800762,
+      "receipt": {
+        "ok": true,
+        "reason": "status 1 · USDC Transfer 0.015 USDC to the payee",
+        "status": "success",
+        "block": 31800762
+      },
+      "data": {
+        "network": "Pharos mainnet (chain 1672), read-only",
+        "source": "Pharos Chain MCP https://mcp.pharos.xyz/mcp: get_block_number, get_logs",
+        "token": "USDC 0xc879c018db60520f4355c26ed1a6d572cdac1815",
+        "blocks": "21065300–21067799",
+        "transfers": 547,
+        "largest": [
+          {
+            "from": "0xc9490f10A0228093E848e3Eb1482229C6f450db0",
+            "to": "0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f",
+            "block": 21066264,
+            "tx": "0xbf899f27e8fb30db1edd700e8565d573d28ac1a2ea1551e51b7ed9693a0a314d",
+            "usdc": "53271.360795"
+          },
+          {
+            "from": "0xcBf02a5AeEA5C97c41760D1c3CcAB268a61BEae6",
+            "to": "0xc9490f10A0228093E848e3Eb1482229C6f450db0",
+            "block": 21066039,
+            "tx": "0xd8c3019e6917982b81445b301193459be128f0b6a16014b16e4b5122cc0f41a9",
+            "usdc": "53271.360795"
+          },
+          {
+            "from": "0xd6F1fA2756C0FB5b2E8a86D9570adf99c2c768B5",
+            "to": "0xfd78EE919681417d192449715b2594ab58f5D002",
+            "block": 21065672,
+            "tx": "0x17e9acb32d0f3e578bf45371aeda688219ee6a8d46798f2f04ad62137bee30df",
+            "usdc": "53271.360795"
+          },
+          {
+            "from": "0xfd78EE919681417d192449715b2594ab58f5D002",
+            "to": "0x0000000000000000000000000000000000000000",
+            "block": 21065672,
+            "tx": "0x17e9acb32d0f3e578bf45371aeda688219ee6a8d46798f2f04ad62137bee30df",
+            "usdc": "53271.360795"
+          },
+          {
+            "from": "0x0000000000000000000000000000000000000000",
+            "to": "0x08cd62babd8Dac7404504792Df30C12fC5384Df5",
+            "block": 21066089,
+            "tx": "0xc8a1ed5e3829d2402af958b98227cdd0ced25fec6285f26b01ff35a259b11f6f",
+            "usdc": "1001.721471"
+          }
+        ]
+      }
+    }
+  ]
+}

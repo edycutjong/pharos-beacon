@@ -1,7 +1,7 @@
 // x402 Paywalled API (Medium · 100 pts): an API on Pharos Atlantic that charges per request in test USDC, with its own facilitator.
-//   npm run x402-paywalled-api -- pay a|b|under|replay|free [--base https://pharos.edycu.dev] [--json] [--proof name]
+//   npm run x402-paywalled-api -- pay a|b|under|replay|free|quote [--base https://pharos.edycu.dev] [--json] [--proof name]
 //   npm run x402-paywalled-api -- serve [--port 4021]      (the same API locally; then pay with --base http://localhost:4021)
-// The deployed API is the Vercel Function api/x402-paywalled-api.ts, which runs app.ts like `serve` does.
+// The deployed API is the Vercel Function api/router.ts, which runs app.ts like `serve` does.
 import { createServer } from "node:http";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,7 +14,7 @@ import { buyerKey, setting } from "./settings.js";
 
 const TASK = "x402-paywalled-api";
 const HERE = fileURLToPath(new URL(".", import.meta.url));
-const USAGE = "x402-paywalled-api pay a|b|under|replay|free [--base URL] [--json] [--proof name] | serve [--port 4021]";
+const USAGE = "x402-paywalled-api pay a|b|under|replay|free|quote [--base URL] [--json] [--proof name] | serve [--port 4021]";
 const DEFAULT_BASE = "https://pharos.edycu.dev";
 
 const MARK: Record<string, string> = { ok: "✓", refused: "402", failed: "✗", skip: "·" };

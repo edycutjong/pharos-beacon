@@ -5,7 +5,7 @@ import { decodePaymentRequiredHeader } from "@x402/core/http";
 import { HTTPFacilitatorClient, x402HTTPResourceServer, x402ResourceServer, type HTTPAdapter, type HTTPRequestContext, type RoutesConfig } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import type { Hex } from "viem";
-import { BASE_PATH, MAX_TIMEOUT_SECONDS, NETWORK, PAID_ROUTES, plainWords, priceOf, usdc, type PaidRouteName } from "./config.js";
+import { BASE_PATH, MAX_TIMEOUT_SECONDS, NETWORK, PAID_ROUTES, QUOTE, parseBlocks, plainWords, priceOf, quoteFor, usdc, type PaidRouteName } from "./config.js";
 
 export type Handler = () => Promise<unknown>;
 
@@ -36,16 +36,28 @@ export interface PaywallOptions {
 }
 
 /** The body of every 402: the SDK's reason plus the price, asset and payee in plain words. */
-export function paymentRequiredBody(name: PaidRouteName, payTo: string, reason: string | undefined) {
+export function paymentRequiredBody(name: PaidRouteName, payTo: string, reason: string | undefined, query: URLSearchParams = new URLSearchParams()) {
+  const q = quotedPrice(name, query);
   return {
     status: 402,
     reason: reason ?? "Payment required",
-    message: plainWords(name, payTo),
-    price: usdc(PAID_ROUTES[name].amount),
-    amount: PAID_ROUTES[name].amount.toString(),
+    message: plainWords(name, payTo, q.amount, q.why ? ` (${q.why})` : ""),
+    price: usdc(q.amount),
+    amount: q.amount.toString(),
+    ...(q.quote ? { quote: q.quote } : {}),
     network: NETWORK,
     payTo,
   };
+}
+
+/** The price of a request: the table price, or for the quoted route the number its ?blocks= asks for, with the reason in words. */
+export function quotedPrice(name: PaidRouteName, query: URLSearchParams) {
+  if (name !== QUOTE.route) return { amount: PAID_ROUTES[name].amount, why: "", quote: undefined };
+  const parsed = parseBlocks(query.get("blocks"));
+  const blocks = "blocks" in parsed ? parsed.blocks : QUOTE.defaultBlocks;
+  const q = quoteFor(blocks);
+  const why = `${q.blocks.toLocaleString("en-US")} blocks need ${q.windows} window${q.windows > 1 ? "s" : ""} of ${QUOTE.window.toLocaleString("en-US")} blocks at ${usdc(QUOTE.perWindow)} each`;
+  return { amount: q.amount, why, quote: { blocks: q.blocks, windows: q.windows, perWindow: usdc(QUOTE.perWindow), perWindowAmount: QUOTE.perWindow.toString(), rule: `${usdc(QUOTE.perWindow)} per started ${QUOTE.window} blocks, up to ${QUOTE.maxWindows}`, why } };
 }
 
 export function createPaywall(o: PaywallOptions) {
@@ -60,11 +72,17 @@ export function createPaywall(o: PaywallOptions) {
     (Object.keys(PAID_ROUTES) as PaidRouteName[]).map((name) => [
       `GET ${BASE_PATH}/${name}`,
       {
-        accepts: { scheme: "exact", network: NETWORK, payTo: o.payTo, price: priceOf(name), maxTimeoutSeconds: MAX_TIMEOUT_SECONDS },
+        accepts: {
+          scheme: "exact",
+          network: NETWORK,
+          payTo: o.payTo,
+          price: (c: HTTPRequestContext) => priceOf(name, quotedPrice(name, new URLSearchParams(c.adapter.getQueryParams?.() as Record<string, string>)).amount),
+          maxTimeoutSeconds: MAX_TIMEOUT_SECONDS,
+        },
         resource: `${o.publicBase}${BASE_PATH}/${name}`,
         description: PAID_ROUTES[name].description,
         mimeType: "application/json",
-        unpaidResponseBody: async () => ({ contentType: "application/json", body: paymentRequiredBody(name, o.payTo, "Payment required") }),
+        unpaidResponseBody: async (c: HTTPRequestContext) => ({ contentType: "application/json", body: paymentRequiredBody(name, o.payTo, "Payment required", new URLSearchParams(c.adapter.getQueryParams?.() as Record<string, string>)) }),
       },
     ]),
   );
@@ -104,7 +122,7 @@ export function createPaywall(o: PaywallOptions) {
         reason = undefined;
       }
       if (ctx.paymentHeader) timing.push(`verify;dur=${verifyMs.toFixed(0)};desc="facilitator /verify"`);
-      const body = status === 402 ? paymentRequiredBody(name, o.payTo, reason) : result.response.body;
+      const body = status === 402 ? paymentRequiredBody(name, o.payTo, reason, new URL(req.url).searchParams) : result.response.body;
       return jsonResponse(body, status, { ...h, ...(timing.length ? { "Server-Timing": timing.join(", ") } : {}) });
     }
     timing.push(`verify;dur=${verifyMs.toFixed(0)};desc="facilitator /verify"`);
@@ -128,7 +146,7 @@ export function createPaywall(o: PaywallOptions) {
     timing.push(`settle;dur=${(performance.now() - s0).toFixed(0)};desc="facilitator /settle"`);
     if (!settled.success) {
       const r = settled.response;
-      const out = r.status === 402 ? paymentRequiredBody(name, o.payTo, settled.errorReason) : r.body;
+      const out = r.status === 402 ? paymentRequiredBody(name, o.payTo, settled.errorReason, new URL(req.url).searchParams) : r.body;
       return jsonResponse(out, r.status, { ...r.headers, "Server-Timing": timing.join(", ") });
     }
     return new Response(body, {

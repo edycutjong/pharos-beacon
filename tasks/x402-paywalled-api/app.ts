@@ -1,13 +1,14 @@
-// One router for the whole API, Request → Response, so the Vercel Function (api/x402-paywalled-api.ts) and the local server
+// One router for the whole API, Request → Response, so the Vercel Function (api/router.ts) and the local server
 // (`npm run x402-paywalled-api -- serve`) run the same code. Paths, under /api/x402-paywalled-api/:
 //   GET  health                  free
 //   GET  gas-snapshot            0.001 USDC        GET whale-brief   0.01 USDC
+//   GET  whale-range?blocks=N    quoted: 0.005 USDC per started 1,000 blocks (1–3 windows); GET quote?blocks=N is the free price check
 //   POST verify · POST settle · GET supported      our facilitator
 //   GET  demo-run?scenario=a|b|under|replay|free   a server-side demo buyer, streamed as NDJSON
 //   GET  runs                    the last 10 payments, read from the chain
 import { X402_USDC } from "../../src/lib/networks.js";
 import { runScenario, isScenario, SCENARIOS, type RunEvent } from "./buyer.js";
-import { BASE_PATH, FREE_ROUTES, NETWORK, PAID_ROUTES, isPaidRoute, usdc } from "./config.js";
+import { BASE_PATH, FREE_ROUTES, NETWORK, PAID_ROUTES, QUOTE, isPaidRoute, parseBlocks, quoteFor, usdc } from "./config.js";
 import { gasSnapshot, whaleBrief } from "./data.js";
 import { createFacilitator, facilitatorRoute, type Facilitator } from "./facilitator.js";
 import { createPaywall, jsonResponse } from "./resource.js";
@@ -97,6 +98,14 @@ function health(origin: string) {
   };
 }
 
+/** GET quote?blocks=N: the price of whale-range for N blocks, free, so a buyer can decide before it asks for the 402. */
+function quote(url: URL): Response {
+  const parsed = parseBlocks(url.searchParams.get("blocks"));
+  if ("error" in parsed) return jsonResponse({ error: parsed.error }, 400);
+  const q = quoteFor(parsed.blocks);
+  return jsonResponse({ route: `GET ${BASE_PATH}/${QUOTE.route}?blocks=${q.blocks}`, blocks: q.blocks, windows: q.windows, perWindow: usdc(QUOTE.perWindow), price: usdc(q.amount), amount: q.amount.toString(), rule: `${usdc(QUOTE.perWindow)} per started ${QUOTE.window} blocks, 1 to ${QUOTE.maxWindows} windows` });
+}
+
 function safeBuyer(): string | null {
   try {
     return addressOf(buyerKey());
@@ -161,8 +170,18 @@ export async function handle(req: Request): Promise<Response> {
     if (name === "health") return jsonResponse(health(origin));
     if (name === "demo-run") return demoRun(req, url, origin);
     if (name === "runs") return await runs();
-    if (isPaidRoute(name)) return await getPaywall(origin)(name, req, name === "gas-snapshot" ? gasSnapshot : () => whaleBrief());
-    return jsonResponse({ error: `no route ${JSON.stringify(name)}`, routes: ["health", ...Object.keys(PAID_ROUTES), "verify", "settle", "supported", "demo-run", "runs"] }, 404);
+    if (name === "quote") return quote(url);
+    if (isPaidRoute(name)) {
+      let blocks = 1_000;
+      if (name === QUOTE.route) {
+        // A bad ?blocks= is refused before any 402, so nobody signs a payment for a request that cannot be served.
+        const parsed = parseBlocks(url.searchParams.get("blocks"));
+        if ("error" in parsed) return jsonResponse({ error: parsed.error }, 400);
+        blocks = parsed.blocks;
+      }
+      return await getPaywall(origin)(name, req, name === "gas-snapshot" ? gasSnapshot : () => whaleBrief(undefined, blocks));
+    }
+    return jsonResponse({ error: `no route ${JSON.stringify(name)}`, routes: ["health", "quote", ...Object.keys(PAID_ROUTES), "verify", "settle", "supported", "demo-run", "runs"] }, 404);
   } catch (e) {
     return jsonResponse({ error: (e as Error).message }, 500);
   }

@@ -1,4 +1,4 @@
-import { decodePaymentRequiredHeader } from "@x402/core/http";
+import { decodePaymentRequiredHeader, encodePaymentSignatureHeader } from "@x402/core/http";
 import type { FacilitatorEvmSigner } from "@x402/evm";
 import { encodeAbiParameters, encodeEventTopics, getAddress, isAddressEqual, parseAbiItem, verifyTypedData, type Hex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
@@ -6,8 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { X402_USDC } from "../src/lib/networks.js";
 import { PAID_RUN_GAP_MS, rateGate, routeName } from "../tasks/x402-paywalled-api/app.js";
 import { STEP_IDS, buyerClient, matchReceipt, runScenario, stepsFor, underpay, type RunEvent, type Scenario } from "../tasks/x402-paywalled-api/buyer.js";
-import { BASE_PATH, FREE_ROUTES, NETWORK, PAID_ROUTES, plainWords, requirementsFor, usdc } from "../tasks/x402-paywalled-api/config.js";
-import { largestTransfers } from "../tasks/x402-paywalled-api/data.js";
+import { BASE_PATH, FREE_ROUTES, NETWORK, PAID_ROUTES, parseBlocks, plainWords, quoteFor, requirementsFor, usdc } from "../tasks/x402-paywalled-api/config.js";
+import { largestTransfers, whaleBrief } from "../tasks/x402-paywalled-api/data.js";
 import { NONCE_USED, OUT_OF_SCOPE, buildFacilitator, facilitatorRoute, preCheck, type Facilitator } from "../tasks/x402-paywalled-api/facilitator.js";
 import { createPaywall, parseServerTiming } from "../tasks/x402-paywalled-api/resource.js";
 import { recentPayments, type LogSource } from "../tasks/x402-paywalled-api/runs.js";
@@ -68,7 +68,7 @@ function world() {
     const req = new Request(input, init);
     const name = routeName(new URL(req.url));
     if (name === "health") return Response.json({ status: "ok" });
-    if (name === "gas-snapshot" || name === "whale-brief") return paid(name, req, async () => ({ route: name, block: 1 }));
+    if (name === "gas-snapshot" || name === "whale-brief" || name === "whale-range") return paid(name, req, async () => ({ route: name, block: 1 }));
     return new Response("not found", { status: 404 });
   }) as typeof fetch;
   const getReceipt = async (hash: Hex) => {
@@ -90,7 +90,7 @@ describe("price table", () => {
   it("has two paid routes at different prices and one free route", () => {
     expect(PAID_ROUTES["gas-snapshot"].amount).toBe(1_000n);
     expect(PAID_ROUTES["whale-brief"].amount).toBe(10_000n);
-    expect(new Set(Object.values(PAID_ROUTES).map((r) => r.amount)).size).toBe(2);
+    expect(new Set(Object.values(PAID_ROUTES).map((r) => r.amount)).size).toBe(3); // gas-snapshot, whale-brief and the quoted whale-range minimum
     expect(FREE_ROUTES).toEqual(["health"]);
     expect(usdc(1_000n)).toBe("0.001 USDC");
     expect(usdc("10000")).toBe("0.01 USDC");
@@ -116,6 +116,69 @@ describe("the 402", () => {
     expect(body.message).toContain("0.01 USDC");
     expect(body.message).toContain(PAY_TO);
     expect(res.headers.get("content-type")).toBe("application/json");
+  });
+});
+
+describe("the quoted route (beyond the requirements)", () => {
+  const ask = async (blocks: string) => {
+    const w = world();
+    const res = await w.apiFetch(`https://api.test${BASE_PATH}/whale-range?blocks=${blocks}`);
+    const pr = decodePaymentRequiredHeader(res.headers.get("PAYMENT-REQUIRED")!);
+    return { res, pr, body: (await res.json()) as { price: string; amount: string; message: string; quote: { windows: number; why: string } } };
+  };
+  it("prices by the blocks asked for, 0.005 USDC per started 1,000, and the 402 says why", async () => {
+    for (const [blocks, windows, amount] of [["1", 1, "5000"], ["1000", 1, "5000"], ["1001", 2, "10000"], ["2500", 3, "15000"], ["3000", 3, "15000"]] as const) {
+      const { res, pr, body } = await ask(blocks);
+      expect(res.status).toBe(402);
+      expect(pr.accepts[0]!.amount).toBe(amount);
+      expect(body.amount).toBe(amount);
+      expect(body.quote.windows).toBe(windows);
+      expect(body.message).toContain(`${windows} window`);
+      expect(body.message).toContain(body.price);
+    }
+    expect((await ask("2500")).body.quote.why).toBe("2,500 blocks need 3 windows of 1,000 blocks at 0.005 USDC each");
+  });
+  it("quotes the price for free, and refuses a bad ?blocks= before any 402", () => {
+    expect(quoteFor(2500)).toEqual({ blocks: 2500, windows: 3, amount: 15_000n });
+    expect(parseBlocks(null)).toEqual({ blocks: 2500 });
+    for (const bad of ["0", "3001", "-5", "1.5", "abc", "1e3"]) expect(parseBlocks(bad)).toHaveProperty("error");
+  });
+  it("is paid in full: a buyer pays the quoted amount and the receipt matches it", async () => {
+    const { done, w } = await run("quote");
+    expect(done.outcome).toBe("paid");
+    expect(w.settled[0]!.value).toBe(15_000n);
+  });
+  it("refuses an underpayment of the quoted amount", async () => {
+    const w = world();
+    const res = await w.apiFetch(`https://api.test${BASE_PATH}/whale-range?blocks=2500`);
+    const pr = decodePaymentRequiredHeader(res.headers.get("PAYMENT-REQUIRED")!);
+    const { client } = buyerClient(BUYER_KEY);
+    const sig = encodePaymentSignatureHeader(await underpay(client, pr));
+    const again = await w.apiFetch(`https://api.test${BASE_PATH}/whale-range?blocks=2500`, { headers: { "PAYMENT-SIGNATURE": sig } });
+    expect(again.status).toBe(402);
+    expect(w.settled).toHaveLength(0);
+  });
+});
+
+describe("whale-range windows", () => {
+  it("asks get_logs once per 1,000-block window and never past the range", async () => {
+    const calls: { fromBlock: string; toBlock: string }[] = [];
+    const mcp = {
+      endpoint: "fake",
+      close: async () => undefined,
+      call: async (tool: string, args?: { fromBlock: string; toBlock: string }) => {
+        if (tool === "get_block_number") return { blockNumber: "10000" };
+        calls.push(args!);
+        return [];
+      },
+    };
+    const out = await whaleBrief(async () => mcp as never, 2500);
+    expect(calls).toEqual([
+      { address: expect.any(String), topics: expect.any(Array), fromBlock: "9001", toBlock: "10000" },
+      { address: expect.any(String), topics: expect.any(Array), fromBlock: "8001", toBlock: "9000" },
+      { address: expect.any(String), topics: expect.any(Array), fromBlock: "7501", toBlock: "8000" },
+    ]);
+    expect(out.blocks).toBe("7501–10000");
   });
 });
 

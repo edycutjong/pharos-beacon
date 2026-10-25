@@ -1,0 +1,73 @@
+### v1-pay.cast
+$ npm run x402-paywalled-api -- pay a --base http://localhost:4021
+
+> beacon@0.2.0 x402-paywalled-api
+> tsx tasks/x402-paywalled-api/index.ts pay a --base http://localhost:4021
+
+GET /api/x402-paywalled-api/gas-snapshot · 0.001 USDC · payer 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  http://localhost:4021/api/x402-paywalled-api/gas-snapshot
+  ✓   req     sent  (53 ms)
+  402 q       402 · 0.001 USDC
+  ✓   sign    EIP-3009 signed  (4 ms)
+  ✓   verify  /verify valid  (767 ms)
+  ✓   settle  /settle tx mined  (2188 ms)
+  ✓   ok      200 · receipt ok  (129 ms)
+PAID in 3172 ms: Paid 0.001 USDC, settled on chain, receipt checked, data returned.
+  settle tx https://atlantic.pharosscan.xyz/tx/0x1e8de7b81927487fbfd1c235bbb58386ed5f079571db8cadea0091ac3f0c93ec (block 31800786)
+  receipt check: status 1 · USDC Transfer 0.001 USDC to the payee
+  data: {"network":"Pharos Atlantic testnet (eip155:688689)","source":"Atlantic JSON-RPC (eth_getBlockByNumber, eth_gasPrice, eth_maxPriorityFeePerGas)","block":31800785,"blockTime":"2026-10-23T23:19:41.000Z","baseFeeGwei":"1","gasPriceGwei":"10","priorityFeeGwei":"0","plainTransferCostPHRS":"0.00021"}
+⠙$ 
+### v2-under.cast
+$ npm run x402-paywalled-api -- pay under --base http://localhost:4021
+
+> beacon@0.2.0 x402-paywalled-api
+> tsx tasks/x402-paywalled-api/index.ts pay under --base http://localhost:4021
+
+GET /api/x402-paywalled-api/gas-snapshot · 0.001 USDC · payer 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  http://localhost:4021/api/x402-paywalled-api/gas-snapshot
+  ✓   req     sent  (14 ms)
+  402 q       402 · 0.001 USDC
+  ✓   sign    signed 0.0005 USDC of 0.001 USDC  (4 ms)
+  ✗   verify  /verify invalid: invalid_exact_evm_payload_authorization_value_mismatch  (496 ms)
+  402 ok      402 again  (8 ms)
+REFUSED in 524 ms: Refused: the payment (0.0005 USDC) was below the route price (0.001 USDC), so the API answered 402 again. Nothing was settled. This is requirement 05.
+⠙$ 
+### v3-replay.cast
+$ npm run x402-paywalled-api -- pay replay --base http://localhost:4021
+
+> beacon@0.2.0 x402-paywalled-api
+> tsx tasks/x402-paywalled-api/index.ts pay replay --base http://localhost:4021
+
+GET /api/x402-paywalled-api/gas-snapshot · 0.001 USDC · payer 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  http://localhost:4021/api/x402-paywalled-api/gas-snapshot
+  ✓   req     sent  (16 ms)
+  402 q       402 · 0.001 USDC
+  ✓   sign    EIP-3009 signed  (4 ms)
+  ✓   verify  /verify valid  (639 ms)
+  ✓   settle  /settle tx mined  (2272 ms)
+  ✓   ok      200 · receipt ok  (129 ms)
+  402 replay  402 · nonce_already_used  (278 ms)
+PAID in 3431 ms: Paid 0.001 USDC, settled on chain, receipt checked, data returned. Sending the same signed payment again got 402 (invalid_exact_evm_nonce_already_used): nothing was charged twice.
+  settle tx https://atlantic.pharosscan.xyz/tx/0x4eb94aabdd88e8850ae6321a582ec7e3043085596b062c144f57a40af86b6b59 (block 31800830)
+  receipt check: status 1 · USDC Transfer 0.001 USDC to the payee
+  data: {"network":"Pharos Atlantic testnet (eip155:688689)","source":"Atlantic JSON-RPC (eth_getBlockByNumber, eth_gasPrice, eth_maxPriorityFeePerGas)","block":31800828,"blockTime":"2026-10-23T23:20:33.000Z","baseFeeGwei":"1","gasPriceGwei":"10","priorityFeeGwei":"0","plainTransferCostPHRS":"0.00021"}
+⠙$ 
+### v4-quote.cast
+$ npm run x402-paywalled-api -- pay quote --base http://localhost:4021
+
+> beacon@0.2.0 x402-paywalled-api
+> tsx tasks/x402-paywalled-api/index.ts pay quote --base http://localhost:4021
+
+GET /api/x402-paywalled-api/whale-range · 0.015 USDC (quoted) · payer 0x317bca01Bb101C0F1E86C21576a4e14D92B02975
+  http://localhost:4021/api/x402-paywalled-api/whale-range?blocks=2500
+  ✓   req     sent  (28 ms)
+  402 q       402 · 0.015 USDC
+  ✓   sign    EIP-3009 signed  (4 ms)
+  ✓   verify  /verify valid  (610 ms)
+  ✓   settle  /settle tx mined  (2288 ms)
+  ✓   ok      200 · receipt ok  (122 ms)
+PAID in 5650 ms: Paid 0.015 USDC, settled on chain, receipt checked, data returned.
+  settle tx https://atlantic.pharosscan.xyz/tx/0x8da25c4a80c8440e11e4ccb5a7ff5ad3b634004bd6ef5b64d2f3d1d2efbe8abd (block 31800846)
+  receipt check: status 1 · USDC Transfer 0.015 USDC to the payee
+  data: {"network":"Pharos mainnet (chain 1672), read-only","source":"Pharos Chain MCP https://mcp.pharos.xyz/mcp: get_block_number, get_logs","token":"USDC 0xc879c018db60520f4355c26ed1a6d572cdac1815","blocks":"21065429–21067928","transfers":571,"largest":[{"from":"0xc9490f10A0228093E848e3Eb1482229C6f450db0","to":"0xF3503DA2961fF5118ADaa2C4fF8D9A6FB28a411f","block":21066264,"tx":"0xbf899f27e8fb30db1edd700e8565d573d28ac1a2ea1551e51b7ed9693a0a314d","usdc":"53271.360795"},{"from":"0xcBf02a5AeEA5C97c41760D1c3CcAB268a61BEae6","to":"0xc9490f10A0228093E848e3Eb1482229C6f450db0","block":21066039,"tx":"0xd8c3019e6917982b81445b301193459be128f0b6a16014b16e4b5122cc0f41a9","usdc":"53271.360795"},{"from":"0xd6F1fA2756C0FB5b2E8a86D9570adf99c2c768B5","to":"0xfd78EE919681417d192449715b2594ab58f5D002","block":21065672,"tx":"0x17e9acb32d0f3e578bf45371aeda688219ee6a8d46798f2f04ad62137bee30df","usdc":"53271.360795"},{"from":"0xfd78EE919681417d192449715b2594ab58f5D002","to":"0x0000000000000000000000000000000000000000","block":21065672,"tx":"0x17e9acb32d0f3e578bf45371aeda688219ee6a8d46798f2f04ad62137bee30df","usdc":"53271.360795"},{"from":"0x0000000000000000000000000000000000000000","to":"0x08cd62babd8Dac7404504792Df30C12fC5384Df5","block":21066089,"tx":"0xc8a1ed5e3829d2402af958b98227cdd0ced25fec6285f26b01ff35a259b11f6f","usdc":"1001.721471"}]}
+⠙$ 

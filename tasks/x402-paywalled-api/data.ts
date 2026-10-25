@@ -51,14 +51,19 @@ export function largestTransfers(logs: RpcLog[], decimals: number, top = 5): Wha
     .map(({ raw, ...m }) => ({ ...m, usdc: formatUnits(raw, decimals) }));
 }
 
-export async function whaleBrief(open: () => Promise<ChainMcp> = () => chainMcp("pharos", { retries: 1, timeoutMs: 20_000 })) {
+export async function whaleBrief(open: () => Promise<ChainMcp> = () => chainMcp("pharos", { retries: 1, timeoutMs: 20_000 }), blocks = 1_000) {
   const mcp = await open();
   try {
     const usdc = TOKENS.pharos.USDC;
     const latest = BigInt((await mcp.call("get_block_number")).blockNumber);
-    const fromBlock = latest - 999n;
-    const logs = await mcp.call("get_logs", { address: usdc.address, topics: [TRANSFER_TOPIC], fromBlock: fromBlock.toString(), toBlock: latest.toString() });
-    const all = Array.isArray(logs) ? logs : [];
+    const fromBlock = latest - BigInt(blocks) + 1n;
+    // The log query takes 1,000 blocks at a time: one get_logs call per window, newest first.
+    const all: RpcLog[] = [];
+    for (let to = latest; to >= fromBlock; to -= 1_000n) {
+      const from = to - 999n > fromBlock ? to - 999n : fromBlock;
+      const logs = await mcp.call("get_logs", { address: usdc.address, topics: [TRANSFER_TOPIC], fromBlock: from.toString(), toBlock: to.toString() });
+      if (Array.isArray(logs)) all.push(...(logs as RpcLog[]));
+    }
     return {
       network: "Pharos mainnet (chain 1672), read-only",
       source: `Pharos Chain MCP ${mcp.endpoint}: get_block_number, get_logs`,
