@@ -1,0 +1,56 @@
+// The 13 Morpho Blue borrowers of the recorded mainnet scan (proof/mainnet-shock-5pct.json, block 21134223). The demo page re-reads exactly these live,
+// because a cold discovery of borrowers takes minutes (the CLI caches it); the CLI finds borrowers itself.
+export const SEED: [string, string][] = [
+  [
+   "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+   "0xA4A57DcF7B15456b7053f10A377Bdb437C073DCc"
+  ],
+  [
+   "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+   "0x743D7B30661d65B41960Bf6b5d1bB93CF7972A73"
+  ],
+  [
+   "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+   "0xE6a4771284342462f4d2BfbFB86DB12c8f19fe7C"
+  ],
+  [
+   "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea",
+   "0x966B9dCE3d091c0214Ada42CEDF51400df4fB257"
+  ],
+  [
+   "0xc79579a002dbc8c535d3a87198fcbbece1a664ad82a356b0447c5bff9e16fd86",
+   "0xF8B4036D88Dd71A7783AA97e9a4e14FBaa78B127"
+  ],
+  [
+   "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc",
+   "0xF06aF1C5c2e34875Bc190e2cC14efe9Af810AA89"
+  ],
+  [
+   "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc",
+   "0x67765eA217d0021e35CA973dBae3b54823081a2b"
+  ],
+  [
+   "0xba0d2638a277fd7696cdefdb96b5bd7405d0f174ba7526ce2c789f41149d91bc",
+   "0xD7E318FB639ac35749Ea5370DD696c323F89c230"
+  ],
+  [
+   "0xab78d4ff6d4f39a7d05a822d787e33d61c68e398fd7aec5a8bca4ab296985c69",
+   "0x1F735797c030e7780F803706c5ed8E2B269a528c"
+  ],
+  [
+   "0x4cbedaf680d648926bafbce7d874ce717a1b3232ea7084c7c3593aa42bb429cd",
+   "0xE8bA2cca3126385d7309c69FdD21e20694edC701"
+  ],
+  [
+   "0xd834016ed49b76ffcbeb8402733e2d69b1f77d30b28d6f21c826931214ae5aea",
+   "0x67765eA217d0021e35CA973dBae3b54823081a2b"
+  ],
+  [
+   "0xab78d4ff6d4f39a7d05a822d787e33d61c68e398fd7aec5a8bca4ab296985c69",
+   "0x10751f022A6e6765a39ac615aD25A4f78F563B4d"
+  ],
+  [
+   "0xab78d4ff6d4f39a7d05a822d787e33d61c68e398fd7aec5a8bca4ab296985c69",
+   "0x44E96401BA547b25719D233daEe87cB90CA649Dc"
+  ]
+];

@@ -1,9 +1,10 @@
-// One Vercel Function for every demo API (the Hobby plan allows 12 functions per deployment; there are 21 demos).
+// One Vercel Function for every demo API (the Hobby plan allows 12 functions per deployment; there are 27 demos).
 // vercel.json rewrites /api/<slug> and /api/x402-paywalled-api/<route> here with ?slug=<slug>; each task's own handler
 // receives the request unchanged and routes by its own query string (?action=, or ?path= for x402).
 type Handler = (req: Request) => Response | Promise<Response>;
 
 const routes: Record<string, () => Promise<{ handle: Handler }>> = {
+  "arbitrage-scanner": () => import("../tasks/arbitrage-scanner/web.js"),
   "audit-log-agent": () => import("../tasks/audit-log-agent/web.js"),
   "batch-executor": () => import("../tasks/batch-executor/web.js"),
   "dapp-support-agent": () => import("../tasks/dapp-support-agent/web.js"),
@@ -15,9 +16,13 @@ const routes: Record<string, () => Promise<{ handle: Handler }>> = {
   "event-log-monitor": () => import("../tasks/event-log-monitor/web.js"),
   "gas-fee-optimizer": () => import("../tasks/gas-fee-optimizer/web.js"),
   "invoice-to-payment-agent": () => import("../tasks/invoice-to-payment-agent/web.js"),
+  "liquidation-watchdog": () => import("../tasks/liquidation-watchdog/web.js"),
+  "multi-protocol-aggregator": () => import("../tasks/multi-protocol-aggregator/web.js"),
   "natural-language-payment-agent": () => import("../tasks/natural-language-payment-agent/web.js"),
   "on-chain-alert-bot": () => import("../tasks/on-chain-alert-bot/web.js"),
+  "portfolio-assistant": () => import("../tasks/portfolio-assistant/web.js"),
   "recurring-payment-agent": () => import("../tasks/recurring-payment-agent/web.js"),
+  "saga-executor": () => import("../tasks/saga-executor/web.js"),
   "skill-chain-mcp-flow": () => import("../tasks/skill-chain-mcp-flow/web.js"),
   "trend-watcher": () => import("../tasks/trend-watcher/web.js"),
   "wallet-risk-checker": () => import("../tasks/wallet-risk-checker/web.js"),
@@ -25,6 +30,7 @@ const routes: Record<string, () => Promise<{ handle: Handler }>> = {
   "whale-watching-agent": () => import("../tasks/whale-watching-agent/web.js"),
   "x402-agent-buyer": () => import("../tasks/x402-agent-buyer/web.js"),
   "x402-paywalled-api": () => import("../tasks/x402-paywalled-api/app.js"),
+  "yield-optimizer": () => import("../tasks/yield-optimizer/web.js"),
 };
 
 async function route(req: Request): Promise<Response> {
