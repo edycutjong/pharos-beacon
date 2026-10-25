@@ -2,6 +2,7 @@
 
 **Task:** [Audit-Log Agent](https://pharos-agent-arena.vercel.app/tasks/audit-log-agent) (Compliance / Security · Medium · 100 pts):
 a plain-language activity report for a wallet over a period, the kind a compliance officer or accountant could read.
+**What is different:** the Chain MCP has no "transactions of this address" call, so the report is checked against the wallet's own nonce, and where logs missed sends a nonce bisection found them (Atlantic 31798000–31808000: logs found 3 of 10 sent transactions, the nonce search the other 7, 55 nonce reads, [`proof/atlantic-sent.json`](proof/atlantic-sent.json)).
 **Run:** `npm run audit-log-agent -- --wallet 0x28ed4a97a21c2264ca352ebbcc6cafff60e89901 --from 2026-10-23 --to 2026-10-23` (keyless, Pharos mainnet, read-only;
 about 5 minutes for a day: 192 `get_logs` windows for the day, about as many again for the previous-period read that the first-time check needs (`--baseline none` skips it), then the transactions; the client paces itself to 100 calls a minute and the hosted Chain MCP allows 120 per IP). `--from-block N --to-block M` pins blocks instead of dates;
 `--network atlantic` reads the testnet; `--format md|csv|both --out dir` writes files; `--compact` prints the report body in at most 62 columns; `--baseline none` skips the
@@ -47,7 +48,7 @@ The Chain MCP has no "transactions of this address" call, so the engine builds i
   same length, which the agent reads by default), the **largest outflow** of each of the three most-sent tokens, and every **unlimited approval**. The third-party wallet's day
   shows 3 first-time counterparties (the swap pools, i.e. the contracts that emitted the Swap events) and 3 unlimited approvals to one spender. That report ([`audit-0x28ed4a-2026-10-23_2026-10-23.md`](proof/reports/audit-0x28ed4a-2026-10-23_2026-10-23.md)) has no largest outflow because the wallet made no plain token transfers out that day; the largest-outflow highlight is shown by the Atlantic report [`audit-0x317bca-31798000-31808000.md`](proof/reports/audit-0x317bca-31798000-31808000.md), which was run with `--baseline none`, so it has no first-time-counterparty check. No single report shows all three highlights.
 - **The nonce check** ("21 of 21" sent transactions found) is a completeness check for what the wallet sent; on our Atlantic wallet the logs alone found 3 of
-  10 sent transactions (the recorded video cast, range 31804700–31806500, prints that line) and the nonce search found the other 7: 55 nonce reads and 7 blocks opened over the 10,001-block proof range, instead of walking every block.
+  10 sent transactions (the recorded video cast, in the shorter range 31804700–31806500, prints that line) and the nonce search found the other 7: 55 nonce reads and 7 blocks opened over the 10,001-block proof range (31798000–31808000), instead of walking every block. Most of that range's 111 USDC outflows are x402 pulls sent by the facilitator, not by this wallet: all 111 transactions have `from` = `0x5b3116cD6B3d0783581D163152A2A14c9CD4DaDF` (checked on Atlantic with `eth_getTransactionByHash`, 2026-10-25), so they never count in the wallet's nonce.
 
 ## Proof
 
