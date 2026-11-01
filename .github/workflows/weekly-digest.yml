@@ -21,13 +21,13 @@ jobs:
     runs-on: ubuntu-latest
     if: vars.DIGEST_WALLET != ''
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .digest-state
           key: digest-state-${{ github.run_id }}
@@ -44,7 +44,7 @@ jobs:
       - name: Publish as the job summary
         if: hashFiles('.digest-out/*.md') != ''
         run: cat .digest-out/*.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: weekly-digest
           path: .digest-out
